@@ -245,7 +245,7 @@
             "title": "Theme:",
             "settingName": "uiTheme",
             "settingType": "enum",
-            "defaultValue": "systemPreferred",
+            "defaultValue": "dark",
             "options": [
                 {
                     "title": "Switch to system preferred color theme",
