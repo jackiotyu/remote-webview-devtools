@@ -12,7 +12,6 @@
     ],
     "dependencies": [
         "components",
-        "emulation",
         "timeline",
         "inspector_main",
         "sdk",

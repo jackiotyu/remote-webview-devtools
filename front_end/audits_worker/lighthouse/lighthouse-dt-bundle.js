@@ -28128,98 +28128,13 @@ const locales={
 'en-US':require('./locales/en-US.json'),
 'en':require('./locales/en-US.json'),
 
-
-'en-AU':require('./locales/en-GB.json'),
-'en-GB':require('./locales/en-GB.json'),
-'en-IE':require('./locales/en-GB.json'),
-'en-SG':require('./locales/en-GB.json'),
-'en-ZA':require('./locales/en-GB.json'),
-'en-IN':require('./locales/en-GB.json'),
-
-
-'ar-XB':require('./locales/ar-XB.json'),
-'ar':require('./locales/ar.json'),
-'bg':require('./locales/bg.json'),
-'bs':require('./locales/hr.json'),
-'ca':require('./locales/ca.json'),
-'cs':require('./locales/cs.json'),
-'da':require('./locales/da.json'),
-'de':require('./locales/de.json'),
-'el':require('./locales/el.json'),
-'en-XA':require('./locales/en-XA.json'),
-'en-XL':require('./locales/en-XL.json'),
-'es':require('./locales/es.json'),
-'es-419':require('./locales/es-419.json'),
-
-'es-AR':require('./locales/es-419.json'),
-'es-BO':require('./locales/es-419.json'),
-'es-BR':require('./locales/es-419.json'),
-'es-BZ':require('./locales/es-419.json'),
-'es-CL':require('./locales/es-419.json'),
-'es-CO':require('./locales/es-419.json'),
-'es-CR':require('./locales/es-419.json'),
-'es-CU':require('./locales/es-419.json'),
-'es-DO':require('./locales/es-419.json'),
-'es-EC':require('./locales/es-419.json'),
-'es-GT':require('./locales/es-419.json'),
-'es-HN':require('./locales/es-419.json'),
-'es-MX':require('./locales/es-419.json'),
-'es-NI':require('./locales/es-419.json'),
-'es-PA':require('./locales/es-419.json'),
-'es-PE':require('./locales/es-419.json'),
-'es-PR':require('./locales/es-419.json'),
-'es-PY':require('./locales/es-419.json'),
-'es-SV':require('./locales/es-419.json'),
-'es-US':require('./locales/es-419.json'),
-'es-UY':require('./locales/es-419.json'),
-'es-VE':require('./locales/es-419.json'),
-
-'fi':require('./locales/fi.json'),
-'fil':require('./locales/fil.json'),
-'fr':require('./locales/fr.json'),
-'he':require('./locales/he.json'),
-'hi':require('./locales/hi.json'),
-'hr':require('./locales/hr.json'),
-'hu':require('./locales/hu.json'),
-'gsw':require('./locales/de.json'),
-'id':require('./locales/id.json'),
-'in':require('./locales/id.json'),
-'it':require('./locales/it.json'),
-'iw':require('./locales/he.json'),
-'ja':require('./locales/ja.json'),
-'ko':require('./locales/ko.json'),
-'ln':require('./locales/fr.json'),
-'lt':require('./locales/lt.json'),
-'lv':require('./locales/lv.json'),
-'mo':require('./locales/ro.json'),
-'nl':require('./locales/nl.json'),
-'nb':require('./locales/no.json'),
-'no':require('./locales/no.json'),
-'pl':require('./locales/pl.json'),
-'pt':require('./locales/pt.json'),
-'pt-PT':require('./locales/pt-PT.json'),
-'ro':require('./locales/ro.json'),
-'ru':require('./locales/ru.json'),
-'sk':require('./locales/sk.json'),
-'sl':require('./locales/sl.json'),
-'sr':require('./locales/sr.json'),
-'sr-Latn':require('./locales/sr-Latn.json'),
-'sv':require('./locales/sv.json'),
-'ta':require('./locales/ta.json'),
-'te':require('./locales/te.json'),
-'th':require('./locales/th.json'),
-'tl':require('./locales/fil.json'),
-'tr':require('./locales/tr.json'),
-'uk':require('./locales/uk.json'),
-'vi':require('./locales/vi.json'),
 'zh':require('./locales/zh.json'),
-'zh-HK':require('./locales/zh-HK.json'),
-'zh-TW':require('./locales/zh-TW.json')};
+};
 
 
 module.exports=locales;
 
-},{"./locales/ar-XB.json":101,"./locales/ar.json":101,"./locales/bg.json":101,"./locales/ca.json":101,"./locales/cs.json":101,"./locales/da.json":101,"./locales/de.json":101,"./locales/el.json":101,"./locales/en-GB.json":101,"./locales/en-US.json":101,"./locales/en-XA.json":101,"./locales/en-XL.json":101,"./locales/es-419.json":101,"./locales/es.json":101,"./locales/fi.json":101,"./locales/fil.json":101,"./locales/fr.json":101,"./locales/he.json":101,"./locales/hi.json":101,"./locales/hr.json":101,"./locales/hu.json":101,"./locales/id.json":101,"./locales/it.json":101,"./locales/ja.json":101,"./locales/ko.json":101,"./locales/lt.json":101,"./locales/lv.json":101,"./locales/nl.json":101,"./locales/no.json":101,"./locales/pl.json":101,"./locales/pt-PT.json":101,"./locales/pt.json":101,"./locales/ro.json":101,"./locales/ru.json":101,"./locales/sk.json":101,"./locales/sl.json":101,"./locales/sr-Latn.json":101,"./locales/sr.json":101,"./locales/sv.json":101,"./locales/ta.json":101,"./locales/te.json":101,"./locales/th.json":101,"./locales/tr.json":101,"./locales/uk.json":101,"./locales/vi.json":101,"./locales/zh-HK.json":101,"./locales/zh-TW.json":101,"./locales/zh.json":101}],68:[function(require,module,exports){
+},{"./locales/en-US.json":101,"./locales/zh.json":101}],68:[function(require,module,exports){
 
 
 
@@ -48297,7 +48212,6 @@ var err=new Error('Unhandled "error" event. ('+er+')');
 err.context=er;
 throw err;
 }
-return false;
 }
 
 handler=events[type];
@@ -52959,16 +52873,6 @@ writeWord(0xFFD9);
 
 return new Buffer(byteout);
 
-var jpegDataUri='data:image/jpeg;base64,'+btoa(byteout.join(''));
-
-byteout=[];
-
-
-var duration=new Date().getTime()-time_start;
-
-
-
-return jpegDataUri;
 };
 
 function setQuality(quality){
