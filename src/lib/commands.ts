@@ -12,8 +12,7 @@ async function trackDevices(context: vscode.ExtensionContext) {
     let pages = await getWebViewPages(config.port);
     let page = await pickWebViewPage(pages);
     if(!page) {return;}
-    console.log(page, 'page');
-    openWebview(context, page.webSocketDebuggerUrl.replace('ws://', ''));
+    openWebview(context, page.webSocketDebuggerUrl, page.title);
     // const tracker = await ADB.trackDevices();
     // tracker.on('add', async (device: Device) => {
     //     console.log('Device %s was plugged in', device.id);
@@ -26,13 +25,13 @@ async function trackDevices(context: vscode.ExtensionContext) {
     // tracker.on('end', () => console.log('Tracking stopped'));
 }
 
-async function openWebview(context: vscode.ExtensionContext, wsLink?: string) {
+async function openWebview(context: vscode.ExtensionContext, wsLink?: string, title?: string) {
     if (!wsLink) {
         wsLink = await vscode.window.showInputBox({
             title: '输入websocket链接',
             placeHolder: '输入websocket链接，例如127.0.0.1:9229/xx',
             validateInput(value) {
-                const ip = value.split(':').shift() || '';
+                const ip = value.replace('ws://', '').split(':').shift() || '';
                 if (ip !== 'localhost' && !net.isIP(ip)) {
                     return '请输入正确的ip链接';
                 }
@@ -43,7 +42,7 @@ async function openWebview(context: vscode.ExtensionContext, wsLink?: string) {
     if (!wsLink) {
         return;
     }
-    new FrontEndWebview(context, { title: 'test webview', ws: wsLink });
+    new FrontEndWebview(context, { title: title || 'webview', ws: wsLink });
 }
 
 export class CommandsManager {

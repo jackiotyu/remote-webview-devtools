@@ -150,7 +150,9 @@ export class InspectorFrontendHostStub {
     if (text === undefined || text === null) {
       return;
     }
-    if (navigator.clipboard) {
+    if(!window.isTop) {
+      window.parent.postMessage({ command: 'copyText', data: text }, '*');
+    } else if (navigator.clipboard) {
       navigator.clipboard.writeText(text);
     } else if (document.queryCommandSupported('copy')) {
       const input = document.createElement('input');

@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { getPort } from './resourceServer';
+import { CDPTunnel } from './tunnel/tunnel';
 
 interface ViewOptions {
     title: string;
@@ -9,38 +10,49 @@ interface ViewOptions {
 const webviewMap = new Map();
 
 function getViewTitle(options: ViewOptions) {
-    return options.title + ' ' + options.ws;
+    return '🚀 ' + options.title;
 }
 
 export class FrontEndWebviewProvider {
     private panel: vscode.WebviewPanel;
-    private context: vscode.ExtensionContext;
     private viewType = 'RemoteWebviewDevtools';
     private options: ViewOptions;
     private title: string;
+    private tunnel: CDPTunnel;
+    private frontEndPath: string;
+    private scriptSrc: string;
     constructor(context: vscode.ExtensionContext, options: ViewOptions) {
         this.title =  getViewTitle(options);
         this.options = options;
-        this.context = context;
+        const resourceUri = vscode.Uri.joinPath(context.extensionUri, 'web');
         this.panel = vscode.window.createWebviewPanel(
             this.viewType,
             this.title,
             vscode.ViewColumn.One,
             {
                 enableScripts: true,
+                localResourceRoots: [
+                    resourceUri,
+                ]
             }
         );
+
+        this.scriptSrc = this.panel.webview.asWebviewUri(vscode.Uri.joinPath(resourceUri, 'index.js')).toString();
+
+        const port = getPort(context);
+        this.frontEndPath = `http://127.0.0.1:${port}/devtools_app.html`;
+        this.tunnel = new CDPTunnel(this.options.ws);
         this.panel.webview.html = this.getWebviewContent();
+
         webviewMap.set(this.title, this.panel);
         this.panel.onDidDispose(() => {
+            this.tunnel.onClose();
             webviewMap.delete(this.title);
         });
     }
 
     getWebviewContent() {
-        const { panel, context } = this;
-        const port = getPort(context);
-        const htmlPath = `http://127.0.0.1:${port}/devtools_app.html`;
+        const { tunnel, panel, frontEndPath, scriptSrc } = this;
 
         return `
             <!DOCTYPE html>
@@ -54,7 +66,7 @@ export class FrontEndWebviewProvider {
                     img-src 'self' data: ${panel.webview.cspSource};
                     style-src 'self' 'unsafe-inline' ${panel.webview.cspSource};
                     script-src 'self' 'unsafe-eval' ${panel.webview.cspSource};
-                    frame-src 'self' ${panel.webview.cspSource} ${htmlPath};
+                    frame-src 'self' ${panel.webview.cspSource} ${frontEndPath};
                     connect-src 'self' data: ${panel.webview.cspSource};
                 ">
                 <title>Cat Coding</title>
@@ -70,9 +82,10 @@ export class FrontEndWebviewProvider {
                     flex: 1;
                 }
                 </style>
+                <script src="${scriptSrc}"></script>
             </head>
             <body>
-                <iframe class="devtools-frame" frameBorder="0" src="${htmlPath}?ws=${this.options.ws}"></iframe>
+                <iframe class="devtools-frame" frameBorder="0" src="${frontEndPath}?ws=${tunnel.link}" allow="clipboard-read; clipboard-write self ${frontEndPath}"></iframe>
             </body>
             </html>
         `;

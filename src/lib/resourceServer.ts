@@ -13,9 +13,9 @@ export function getServer(context: vscode.ExtensionContext): http.Server {
     if (!server) {
         const resourcePath = vscode.Uri.joinPath(context.extensionUri, 'front_end').fsPath;
         const serve = serverStatic(resourcePath, {
-            etag: true,
-            cacheControl: true,
-            maxAge: '1d',
+            etag: false,
+            cacheControl: false,
+            maxAge: 0//'1d',
         });
         server = http.createServer((req, res) => {
             serve(req, res, finalHandler(req, res));
