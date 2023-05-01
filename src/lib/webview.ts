@@ -1,13 +1,14 @@
 import * as vscode from 'vscode';
 import { getPort } from './resourceServer';
 import { CDPTunnel } from './tunnel/tunnel';
+import { isUndefined } from '../utils/index';
 
 interface ViewOptions {
     title: string;
     ws: string;
 }
 
-const webviewMap = new Map();
+const webviewMap = new Map<string, vscode.WebviewPanel>();
 
 function getViewTitle(options: ViewOptions) {
     return '🚀 ' + options.title;
@@ -44,10 +45,10 @@ export class FrontEndWebviewProvider {
         this.tunnel = new CDPTunnel(this.options.ws);
         this.panel.webview.html = this.getWebviewContent();
 
-        webviewMap.set(this.title, this.panel);
+        webviewMap.set(options.ws, this.panel);
         this.panel.onDidDispose(() => {
             this.tunnel.onClose();
-            webviewMap.delete(this.title);
+            webviewMap.delete(options.ws);
         });
     }
 
@@ -94,9 +95,9 @@ export class FrontEndWebviewProvider {
 
 export class FrontEndWebview {
     constructor(context: vscode.ExtensionContext, options: ViewOptions) {
-        const title =getViewTitle(options);
-        if(webviewMap.has(title)) {
-            return webviewMap.get(title);
+        const panel = webviewMap.get(options.ws);
+        if(!isUndefined(panel)) {
+            return panel;
         }
         return new FrontEndWebviewProvider(context, options);
     }
