@@ -7,12 +7,16 @@ import { getWebViewPages } from './adb/bridge';
 import { pickWebViewPage } from './adb/ui';
 
 async function trackDevices(context: vscode.ExtensionContext) {
-    let config = await Execute.run({port: 5555,});
-    if(!config) {return;}
-    let pages = await getWebViewPages(config.port);
-    let page = await pickWebViewPage(pages);
-    if(!page) {return;}
-    openWebview(context, page.webSocketDebuggerUrl, page.title);
+    try {
+        let config = await Execute.run({ port: 5555 });
+        if(!config) {return;}
+        let pages = await getWebViewPages(config.port);
+        let page = await pickWebViewPage(pages);
+        if(!page) {return;}
+        openWebview(context, page.webSocketDebuggerUrl, page.title);
+    } catch (err: any) {
+        vscode.window.showErrorMessage(err.message);
+    }
     // const tracker = await ADB.trackDevices();
     // tracker.on('add', async (device: Device) => {
     //     console.log('Device %s was plugged in', device.id);

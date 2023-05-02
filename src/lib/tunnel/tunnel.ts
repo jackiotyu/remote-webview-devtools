@@ -7,12 +7,11 @@ const server = new WebSocketServer({
 });
 
 export class CDPTunnel {
-    private _server: WebSocketServer;
+    private _server: WebSocketServer = server;
     private _client: WebSocket;
     private _socket?: WebSocket.WebSocket;
     constructor(debuggerLink: string) {
         this._client = new WebSocket(debuggerLink);
-        this._server = server;
         this._server.on('connection', this.onConnect);
         this._server.on('close', this.onClose);
     }
@@ -23,12 +22,21 @@ export class CDPTunnel {
             this._client.close();
         });
         ws.on('message', (data, isBinary) => {
-            // try {
-            //     console.log('server message', JSON.parse(data.toString()));
-            // } catch {}
+            try {
+                // console.log('server message', JSON.parse(data.toString()));
+            } catch {}
             this._client.send(data, { binary: isBinary });
         });
+        // let index = 100;
         this._client.onmessage = (event) => {
+            try {
+                // const data = JSON.parse(event.data.toString());
+                // if(data.method === 'Debugger.scriptParsed') {
+                //     const scriptId = data.params.scriptId;
+                //     this._client.send(JSON.stringify({ id: index++, method: 'Debugger.getScriptSource', params: { scriptId } }));
+                // }
+                // console.log('client message', JSON.parse(event.data.toString()));
+            } catch {}
             ws.send(event.data);
         };
         this._client.onclose = this.onClose;
