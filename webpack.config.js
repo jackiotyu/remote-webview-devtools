@@ -3,7 +3,6 @@
 'use strict';
 
 const path = require('path');
-const nodeExternals = require('webpack-node-externals');
 
 //@ts-check
 /** @typedef {import('webpack').Configuration} WebpackConfig **/
@@ -21,12 +20,11 @@ const extensionConfig = {
     libraryTarget: 'commonjs2'
   },
   externalsPresets: { node: true },
-  externals: [
-    {
-      vscode: 'commonjs vscode'
-    },
-    nodeExternals(),
-  ],
+  externals: {
+    vscode: 'commonjs vscode',
+    'utf-8-validate': 'commonjs utf-8-validate',
+    bufferutil: 'commonjs bufferutil',
+  },
   // externals: {
   //   vscode: 'commonjs vscode' // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
   //   // modules added here also need to be added in the .vscodeignore file

@@ -3,7 +3,7 @@
   "name": "remote-webview-devtools",
   "displayName": "remote webview devtools 远程连接webview devtools",
   "description": "",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -15,18 +15,17 @@
   },
   "icon": "images/icon.png",
   "activationEvents": [
-    "onCommand:remote-webview-devtools.openWebview",
-    "onCommand:remote-webview-devtools.trackDevices"
+    "*"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "remote-webview-devtools.openWebview",
+        "command": "RemoteWebviewDevtools.openWebview",
         "title": "RWD🚀 debug webview by websocket"
       },
       {
-        "command": "remote-webview-devtools.trackDevices",
+        "command": "RemoteWebviewDevtools.trackDevices",
         "title": "RWD🚀 adb connect webview debug"
       }
     ]
@@ -58,8 +57,7 @@
     "ts-loader": "^9.4.2",
     "typescript": "^5.0.4",
     "webpack": "^5.81.0",
-    "webpack-cli": "^5.0.2",
-    "webpack-node-externals": "^3.0.0"
+    "webpack-cli": "^5.0.2"
   },
   "dependencies": {
     "@devicefarmer/adbkit": "^3.2.4",
