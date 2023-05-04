@@ -26,7 +26,25 @@
         "command": "RemoteWebviewDevtools.trackDevices",
         "title": "RWD🚀 adb connect webview debug"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "WebviewDevtoolsExplorer",
+          "title": "webview devtools",
+          "icon": "$(compass)"
+        }
+      ]
+    },
+    "views": {
+      "WebviewDevtoolsExplorer": [
+        {
+          "id": "RWD.adbView",
+          "name": "adb remote webview",
+          "icon": "$(window)"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "yarn run package",

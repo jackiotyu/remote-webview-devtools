@@ -11,7 +11,7 @@ interface ViewOptions {
 const webviewMap = new Map<string, vscode.WebviewPanel>();
 
 function getViewTitle(options: ViewOptions) {
-    return '🚀 ' + options.title;
+    return options.title;
 }
 
 export class FrontEndWebviewProvider {
@@ -32,11 +32,13 @@ export class FrontEndWebviewProvider {
             vscode.ViewColumn.One,
             {
                 enableScripts: true,
+                enableFindWidget: true,
                 localResourceRoots: [
                     resourceUri,
                 ]
             }
         );
+        this.panel.iconPath = vscode.Uri.joinPath(context.extensionUri, 'images/icon.png');
 
         this.scriptSrc = this.panel.webview.asWebviewUri(vscode.Uri.joinPath(resourceUri, 'index.js')).toString();
 
