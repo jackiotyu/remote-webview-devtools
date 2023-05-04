@@ -1,6 +1,7 @@
 {
+  "publisher": "jackiotyu",
   "name": "remote-webview-devtools",
-  "displayName": "remote-webview-devtools",
+  "displayName": "remote webview devtools 远程连接webview devtools",
   "description": "",
   "version": "0.0.1",
   "engines": {
