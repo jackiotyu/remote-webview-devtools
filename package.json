@@ -46,7 +46,7 @@
       "activitybar": [
         {
           "id": "WebviewDevtoolsExplorer",
-          "title": "webview devtools",
+          "title": "webview调试",
           "icon": "images/icon.svg"
         }
       ]
@@ -55,7 +55,7 @@
       "WebviewDevtoolsExplorer": [
         {
           "id": "RWD.adbView",
-          "name": "adb remote webview",
+          "name": "adb连接webView",
           "icon": "$(window)"
         }
       ]
@@ -66,20 +66,6 @@
           "command": "RemoteWebviewDevtools.refreshAdbDevices",
           "when": "view == RWD.adbView",
           "group": "navigation"
-        }
-      ],
-      "view/item/context": [
-        {
-          "command": "RemoteWebviewDevtools.refreshWebViews",
-          "when": "viewItem == RWD.adbDevices",
-          "group": "inline@1",
-          "submenu": "refresh"
-        },
-        {
-          "command": "RemoteWebviewDevtools.refreshPages",
-          "when": "viewItem == RWD.webViews",
-          "group": "inline@1",
-          "submenu": "refresh"
         }
       ]
     },
