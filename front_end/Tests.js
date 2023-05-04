@@ -866,7 +866,7 @@
   // See crbug.com/747724
   TestSuite.prototype.testOfflineNetworkConditions = async function() {
     const test = this;
-    SDK.multitargetNetworkManager.setNetworkConditions(SDK.NetworkManager.OfflineConditions);
+    self.SDK.multitargetNetworkManager.setNetworkConditions(SDK.NetworkManager.OfflineConditions);
 
     function finishRequest(request) {
       test.assertEquals(
@@ -899,7 +899,7 @@
       }
 
       self.SDK.consoleModel.addEventListener(SDK.ConsoleModel.Events.MessageAdded, onConsoleMessage, this);
-      SDK.multitargetNetworkManager.setNetworkConditions(preset);
+      self.SDK.multitargetNetworkManager.setNetworkConditions(preset);
     }
 
     test.takeControl();
@@ -1448,7 +1448,7 @@
     this.takeControl();
 
     const testUserAgent = 'test user agent';
-    SDK.multitargetNetworkManager.setUserAgentOverride(testUserAgent);
+    self.SDK.multitargetNetworkManager.setUserAgentOverride(testUserAgent);
 
     function onRequestUpdated(event) {
       const request = event.data;
@@ -1511,7 +1511,7 @@
  */
   TestSuite.prototype.evaluateInConsole_ = function(code, callback) {
     function innerEvaluate() {
-      UI.context.removeFlavorChangeListener(SDK.ExecutionContext, showConsoleAndEvaluate, this);
+      self.UI.context.removeFlavorChangeListener(SDK.ExecutionContext, showConsoleAndEvaluate, this);
       const consoleView = Console.ConsoleView.instance();
       consoleView._prompt._appendCommand(code);
 
@@ -1524,8 +1524,8 @@
       self.Common.console.showPromise().then(innerEvaluate.bind(this));
     }
 
-    if (!UI.context.flavor(SDK.ExecutionContext)) {
-      UI.context.addFlavorChangeListener(SDK.ExecutionContext, showConsoleAndEvaluate, this);
+    if (!self.UI.context.flavor(SDK.ExecutionContext)) {
+      self.UI.context.addFlavorChangeListener(SDK.ExecutionContext, showConsoleAndEvaluate, this);
       return;
     }
     showConsoleAndEvaluate.call(this);

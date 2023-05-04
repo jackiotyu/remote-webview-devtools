@@ -27,6 +27,13 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* the long term goal here is to remove all functions in this file and
+ * replace them with ES Module functions rather than prototype
+ * extensions but in the mean time if an old func in here depends on one
+ * that has been migrated it will need to be imported
+ */
+import * as StringUtilities from './string-utilities.js';
+
 /**
  * @param {number} m
  * @param {number} n
@@ -86,30 +93,6 @@ String.prototype.computeLineEndings = function() {
  * @param {string} chars
  * @return {string}
  */
-String.prototype.escapeCharacters = function(chars) {
-  let foundChar = false;
-  for (let i = 0; i < chars.length; ++i) {
-    if (this.indexOf(chars.charAt(i)) !== -1) {
-      foundChar = true;
-      break;
-    }
-  }
-
-  if (!foundChar) {
-    return String(this);
-  }
-
-  let result = '';
-  for (let i = 0; i < this.length; ++i) {
-    if (chars.indexOf(this.charAt(i)) !== -1) {
-      result += '\\';
-    }
-    result += this.charAt(i);
-  }
-
-  return result;
-};
-
 /**
  * @return {string}
  */
@@ -118,10 +101,11 @@ String.regexSpecialCharacters = function() {
 };
 
 /**
+ * @this {string}
  * @return {string}
  */
 String.prototype.escapeForRegExp = function() {
-  return this.escapeCharacters(String.regexSpecialCharacters());
+  return StringUtilities.escapeCharacters(this, String.regexSpecialCharacters());
 };
 
 /**
@@ -142,54 +126,6 @@ String.filterRegex = function(query) {
     regexString += c;
   }
   return new RegExp(regexString, 'i');
-};
-
-/**
-  * @param {string} text
-  * @return {string}
-  */
-String.escapeInvalidUnicodeCharacters = function(text) {
-  // Escape lone surrogates and non-characters.
-  // https://unicode.org/faq/private_use.html#nonchar1
-  const reInvalid =
-      /[\p{Surrogate}\uFDD0-\uFDEF\uFFFE\uFFFF\u{1FFFE}\u{1FFFF}\u{2FFFE}\u{2FFFF}\u{3FFFE}\u{3FFFF}\u{4FFFE}\u{4FFFF}\u{5FFFE}\u{5FFFF}\u{6FFFE}\u{6FFFF}\u{7FFFE}\u{7FFFF}\u{8FFFE}\u{8FFFF}\u{9FFFE}\u{9FFFF}\u{AFFFE}\u{AFFFF}\u{BFFFE}\u{BFFFF}\u{CFFFE}\u{CFFFF}\u{DFFFE}\u{DFFFF}\u{EFFFE}\u{EFFFF}\u{FFFFE}\u{FFFFF}\u{10FFFE}\u{10FFFF}]/gu;
-  let result = '';
-  let lastPos = 0;
-  while (true) {
-    const match = reInvalid.exec(text);
-    if (!match) {
-      break;
-    }
-    result += text.substring(lastPos, match.index) + '\\u' + text.charCodeAt(match.index).toString(16);
-    if (match.index + 1 < reInvalid.lastIndex) {
-      result += '\\u' + text.charCodeAt(match.index + 1).toString(16);
-    }
-    lastPos = reInvalid.lastIndex;
-  }
-  return result + text.substring(lastPos);
-};
-
-/**
- * @return {string}
- */
-String.prototype.escapeHTML = function() {
-  return this.replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');  // " doublequotes just for editor
-};
-
-/**
- * @return {string}
- */
-String.prototype.unescapeHTML = function() {
-  return this.replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&#58;/g, ':')
-      .replace(/&quot;/g, '"')
-      .replace(/&#60;/g, '<')
-      .replace(/&#62;/g, '>')
-      .replace(/&amp;/g, '&');
 };
 
 /**
@@ -1015,24 +951,6 @@ self.createPlainTextSearchRegex = function(query, flags) {
 };
 
 /**
- * @param {!RegExp} regex
- * @param {string} content
- * @return {number}
- */
-self.countRegexMatches = function(regex, content) {
-  let text = content;
-  let result = 0;
-  let match;
-  while (text && (match = regex.exec(text))) {
-    if (match[0].length > 0) {
-      ++result;
-    }
-    text = text.substring(match.index + 1);
-  }
-  return result;
-};
-
-/**
  * @param {number} spacesCount
  * @return {string}
  */
@@ -1049,14 +967,6 @@ self.numberToStringWithSpacesPadding = function(value, symbolsCount) {
   const numberString = value.toString();
   const paddingLength = Math.max(0, symbolsCount - numberString.length);
   return self.spacesPadding(paddingLength) + numberString;
-};
-
-/**
- * @return {!Array.<T>}
- * @template T
- */
-Set.prototype.valuesArray = function() {
-  return Array.from(this.values());
 };
 
 /**
@@ -1081,20 +991,6 @@ Set.prototype.addAll = function(iterable) {
 };
 
 /**
- * @param {!Iterable<T>|!Array<!T>} iterable
- * @return {boolean}
- * @template T
- */
-Set.prototype.containsAll = function(iterable) {
-  for (const e of iterable) {
-    if (!this.has(e)) {
-      return false;
-    }
-  }
-  return true;
-};
-
-/**
  * @return {T}
  * @template T
  */
@@ -1102,20 +998,6 @@ Map.prototype.remove = function(key) {
   const value = this.get(key);
   this.delete(key);
   return value;
-};
-
-/**
- * @return {!Array<!VALUE>}
- */
-Map.prototype.valuesArray = function() {
-  return Array.from(this.values());
-};
-
-/**
- * @return {!Array<!KEY>}
- */
-Map.prototype.keysArray = function() {
-  return Array.from(this.keys());
 };
 
 /**
@@ -1216,7 +1098,7 @@ const Multimap = class {
    * @return {!Array.<K>}
    */
   keysArray() {
-    return this._map.keysArray();
+    return [...this._map.keys()];
   }
 
   /**
@@ -1224,9 +1106,8 @@ const Multimap = class {
    */
   valuesArray() {
     const result = [];
-    const keys = this.keysArray();
-    for (let i = 0; i < keys.length; ++i) {
-      result.push(...this.get(keys[i]).valuesArray());
+    for (const set of this._map.values()) {
+      result.push(...set.values());
     }
     return result;
   }
@@ -1281,19 +1162,6 @@ self.setImmediate = function(callback) {
 };
 
 /**
- * @param {function(...?)} callback
- * @return {!Promise.<T>}
- * @template T
- */
-Promise.prototype.spread = function(callback) {
-  return this.then(spreadPromise);
-
-  function spreadPromise(arg) {
-    return callback.apply(null, arg);
-  }
-};
-
-/**
  * @param {T} defaultValue
  * @return {!Promise.<T>}
  * @template T
@@ -1303,51 +1171,6 @@ Promise.prototype.catchException = function(defaultValue) {
     console.error(error);
     return defaultValue;
   });
-};
-
-/**
- * @param {!Map<number, ?>} other
- * @param {function(!VALUE,?):boolean} isEqual
- * @return {!{removed: !Array<!VALUE>, added: !Array<?>, equal: !Array<!VALUE>}}
- * @this {Map<number, VALUE>}
- */
-Map.prototype.diff = function(other, isEqual) {
-  const leftKeys = this.keysArray();
-  const rightKeys = other.keysArray();
-  leftKeys.sort((a, b) => a - b);
-  rightKeys.sort((a, b) => a - b);
-
-  const removed = [];
-  const added = [];
-  const equal = [];
-  let leftIndex = 0;
-  let rightIndex = 0;
-  while (leftIndex < leftKeys.length && rightIndex < rightKeys.length) {
-    const leftKey = leftKeys[leftIndex];
-    const rightKey = rightKeys[rightIndex];
-    if (leftKey === rightKey && isEqual(this.get(leftKey), other.get(rightKey))) {
-      equal.push(this.get(leftKey));
-      ++leftIndex;
-      ++rightIndex;
-      continue;
-    }
-    if (leftKey <= rightKey) {
-      removed.push(this.get(leftKey));
-      ++leftIndex;
-      continue;
-    }
-    added.push(other.get(rightKey));
-    ++rightIndex;
-  }
-  while (leftIndex < leftKeys.length) {
-    const leftKey = leftKeys[leftIndex++];
-    removed.push(this.get(leftKey));
-  }
-  while (rightIndex < rightKeys.length) {
-    const rightKey = rightKeys[rightIndex++];
-    added.push(other.get(rightKey));
-  }
-  return {added: added, removed: removed, equal: equal};
 };
 
 /**

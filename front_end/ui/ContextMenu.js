@@ -28,7 +28,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import * as Common from '../common/common.js';  // eslint-disable-line no-unused-vars
 import * as Host from '../host/host.js';
+
 import {SoftContextMenu} from './SoftContextMenu.js';
 
 /**
@@ -163,7 +165,7 @@ export class Section {
    * @param {boolean=} optional
    */
   appendAction(actionId, label, optional) {
-    const action = UI.actionRegistry.action(actionId);
+    const action = self.UI.actionRegistry.action(actionId);
     if (!action) {
       if (!optional) {
         console.error(`Action ${actionId} was not defined`);
@@ -174,7 +176,7 @@ export class Section {
       label = action.title();
     }
     const result = this.appendItem(label, action.execute.bind(action));
-    const shortcut = UI.shortcutRegistry.shortcutTitleForAction(actionId);
+    const shortcut = self.UI.shortcutRegistry.shortcutTitleForAction(actionId);
     if (shortcut) {
       result.setShortcut(shortcut);
     }
@@ -394,7 +396,7 @@ export class ContextMenu extends SubMenu {
     Host.InspectorFrontendHost.InspectorFrontendHostInstance.events.addEventListener(
         Host.InspectorFrontendHostAPI.Events.SetUseSoftMenu, setUseSoftMenu);
     /**
-     * @param {!Common.Event} event
+     * @param {!Common.EventTarget.EventTargetEvent} event
      */
     function setUseSoftMenu(event) {
       ContextMenu._useSoftMenu = /** @type {boolean} */ (event.data);
@@ -518,7 +520,7 @@ export class ContextMenu extends SubMenu {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _onItemSelected(event) {
     this._itemSelected(/** @type {string} */ (event.data));

@@ -528,7 +528,7 @@ export class DOMNode {
   }
 
   /**
-   * @return {!Array<!SDK.DOMNode.Attribute>}
+   * @return {!Array<!Attribute>}
    */
   attributes() {
     return this._attributes;
@@ -713,7 +713,7 @@ export class DOMNode {
   /**
    * @param {!DOMNode} prev
    * @param {!Protocol.DOM.Node} payload
-   * @return {!SDK.DOMNode}
+   * @return {!DOMNode}
    */
   _insertChild(prev, payload) {
     const node = DOMNode.create(this._domModel, this.ownerDocument, this._isInShadowTree, payload);
@@ -839,7 +839,7 @@ export class DOMNode {
 
   /**
    * @param {!DOMNode} targetNode
-   * @param {?SDK.DOMNode} anchorNode
+   * @param {?DOMNode} anchorNode
    * @param {function(?ProtocolModule.InspectorBackend.ProtocolError, !Protocol.DOM.NodeId=)=} callback
    */
   copyTo(targetNode, anchorNode, callback) {
@@ -858,7 +858,7 @@ export class DOMNode {
 
   /**
    * @param {!DOMNode} targetNode
-   * @param {?SDK.DOMNode} anchorNode
+   * @param {?DOMNode} anchorNode
    * @param {function(?ProtocolModule.InspectorBackend.ProtocolError, ?SDK.DOMNode)=} callback
    */
   moveTo(targetNode, anchorNode, callback) {
@@ -993,6 +993,9 @@ export class DOMNode {
 
   setAsInspectedNode() {
     let node = this;
+    if (node.pseudoType()) {
+      node = node.parentNode;
+    }
     while (true) {
       let ancestor = node.ancestorUserAgentShadowRoot();
       if (!ancestor) {
@@ -1352,7 +1355,7 @@ export class DOMModel extends SDKModel {
    */
   async pushNodesByBackendIdsToFrontend(backendNodeIds) {
     await this.requestDocument();
-    const backendNodeIdsArray = backendNodeIds.valuesArray();
+    const backendNodeIdsArray = [...backendNodeIds];
     const nodeIds = await this._agent.pushNodesByBackendIdsToFrontend(backendNodeIdsArray);
     if (!nodeIds) {
       return null;
@@ -1485,7 +1488,7 @@ export class DOMModel extends SDKModel {
     } else {
       this._document = null;
     }
-    SDK.domModelUndoStack._dispose(this);
+    self.SDK.domModelUndoStack._dispose(this);
 
     if (!this.parentModel()) {
       this.dispatchEventToListeners(Events.DocumentUpdated, this);
@@ -1725,7 +1728,7 @@ export class DOMModel extends SDKModel {
    * @param {boolean=} minorChange
    */
   markUndoableState(minorChange) {
-    SDK.domModelUndoStack._markUndoableState(this, minorChange || false);
+    self.SDK.domModelUndoStack._markUndoableState(this, minorChange || false);
   }
 
   /**
@@ -1770,7 +1773,7 @@ export class DOMModel extends SDKModel {
    * @override
    */
   dispose() {
-    SDK.domModelUndoStack._dispose(this);
+    self.SDK.domModelUndoStack._dispose(this);
   }
 
   /**
@@ -2017,3 +2020,6 @@ export class DOMModelUndoStack {
 }
 
 SDKModel.register(DOMModel, Capability.DOM, true);
+
+/** @typedef {{name: string, value: string, _node: DOMNode}} */
+export let Attribute;

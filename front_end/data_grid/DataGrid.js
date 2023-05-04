@@ -23,19 +23,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import * as Common from '../common/common.js';
+import * as UI from '../ui/ui.js';
+
 /**
  * @unrestricted
  * @template NODE_TYPE
  */
-export class DataGridImpl extends Common.Object {
+export class DataGridImpl extends Common.ObjectWrapper.ObjectWrapper {
   /**
-   * @param {!DataGrid.Parameters} dataGridParameters
+   * @param {!Parameters} dataGridParameters
    */
   constructor(dataGridParameters) {
     super();
     const {displayName, columns: columnsArray, editCallback, deleteCallback, refreshCallback} = dataGridParameters;
     this.element = createElementWithClass('div', 'data-grid');
-    UI.appendStyle(this.element, 'data_grid/dataGrid.css');
+    UI.Utils.appendStyle(this.element, 'data_grid/dataGrid.css');
     this.element.tabIndex = 0;
     this.element.addEventListener('keydown', this._keyDown.bind(this), false);
     this.element.addEventListener('contextmenu', this._contextMenu.bind(this), true);
@@ -69,7 +72,7 @@ export class DataGridImpl extends Common.Object {
 
     /** @type {!Element} */
     this._ariaLiveLabel = this.element.createChild('div', 'aria-live-label');
-    UI.ARIAUtils.markAsPoliteLiveRegion(this._ariaLiveLabel);
+    UI.ARIAUtils.markAsPoliteLiveRegion(this._ariaLiveLabel, false);
 
     // FIXME: Add a createCallback which is different from editCallback and has different
     // behavior when creating a new node.
@@ -82,11 +85,11 @@ export class DataGridImpl extends Common.Object {
     /** @type {boolean} */
     this._inline = false;
 
-    /** @type {!Array.<!DataGrid.ColumnDescriptor>} */
+    /** @type {!Array.<!ColumnDescriptor>} */
     this._columnsArray = [];
-    /** @type {!Object.<string, !DataGrid.ColumnDescriptor>} */
+    /** @type {!Object.<string, !ColumnDescriptor>} */
     this._columns = {};
-    /** @type {!Array.<!DataGrid.ColumnDescriptor>} */
+    /** @type {!Array.<!ColumnDescriptor>} */
     this.visibleColumnsArray = columnsArray;
 
     columnsArray.forEach(column => this._innerAddColumn(column));
@@ -137,9 +140,9 @@ export class DataGridImpl extends Common.Object {
     /** @type {!ResizeMethod} */
     this._resizeMethod = ResizeMethod.Nearest;
 
-    /** @type {?function(!UI.ContextSubMenu)} */
+    /** @type {?function(!UI.ContextMenu.SubMenu)} */
     this._headerContextMenuCallback = null;
-    /** @type {?function(!UI.ContextMenu, !NODE_TYPE)} */
+    /** @type {?function(!UI.ContextMenu.ContextMenu, !NODE_TYPE)} */
     this._rowContextMenuCallback = null;
   }
 
@@ -224,6 +227,9 @@ export class DataGridImpl extends Common.Object {
    */
   setFocusable(focusable) {
     this.element.tabIndex = focusable ? 0 : -1;
+    if (focusable === false) {
+      UI.ARIAUtils.removeRole(this.element);
+    }
   }
 
   /**
@@ -269,10 +275,12 @@ export class DataGridImpl extends Common.Object {
   }
 
   /**
-   * @param {!DataGrid.ColumnDescriptor} column
+   * @param {!ColumnDescriptor} column
    * @param {number=} position
    */
   _innerAddColumn(column, position) {
+    column.defaultWeight = column.weight;
+
     const columnId = column.id;
     if (columnId in this._columns) {
       this._innerRemoveColumn(columnId);
@@ -309,14 +317,14 @@ export class DataGridImpl extends Common.Object {
     if (column.sortable) {
       cell.addEventListener('click', this._clickInHeaderCell.bind(this), false);
       cell.classList.add('sortable');
-      const icon = UI.Icon.create('', 'sort-order-icon');
+      const icon = UI.Icon.Icon.create('', 'sort-order-icon');
       cell.createChild('div', 'sort-order-icon-container').appendChild(icon);
       cell[DataGrid._sortIconSymbol] = icon;
     }
   }
 
   /**
-   * @param {!DataGrid.ColumnDescriptor} column
+   * @param {!ColumnDescriptor} column
    * @param {number=} position
    */
   addColumn(column, position) {
@@ -461,8 +469,8 @@ export class DataGridImpl extends Common.Object {
     }
     const column = this.visibleColumnsArray[cellIndex];
     if (column.dataType === DataGrid.DataGrid.DataType.Boolean) {
-      const checkboxLabel = UI.CheckboxLabel.create(undefined, /** @type {boolean} */ (node.data[column.id]));
-      UI.ARIAUtils.setAccessibleName(checkboxLabel, column.title);
+      const checkboxLabel = UI.UIUtils.CheckboxLabel.create(undefined, /** @type {boolean} */ (node.data[column.id]));
+      UI.ARIAUtils.setAccessibleName(checkboxLabel, column.title || '');
 
       let hasChanged = false;
       checkboxLabel.style.height = '100%';
@@ -502,7 +510,7 @@ export class DataGridImpl extends Common.Object {
       element.appendChild(checkboxLabel);
       checkboxElement.focus();
     } else {
-      UI.InplaceEditor.startEditing(element, this._startEditingConfig(element));
+      UI.InplaceEditor.InplaceEditor.startEditing(element, this._startEditingConfig(element));
       element.getComponentSelection().selectAllChildren(element);
     }
   }
@@ -873,6 +881,15 @@ export class DataGridImpl extends Common.Object {
     this._loadColumnWeights();
   }
 
+  _resetColumnWeights() {
+    for (let i = 0; i < this._columnsArray.length; ++i) {
+      const column = this._columnsArray[i];
+      column.weight = column.defaultWeight;
+    }
+    this._applyColumnWeights();
+    this._saveColumnWeights();
+  }
+
   _loadColumnWeights() {
     if (!this._columnWeightsSetting) {
       return;
@@ -996,7 +1013,7 @@ export class DataGridImpl extends Common.Object {
         resizer.__index = i;
         resizer.classList.add('data-grid-resizer');
         // This resizer is associated with the column to its right.
-        UI.installDragHandle(
+        UI.UIUtils.installDragHandle(
             resizer, this._startResizerDragging.bind(this), this._resizerDragging.bind(this),
             this._endResizerDragging.bind(this), 'col-resize');
         this.element.appendChild(resizer);
@@ -1027,7 +1044,7 @@ export class DataGridImpl extends Common.Object {
    * @suppressGlobalPropertiesCheck
    */
   _keyDown(event) {
-    if (event.shiftKey || event.metaKey || event.ctrlKey || this._editing || UI.isEditing()) {
+    if (event.shiftKey || event.metaKey || event.ctrlKey || this._editing || UI.UIUtils.isEditing()) {
       return;
     }
 
@@ -1261,14 +1278,14 @@ export class DataGridImpl extends Common.Object {
   }
 
   /**
-   * @param {?function(!UI.ContextSubMenu)} callback
+   * @param {?function(!UI.ContextMenu.SubMenu)} callback
    */
   setHeaderContextMenuCallback(callback) {
     this._headerContextMenuCallback = callback;
   }
 
   /**
-   * @param {?function(!UI.ContextMenu, !NODE_TYPE)} callback
+   * @param {?function(!UI.ContextMenu.ContextMenu, !NODE_TYPE)} callback
    */
   setRowContextMenuCallback(callback) {
     this._rowContextMenuCallback = callback;
@@ -1278,7 +1295,7 @@ export class DataGridImpl extends Common.Object {
    * @param {!Event} event
    */
   _contextMenu(event) {
-    const contextMenu = new UI.ContextMenu(event);
+    const contextMenu = new UI.ContextMenu.ContextMenu(event);
     const target = /** @type {!Node} */ (event.target);
 
     const sortableVisibleColumns = this.visibleColumnsArray.filter(column => {
@@ -1298,16 +1315,22 @@ export class DataGridImpl extends Common.Object {
       }
     }
 
-    if (this._headerContextMenuCallback) {
-      if (target.isSelfOrDescendant(this._headerTableBody)) {
+    if (target.isSelfOrDescendant(this._headerTableBody)) {
+      if (this._headerContextMenuCallback) {
         this._headerContextMenuCallback(contextMenu);
-        contextMenu.show();
-        return;
-      } else {
-        // Add header context menu to a subsection available from the body
-        const headerSubMenu = contextMenu.defaultSection().appendSubMenuItem(ls`Header Options`);
+      }
+      contextMenu.defaultSection().appendItem(
+          Common.UIString.UIString('Reset Columns'), this._resetColumnWeights.bind(this));
+      contextMenu.show();
+      return;
+    } else {
+      // Add header context menu to a subsection available from the body
+      const headerSubMenu = contextMenu.defaultSection().appendSubMenuItem(ls`Header Options`);
+      if (this._headerContextMenuCallback) {
         this._headerContextMenuCallback(headerSubMenu);
       }
+      headerSubMenu.defaultSection().appendItem(
+          Common.UIString.UIString('Reset Columns'), this._resetColumnWeights.bind(this));
     }
 
     const isContextMenuKey = (event.button === 0);
@@ -1322,13 +1345,14 @@ export class DataGridImpl extends Common.Object {
       }
     }
     if (this._refreshCallback && (!gridNode || gridNode !== this.creationNode)) {
-      contextMenu.defaultSection().appendItem(Common.UIString('Refresh'), this._refreshCallback.bind(this));
+      contextMenu.defaultSection().appendItem(Common.UIString.UIString('Refresh'), this._refreshCallback.bind(this));
     }
 
     if (gridNode && gridNode.selectable && !gridNode.isEventWithinDisclosureTriangle(event)) {
       if (this._editCallback) {
         if (gridNode === this.creationNode) {
-          contextMenu.defaultSection().appendItem(Common.UIString('Add new'), this._startEditing.bind(this, target));
+          contextMenu.defaultSection().appendItem(
+              Common.UIString.UIString('Add new'), this._startEditing.bind(this, target));
         } else if (isContextMenuKey) {
           const firstEditColumnIndex = this._nextEditableColumn(-1);
           if (firstEditColumnIndex > -1) {
@@ -1343,12 +1367,14 @@ export class DataGridImpl extends Common.Object {
           const columnId = this.columnIdFromNode(target);
           if (columnId && this._columns[columnId].editable) {
             contextMenu.defaultSection().appendItem(
-                Common.UIString('Edit "%s"', this._columns[columnId].title), this._startEditing.bind(this, target));
+                Common.UIString.UIString('Edit "%s"', this._columns[columnId].title),
+                this._startEditing.bind(this, target));
           }
         }
       }
       if (this._deleteCallback && gridNode !== this.creationNode) {
-        contextMenu.defaultSection().appendItem(Common.UIString('Delete'), this._deleteCallback.bind(this, gridNode));
+        contextMenu.defaultSection().appendItem(
+            Common.UIString.UIString('Delete'), this._deleteCallback.bind(this, gridNode));
       }
       if (this._rowContextMenuCallback) {
         this._rowContextMenuCallback(contextMenu, gridNode);
@@ -1554,7 +1580,7 @@ export const ResizeMethod = {
  * @unrestricted
  * @template NODE_TYPE
  */
-export class DataGridNode extends Common.Object {
+export class DataGridNode extends Common.ObjectWrapper.ObjectWrapper {
   /**
    * @param {?Object.<string, *>=} data
    * @param {boolean=} hasChildren
@@ -2449,7 +2475,7 @@ export class CreationDataGridNode extends DataGridNode {
 /**
  * @unrestricted
  */
-export class DataGridWidget extends UI.VBox {
+export class DataGridWidget extends UI.Widget.VBox {
   /**
    * @param {!DataGridImpl} dataGrid
    */
@@ -2499,3 +2525,34 @@ export class DataGridWidget extends UI.VBox {
     this._dataGrids = [];
   }
 }
+
+/**
+ * @typedef {{
+ *   displayName: string,
+ *   columns: !Array.<!ColumnDescriptor>,
+ *   editCallback: (function(!Object, string, *, *)|undefined),
+ *   deleteCallback: (function(!Object)|undefined|function(string)),
+ *   refreshCallback: (function()|undefined)
+ * }}
+ */
+export let Parameters;
+
+/**
+ * @typedef {{
+ *   id: string,
+ *   title: (string|undefined),
+ *   titleDOMFragment: (?DocumentFragment|undefined),
+ *   sortable: boolean,
+ *   sort: (?Order|undefined),
+ *   align: (?Align|undefined),
+ *   fixedWidth: (boolean|undefined),
+ *   editable: (boolean|undefined),
+ *   nonSelectable: (boolean|undefined),
+ *   longText: (boolean|undefined),
+ *   disclosure: (boolean|undefined),
+ *   weight: (number|undefined),
+ *   allowInSortByEvenWhenHidden: (boolean|undefined),
+ *   dataType: (?DataType|undefined)
+ * }}
+ */
+export let ColumnDescriptor;

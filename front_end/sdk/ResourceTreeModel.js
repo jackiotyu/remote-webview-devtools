@@ -86,9 +86,9 @@ export class ResourceTreeModel extends SDKModel {
    * @return {!Array.<!ResourceTreeFrame>}
    */
   static frames() {
-    let result = [];
+    const result = [];
     for (const resourceTreeModel of self.SDK.targetManager.models(ResourceTreeModel)) {
-      result = result.concat(resourceTreeModel._frames.valuesArray());
+      result.push(...resourceTreeModel._frames.values());
     }
     return result;
   }
@@ -259,7 +259,7 @@ export class ResourceTreeModel extends SDKModel {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _onRequestFinished(event) {
     if (!this._cachedResourcesProcessed) {
@@ -278,7 +278,7 @@ export class ResourceTreeModel extends SDKModel {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _onRequestUpdateDropped(event) {
     if (!this._cachedResourcesProcessed) {
@@ -325,7 +325,7 @@ export class ResourceTreeModel extends SDKModel {
    * @return {!Array<!ResourceTreeFrame>}
    */
   frames() {
-    return this._frames.valuesArray();
+    return [...this._frames.values()];
   }
 
   /**
@@ -452,11 +452,11 @@ export class ResourceTreeModel extends SDKModel {
   }
 
   /**
-   * @return {!Promise<!Array<string>>}
+   * @return {!Promise<!Array<!Protocol.Page.InstallabilityError>>}
    */
   async getInstallabilityErrors() {
     const response = await this._agent.invoke_getInstallabilityErrors({});
-    return response.errors || [];
+    return response.installabilityErrors || [];
   }
 
   /**
@@ -469,7 +469,7 @@ export class ResourceTreeModel extends SDKModel {
 
   /**
    * @param {!ExecutionContext} a
-   * @param {!SDK.ExecutionContext} b
+   * @param {!ExecutionContext} b
    * @return {number}
    */
   _executionContextComparator(a, b) {
@@ -518,7 +518,7 @@ export class ResourceTreeModel extends SDKModel {
   }
 
   /**
-   * @return {!SDK.ResourceTreeModel.SecurityOriginData}
+   * @return {!SecurityOriginData}
    */
   _getSecurityOriginData() {
     /** @type {!Set<string>} */
@@ -1086,3 +1086,12 @@ export class PageDispatcher {
 }
 
 SDKModel.register(ResourceTreeModel, Capability.DOM, true);
+
+/**
+ * @typedef {{
+  *      securityOrigins: !Set<string>,
+  *      mainSecurityOrigin: ?string,
+  *      unreachableMainSecurityOrigin: ?string
+  * }}
+  */
+export let SecurityOriginData;

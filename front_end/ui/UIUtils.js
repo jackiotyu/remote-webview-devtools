@@ -29,9 +29,11 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 import * as Common from '../common/common.js';
 import * as Host from '../host/host.js';
 
+import * as ARIAUtils from './ARIAUtils.js';
 import {Dialog} from './Dialog.js';
 import {Size} from './Geometry.js';
 import {GlassPane, PointerEventsBehavior, SizeBehavior} from './GlassPane.js';
@@ -1059,14 +1061,11 @@ class InvokeOnceHandlers {
   }
 
   _invoke() {
-    const handlers = this._handlers;
+    const handlers = this._handlers || new Map();  // Make closure happy. This should not be null.
     this._handlers = null;
-    const keys = handlers.keysArray();
-    for (let i = 0; i < keys.length; ++i) {
-      const object = keys[i];
-      const methods = handlers.get(object).valuesArray();
-      for (let j = 0; j < methods.length; ++j) {
-        methods[j].call(object);
+    for (const [object, methods] of handlers) {
+      for (const method of methods) {
+        method.call(object);
       }
     }
   }
@@ -1175,7 +1174,6 @@ export class LongClickController extends Common.ObjectWrapper.ObjectWrapper {
      */
     function keyDown(e) {
       if (this._editKey(e)) {
-        e.consume(true);
         const callback = this._callback;
         this._longClickInterval = setTimeout(callback.bind(null, e), LongClickController.TIME_MS);
       }
@@ -1187,7 +1185,6 @@ export class LongClickController extends Common.ObjectWrapper.ObjectWrapper {
      */
     function keyUp(e) {
       if (this._editKey(e)) {
-        e.consume(true);
         this.reset();
       }
     }
@@ -1244,10 +1241,10 @@ export function initializeUIUtils(document, themeSetting) {
     document.defaultView.requestAnimationFrame(() => void(UI._keyboardFocus = false));
   }, true);
 
-  if (!UI.themeSupport) {
-    UI.themeSupport = new ThemeSupport(themeSetting);
+  if (!self.UI.themeSupport) {
+    self.UI.themeSupport = new ThemeSupport(themeSetting);
   }
-  UI.themeSupport.applyTheme(document);
+  self.UI.themeSupport.applyTheme(document);
 
   const body = /** @type {!Element} */ (document.body);
   appendStyle(body, 'ui/inspectorStyle.css');
@@ -1308,7 +1305,7 @@ export function createLabel(title, className, associatedControl) {
   const element = createElementWithClass('label', className || '');
   element.textContent = title;
   if (associatedControl) {
-    UI.ARIAUtils.bindLabelToControl(element, associatedControl);
+    ARIAUtils.bindLabelToControl(element, associatedControl);
   }
 
   return element;
@@ -1524,8 +1521,8 @@ registerCustomElement('div', 'dt-close-button', class extends HTMLDivElement {
     super();
     const root = createShadowRootWithCoreStyles(this, 'ui/closeButton.css');
     this._buttonElement = root.createChild('div', 'close-button');
-    UI.ARIAUtils.setAccessibleName(this._buttonElement, ls`Close`);
-    UI.ARIAUtils.markAsButton(this._buttonElement);
+    ARIAUtils.setAccessibleName(this._buttonElement, ls`Close`);
+    ARIAUtils.markAsButton(this._buttonElement);
     const regularIcon = Icon.create('smallicon-cross', 'default-icon');
     this._hoverIcon = Icon.create('mediumicon-red-cross-hover', 'hover-icon');
     this._activeIcon = Icon.create('mediumicon-red-cross-active', 'active-icon');
@@ -1553,7 +1550,7 @@ registerCustomElement('div', 'dt-close-button', class extends HTMLDivElement {
    * @this {Element}
    */
   setAccessibleName(name) {
-    UI.ARIAUtils.setAccessibleName(this._buttonElement, name);
+    ARIAUtils.setAccessibleName(this._buttonElement, name);
   }
 
   /**
@@ -2085,18 +2082,22 @@ export class ConfirmDialog {
     const dialog = new Dialog();
     dialog.setSizeBehavior(SizeBehavior.MeasureContent);
     dialog.setDimmed(true);
+    ARIAUtils.setAccessibleName(dialog.contentElement, message);
     const shadowRoot = createShadowRootWithCoreStyles(dialog.contentElement, 'ui/confirmDialog.css');
     const content = shadowRoot.createChild('div', 'widget');
     content.createChild('div', 'message').createChild('span').textContent = message;
     const buttonsBar = content.createChild('div', 'button');
     const result = await new Promise(resolve => {
-      buttonsBar.appendChild(createTextButton(Common.UIString.UIString('OK'), () => resolve(true), '', true));
-      buttonsBar.appendChild(createTextButton(Common.UIString.UIString('Cancel'), () => resolve(false)));
+      const okButton = createTextButton(
+          /* text= */ ls`OK`, /* clickHandler= */ () => resolve(true), /* className= */ '', /* primary= */ true);
+      buttonsBar.appendChild(okButton);
+      buttonsBar.appendChild(createTextButton(ls`Cancel`, () => resolve(false)));
       dialog.setOutsideClickCallback(event => {
         event.consume();
         resolve(false);
       });
       dialog.show(where);
+      okButton.focus();
     });
     dialog.hide();
     return result;
@@ -2123,7 +2124,7 @@ export function createInlineButton(toolbarButton) {
 export class Renderer {
   /**
    * @param {!Object} object
-   * @param {!UI.Renderer.Options=} options
+   * @param {!Options=} options
    * @return {!Promise<?{node: !Node, tree: ?TreeOutline}>}
    */
   render(object, options) {
@@ -2132,7 +2133,7 @@ export class Renderer {
 
 /**
    * @param {!Object} object
-   * @param {!UI.Renderer.Options=} options
+   * @param {!Options=} options
    * @return {!Promise<?{node: !Node, tree: ?TreeOutline}>}
    */
 Renderer.render = async function(object, options) {
@@ -2165,3 +2166,6 @@ export function formatTimestamp(timestamp, full) {
     return valueString.padStart(length, '0');
   }
 }
+
+/** @typedef {!{title: (string|!Element|undefined), editable: (boolean|undefined) }} */
+export let Options;

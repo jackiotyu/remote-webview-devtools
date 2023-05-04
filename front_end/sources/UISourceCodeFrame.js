@@ -28,6 +28,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import * as Common from '../common/common.js';
+import * as Persistence from '../persistence/persistence.js';  // eslint-disable-line no-unused-vars
+import * as SourceFrame from '../source_frame/source_frame.js';
+import * as TextEditor from '../text_editor/text_editor.js';  // eslint-disable-line no-unused-vars
+import * as TextUtils from '../text_utils/text_utils.js';
+import * as UI from '../ui/ui.js';
+import * as Workspace from '../workspace/workspace.js';
+
 import {CoveragePlugin} from './CoveragePlugin.js';
 import {CSSPlugin} from './CSSPlugin.js';
 import {DebuggerPlugin} from './DebuggerPlugin.js';
@@ -38,23 +46,23 @@ import {ScriptOriginPlugin} from './ScriptOriginPlugin.js';
 import {SnippetsPlugin} from './SnippetsPlugin.js';
 import {SourcesPanel} from './SourcesPanel.js';
 
-export class UISourceCodeFrame extends SourceFrame.SourceFrame {
+export class UISourceCodeFrame extends SourceFrame.SourceFrame.SourceFrameImpl {
   /**
-   * @param {!Workspace.UISourceCode} uiSourceCode
+   * @param {!Workspace.UISourceCode.UISourceCode} uiSourceCode
    */
   constructor(uiSourceCode) {
     super(workingCopy);
     this._uiSourceCode = uiSourceCode;
 
     if (Root.Runtime.experiments.isEnabled('sourceDiff')) {
-      this._diff = new SourceFrame.SourceCodeDiff(this.textEditor);
+      this._diff = new SourceFrame.SourceCodeDiff.SourceCodeDiff(this.textEditor);
     }
 
     this._muteSourceCodeEvents = false;
     this._isSettingContent = false;
 
-    /** @type {?Persistence.PersistenceBinding} */
-    this._persistenceBinding = Persistence.persistence.binding(uiSourceCode);
+    /** @type {?Persistence.Persistence.PersistenceBinding} */
+    this._persistenceBinding = self.Persistence.persistence.binding(uiSourceCode);
 
     /** @type {!Map<number, !RowMessageBucket>} */
     this._rowMessageBuckets = new Map();
@@ -67,14 +75,15 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
     this._boundOnBindingChanged = this._onBindingChanged.bind(this);
 
     this.textEditor.addEventListener(
-        SourceFrame.SourcesTextEditor.Events.EditorBlurred, () => UI.context.setFlavor(UISourceCodeFrame, null));
+        SourceFrame.SourcesTextEditor.Events.EditorBlurred, () => self.UI.context.setFlavor(UISourceCodeFrame, null));
     this.textEditor.addEventListener(
-        SourceFrame.SourcesTextEditor.Events.EditorFocused, () => UI.context.setFlavor(UISourceCodeFrame, this));
+        SourceFrame.SourcesTextEditor.Events.EditorFocused, () => self.UI.context.setFlavor(UISourceCodeFrame, this));
     self.Common.settings.moduleSetting('persistenceNetworkOverridesEnabled')
         .addChangeListener(this._onNetworkPersistenceChanged, this);
 
 
-    this._errorPopoverHelper = new UI.PopoverHelper(this.element, this._getErrorPopoverContent.bind(this));
+    this._errorPopoverHelper =
+        new UI.PopoverHelper.PopoverHelper(this.element, this._getErrorPopoverContent.bind(this));
     this._errorPopoverHelper.setHasPadding(true);
 
     this._errorPopoverHelper.setTimeout(100, 100);
@@ -85,7 +94,7 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
     this._initializeUISourceCode();
 
     /**
-     * @return {!Promise<!Common.DeferredContent>}
+     * @return {!Promise<!Common.ContentProvider.DeferredContent>}
      */
     function workingCopy() {
       if (uiSourceCode.isDirty()) {
@@ -124,14 +133,14 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
   }
 
   /**
-   * @return {!Workspace.UISourceCode}
+   * @return {!Workspace.UISourceCode.UISourceCode}
    */
   uiSourceCode() {
     return this._uiSourceCode;
   }
 
   /**
-   * @param {!Workspace.UISourceCode} uiSourceCode
+   * @param {!Workspace.UISourceCode.UISourceCode} uiSourceCode
    */
   setUISourceCode(uiSourceCode) {
     this._unloadUISourceCode();
@@ -158,10 +167,10 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
     for (const message of this._allMessages()) {
       this._removeMessageFromSource(message);
     }
-    Common.EventTarget.removeEventListeners(this._messageAndDecorationListeners);
-    Common.EventTarget.removeEventListeners(this._uiSourceCodeEventListeners);
+    Common.EventTarget.EventTarget.removeEventListeners(this._messageAndDecorationListeners);
+    Common.EventTarget.EventTarget.removeEventListeners(this._uiSourceCodeEventListeners);
     this._uiSourceCode.removeWorkingCopyGetter();
-    Persistence.persistence.unsubscribeFromBindingEvent(this._uiSourceCode, this._boundOnBindingChanged);
+    self.Persistence.persistence.unsubscribeFromBindingEvent(this._uiSourceCode, this._boundOnBindingChanged);
   }
 
   _initializeUISourceCode() {
@@ -174,7 +183,7 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
           Workspace.UISourceCode.Events.TitleChanged, this._refreshHighlighterType, this)
     ];
 
-    Persistence.persistence.subscribeForBindingEvent(this._uiSourceCode, this._boundOnBindingChanged);
+    self.Persistence.persistence.subscribeForBindingEvent(this._uiSourceCode, this._boundOnBindingChanged);
     for (const message of this._allMessages()) {
       this._addMessageToSource(message);
     }
@@ -210,12 +219,12 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
       plugin.willHide();
     }
     super.willHide();
-    UI.context.setFlavor(UISourceCodeFrame, null);
+    self.UI.context.setFlavor(UISourceCodeFrame, null);
     this._uiSourceCode.removeWorkingCopyGetter();
   }
 
   _refreshHighlighterType() {
-    const binding = Persistence.persistence.binding(this._uiSourceCode);
+    const binding = self.Persistence.persistence.binding(this._uiSourceCode);
     const highlighterType = binding ? binding.network.mimeType() : this._uiSourceCode.mimeType();
     if (this.highlighterType() === highlighterType) {
       return;
@@ -232,7 +241,7 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
     if (this.hasLoadError()) {
       return false;
     }
-    if (Persistence.persistence.binding(this._uiSourceCode)) {
+    if (self.Persistence.persistence.binding(this._uiSourceCode)) {
       return true;
     }
     if (this._uiSourceCode.project().canSetFileContent()) {
@@ -241,15 +250,15 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
     if (this._uiSourceCode.project().isServiceProject()) {
       return false;
     }
-    if (this._uiSourceCode.project().type() === Workspace.projectTypes.Network &&
-        Persistence.networkPersistenceManager.active()) {
+    if (this._uiSourceCode.project().type() === Workspace.Workspace.projectTypes.Network &&
+        self.Persistence.networkPersistenceManager.active()) {
       return true;
     }
     // Because live edit fails on large whitespace changes, pretty printed scripts are not editable.
     if (this.pretty && this._uiSourceCode.contentType().hasScripts()) {
       return false;
     }
-    return this._uiSourceCode.contentType() !== Common.resourceTypes.Document;
+    return this._uiSourceCode.contentType() !== Common.ResourceType.resourceTypes.Document;
   }
 
   _onNetworkPersistenceChanged() {
@@ -296,8 +305,8 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
 
   /**
    * @override
-   * @param {!TextUtils.TextRange} oldRange
-   * @param {!TextUtils.TextRange} newRange
+   * @param {!TextUtils.TextRange.TextRange} oldRange
+   * @param {!TextUtils.TextRange.TextRange} newRange
    */
   onTextChanged(oldRange, newRange) {
     const wasPretty = this.pretty;
@@ -322,7 +331,7 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _onWorkingCopyChanged(event) {
     if (this._muteSourceCodeEvents) {
@@ -332,7 +341,7 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _onWorkingCopyCommitted(event) {
     if (!this._muteSourceCodeEvents) {
@@ -347,7 +356,7 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
       return;
     }
 
-    const binding = Persistence.persistence.binding(this._uiSourceCode);
+    const binding = self.Persistence.persistence.binding(this._uiSourceCode);
     const pluginUISourceCode = binding ? binding.network : this._uiSourceCode;
 
     // The order of these plugins matters for toolbar items
@@ -390,7 +399,7 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
   }
 
   _onBindingChanged() {
-    const binding = Persistence.persistence.binding(this._uiSourceCode);
+    const binding = self.Persistence.persistence.binding(this._uiSourceCode);
     if (binding === this._persistenceBinding) {
       return;
     }
@@ -426,7 +435,8 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
     await super.populateTextAreaContextMenu(contextMenu, editorLineNumber, editorColumnNumber);
     contextMenu.appendApplicableItems(this._uiSourceCode);
     const location = this.transformer().editorToRawLocation(editorLineNumber, editorColumnNumber);
-    contextMenu.appendApplicableItems(new Workspace.UILocation(this._uiSourceCode, location[0], location[1]));
+    contextMenu.appendApplicableItems(
+        new Workspace.UISourceCode.UILocation(this._uiSourceCode, location[0], location[1]));
     contextMenu.appendApplicableItems(this);
     for (const plugin of this._plugins) {
       await plugin.populateTextAreaContextMenu(contextMenu, editorLineNumber, editorColumnNumber);
@@ -443,7 +453,7 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _onMessageAdded(event) {
     const message = /** @type {!Workspace.UISourceCode.Message} */ (event.data);
@@ -475,7 +485,7 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _onMessageRemoved(event) {
     const message = /** @type {!Workspace.UISourceCode.Message} */ (event.data);
@@ -541,7 +551,7 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _onLineDecorationAdded(event) {
     const marker = /** @type {!Workspace.UISourceCode.LineMarker} */ (event.data);
@@ -549,7 +559,7 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _onLineDecorationRemoved(event) {
     const marker = /** @type {!Workspace.UISourceCode.LineMarker} */ (event.data);
@@ -564,7 +574,7 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
       return;
     }
     this._typeDecorationsPending.add(type);
-    const decorator = await self.runtime.extensions(SourceFrame.LineDecorator)
+    const decorator = await self.runtime.extensions(SourceFrame.SourceFrame.LineDecorator)
                           .find(extension => extension.descriptor()['decoratorType'] === type)
                           .instance();
     this._typeDecorationsPending.delete(type);
@@ -578,7 +588,7 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
     if (!this.loaded) {
       return;
     }
-    for (const extension of self.runtime.extensions(SourceFrame.LineDecorator)) {
+    for (const extension of self.runtime.extensions(SourceFrame.SourceFrame.LineDecorator)) {
       const type = extension.descriptor()['decoratorType'];
       if (this._uiSourceCode.decorationsForType(type)) {
         this._decorateTypeThrottled(type);
@@ -588,7 +598,7 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
 
   /**
    * @override
-   * @return {!Promise<!Array<!UI.ToolbarItem>>}
+   * @return {!Promise<!Array<!UI.Toolbar.ToolbarItem>>}
    */
   async toolbarItems() {
     const leftToolbarItems = await super.toolbarItems();
@@ -602,12 +612,12 @@ export class UISourceCodeFrame extends SourceFrame.SourceFrame {
       return leftToolbarItems;
     }
 
-    return [...leftToolbarItems, new UI.ToolbarSeparator(true), ...rightToolbarItems];
+    return [...leftToolbarItems, new UI.Toolbar.ToolbarSeparator(true), ...rightToolbarItems];
   }
 
   /**
    * @override
-   * @param {!UI.ContextMenu} contextMenu
+   * @param {!UI.ContextMenu.ContextMenu} contextMenu
    * @param {number} lineNumber
    * @return {!Promise}
    */
@@ -688,7 +698,7 @@ export class RowMessage {
 export class RowMessageBucket {
   /**
    * @param {!UISourceCodeFrame} sourceFrame
-   * @param {!TextEditor.CodeMirrorTextEditor} textEditor
+   * @param {!TextEditor.CodeMirrorTextEditor.CodeMirrorTextEditor} textEditor
    * @param {number} editorLineNumber
    */
   constructor(sourceFrame, textEditor, editorLineNumber) {
@@ -717,7 +727,7 @@ export class RowMessageBucket {
     editorLineNumber = Math.min(editorLineNumber, this.textEditor.linesCount - 1);
     const lineText = this.textEditor.line(editorLineNumber);
     columnNumber = Math.min(columnNumber, lineText.length);
-    const lineIndent = TextUtils.TextUtils.lineIndent(lineText).length;
+    const lineIndent = TextUtils.TextUtils.Utils.lineIndent(lineText).length;
     const startColumn = Math.max(columnNumber - 1, lineIndent);
     if (this._decorationStartColumn === startColumn) {
       return;
@@ -734,7 +744,7 @@ export class RowMessageBucket {
    */
   messagesDescription() {
     this._messagesDescriptionElement.removeChildren();
-    UI.appendStyle(this._messagesDescriptionElement, 'source_frame/messagesPopover.css');
+    UI.Utils.appendStyle(this._messagesDescriptionElement, 'source_frame/messagesPopover.css');
     for (let i = 0; i < this._messages.length; ++i) {
       this._messagesDescriptionElement.appendChild(this._messages[i].element);
     }

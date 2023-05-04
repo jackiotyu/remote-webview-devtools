@@ -41,7 +41,7 @@ export class FrontEndWebviewProvider {
         this.scriptSrc = this.panel.webview.asWebviewUri(vscode.Uri.joinPath(resourceUri, 'index.js')).toString();
 
         const port = getPort(context);
-        this.frontEndPath = `http://127.0.0.1:${port}/devtools_app.html`;
+        this.frontEndPath = `http://127.0.0.1:${port}/inspector.html`;
         this.tunnel = new CDPTunnel(this.options.ws);
         this.panel.webview.html = this.getWebviewContent();
 

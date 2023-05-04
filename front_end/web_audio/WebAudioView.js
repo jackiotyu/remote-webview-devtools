@@ -2,15 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import * as Common from '../common/common.js';  // eslint-disable-line no-unused-vars
+import * as SDK from '../sdk/sdk.js';  // eslint-disable-line no-unused-vars
+import * as UI from '../ui/ui.js';
+
 import {ContextDetailBuilder, ContextSummaryBuilder} from './AudioContextContentBuilder.js';
 import {AudioContextSelector, Events as SelectorEvents} from './AudioContextSelector.js';
 import {GraphManager} from './graph_visualizer/GraphManager.js';
 import {Events as ModelEvents, WebAudioModel} from './WebAudioModel.js';
 
 /**
- * @implements {SDK.SDKModelObserver<!WebAudioModel>}
+ * @implements {SDK.SDKModel.SDKModelObserver<!WebAudioModel>}
  */
-export class WebAudioView extends UI.ThrottledWidget {
+export class WebAudioView extends UI.ThrottledWidget.ThrottledWidget {
   constructor() {
     super(true, 1000);
     this.element.classList.add('web-audio-drawer');
@@ -19,8 +23,8 @@ export class WebAudioView extends UI.ThrottledWidget {
     // Creates the toolbar.
     const toolbarContainer = this.contentElement.createChild('div', 'web-audio-toolbar-container vbox');
     this._contextSelector = new AudioContextSelector();
-    const toolbar = new UI.Toolbar('web-audio-toolbar', toolbarContainer);
-    toolbar.appendToolbarItem(UI.Toolbar.createActionButtonForId('components.collect-garbage'));
+    const toolbar = new UI.Toolbar.Toolbar('web-audio-toolbar', toolbarContainer);
+    toolbar.appendToolbarItem(UI.Toolbar.Toolbar.createActionButtonForId('components.collect-garbage'));
     toolbar.appendSeparator();
     toolbar.appendToolbarItem(this._contextSelector.toolbarItem());
 
@@ -33,9 +37,9 @@ export class WebAudioView extends UI.ThrottledWidget {
     this._graphManager = new GraphManager();
 
     // Creates the landing page.
-    this._landingPage = new UI.VBox();
+    this._landingPage = new UI.Widget.VBox();
     this._landingPage.contentElement.classList.add('web-audio-landing-page', 'fill');
-    this._landingPage.contentElement.appendChild(UI.html`
+    this._landingPage.contentElement.appendChild(UI.Fragment.html`
       <div>
         <p>${ls`Open a page that uses Web Audio API to start monitoring.`}</p>
       </div>
@@ -146,7 +150,7 @@ export class WebAudioView extends UI.ThrottledWidget {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _contextCreated(event) {
     const context = /** @type {!Protocol.WebAudio.BaseAudioContext} */ (event.data);
@@ -155,7 +159,7 @@ export class WebAudioView extends UI.ThrottledWidget {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _contextDestroyed(event) {
     const contextId = /** @type {!Protocol.WebAudio.GraphObjectId} */ (event.data);
@@ -164,7 +168,7 @@ export class WebAudioView extends UI.ThrottledWidget {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _contextChanged(event) {
     const context = /** @type {!Protocol.WebAudio.BaseAudioContext} */ (event.data);
@@ -190,7 +194,7 @@ export class WebAudioView extends UI.ThrottledWidget {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _audioListenerCreated(event) {
     const listener = /** @type {!Protocol.WebAudio.AudioListener} */ (event.data);
@@ -207,7 +211,7 @@ export class WebAudioView extends UI.ThrottledWidget {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _audioListenerWillBeDestroyed(event) {
     const {contextId, listenerId} = event.data;
@@ -219,7 +223,7 @@ export class WebAudioView extends UI.ThrottledWidget {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _audioNodeCreated(event) {
     const node = /** @type {!Protocol.WebAudio.AudioNode} */ (event.data);
@@ -236,7 +240,7 @@ export class WebAudioView extends UI.ThrottledWidget {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _audioNodeWillBeDestroyed(event) {
     const {contextId, nodeId} = event.data;
@@ -248,7 +252,7 @@ export class WebAudioView extends UI.ThrottledWidget {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _audioParamCreated(event) {
     const param = /** @type {!Protocol.WebAudio.AudioParam} */ (event.data);
@@ -264,7 +268,7 @@ export class WebAudioView extends UI.ThrottledWidget {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _audioParamWillBeDestroyed(event) {
     const {contextId, paramId} = event.data;
@@ -276,7 +280,7 @@ export class WebAudioView extends UI.ThrottledWidget {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _nodesConnected(event) {
     const {contextId, sourceId, destinationId, sourceOutputIndex, destinationInputIndex} = event.data;
@@ -293,7 +297,7 @@ export class WebAudioView extends UI.ThrottledWidget {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _nodesDisconnected(event) {
     const {contextId, sourceId, destinationId, sourceOutputIndex, destinationInputIndex} = event.data;
@@ -310,7 +314,7 @@ export class WebAudioView extends UI.ThrottledWidget {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _nodeParamConnected(event) {
     const {contextId, sourceId, destinationId, sourceOutputIndex} = event.data;
@@ -333,7 +337,7 @@ export class WebAudioView extends UI.ThrottledWidget {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _nodeParamDisconnected(event) {
     const {contextId, sourceId, destinationId, sourceOutputIndex} = event.data;

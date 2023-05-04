@@ -91,7 +91,7 @@ export class AuditsReportRenderer extends ReportRenderer {
    * @param {!Element} el
    */
   static handleDarkMode(el) {
-    if (UI.themeSupport.themeName() === 'dark') {
+    if (self.UI.themeSupport.themeName() === 'dark') {
       el.classList.add('dark');
     }
   }
@@ -145,7 +145,7 @@ export class AuditsReportUIFeatures extends ReportUIFeatures {
     const ext = blob.type.match('json') ? '.json' : '.html';
     const basename = `${sanitizedDomain}-${timestamp}${ext}`;
     const text = await blob.text();
-    Workspace.fileManager.save(basename, text, true /* forceSaveAs */);
+    self.Workspace.fileManager.save(basename, text, true /* forceSaveAs */);
   }
 
   async _print() {

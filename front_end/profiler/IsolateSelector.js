@@ -2,18 +2,22 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import * as Common from '../common/common.js';
+import * as SDK from '../sdk/sdk.js';
+import * as UI from '../ui/ui.js';
+
 /**
- * @implements {UI.ListDelegate<!ListItem>}
+ * @implements {UI.ListControl.ListDelegate<!ListItem>}
  * @implements {SDK.IsolateManager.Observer}
  */
-export class IsolateSelector extends UI.VBox {
+export class IsolateSelector extends UI.Widget.VBox {
   constructor() {
     super(false);
 
-    /** @type {!UI.ListModel<!ListItem>} */
-    this._items = new UI.ListModel();
-    /** @type {!UI.ListControl<!ListItem>} */
-    this._list = new UI.ListControl(this._items, this, UI.ListMode.NonViewport);
+    /** @type {!UI.ListModel.ListModel<!ListItem>} */
+    this._items = new UI.ListModel.ListModel();
+    /** @type {!UI.ListControl.ListControl<!ListItem>} */
+    this._list = new UI.ListControl.ListControl(this._items, this, UI.ListControl.ListMode.NonViewport);
     this._list.element.tabIndex = 0;
     this._list.element.classList.add('javascript-vm-instances-list');
     UI.ARIAUtils.setAccessibleName(this._list.element, ls`JavaScript VM instances`);
@@ -30,23 +34,23 @@ export class IsolateSelector extends UI.VBox {
     this._totalTrendDiv.title = ls`Total page JS heap size change trend over the last ${trendIntervalMinutes} minutes.`;
     this._totalValueDiv.title = ls`Total page JS heap size across all VM instances.`;
 
-    SDK.isolateManager.observeIsolates(this);
-    self.SDK.targetManager.addEventListener(SDK.TargetManager.Events.NameChanged, this._targetChanged, this);
-    self.SDK.targetManager.addEventListener(SDK.TargetManager.Events.InspectedURLChanged, this._targetChanged, this);
+    self.SDK.isolateManager.observeIsolates(this);
+    self.SDK.targetManager.addEventListener(SDK.SDKModel.Events.NameChanged, this._targetChanged, this);
+    self.SDK.targetManager.addEventListener(SDK.SDKModel.Events.InspectedURLChanged, this._targetChanged, this);
   }
 
   /**
    * @override
    */
   wasShown() {
-    SDK.isolateManager.addEventListener(SDK.IsolateManager.Events.MemoryChanged, this._heapStatsChanged, this);
+    self.SDK.isolateManager.addEventListener(SDK.IsolateManager.Events.MemoryChanged, this._heapStatsChanged, this);
   }
 
   /**
    * @override
    */
   willHide() {
-    SDK.isolateManager.removeEventListener(SDK.IsolateManager.Events.MemoryChanged, this._heapStatsChanged, this);
+    self.SDK.isolateManager.removeEventListener(SDK.IsolateManager.Events.MemoryChanged, this._heapStatsChanged, this);
   }
 
   /**
@@ -86,15 +90,15 @@ export class IsolateSelector extends UI.VBox {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _targetChanged(event) {
-    const target = /** @type {!SDK.Target} */ (event.data);
-    const model = target.model(SDK.RuntimeModel);
+    const target = /** @type {!SDK.SDKModel.Target} */ (event.data);
+    const model = target.model(SDK.RuntimeModel.RuntimeModel);
     if (!model) {
       return;
     }
-    const isolate = SDK.isolateManager.isolateByModel(model);
+    const isolate = self.SDK.isolateManager.isolateByModel(model);
     const item = isolate && this._itemByIsolate.get(isolate);
     if (item) {
       item.updateTitle();
@@ -102,7 +106,7 @@ export class IsolateSelector extends UI.VBox {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _heapStatsChanged(event) {
     const isolate = /** @type {!SDK.IsolateManager.Isolate} */ (event.data);
@@ -116,7 +120,7 @@ export class IsolateSelector extends UI.VBox {
   _updateTotal() {
     let total = 0;
     let trend = 0;
-    for (const isolate of SDK.isolateManager.isolates()) {
+    for (const isolate of self.SDK.isolateManager.isolates()) {
       total += isolate.usedHeapSize();
       trend += isolate.usedHeapSizeGrowRate();
     }
@@ -207,8 +211,9 @@ export class IsolateSelector extends UI.VBox {
       toElement.classList.add('selected');
     }
     const model = to && to.model();
-    UI.context.setFlavor(SDK.HeapProfilerModel, model && model.heapProfilerModel());
-    UI.context.setFlavor(SDK.CPUProfilerModel, model && model.target().model(SDK.CPUProfilerModel));
+    self.UI.context.setFlavor(SDK.HeapProfilerModel.HeapProfilerModel, model && model.heapProfilerModel());
+    self.UI.context.setFlavor(
+        SDK.CPUProfilerModel.CPUProfilerModel, model && model.target().model(SDK.CPUProfilerModel.CPUProfilerModel));
   }
 
   _update() {
@@ -235,7 +240,7 @@ export class ListItem {
   }
 
   /**
-   * @return {?SDK.RuntimeModel}
+   * @return {?SDK.RuntimeModel.RuntimeModel}
    */
   model() {
     return this._isolate.runtimeModel();
@@ -252,7 +257,7 @@ export class ListItem {
     for (const model of this._isolate.models()) {
       const target = model.target();
       const name = self.SDK.targetManager.mainTarget() !== target ? target.name() : '';
-      const parsedURL = new Common.ParsedURL(target.inspectedURL());
+      const parsedURL = new Common.ParsedURL.ParsedURL(target.inspectedURL());
       const domain = parsedURL.isValid ? parsedURL.domain() : '';
       const title = target.decorateLabel(domain && name ? `${domain}: ${name}` : name || domain || ls`(empty)`);
       modelCountByName.set(title, (modelCountByName.get(title) || 0) + 1);

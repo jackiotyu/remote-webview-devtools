@@ -60,6 +60,17 @@ export class ProtocolService extends Common.Object {
     this._send('dispatchProtocolMessage', {message: JSON.stringify(message)});
   }
 
+  _initWorker() {
+    this._backendPromise = Services.serviceManager.createAppService('audits_worker', 'AuditsService').then(backend => {
+      if (this._backend) {
+        return;
+      }
+      this._backend = backend;
+      this._backend.on('statusUpdate', result => this._status(result.message));
+      this._backend.on('sendProtocolMessage', result => this._sendProtocolMessage(result.message));
+    });
+  }
+
   /**
    * @param {string} message
    */
@@ -73,5 +84,10 @@ export class ProtocolService extends Common.Object {
    * @return {!Promise<!ReportRenderer.RunnerResult>}
    */
   _send(method, params) {
+    if (!this._backendPromise) {
+      this._initWorker();
+    }
+
+    return this._backendPromise.then(_ => this._backend.send(method, params));
   }
 }

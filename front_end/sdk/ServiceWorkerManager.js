@@ -609,14 +609,13 @@ class ServiceWorkerContextNamer {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _registrationsUpdated(event) {
     this._versionByTargetId.clear();
-    const registrations = this._serviceWorkerManager.registrations().valuesArray();
+    const registrations = this._serviceWorkerManager.registrations().values();
     for (const registration of registrations) {
-      const versions = registration.versions.valuesArray();
-      for (const version of versions) {
+      for (const version of registration.versions.values()) {
         if (version.targetId) {
           this._versionByTargetId.set(version.targetId, version);
         }
@@ -626,7 +625,7 @@ class ServiceWorkerContextNamer {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _executionContextCreated(event) {
     const executionContext = /** @type {!ExecutionContext} */ (event.data);

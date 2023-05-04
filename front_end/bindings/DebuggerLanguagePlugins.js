@@ -1,37 +1,151 @@
-// Copyright 2020 the Chromium project authors. All rights reserved.
+// Copyright 2020 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+
+import * as Common from '../common/common.js';
+import * as SDK from '../sdk/sdk.js';
+import * as Workspace from '../workspace/workspace.js';
+
+class SourceScopeRemoteObject extends SDK.RemoteObject.RemoteObjectImpl {
+  /**
+   * @param {!SDK.RuntimeModel.RuntimeModel} runtimeModel
+   * @param {string} type
+   */
+  constructor(runtimeModel, type) {
+    super(runtimeModel, undefined, 'object', undefined, null);
+    /** @type {!Array<!Variable>} */
+    this.variables = [];
+  }
+
+  /**
+   * @override
+   * @param {boolean} ownProperties
+   * @param {boolean} accessorPropertiesOnly
+   * @param {boolean} generatePreview
+   * @return {!Promise<!SDK.RemoteObject.GetPropertiesResult>}
+   */
+  async doGetProperties(ownProperties, accessorPropertiesOnly, generatePreview) {
+    if (accessorPropertiesOnly) {
+      return /** @type {!SDK.RemoteObject.GetPropertiesResult} */ ({properties: [], internalProperties: []});
+    }
+
+    const variableObjects = this.variables.map(
+        v => new SDK.RemoteObject.RemoteObjectProperty(
+            v.name, new SDK.RemoteObject.LocalJSONObject('(type: ' + v.type + ')'), false, false, true, false));
+
+
+    return /** @type {!SDK.RemoteObject.GetPropertiesResult} */ ({properties: variableObjects, internalProperties: []});
+  }
+}
+
+/**
+ * @unrestricted
+ * TODO rename Scope to RawScope and add an interface
+ */
+class SourceScope {
+  /**
+   * @param {!SDK.DebuggerModel.CallFrame} callFrame
+   * @param {string} type Scope type.
+   */
+  constructor(callFrame, type) {
+    this._callFrame = callFrame;
+    this._type = type;
+    this._object = new SourceScopeRemoteObject(callFrame.debuggerModel.runtimeModel(), type);
+    this._name = type;
+    /** @type {?Location} */
+    this._startLocation = null;
+    /** @type {?Location} */
+    this._endLocation = null;
+  }
+
+  /**
+   * @return {!SDK.DebuggerModel.CallFrame}
+   */
+  callFrame() {
+    return this._callFrame;
+  }
+
+  /**
+   * @return {string}
+   */
+  type() {
+    return this._type;
+  }
+
+  /**
+   * @return {string}
+   */
+  typeName() {
+    return this.type();
+  }
+
+
+  /**
+   * @return {string|undefined}
+   */
+  name() {
+    return this._name;
+  }
+
+  /**
+   * @return {?Location}
+   */
+  startLocation() {
+    return this._startLocation;
+  }
+
+  /**
+   * @return {?Location}
+   */
+  endLocation() {
+    return this._endLocation;
+  }
+
+  /**
+   * @return {!SourceScopeRemoteObject}
+   */
+  object() {
+    return this._object;
+  }
+
+  /**
+   * @return {string}
+   */
+  description() {
+    return this.type();
+  }
+}
 
 /**
  * @unrestricted
  */
 export class DebuggerLanguagePluginManager {
   /**
-   * @param {!SDK.DebuggerModel} debuggerModel
-   * @param {!Workspace.Workspace} workspace
+   * @param {!SDK.DebuggerModel.DebuggerModel} debuggerModel
+   * @param {!Workspace.Workspace.WorkspaceImpl} workspace
    * @param {!Bindings.DebuggerWorkspaceBinding} debuggerWorkspaceBinding
    */
   constructor(debuggerModel, workspace, debuggerWorkspaceBinding) {
     this._sourceMapManager = debuggerModel.sourceMapManager();
     this._debuggerModel = debuggerModel;
     this._debuggerWorkspaceBinding = debuggerWorkspaceBinding;
+    /** @type {!Array<!DebuggerLanguagePlugin>} */
     this._plugins = [];
 
-    // @type {!Map<!Workspace.UISourceCode, !Array<[string, !SDK.Script]>>}
+    // @type {!Map<!Workspace.UISourceCode.UISourceCode, !Array<[string, !SDK.Script.Script]>>}
     this._uiSourceCodes = new Map();
     // @type {!Map<string, !DebuggerLanguagePlugin>}
     this._pluginForScriptId = new Map();
 
     const target = this._debuggerModel.target();
     this._project = new Bindings.ContentProviderBasedProject(
-        workspace, 'language_plugins::' + target.id(), Workspace.projectTypes.Network, '',
+        workspace, 'language_plugins::' + target.id(), Workspace.Workspace.projectTypes.Network, '',
         false /* isServiceProject */);
     Bindings.NetworkProject.setTargetForProject(this._project, target);
 
     const runtimeModel = debuggerModel.runtimeModel();
     this._eventHandlers = [
-      this._sourceMapManager.addEventListener(
-          SDK.SourceMapManager.Events.SourceMapWillAttach, this._newSourceMap, this),
+      this._debuggerModel.addEventListener(SDK.DebuggerModel.Events.ParsedScriptSource, this._newScriptSource, this),
       runtimeModel.addEventListener(
           SDK.RuntimeModel.Events.ExecutionContextDestroyed, this._executionContextDestroyed, this)
     ];
@@ -46,7 +160,7 @@ export class DebuggerLanguagePluginManager {
 
   /** TODO(chromium:1032016): Make async once chromium:1032016 is complete.
    * @param {!SDK.DebuggerModel.Location} rawLocation
-   * @return {?Workspace.UILocation}
+   * @return {?Workspace.UISourceCode.UILocation}
    */
   /* async */ rawLocationToUILocation(rawLocation) {
     const script = rawLocation.script();
@@ -85,13 +199,13 @@ export class DebuggerLanguagePluginManager {
     return uiSourceCode.uiLocation(sourceLocation.lineNumber, sourceLocation.columnNumber);
   }
 
-  /** TODO(chromium:1032016): Make async once chromium:1032016 is complete.
-   * @param {!Workspace.UISourceCode} uiSourceCode
+  /**
+   * @param {!Workspace.UISourceCode.UISourceCode} uiSourceCode
    * @param {number} lineNumber
    * @param {number} columnNumber
-   * @return {!Array<!SDK.DebuggerModel.Location>}
+   * @return {!Promise<!Array<!SDK.DebuggerModel.Location>>}
    */
-  /* async */ uiLocationToRawLocations(uiSourceCode, lineNumber, columnNumber) {
+  async uiLocationToRawLocations(uiSourceCode, lineNumber, columnNumber) {
     const locations = [];
     for (const [sourceFile, script] of this._uiSourceCodes.get(uiSourceCode) || []) {
       const plugin = this._pluginForScriptId.get(script.scriptId);
@@ -117,6 +231,9 @@ export class DebuggerLanguagePluginManager {
     }
   }
 
+  /**
+     * @param {!SDK.Script.Script} script
+     */
   async _getRawModule(script) {
     if (!script.sourceURL.startsWith('wasm://')) {
       return {url: script.sourceURL};
@@ -125,10 +242,13 @@ export class DebuggerLanguagePluginManager {
   }
 
   /**
-   * @param {!SDK.Script} script
+   * @param {!SDK.Script.Script} script
    * @return {!Promise<?Array<string>>}
    */
   async _getSourceFiles(script) {
+    if (!script.sourceMapURL) {
+      return null;
+    }
     for (const plugin of this._plugins) {
       if (plugin.handleScript(script)) {
         const rawModule = await this._getRawModule(script);
@@ -167,7 +287,7 @@ export class DebuggerLanguagePluginManager {
 
   /**
    * @param {string} sourceFileURL
-   * @return {!Workspace.UISourceCode}
+   * @return {!Workspace.UISourceCode.UISourceCode}
    */
   _getOrCreateUISourceCode(sourceFile, script, sourceFileURL) {
     let uiSourceCode = this._project.uiSourceCodeForURL(sourceFileURL);
@@ -175,10 +295,10 @@ export class DebuggerLanguagePluginManager {
       return uiSourceCode;
     }
 
-    uiSourceCode = this._project.createUISourceCode(sourceFileURL, Common.resourceTypes.SourceMapScript);
+    uiSourceCode = this._project.createUISourceCode(sourceFileURL, Common.ResourceType.resourceTypes.SourceMapScript);
     Bindings.NetworkProject.setInitialFrameAttribution(uiSourceCode, script.frameId);
-    const contentProvider =
-        new SDK.CompilerSourceMappingContentProvider(sourceFileURL, Common.resourceTypes.SourceMapScript);
+    const contentProvider = new SDK.CompilerSourceMappingContentProvider.CompilerSourceMappingContentProvider(
+        sourceFileURL, Common.ResourceType.resourceTypes.SourceMapScript);
     this._bindUISourceCode(uiSourceCode, script, sourceFile);
 
     // TODO(pfaffe) Try and set a correct mimetype here? We don't actually know the mime type of the source code here,
@@ -188,8 +308,8 @@ export class DebuggerLanguagePluginManager {
   }
 
   /**
-   * @param {!Workspace.UISourceCode} uiSourceCode
-   * @param {!SDK.Script} script
+   * @param {!Workspace.UISourceCode.UISourceCode} uiSourceCode
+   * @param {!SDK.Script.Script} script
    * @param {string} sourceFile
    */
   _bindUISourceCode(uiSourceCode, script, sourceFile) {
@@ -197,13 +317,13 @@ export class DebuggerLanguagePluginManager {
     if (entry) {
       entry.push([sourceFile, script]);
     } else {
-      this._uiSourceCodes.set(uiSourceCode, [sourceFile, script]);
+      this._uiSourceCodes.set(uiSourceCode, [[sourceFile, script]]);
     }
   }
 
   /**
-   * @param {!Workspace.UISourceCode} uiSourceCode
-   * @param {!Set<!SDK.Script>} scripts
+   * @param {!Workspace.UISourceCode.UISourceCode} uiSourceCode
+   * @param {!Set<!SDK.Script.Script>} scripts
    */
   _unbindUISourceCode(uiSourceCode, scripts) {
     const filter = ([sourceFile, script]) => !scripts.has(script);
@@ -215,10 +335,10 @@ export class DebuggerLanguagePluginManager {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
-  async _newSourceMap(event) {
-    const script = /** @type {!SDK.Script} */ (event.data);
+  async _newScriptSource(event) {
+    const script = /** @type {!SDK.Script.Script} */ (event.data);
     const sourceFiles = await this._getSourceFiles(script);
     if (!sourceFiles) {
       return;
@@ -236,10 +356,10 @@ export class DebuggerLanguagePluginManager {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _executionContextDestroyed(event) {
-    const executionContext = /** @type {!SDK.ExecutionContext} */ (event.data);
+    const executionContext = /** @type {!SDK.RuntimeModel.ExecutionContext} */ (event.data);
     const scripts = new Set(this._debuggerModel.scriptsForExecutionContext(executionContext));
 
     for (const uiSourceCode of this._uiSourceCodes.keys()) {
@@ -260,6 +380,32 @@ export class DebuggerLanguagePluginManager {
     }
     this._pluginForScriptId.clear();
     this._uiSourceCodes.clear();
+  }
+
+  /**
+   * @param {!SDK.DebuggerModel.CallFrame} callFrame
+   * @return {!Promise<?Array<!SourceScope>>}
+   */
+  async resolveScopeChain(callFrame) {
+    const script = callFrame.script;
+    /** @type {?DebuggerLanguagePlugin} */
+    const plugin = this._pluginForScriptId.get(script.scriptId);
+    if (!plugin) {
+      return null;
+    }
+    /** @type {!Map<string, !SourceScope>} */
+    const scopes = new Map();
+    const variables = await plugin.listVariablesInScope(
+        {'rawModuleId': script.scriptId, 'codeOffset': callFrame.location().columnNumber - script.columnOffset});
+    if (variables) {
+      for (const variable of variables) {
+        if (!scopes.has(variable.scope)) {
+          scopes.set(variable.scope, new SourceScope(callFrame, variable.scope));
+        }
+        scopes.get(variable.scope).object().variables.push(variable);
+      }
+    }
+    return Array.from(scopes.values());
   }
 }
 
@@ -315,7 +461,7 @@ export let Variable;
  */
 export class DebuggerLanguagePlugin {
   /**
-   * @param {!SDK.Script} script
+   * @param {!SDK.Script.Script} script
    * @return {boolean} True if this plugin should handle this script
    */
   handleScript(script) {

@@ -35,7 +35,7 @@ export class TracingManager extends SDKModel {
   }
 
   /**
-   * @param {!Array.<!SDK.TracingManager.EventPayload>} events
+   * @param {!Array.<!EventPayload>} events
    */
   _eventsCollected(events) {
     this._activeClient.traceEventsCollected(events);
@@ -106,7 +106,7 @@ const TransferMode = {
  */
 export class TracingManagerClient {
   /**
-   * @param {!Array.<!SDK.TracingManager.EventPayload>} events
+   * @param {!Array.<!EventPayload>} events
    */
   traceEventsCollected(events) {
   }
@@ -149,7 +149,7 @@ class TracingDispatcher {
 
   /**
    * @override
-   * @param {!Array.<!SDK.TracingManager.EventPayload>} data
+   * @param {!Array.<!EventPayload>} data
    */
   dataCollected(data) {
     this._tracingManager._eventsCollected(data);
@@ -164,3 +164,21 @@ class TracingDispatcher {
 }
 
 SDKModel.register(TracingManager, Capability.Tracing, false);
+
+/** @typedef {!{
+        cat: (string|undefined),
+        pid: number,
+        tid: number,
+        ts: number,
+        ph: string,
+        name: string,
+        args: !Object,
+        dur: number,
+        id: string,
+        id2: (!{global: (string|undefined), local: (string|undefined)}|undefined),
+        scope: string,
+        bind_id: string,
+        s: string
+    }}
+ */
+export let EventPayload;

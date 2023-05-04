@@ -58,7 +58,7 @@ export class SourceMapManager extends Common.ObjectWrapper.ObjectWrapper {
   }
 
   /**
-   * @param {!Common.Event} event
+   * @param {!Common.EventTarget.EventTargetEvent} event
    */
   _inspectedURLChanged(event) {
     if (event.data !== this._target) {
@@ -99,9 +99,9 @@ export class SourceMapManager extends Common.ObjectWrapper.ObjectWrapper {
   clientsForSourceMap(sourceMap) {
     const sourceMapId = this._getSourceMapId(sourceMap.compiledURL(), sourceMap.url());
     if (this._sourceMapIdToClients.has(sourceMapId)) {
-      return this._sourceMapIdToClients.get(sourceMapId).valuesArray();
+      return [...this._sourceMapIdToClients.get(sourceMapId)];
     }
-    return this._sourceMapIdToLoadingClients.get(sourceMapId).valuesArray();
+    return [...this._sourceMapIdToLoadingClients.get(sourceMapId)];
   }
 
   /**

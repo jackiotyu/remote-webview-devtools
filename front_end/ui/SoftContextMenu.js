@@ -30,6 +30,7 @@
 
 import * as Host from '../host/host.js';
 
+import * as ARIAUtils from './ARIAUtils.js';
 import {AnchorBehavior, GlassPane, MarginBehavior, PointerEventsBehavior, SizeBehavior,} from './GlassPane.js';  // eslint-disable-line no-unused-vars
 import {Icon} from './Icon.js';
 import {ElementFocusRestorer} from './UIUtils.js';
@@ -73,7 +74,7 @@ export class SoftContextMenu {
 
     this._contextMenuElement = this._glassPane.contentElement.createChild('div', 'soft-context-menu');
     this._contextMenuElement.tabIndex = -1;
-    UI.ARIAUtils.markAsMenu(this._contextMenuElement);
+    ARIAUtils.markAsMenu(this._contextMenuElement);
     this._contextMenuElement.addEventListener('mouseup', e => e.consume(), false);
     this._contextMenuElement.addEventListener('keydown', this._menuKeyDown.bind(this), false);
 
@@ -135,7 +136,7 @@ export class SoftContextMenu {
 
     const menuItemElement = createElementWithClass('div', 'soft-context-menu-item');
     menuItemElement.tabIndex = -1;
-    UI.ARIAUtils.markAsMenuItem(menuItemElement);
+    ARIAUtils.markAsMenuItem(menuItemElement);
     const checkMarkElement = Icon.create('smallicon-checkmark', 'checkmark');
     menuItemElement.appendChild(checkMarkElement);
     if (!item.checked) {
@@ -176,7 +177,7 @@ export class SoftContextMenu {
     } else if (item.shortcut) {
       accessibleName = ls`${item.label}, ${item.shortcut}`;
     }
-    UI.ARIAUtils.setAccessibleName(menuItemElement, accessibleName);
+    ARIAUtils.setAccessibleName(menuItemElement, accessibleName);
 
     return menuItemElement;
   }
@@ -185,7 +186,9 @@ export class SoftContextMenu {
     const menuItemElement = createElementWithClass('div', 'soft-context-menu-item');
     menuItemElement._subItems = item.subItems;
     menuItemElement.tabIndex = -1;
-    UI.ARIAUtils.markAsMenuItemSubMenu(menuItemElement);
+    ARIAUtils.markAsMenuItemSubMenu(menuItemElement);
+    // TODO: Once we have AOM, remove the explicit aria-label and use document.queryByAccessibleName
+    ARIAUtils.setAccessibleName(menuItemElement, item.label);
 
     // Occupy the same space on the left in all items.
     const checkMarkElement = Icon.create('smallicon-checkmark', 'soft-context-menu-item-checkmark');
@@ -195,7 +198,7 @@ export class SoftContextMenu {
 
     menuItemElement.createTextChild(item.label);
 
-    if (Host.Platform.isMac() && !UI.themeSupport.hasTheme()) {
+    if (Host.Platform.isMac() && !self.UI.themeSupport.hasTheme()) {
       const subMenuArrowElement = menuItemElement.createChild('span', 'soft-context-menu-item-submenu-arrow');
       subMenuArrowElement.textContent = '\u25B6';  // BLACK RIGHT-POINTING TRIANGLE
     } else {
@@ -313,7 +316,7 @@ export class SoftContextMenu {
     }
     this._highlightedMenuItemElement = menuItemElement;
     if (this._highlightedMenuItemElement) {
-      if (UI.themeSupport.hasTheme() || Host.Platform.isMac()) {
+      if (self.UI.themeSupport.hasTheme() || Host.Platform.isMac()) {
         this._highlightedMenuItemElement.classList.add('force-white-icons');
       }
       this._highlightedMenuItemElement.classList.add('soft-context-menu-item-mouse-over');

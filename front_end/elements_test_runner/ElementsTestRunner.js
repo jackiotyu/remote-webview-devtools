@@ -62,7 +62,7 @@ ElementsTestRunner.findNode = async function(matchFunction, callback) {
       }
 
       const pseudoElementsMap = node.pseudoElements();
-      const pseudoElements = pseudoElementsMap ? pseudoElementsMap.valuesArray() : [];
+      const pseudoElements = pseudoElementsMap ? [...pseudoElementsMap.values()] : [];
       const children = (node.children() || []).concat(node.shadowRoots()).concat(pseudoElements);
       if (node.templateContent()) {
         children.push(node.templateContent());
@@ -960,7 +960,7 @@ ElementsTestRunner.generateUndoTest = function(testBody) {
           ElementsTestRunner.dumpElementsTree(testNode);
         }
 
-        SDK.domModelUndoStack.undo().then(redo);
+        self.SDK.domModelUndoStack.undo().then(redo);
       }
     }
 
@@ -975,7 +975,7 @@ ElementsTestRunner.generateUndoTest = function(testBody) {
           ElementsTestRunner.dumpElementsTree(testNode);
         }
 
-        SDK.domModelUndoStack.redo().then(done);
+        self.SDK.domModelUndoStack.redo().then(done);
       }
     }
 
