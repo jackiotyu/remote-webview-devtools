@@ -14,9 +14,7 @@
     "git": "https://github.com/jackiotyu/remote-webview-devtools.git"
   },
   "icon": "images/icon.png",
-  "activationEvents": [
-    "*"
-  ],
+  "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
