@@ -45,7 +45,8 @@ export class Execute {
             // Find the connected devices
             const devices = await bridge.findDevices();
             if (devices.length < 1) {
-                vscode.window.showErrorMessage(`No devices found`);
+                // vscode.window.showErrorMessage(`No devices found`);
+                vscode.window.showErrorMessage(`没有找到设备`);
                 return undefined;
             }
 
@@ -60,7 +61,8 @@ export class Execute {
             }
 
             if (!webView) {
-                progress.report({ message: "Loading WebViews..." });
+                progress.report({ message: "加载 WebView 中..." });
+                // progress.report({ message: "Loading WebViews..." });
 
                 const webViews = await withTimeoutRetries(config.connectTimeout ?? 0, 500, async () => {
                     // Find the running applications
@@ -83,7 +85,8 @@ export class Execute {
                 });
 
                 if (!webViews || webViews.length < 1) {
-                    vscode.window.showErrorMessage(`No matching WebViews found`);
+                    // vscode.window.showErrorMessage(`No matching WebViews found`);
+                    vscode.window.showErrorMessage(`没有匹配到 WebView`);
                     return undefined;
                 }
 
@@ -96,12 +99,14 @@ export class Execute {
                 webView = pickedWebView;
             }
 
-            progress.report({ message: "Forwarding debugger..." });
+            // progress.report({ message: "Forwarding debugger..." });
+            progress.report({ message: "正在打开 debugger..." });
 
             // Forward the debugger to the local port
             config.port = await bridge.forwardDebugger(webView, config.port);
 
-            vscode.window.showInformationMessage(`Connected to ${webView.packageName ?? "unknown"} on ${webView.device.serial}`);
+            // vscode.window.showInformationMessage(`Connected to ${webView.packageName ?? "unknown"} on ${webView.device.serial}`);
+            vscode.window.showInformationMessage(`已连接 ${webView.device.serial} 的 ${webView.packageName ?? "unknown"}`);
 
             return config;
         });

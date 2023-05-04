@@ -11,6 +11,10 @@ async function trackDevices(context: vscode.ExtensionContext) {
         let config = await Execute.run({ port: 5555 });
         if(!config) {return;}
         let pages = await getWebViewPages(config.port);
+        if(!pages.length) {
+            vscode.window.showErrorMessage(`没有找到可用的页面`);
+            return;
+        }
         let page = await pickWebViewPage(pages);
         if(!page) {return;}
         openWebview(context, page.webSocketDebuggerUrl, page.title);

@@ -2,9 +2,11 @@ import WebSocket, { WebSocketServer } from 'ws';
 import type { AddressInfo } from 'ws';
 
 const server = new WebSocketServer({
-    port: 9066,
     host: '0.0.0.0',
+    port: 0
 });
+
+server.setMaxListeners(1000);
 
 export class CDPTunnel {
     private _server: WebSocketServer = server;
@@ -58,4 +60,9 @@ export class CDPTunnel {
     get link() {
         return `127.0.0.1:${this.port}`;
     }
+}
+
+export function closeWsServer() {
+    server.removeAllListeners();
+    server.close();
 }

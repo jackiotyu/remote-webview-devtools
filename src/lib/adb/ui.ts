@@ -43,7 +43,8 @@ export async function pickDevice(devices: bridge.Device[]): Promise<bridge.Devic
     });
 
     const item = await vscode.window.showQuickPick(items, {
-        placeHolder: "Select a device"
+        // placeHolder: "Select a device"
+        placeHolder: "选择设备"
     });
 
     if (!item) {
@@ -82,7 +83,8 @@ export async function pickWebView(webViews: bridge.WebView[]): Promise<bridge.We
     });
 
     const item = await vscode.window.showQuickPick(items, {
-        placeHolder: "Select a WebView"
+        // placeHolder: "Select a WebView"
+        placeHolder: "选择 WebView"
     });
 
     if (!item) {
@@ -102,7 +104,8 @@ export async function pickWebViewPage(pages: bridge.WebViewPage[]): Promise<brid
     });
 
     const item = await vscode.window.showQuickPick(items, {
-        placeHolder: "Select a page"
+        // placeHolder: "Select a page"
+        placeHolder: "选择页面"
     });
 
     if (!item) {

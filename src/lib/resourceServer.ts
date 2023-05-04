@@ -4,7 +4,6 @@ import type { AddressInfo } from 'net';
 import finalHandler from 'finalhandler';
 import serverStatic from 'serve-static';
 
-const PORT = 9908;
 const MAX_CONNECTIONS = 1000;
 
 let server: http.Server;
@@ -21,7 +20,7 @@ export function getServer(context: vscode.ExtensionContext): http.Server {
             serve(req, res, finalHandler(req, res));
         });
         server.maxConnections = MAX_CONNECTIONS;
-        server.listen(PORT);
+        server.listen(0);
     }
     return server;
 }

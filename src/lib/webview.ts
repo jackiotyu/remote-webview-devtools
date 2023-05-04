@@ -72,20 +72,13 @@ export class FrontEndWebviewProvider {
                 ">
                 <title>Cat Coding</title>
                 <style>
-                body {
-                    width: 100vw;
-                    height: 100vh;
-                    padding: 0;
-                    margin: 0;
-                    display: flex;
-                }
                 .devtools-frame {
                     flex: 1;
                 }
                 </style>
                 <script src="${scriptSrc}"></script>
             </head>
-            <body>
+            <body style="width: 100vw;height: 100vh;padding: 4px 0 0;margin: 0;display: flex;box-sizing: border-box;">
                 <iframe class="devtools-frame" frameBorder="0" src="${frontEndPath}?ws=${tunnel.link}" allow="clipboard-read; clipboard-write self ${frontEndPath}"></iframe>
             </body>
             </html>
