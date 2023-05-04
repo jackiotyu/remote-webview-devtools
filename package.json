@@ -13,17 +13,20 @@
     "git": "https://github.com/jackiotyu/remote-webview-devtools.git"
   },
   "icon": "images/icon.png",
-  "activationEvents": [],
+  "activationEvents": [
+    "onCommand:remote-webview-devtools.openWebview",
+    "onCommand:remote-webview-devtools.trackDevices"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "remote-webview-devtools.openWebview",
-        "title": "打开webview openWebview"
+        "title": "RWD🚀 debug webview by websocket"
       },
       {
         "command": "remote-webview-devtools.trackDevices",
-        "title": "adb打开webview adb webview"
+        "title": "RWD🚀 adb connect webview debug"
       }
     ]
   },
