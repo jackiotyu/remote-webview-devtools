@@ -20,11 +20,26 @@
     "commands": [
       {
         "command": "RemoteWebviewDevtools.openWebview",
-        "title": "RWD🚀 debug webview by websocket"
+        "title": "RWD🚀 | websocket 打开 webview debug"
       },
       {
         "command": "RemoteWebviewDevtools.trackDevices",
-        "title": "RWD🚀 adb connect webview debug"
+        "title": "RWD🚀 | adb 打开 webview debug"
+      },
+      {
+        "command": "RemoteWebviewDevtools.refreshAdbDevices",
+        "title": "更新设备列表",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "RemoteWebviewDevtools.refreshWebViews",
+        "title": "更新webview",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "RemoteWebviewDevtools.refreshPages",
+        "title": "更新webview",
+        "icon": "$(refresh)"
       }
     ],
     "viewsContainers": {
@@ -32,7 +47,7 @@
         {
           "id": "WebviewDevtoolsExplorer",
           "title": "webview devtools",
-          "icon": "$(compass)"
+          "icon": "images/icon.svg"
         }
       ]
     },
@@ -44,7 +59,37 @@
           "icon": "$(window)"
         }
       ]
-    }
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "RemoteWebviewDevtools.refreshAdbDevices",
+          "when": "view == RWD.adbView",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "RemoteWebviewDevtools.refreshWebViews",
+          "when": "viewItem == RWD.adbDevices",
+          "group": "inline@1",
+          "submenu": "refresh"
+        },
+        {
+          "command": "RemoteWebviewDevtools.refreshPages",
+          "when": "viewItem == RWD.webViews",
+          "group": "inline@1",
+          "submenu": "refresh"
+        }
+      ]
+    },
+		"submenus": [
+			{
+				"icon": "$(refresh)",
+				"id": "refresh",
+				"label": "refresh"
+			}
+		]
   },
   "scripts": {
     "vscode:prepublish": "yarn run package",

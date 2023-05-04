@@ -40,7 +40,8 @@ export class Execute {
             let device: bridge.Device | undefined;
             let webView: bridge.WebView | undefined;
 
-            progress.report({ message: "Loading devices..." });
+            // progress.report({ message: "Loading devices..." });
+            progress.report({ message: "加载设备中..." });
 
             // Find the connected devices
             const devices = await bridge.findDevices();

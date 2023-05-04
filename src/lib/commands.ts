@@ -3,8 +3,10 @@ import * as net from 'net';
 import { FrontEndWebview } from './webview';
 import { CommandName } from '../constants';
 import { Execute } from './adb/execute';
-import { getWebViewPages } from './adb/bridge';
+import { getWebViewPages, findDevices, findWebViews } from './adb/bridge';
 import { pickWebViewPage } from './adb/ui';
+import { adbEvent } from './event/adbEvent';
+import { DeviceItem, WebViewItem } from './explorer/adbTreeItem';
 
 async function trackDevices(context: vscode.ExtensionContext) {
     try {
@@ -53,6 +55,20 @@ async function openWebview(context: vscode.ExtensionContext, wsLink?: string, ti
     new FrontEndWebview(context, { title: title || 'webview', ws: wsLink });
 }
 
+async function refreshAdbDevices() {
+    const devices = await findDevices();
+    adbEvent.fire(devices.map(item => ({...item, webViews: []})));
+}
+
+async function refreshWebViews(item: DeviceItem) {
+    const webViews = await findWebViews(item.device);
+    return webViews;
+}
+async function refreshPages(item: WebViewItem) {
+    const pages = await getWebViewPages(item.port);
+    return pages;
+}
+
 export class CommandsManager {
     private context: vscode.ExtensionContext;
     constructor(context: vscode.ExtensionContext) {
@@ -62,6 +78,9 @@ export class CommandsManager {
                 openWebview(this.context, wsLink),
             ),
             vscode.commands.registerCommand(CommandName.trackDevices, () => trackDevices(this.context)),
+            vscode.commands.registerCommand(CommandName.refreshAdbDevices, () => refreshAdbDevices()),
+            vscode.commands.registerCommand(CommandName.refreshWebViews, (item: DeviceItem) =>  refreshWebViews(item)),
+            vscode.commands.registerCommand(CommandName.refreshPages, (item: WebViewItem) =>  refreshPages(item)),
         );
         this.context.subscriptions.push({
             dispose: () => {

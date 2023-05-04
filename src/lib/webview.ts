@@ -33,6 +33,7 @@ export class FrontEndWebviewProvider {
             {
                 enableScripts: true,
                 enableFindWidget: true,
+                retainContextWhenHidden: true,
                 localResourceRoots: [
                     resourceUri,
                 ]
@@ -92,6 +93,7 @@ export class FrontEndWebview {
     constructor(context: vscode.ExtensionContext, options: ViewOptions) {
         const panel = webviewMap.get(options.ws);
         if(!isUndefined(panel)) {
+            // TODO 选中窗口
             return panel;
         }
         return new FrontEndWebviewProvider(context, options);

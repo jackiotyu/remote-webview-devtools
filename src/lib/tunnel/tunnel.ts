@@ -14,8 +14,8 @@ export class CDPTunnel {
     private _socket?: WebSocket.WebSocket;
     constructor(debuggerLink: string) {
         this._client = new WebSocket(debuggerLink);
-        this._server.on('connection', this.onConnect);
-        this._server.on('close', this.onClose);
+        this._server.once('connection', this.onConnect);
+        this._server.once('close', this.onClose);
     }
 
     private onConnect = (ws: WebSocket.WebSocket) => {
@@ -49,8 +49,8 @@ export class CDPTunnel {
         console.log('close connect');
         this._server.off('close', this.onClose);
         this._server.off('connection', this.onConnect);
-        this._client?.close();
-        this._socket?.close();
+        this._client?.terminate();
+        this._socket?.terminate();
     };
 
     get port(): number {
