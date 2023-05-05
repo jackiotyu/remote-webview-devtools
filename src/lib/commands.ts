@@ -39,9 +39,9 @@ async function openWebview(context: vscode.ExtensionContext, wsLink?: string, ti
     if (!wsLink) {
         wsLink = await vscode.window.showInputBox({
             title: '输入websocket链接',
-            placeHolder: '输入websocket链接，例如127.0.0.1:9229/xx',
+            placeHolder: '输入websocket链接，例如ws://127.0.0.1:9229/xx',
             validateInput(value) {
-                const ip = value.replace('ws://', '').split(':').shift() || '';
+                const ip = value.replace(/wss?:\/\//, '').split(':').shift() || '';
                 if (ip !== 'localhost' && !net.isIP(ip)) {
                     return '请输入正确的ip链接';
                 }

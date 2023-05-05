@@ -56,9 +56,27 @@
           "id": "RWD.adbView",
           "name": "adb连接webView",
           "icon": "$(window)"
+        },
+        {
+          "id": "RWD.actions",
+          "name": "快捷操作"
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "RWD.actions",
+        "contents": "[使用webSocket连接](command:RemoteWebviewDevtools.openWebview)"
+      },
+      {
+        "view": "RWD.actions",
+        "contents": "[打开adb连接](command:RemoteWebviewDevtools.trackDevices)"
+      },
+      {
+        "view": "RWD.actions",
+        "contents": "[打开设置](command:RemoteWebviewDevtools.openSetting)"
+      }
+    ],
     "menus": {
       "view/title": [
         {
