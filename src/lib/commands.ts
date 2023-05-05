@@ -64,6 +64,10 @@ function copyDetail(item: PageDetailItem) {
     vscode.env.clipboard.writeText(String(item.description));
 }
 
+function openSetting() {
+    void vscode.commands.executeCommand('workbench.action.openSettings', `@ext:jackiotyu.remote-webview-devtools` );
+}
+
 export class CommandsManager {
     private context: vscode.ExtensionContext;
     constructor(context: vscode.ExtensionContext) {
@@ -74,7 +78,8 @@ export class CommandsManager {
             ),
             vscode.commands.registerCommand(CommandName.trackDevices, () => trackDevices(this.context)),
             vscode.commands.registerCommand(CommandName.refreshAdbDevices, refreshAdbDevices),
-            vscode.commands.registerCommand(CommandName.copyDetail, copyDetail)
+            vscode.commands.registerCommand(CommandName.copyDetail, copyDetail),
+            vscode.commands.registerCommand(CommandName.openSetting, openSetting),
         );
         this.context.subscriptions.push({
             dispose: () => {

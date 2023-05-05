@@ -13,6 +13,7 @@ export enum CommandName {
     /** 更新页面链接列表 */
     refreshPages = 'RemoteWebviewDevtools.refreshPages',
     copyDetail = 'RemoteWebviewDevtools.copyDetail',
+    openSetting = 'RemoteWebviewDevtools.openSetting',
 }
 
 export enum Config {

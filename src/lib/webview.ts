@@ -23,7 +23,7 @@ export class FrontEndWebviewProvider {
     private frontEndPath: string;
     private scriptSrc: string;
     constructor(context: vscode.ExtensionContext, options: ViewOptions) {
-        this.title =  getViewTitle(options);
+        this.title = getViewTitle(options);
         this.options = options;
         const resourceUri = vscode.Uri.joinPath(context.extensionUri, 'web');
         this.panel = vscode.window.createWebviewPanel(
@@ -93,7 +93,8 @@ export class FrontEndWebview {
     constructor(context: vscode.ExtensionContext, options: ViewOptions) {
         const panel = webviewMap.get(options.ws);
         if(!isUndefined(panel)) {
-            // TODO 选中窗口
+            // 选中窗口
+            panel.reveal(undefined, true);
             return panel;
         }
         return new FrontEndWebviewProvider(context, options);

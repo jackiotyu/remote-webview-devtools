@@ -34,6 +34,11 @@
       {
         "command": "RemoteWebviewDevtools.copyDetail",
         "title": "复制值"
+      },
+      {
+        "command": "RemoteWebviewDevtools.openSetting",
+        "title": "打开设置",
+        "icon": "$(settings-gear)"
       }
     ],
     "viewsContainers": {
@@ -60,6 +65,10 @@
           "command": "RemoteWebviewDevtools.refreshAdbDevices",
           "when": "view == RWD.adbView",
           "group": "navigation"
+        },
+        {
+          "command": "RemoteWebviewDevtools.openSetting",
+          "when": "view == RWD.adbView"
         }
       ],
       "view/item/context": [
