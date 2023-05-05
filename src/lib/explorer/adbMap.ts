@@ -9,11 +9,11 @@ export class AdbMap {
     getWebViews(key: string) {
         return this.webViewsMap.get(key);
     }
-    setPages(key: number, pages: WebViewPage[]) {
-        this.webViewPagesMap.set(key, pages);
+    setPages(port: number, pages: WebViewPage[]) {
+        this.webViewPagesMap.set(port, pages);
     }
-    getPages(key: number){
-        return this.webViewPagesMap.get(key);
+    getPages(port: number){
+        return this.webViewPagesMap.get(port);
     }
     clear() {
         this.webViewPagesMap.clear();

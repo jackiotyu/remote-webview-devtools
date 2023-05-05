@@ -1,16 +1,17 @@
-import ADBKit from '@devicefarmer/adbkit';
+import ADBKit, { Device } from '@devicefarmer/adbkit';
 
-class ADB {
-    readonly client = ADBKit.createClient();
-    listDevices() {
-        return this.client.listDevices();
-    }
-    trackDevices() {
-        return this.client.trackDevices();
-    }
-    getDevices(serial: string) {
-        return this.client.getDevice(serial);
-    }
-}
+const client = ADBKit.createClient();
 
-export default new ADB();
+client.trackDevices().then(tracker => {
+    tracker.on('add', async (device: Device) => {
+        console.log('Device %s was plugged in', device.id);
+        console.log('all', await client.listDevices());
+    });
+    tracker.on('remove', (device: Device) => {
+        console.log('Device %s was unplugged', device.id);
+    });
+    tracker.on('end', () => console.log('Tracking stopped'));
+});
+
+
+export default client;

@@ -22,10 +22,9 @@ export class DeviceItem extends TreeItem {
         type: AdbTreeItemEnum.device,
         children: AdbWebView[],
         device: Device,
-        label: string,
         collapsibleState?: vscode.TreeItemCollapsibleState
     ) {
-        super(label, collapsibleState);
+        super(`${device.model } ${ device.serial} ${device.state}`, collapsibleState);
         this.type = type;
         this.children = children;
         this.device = device;
@@ -42,9 +41,9 @@ export class WebViewItem extends TreeItem {
         type: AdbTreeItemEnum.webView,
         webView: WebView,
         port: number,
-        label: string,
         collapsibleState?: vscode.TreeItemCollapsibleState
     ) {
+        const label = `${webView.packageName} ${webView.socket}`;
         super(label, collapsibleState);
         this.type = type;
         this.webView = webView;
@@ -60,19 +59,29 @@ export class PageItem extends vscode.TreeItem {
     constructor(
         type: AdbTreeItemEnum.page,
         page: WebViewPage,
-        label: string,
         collapsibleState?: vscode.TreeItemCollapsibleState
     ) {
+        const label = `${page.title} ${page.url}`;
         super(label, collapsibleState);
         this.type = type;
         this.page = page;
         this.command = {
             command: CommandName.openWebview,
-            arguments: [page.webSocketDebuggerUrl],
+            arguments: [page.webSocketDebuggerUrl, page.title],
             title: '打开webView调试',
         };
         this.iconPath = new vscode.ThemeIcon('notebook-execute', new vscode.ThemeColor('button.foreground'));
     }
 }
 
-export type AdbItem = PageItem | DeviceItem | WebViewItem;
+export class PageDetailItem extends vscode.TreeItem {
+    type: AdbTreeItemEnum.detail;
+    constructor(type: AdbTreeItemEnum.detail, key: string, value: string) {
+        super(key, vscode.TreeItemCollapsibleState.None);
+        this.type = type;
+        this.description = value;
+        this.contextValue = 'RWD.PageDetailItem';
+    }
+}
+
+export type AdbItem = PageDetailItem | PageItem | DeviceItem | WebViewItem;

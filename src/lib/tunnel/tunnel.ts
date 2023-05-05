@@ -1,9 +1,12 @@
 import WebSocket, { WebSocketServer } from 'ws';
+import { nanoid } from 'nanoid';
+import { parse } from 'url';
 import type { AddressInfo } from 'ws';
+import type { IncomingMessage } from 'http';
 
 const server = new WebSocketServer({
     host: '0.0.0.0',
-    port: 0
+    port: 0,
 });
 
 server.setMaxListeners(1000);
@@ -12,13 +15,18 @@ export class CDPTunnel {
     private _server: WebSocketServer = server;
     private _client: WebSocket;
     private _socket?: WebSocket.WebSocket;
+    private _id = nanoid();
     constructor(debuggerLink: string) {
         this._client = new WebSocket(debuggerLink);
         this._server.once('connection', this.onConnect);
         this._server.once('close', this.onClose);
     }
 
-    private onConnect = (ws: WebSocket.WebSocket) => {
+    private onConnect = (ws: WebSocket.WebSocket, req: IncomingMessage) => {
+        let location = parse(req.url || '');
+        if (location.path !== this.path) {
+            return;
+        }
         ws.on('error', (err) => {
             console.error(err);
             this._client.close();
@@ -56,9 +64,11 @@ export class CDPTunnel {
     get port(): number {
         return (this._server.address() as AddressInfo)?.port;
     }
-
+    get path() {
+        return `/${this._id}`;
+    }
     get link() {
-        return `127.0.0.1:${this.port}`;
+        return `127.0.0.1:${this.port}${this.path}`;
     }
 }
 

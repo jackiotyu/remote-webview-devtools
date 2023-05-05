@@ -134,3 +134,20 @@ export async function forward(options: ForwardOptions): Promise<ForwardedSocket>
 export async function unforward(options: UnforwardOptions): Promise<void> {
     await adb(options, "forward", "--remove", options.local);
 }
+
+export async function forwardList(options: AdbOptions): Promise<ForwardOptions[]> {
+    const output = await adb(options, "forward", "--list");
+    const reg = /([a-zA-Z0-9_-]+) (tcp:\d+) localabstract:([a-zA-Z0-9_-]+)/g;
+    const ports: ForwardOptions[] = [];
+    let r: RegExpExecArray | null;
+    while(r = reg.exec(output)) {
+        ports.push({
+            executable: options.executable,
+            arguments: options.arguments,
+            serial: r[1],
+            local: r[2],
+            remote: r[3]
+        });
+    }
+    return ports;
+}

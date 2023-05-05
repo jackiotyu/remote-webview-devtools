@@ -1,3 +1,5 @@
+export const EXTENSION_NAME: 'RemoteWebviewDevtools' = 'RemoteWebviewDevtools';
+
 export enum CommandName {
     /** 打开webview */
     openWebview = 'RemoteWebviewDevtools.openWebview',
@@ -9,5 +11,12 @@ export enum CommandName {
     /** 更新webView列表 */
     refreshWebViews = 'RemoteWebviewDevtools.refreshWebViews',
     /** 更新页面链接列表 */
-    refreshPages = 'RemoteWebviewDevtools.refreshPages'
+    refreshPages = 'RemoteWebviewDevtools.refreshPages',
+    copyDetail = 'RemoteWebviewDevtools.copyDetail',
+}
+
+export enum Config {
+    refresh = 'refresh',
+    adbPath = 'adbPath',
+    adbArgs = 'adbArgs',
 }

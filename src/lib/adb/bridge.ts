@@ -25,6 +25,8 @@ import * as vscode from "vscode";
 import * as adb from "./adb";
 import * as http from "./http";
 
+import { ConfigAdaptor, Config } from '../adaptor/configuration';
+
 export type Device = adb.Device;
 
 export type WebViewType = "chrome" | "webview" | "crosswalk" | "unknown";
@@ -70,7 +72,7 @@ function resolvePath(from: string): string {
             if (tilde === ".") {return fsPath;}
 
             // ../adb -> <workspace>/../adb
-            if (tilde === "..") {return fsPath + "/..";}
+            if (tilde === "..") {return `${fsPath }/..`;}
 
             return "";
         }
@@ -86,9 +88,11 @@ function resolvePath(from: string): string {
 }
 
 function getAdbExecutable(): string {
-    const adbPath = vscode.workspace
-        .getConfiguration("android-webview-debug")
-        .get<string>("adbPath");
+    const adbPath = ConfigAdaptor.get(Config.adbPath)
+                    // XXX 旧代码
+                    || vscode.workspace
+                        .getConfiguration("android-webview-debug")
+                        .get<string>("adbPath");
 
     if (adbPath) {
         return resolvePath(adbPath);
@@ -98,9 +102,7 @@ function getAdbExecutable(): string {
 }
 
 function getAdbArguments(): string[] {
-    const adbArgs = vscode.workspace
-        .getConfiguration("android-webview-debug")
-        .get<string[]>("adbArgs");
+    const adbArgs = ConfigAdaptor.get(Config.adbArgs);
 
     if (adbArgs) {
         return adbArgs;
@@ -320,21 +322,42 @@ export async function findWebViews(device: Device): Promise<WebView[]> {
 
 const forwardedSockets: adb.ForwardedSocket[] = [];
 
+
+function unforwardLocal(local: string) {
+    return adb.unforward({
+        executable: getAdbExecutable(),
+        arguments: getAdbArguments(),
+        local,
+    });
+}
+
+
 export async function forwardDebugger(application: WebView, port?: number): Promise<number> {
+    // 去除多余端口映射
+    const allForwardList = await getForwardPorts();
+    let forwardList = allForwardList.filter(item => item.remote === application.socket);
+    if(forwardList.length > 0) {
+        let forwardOption = (forwardList.shift() as adb.ForwardOptions);
+        const forwardedSocketsMap = new Map(forwardedSockets.map((item, index) => {
+            return [item.local, index];
+        }));
+        forwardList.forEach(async item => {
+            try {
+                let idx = forwardedSocketsMap.get(item.local) || -1;
+                idx >= 0 && forwardedSockets.splice(idx, 1);
+                await unforwardLocal(item.local);
+            } catch {}
+        });
+        return parseInt(forwardOption.local.substr(4), 10);
+    }
+
     if (port) {
         const idx = forwardedSockets.findIndex((el) => el.local === `tcp:${port}`);
         if (idx >= 0) {
             forwardedSockets.splice(idx, 1);
-
             try {
-                await adb.unforward({
-                    executable: getAdbExecutable(),
-                    arguments: getAdbArguments(),
-                    local: `tcp:${port}`
-                });
-            } catch {
-                // Ignore
-            }
+                await unforwardLocal(`tcp:${port}`);
+            } catch {}
         }
     }
 
@@ -370,4 +393,11 @@ export async function unforwardDebuggers(): Promise<void> {
 
 export async function getWebViewPages(port: number): Promise<WebViewPage[]> {
     return JSON.parse(await http.get(`http://127.0.0.1:${port}/json/list`)) as WebViewPage[];
+}
+
+export async function getForwardPorts() {
+    return adb.forwardList({
+        executable: getAdbExecutable(),
+        arguments: getAdbArguments(),
+    });
 }

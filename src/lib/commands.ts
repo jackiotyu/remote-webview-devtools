@@ -6,7 +6,7 @@ import { Execute } from './adb/execute';
 import { getWebViewPages, findDevices, findWebViews } from './adb/bridge';
 import { pickWebViewPage } from './adb/ui';
 import { adbEvent } from './event/adbEvent';
-import { DeviceItem, WebViewItem } from './explorer/adbTreeItem';
+import { PageDetailItem } from './explorer/adbTreeItem';
 
 async function trackDevices(context: vscode.ExtensionContext) {
     try {
@@ -52,7 +52,7 @@ async function openWebview(context: vscode.ExtensionContext, wsLink?: string, ti
     if (!wsLink) {
         return;
     }
-    new FrontEndWebview(context, { title: title || 'webview', ws: wsLink });
+    new FrontEndWebview(context, { title: title || 'debug webview', ws: wsLink });
 }
 
 async function refreshAdbDevices() {
@@ -60,13 +60,8 @@ async function refreshAdbDevices() {
     adbEvent.fire(devices.map(item => ({...item, webViews: []})));
 }
 
-async function refreshWebViews(item: DeviceItem) {
-    const webViews = await findWebViews(item.device);
-    return webViews;
-}
-async function refreshPages(item: WebViewItem) {
-    const pages = await getWebViewPages(item.port);
-    return pages;
+function copyDetail(item: PageDetailItem) {
+    vscode.env.clipboard.writeText(String(item.description));
 }
 
 export class CommandsManager {
@@ -74,13 +69,12 @@ export class CommandsManager {
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
         this.context.subscriptions.push(
-            vscode.commands.registerCommand(CommandName.openWebview, (wsLink: string) =>
-                openWebview(this.context, wsLink),
+            vscode.commands.registerCommand(CommandName.openWebview, (wsLink: string, title?: string) =>
+                openWebview(this.context, wsLink, title),
             ),
             vscode.commands.registerCommand(CommandName.trackDevices, () => trackDevices(this.context)),
-            vscode.commands.registerCommand(CommandName.refreshAdbDevices, () => refreshAdbDevices()),
-            vscode.commands.registerCommand(CommandName.refreshWebViews, (item: DeviceItem) =>  refreshWebViews(item)),
-            vscode.commands.registerCommand(CommandName.refreshPages, (item: WebViewItem) =>  refreshPages(item)),
+            vscode.commands.registerCommand(CommandName.refreshAdbDevices, refreshAdbDevices),
+            vscode.commands.registerCommand(CommandName.copyDetail, copyDetail)
         );
         this.context.subscriptions.push({
             dispose: () => {

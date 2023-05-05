@@ -16,5 +16,6 @@ export interface AdbDevice extends Device {
 export enum AdbTreeItemEnum {
     device = 'device',
     webView ='webView',
-    page =  'page'
+    page = 'page',
+    detail = 'detail'
 }
