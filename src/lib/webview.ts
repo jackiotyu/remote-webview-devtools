@@ -55,6 +55,10 @@ export class FrontEndWebviewProvider {
         });
     }
 
+    get panelInstance() {
+        return this.panel;
+    }
+
     getWebviewContent() {
         const { tunnel, panel, frontEndPath, scriptSrc } = this;
 
@@ -90,13 +94,15 @@ export class FrontEndWebviewProvider {
 }
 
 export class FrontEndWebview {
+    panel: vscode.WebviewPanel;
     constructor(context: vscode.ExtensionContext, options: ViewOptions) {
         const panel = webviewMap.get(options.ws);
         if(!isUndefined(panel)) {
             // 选中窗口
             panel.reveal(undefined, true);
-            return panel;
+            this.panel = panel;
+            return;
         }
-        return new FrontEndWebviewProvider(context, options);
+        this.panel = new FrontEndWebviewProvider(context, options).panelInstance;
     }
 }

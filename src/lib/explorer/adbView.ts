@@ -48,11 +48,6 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
         unforwardDebuggers();
         this.adbMap.clear();
         this._onDidChangeTreeData.fire();
-        // this.devices.map((item) => {
-        //     const deviceItem = new DeviceItem(AdbTreeItemEnum.device, item.webViews, item, vscode.TreeItemCollapsibleState.Collapsed);
-        //     console.log('fire device', deviceItem);
-        //     this._onDidChangeTreeData.fire(deviceItem);
-        // });
     }
     startTracker() {
         clearTimeout(this.deviceTracker?.timer);

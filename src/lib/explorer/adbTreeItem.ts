@@ -71,6 +71,7 @@ export class PageItem extends vscode.TreeItem {
             title: '打开webView调试',
         };
         this.iconPath = new vscode.ThemeIcon('notebook-execute', new vscode.ThemeColor('button.foreground'));
+        this.contextValue = 'RWD.PageItem';
     }
 }
 

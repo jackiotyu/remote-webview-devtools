@@ -39,6 +39,11 @@
         "command": "RemoteWebviewDevtools.openSetting",
         "title": "打开设置",
         "icon": "$(settings-gear)"
+      },
+      {
+        "command": "RemoteWebviewDevtools.connectDevtoolsProtocol",
+        "title": "连接devtools协议",
+        "icon": "$(symbol-namespace)"
       }
     ],
     "viewsContainers": {
@@ -93,6 +98,11 @@
         {
           "command": "RemoteWebviewDevtools.copyDetail",
           "when": "view === RWD.adbView && viewItem === RWD.PageDetailItem"
+        },
+        {
+          "command": "RemoteWebviewDevtools.connectDevtoolsProtocol",
+          "when": "view == RWD.adbView && viewItem === RWD.PageItem",
+          "group": "inline"
         }
       ]
     },

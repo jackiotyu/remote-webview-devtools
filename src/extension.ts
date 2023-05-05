@@ -4,6 +4,8 @@ import { CommandsManager } from './lib/commands';
 import { closeWsServer } from './lib/tunnel/tunnel';
 import { TreeDataManager } from './lib/explorer/index';
 import { AdbEvent } from './lib/event/adbEvent';
+import PlaygroundProvider from './lib/editor/playgroundProvider';
+import { SCHEME } from './constants';
 
 export function activate(context: vscode.ExtensionContext) {
     new CommandsManager(context);
@@ -11,6 +13,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push({ dispose: closeWsServer });
     context.subscriptions.push(...AdbEvent.getDisposables());
     new TreeDataManager(context);
+    context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(SCHEME, new PlaygroundProvider()));
 }
 
 export function deactivate() {}

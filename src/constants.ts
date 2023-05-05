@@ -15,7 +15,9 @@ export enum CommandName {
     refreshPages = 'RemoteWebviewDevtools.refreshPages',
     copyDetail = 'RemoteWebviewDevtools.copyDetail',
     openSetting = 'RemoteWebviewDevtools.openSetting',
-    openDocumentFromCodeLens = 'RemoteWebviewDevtools.openDocumentFromCodeLens'
+    openDocumentFromCodeLens = 'RemoteWebviewDevtools.openDocumentFromCodeLens',
+    /** 连接到devtools协议中间件 */
+    connectDevtoolsProtocol = 'RemoteWebviewDevtools.connectDevtoolsProtocol'
 }
 
 export enum Config {

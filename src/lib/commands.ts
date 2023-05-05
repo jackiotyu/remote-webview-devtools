@@ -6,7 +6,7 @@ import { Execute } from './adb/execute';
 import { getWebViewPages, findDevices, findWebViews } from './adb/bridge';
 import { pickWebViewPage } from './adb/ui';
 import { adbEvent } from './event/adbEvent';
-import { PageDetailItem } from './explorer/adbTreeItem';
+import { PageDetailItem, PageItem } from './explorer/adbTreeItem';
 
 async function trackDevices(context: vscode.ExtensionContext) {
     try {
@@ -23,16 +23,6 @@ async function trackDevices(context: vscode.ExtensionContext) {
     } catch (err: any) {
         vscode.window.showErrorMessage(err.message);
     }
-    // const tracker = await ADB.trackDevices();
-    // tracker.on('add', async (device: Device) => {
-    //     console.log('Device %s was plugged in', device.id);
-    //     console.log('all', await ADB.listDevices());
-    //     console.log(await ADB.client.getDevice(device.id).tcpip(5555));
-    // });
-    // tracker.on('remove', (device: Device) => {
-    //     console.log('Device %s was unplugged', device.id);
-    // });
-    // tracker.on('end', () => console.log('Tracking stopped'));
 }
 
 async function openWebview(context: vscode.ExtensionContext, wsLink?: string, title?: string) {
@@ -68,6 +58,12 @@ function openSetting() {
     void vscode.commands.executeCommand('workbench.action.openSettings', `@ext:jackiotyu.remote-webview-devtools` );
 }
 
+function connectDevtoolsProtocol(item: PageItem) {
+    if(!item || !item.page) {
+        return;
+    }
+}
+
 export class CommandsManager {
     private context: vscode.ExtensionContext;
     constructor(context: vscode.ExtensionContext) {
@@ -80,6 +76,7 @@ export class CommandsManager {
             vscode.commands.registerCommand(CommandName.refreshAdbDevices, refreshAdbDevices),
             vscode.commands.registerCommand(CommandName.copyDetail, copyDetail),
             vscode.commands.registerCommand(CommandName.openSetting, openSetting),
+            vscode.commands.registerCommand(CommandName.connectDevtoolsProtocol, connectDevtoolsProtocol)
         );
         this.context.subscriptions.push({
             dispose: () => {
