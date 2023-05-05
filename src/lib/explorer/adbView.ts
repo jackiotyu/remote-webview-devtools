@@ -60,10 +60,6 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
             this.deviceTracker = { timer, resolve };
         });
     }
-    async trackPages() {
-        const pages = await getForwardPorts();
-        console.log(pages, 'pages');
-    }
     getTreeItem(element: AdbItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
         return element;
     }
