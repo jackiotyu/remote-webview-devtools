@@ -1,4 +1,5 @@
 export const EXTENSION_NAME: 'RemoteWebviewDevtools' = 'RemoteWebviewDevtools';
+export const SCHEME = 'REMOTE_WEBVIEW_DEVTOOLS';
 
 export enum CommandName {
     /** 打开webview */
@@ -14,6 +15,7 @@ export enum CommandName {
     refreshPages = 'RemoteWebviewDevtools.refreshPages',
     copyDetail = 'RemoteWebviewDevtools.copyDetail',
     openSetting = 'RemoteWebviewDevtools.openSetting',
+    openDocumentFromCodeLens = 'RemoteWebviewDevtools.openDocumentFromCodeLens'
 }
 
 export enum Config {

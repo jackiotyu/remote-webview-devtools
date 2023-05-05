@@ -13,52 +13,41 @@ server.setMaxListeners(1000);
 
 export class CDPTunnel {
     private _server: WebSocketServer = server;
-    private _client: WebSocket;
-    private _socket?: WebSocket.WebSocket;
+    private _backend: WebSocket;
+    private _frontend?: WebSocket.WebSocket;
     private _id = nanoid();
     constructor(debuggerLink: string) {
-        this._client = new WebSocket(debuggerLink);
+        this._backend = new WebSocket(debuggerLink);
         this._server.once('connection', this.onConnect);
         this._server.once('close', this.onClose);
     }
 
-    private onConnect = (ws: WebSocket.WebSocket, req: IncomingMessage) => {
+    private onConnect = (frontend: WebSocket.WebSocket, req: IncomingMessage) => {
         let location = parse(req.url || '');
         if (location.path !== this.path) {
             return;
         }
-        ws.on('error', (err) => {
+        frontend.on('error', (err) => {
             console.error(err);
-            this._client.close();
+            this._backend.close();
         });
-        ws.on('message', (data, isBinary) => {
-            try {
-                // console.log('server message', JSON.parse(data.toString()));
-            } catch {}
-            this._client.send(data, { binary: isBinary });
+        frontend.on('message', (data, isBinary) => {
+            this._backend.send(data, { binary: isBinary });
         });
-        // let index = 100;
-        this._client.onmessage = (event) => {
-            try {
-                // const data = JSON.parse(event.data.toString());
-                // if(data.method === 'Debugger.scriptParsed') {
-                //     const scriptId = data.params.scriptId;
-                //     this._client.send(JSON.stringify({ id: index++, method: 'Debugger.getScriptSource', params: { scriptId } }));
-                // }
-                // console.log('client message', JSON.parse(event.data.toString()));
-            } catch {}
-            ws.send(event.data);
+        this._backend.onmessage = (event) => {
+            frontend.send(event.data);
         };
-        this._client.onclose = this.onClose;
-        this._socket = ws;
+        this._backend.onclose = this.onClose;
+        this._frontend = frontend;
+        // TODO 引入
     };
 
     onClose = () => {
         console.log('close connect');
         this._server.off('close', this.onClose);
         this._server.off('connection', this.onConnect);
-        this._client?.terminate();
-        this._socket?.terminate();
+        this._backend?.terminate();
+        this._frontend?.terminate();
     };
 
     get port(): number {
