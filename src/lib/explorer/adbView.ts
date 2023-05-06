@@ -3,7 +3,7 @@ import { AdbTreeItemEnum, AdbDevice } from './types';
 import { DeviceItem, WebViewItem, PageItem, PageDetailItem, AdbItem } from './adbTreeItem';
 import { adbEvent, toggleRefreshEvent } from '../event/adbEvent';
 import { CommandName } from '../../constants';
-import { findWebViews, forwardDebugger, getWebViewPages, unforwardDebuggers, getForwardPorts, WebViewPage } from '../adb/bridge';
+import { findWebViews, forwardDebugger, getWebViewPages, WebViewPage } from '../adb/bridge';
 import { AdbMap } from './adbMap';
 import { ConfigAdaptor, Config } from '../adaptor/configuration';
 
@@ -47,7 +47,6 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
         vscode.commands.executeCommand(CommandName.refreshAdbDevices);
     }
     refresh(): void {
-        unforwardDebuggers();
         this.adbMap.clear();
         this._onDidChangeTreeData.fire();
     }

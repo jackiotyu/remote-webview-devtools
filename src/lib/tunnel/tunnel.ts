@@ -58,7 +58,7 @@ export class CDPTunnel {
         this._backend.onclose = this.onClose;
         this._frontend = frontend;
         if (this._connectModule.connect) {
-            this._connectModule.connect(this._backend, this._frontend);
+            this._connectModule.connect(this._backend, frontend);
         }
     };
 
