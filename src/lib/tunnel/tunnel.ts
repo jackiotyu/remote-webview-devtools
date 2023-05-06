@@ -1,9 +1,11 @@
 import WebSocket, { WebSocketServer } from 'ws';
-import { nanoid } from 'nanoid';
+import { customAlphabet } from 'nanoid';
 import { parse } from 'url';
 import LiveScript, { OutModule } from './liveScript';
 import type { AddressInfo } from 'ws';
 import type { IncomingMessage } from 'http';
+
+const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 10);
 
 const server = new WebSocketServer({
     host: '0.0.0.0',
