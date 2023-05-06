@@ -22,7 +22,9 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
             this.refresh();
         });
         this.execRefreshAdbDevices();
-        this.startTracker();
+        if(this.refreshDelay) {
+            this.startTracker();
+        }
         toggleRefreshEvent.event(() => {
             if(this.refreshDelay) {
                 if(this.deviceTracker?.timer){
@@ -67,7 +69,7 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
         if (!element) {
             // 设备
             return this.devices.map((item) => {
-                return new DeviceItem(AdbTreeItemEnum.device, item.webViews, item, vscode.TreeItemCollapsibleState.Collapsed);
+                return new DeviceItem(AdbTreeItemEnum.device, item.webViews, item, vscode.TreeItemCollapsibleState.Expanded);
             });
         }
 

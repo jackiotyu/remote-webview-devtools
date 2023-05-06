@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
 import * as net from 'net';
+import { ConnectEditor } from './editor/connectEditor'
 import { FrontEndWebview } from './webview';
 import { CommandName } from '../constants';
 import { Execute } from './adb/execute';
-import { getWebViewPages, findDevices, findWebViews } from './adb/bridge';
+import { getWebViewPages, findDevices } from './adb/bridge';
 import { pickWebViewPage } from './adb/ui';
 import { adbEvent } from './event/adbEvent';
 import { PageDetailItem, PageItem } from './explorer/adbTreeItem';
@@ -28,12 +29,12 @@ async function trackDevices(context: vscode.ExtensionContext) {
 async function openWebview(context: vscode.ExtensionContext, wsLink?: string, title?: string) {
     if (!wsLink) {
         wsLink = await vscode.window.showInputBox({
-            title: '输入websocket链接',
-            placeHolder: '输入websocket链接，例如ws://127.0.0.1:9229/xx',
+            title: '输入webSocket链接',
+            placeHolder: '输入webSocket链接，例如ws://127.0.0.1:9229/xx',
             validateInput(value) {
                 const ip = value.replace(/wss?:\/\//, '').split(':').shift() || '';
                 if (ip !== 'localhost' && !net.isIP(ip)) {
-                    return '请输入正确的ip链接';
+                    return '请输入正确的webSocket链接';
                 }
                 return null;
             },
@@ -58,9 +59,16 @@ function openSetting() {
     void vscode.commands.executeCommand('workbench.action.openSettings', `@ext:jackiotyu.remote-webview-devtools` );
 }
 
-function connectDevtoolsProtocol(item: PageItem) {
+async function connectDevtoolsProtocol(item: PageItem) {
     if(!item || !item.page) {
         return;
+    }
+    try {
+        let { title, url, webSocketDebuggerUrl } = item.page;
+        const headerText = '// '+ [title,url,webSocketDebuggerUrl].join('\n// ')
+        new ConnectEditor(item.page.webSocketDebuggerUrl, headerText);
+    } catch (err) {
+        console.log(err, 'err');
     }
 }
 
@@ -76,7 +84,7 @@ export class CommandsManager {
             vscode.commands.registerCommand(CommandName.refreshAdbDevices, refreshAdbDevices),
             vscode.commands.registerCommand(CommandName.copyDetail, copyDetail),
             vscode.commands.registerCommand(CommandName.openSetting, openSetting),
-            vscode.commands.registerCommand(CommandName.connectDevtoolsProtocol, connectDevtoolsProtocol)
+            vscode.commands.registerCommand(CommandName.connectDevtoolsProtocol, (item: PageItem) => connectDevtoolsProtocol(item)),
         );
         this.context.subscriptions.push({
             dispose: () => {

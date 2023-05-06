@@ -3,7 +3,7 @@
   "name": "remote-webview-devtools",
   "displayName": "remote webview devtools 远程连接webview devtools",
   "description": "",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -167,6 +167,7 @@
     "@types/ws": "^8.5.4",
     "@typescript-eslint/eslint-plugin": "^5.59.1",
     "@typescript-eslint/parser": "^5.59.1",
+    "devtools-protocol": "^0.0.1139932",
     "eslint": "^8.39.0",
     "glob": "^8.1.0",
     "live-server": "^1.2.2",

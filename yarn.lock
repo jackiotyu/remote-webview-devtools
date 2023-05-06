@@ -917,6 +917,11 @@ destroy@1.2.0:
   resolved "https://registry.npmmirror.com/destroy/-/destroy-1.2.0.tgz#4803735509ad8be552934c67df614f94e66fa015"
   integrity sha512-2sJGJTaXIIaR1w4iJSNoN0hnMY7Gpc/n8D4qSCJw8QqFWXf7cuAgnEHxBpweaVcPevC2l3KpjYCx3NypQQgaJg==
 
+devtools-protocol@^0.0.1139932:
+  version "0.0.1139932"
+  resolved "https://registry.npmmirror.com/devtools-protocol/-/devtools-protocol-0.0.1139932.tgz#56636eba3ba6653819796b413e84d1b9af6485ad"
+  integrity sha512-m4fonGJrfSu+CDWea9gK3qBfSZ4CcL/UKRW0B9cnVmjcAnbEt4DLEzTrw0lrv2V/CEkEIJUgrVtZPxtozfBmag==
+
 dir-glob@^3.0.1:
   version "3.0.1"
   resolved "https://registry.npmmirror.com/dir-glob/-/dir-glob-3.0.1.tgz#56dbf73d992a4a93ba1584f4534063fd2e41717f"
