@@ -96,11 +96,11 @@ body,
   border-right: 1px solid #eee;
   padding: 15px 10px;
   font-size: 12px;
-  background: #ffffff;
+  background: #f3f3f3;
   -webkit-box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.3);
   box-shadow: 0 5px 10px #0000004d;
   display: inline-flex;
-  align-items: flex-start;
+  align-items: center;
   width: auto;
 }
 
