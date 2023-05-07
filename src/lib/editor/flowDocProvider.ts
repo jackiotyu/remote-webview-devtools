@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { nanoid } from 'nanoid';
 import { FLOW_EDITOR } from '../../constants';
+import outputChannel from '../output/outputChannel'
 
 export class FlowDocProvider implements vscode.CustomTextEditorProvider {
     private static readonly viewType = FLOW_EDITOR;
@@ -42,7 +43,10 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
 
         // 从webview接收消息
         webviewPanel.webview.onDidReceiveMessage((e) => {
+            console.log(e, 'message');
             switch (e.type) {
+                case 'log':
+                    outputChannel.printDebug(e.data);
                 case 'edit':
                     this.updateTextDocument(document, e.data);
                     return;

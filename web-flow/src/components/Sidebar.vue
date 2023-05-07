@@ -26,7 +26,7 @@ const nodes = ref<NodeInterface[]>([
     <aside>
         <div class="nodes">
             <div
-                class="vue-flow__node-input"
+                class="vue-flow__node-input vue-flow__edge-textbg"
                 :draggable="true"
                 @dragstart="onDragStart($event, node)"
                 v-for="node in nodes"

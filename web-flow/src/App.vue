@@ -36,28 +36,46 @@ body,
   transform-origin: bottom right;
 }
 
-.basicflow.dark {
+body {
+  background-color: #eee;
+}
+
+body.dark {
+  background: #000;
+}
+
+.dndflow.dark {
   background: #57534e;
-  color: #fffffb;
+  color: #999999;
 }
 
-.basicflow.dark .vue-flow__node {
+.dndflow.dark .vue-flow__node {
   background: #292524;
-  color: #fffffb;
+  color: #999999;
 }
 
-.basicflow.dark .vue-flow__controls .vue-flow__controls-button {
+.dndflow.dark .vue-flow__controls .vue-flow__controls-button {
   background: #292524;
-  fill: #fffffb;
-  border-color: #fffffb;
+  fill: #999999;
+  border-color: #999999;
 }
 
-.basicflow.dark .vue-flow__edge-textbg {
+.dndflow.dark .vue-flow__edge-textbg {
   fill: #292524;
 }
 
-.basicflow.dark .vue-flow__edge-text {
-  fill: #fffffb;
+.dndflow.dark .vue-flow__edge-text {
+  fill: #999999;
+}
+
+.dndflow.dark aside {
+  background: #999999;
+  color: #999999;
+}
+
+.dndflow.dark aside .vue-flow__node-input {
+  color: #999999;
+  background: #292524;
 }
 
 .basicflow .controls {
@@ -96,7 +114,7 @@ body,
   border-right: 1px solid #eee;
   padding: 15px 10px;
   font-size: 12px;
-  background: #f3f3f3;
+  background: rgba(243, 243, 243, 0.5);
   -webkit-box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.3);
   box-shadow: 0 5px 10px #0000004d;
   display: inline-flex;
@@ -114,12 +132,16 @@ body,
   margin-bottom: 10px;
   cursor: grab;
   font-weight: 500;
-  -webkit-box-shadow: 5px 5px 10px 2px rgba(0, 0, 0, 0.25);
-  box-shadow: 5px 5px 10px 2px #00000040;
+  -webkit-box-shadow: 1px 1px 5px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 1px 1px 5px 2px rgba(0, 0, 0, 0.1);
 }
 
 .dndflow .vue-flow-wrapper {
   flex-grow: 1;
   height: 100%;
+}
+
+.dndflow .vue-flow__edge.selected .vue-flow__edge-textbg {
+  filter: brightness(1.5);
 }
 </style>
