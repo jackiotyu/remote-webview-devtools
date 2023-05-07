@@ -20,11 +20,11 @@
     "commands": [
       {
         "command": "RemoteWebviewDevtools.openWebview",
-        "title": "RWD🚀 | websocket 打开 webview debug"
+        "title": "RWD: websocket 打开 webview debug"
       },
       {
         "command": "RemoteWebviewDevtools.trackDevices",
-        "title": "RWD🚀 | adb 打开 webview debug"
+        "title": "RWD: adb 打开 webview debug"
       },
       {
         "command": "RemoteWebviewDevtools.refreshAdbDevices",
@@ -46,6 +46,17 @@
         "icon": "$(symbol-namespace)"
       }
     ],
+    "customEditors": [
+			{
+				"viewType": "REMOTE_WEBVIEW_DEVTOOLS.FLOW_EDITOR",
+				"displayName": "webview devtools 连接配置",
+				"selector": [
+					{
+						"filenamePattern": "*.rwd-flow"
+					}
+				]
+			}
+		],
     "viewsContainers": {
       "activitybar": [
         {
@@ -147,11 +158,14 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "yarn run package",
+    "vscode:prepublish": "yarn run package:all",
+    "watch:all": "concurrently \"yarn:watch\" \"yarn:web-flow:run\"",
+    "package:all": "concurrently \"yarn:package\" \"yarn:web-flow:build\"",
     "compile": "webpack",
-    "server": "live-server --port=9908 --no-browser",
     "watch": "webpack --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
+    "web-flow:run": "yarn --cwd ./web-flow/ dev",
+    "web-flow:build": "yarn --cwd ./web-flow/ build",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
@@ -170,7 +184,6 @@
     "devtools-protocol": "^0.0.1139932",
     "eslint": "^8.39.0",
     "glob": "^8.1.0",
-    "live-server": "^1.2.2",
     "ts-loader": "^9.4.2",
     "typescript": "^5.0.4",
     "webpack": "^5.81.0",
@@ -179,6 +192,7 @@
   "dependencies": {
     "@devicefarmer/adbkit": "^3.2.4",
     "@types/bluebird": "^3.5.38",
+    "concurrently": "^8.0.1",
     "finalhandler": "^1.2.0",
     "nanoid": "^4.0.2",
     "serve-static": "^1.15.0",

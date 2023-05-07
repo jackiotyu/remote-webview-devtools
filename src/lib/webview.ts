@@ -77,7 +77,6 @@ export class FrontEndWebviewProvider {
                     frame-src 'self' ${panel.webview.cspSource} ${frontEndPath};
                     connect-src 'self' data: ${panel.webview.cspSource};
                 ">
-                <title>Cat Coding</title>
                 <style>
                 .devtools-frame {
                     flex: 1;

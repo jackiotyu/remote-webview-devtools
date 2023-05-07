@@ -1,5 +1,7 @@
 export const EXTENSION_NAME: 'RemoteWebviewDevtools' = 'RemoteWebviewDevtools';
 export const SCHEME = 'REMOTE_WEBVIEW_DEVTOOLS';
+export const FLOW_EDITOR = 'REMOTE_WEBVIEW_DEVTOOLS.FLOW_EDITOR';
+export const FLOW_EXT_NAME = '.rwd-flow';
 
 export enum CommandName {
     /** 打开webview */
