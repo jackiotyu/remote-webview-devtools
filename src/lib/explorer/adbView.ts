@@ -99,8 +99,11 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
             );
            return getPages.then(pages => {
                 this.adbMap.setPages(element.port, pages);
+                const collapsibleState = pages.length
+                    ? vscode.TreeItemCollapsibleState.Collapsed
+                    : vscode.TreeItemCollapsibleState.None;
                 return pages.map((item) => {
-                    return new PageItem(AdbTreeItemEnum.page, item, vscode.TreeItemCollapsibleState.Collapsed);
+                    return new PageItem(AdbTreeItemEnum.page, item, collapsibleState);
                 });
             }).catch(() => []);
         }
