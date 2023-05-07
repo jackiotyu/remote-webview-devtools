@@ -147,8 +147,8 @@ function toggleClass() {
   <div class="dndflow" @drop="onDrop">
     <Sidebar />
 
-    <VueFlow v-model="elements" :class="{ dark }" class="basicflow" :default-viewport="{ zoom: 0.5 }" :min-zoom="0.2" :max-zoom="4" @dragover="onDragOver">
-      <Background :pattern-color="dark ? '#FFFFFB' : '#aaa'" gap="8" />
+    <VueFlow v-model="elements" :class="{ dark }" class="basicflow" :default-viewport="{ zoom: 0.5, x: 0, y: 0 }" :min-zoom="0.2" :max-zoom="4" @dragover="onDragOver">
+      <Background :pattern-color="dark ? '#FFFFFB' : '#aaa'" :gap="8" />
       <MiniMap />
       <Controls />
 
