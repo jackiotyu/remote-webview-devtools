@@ -27,3 +27,59 @@ export enum Config {
     adbPath = 'adbPath',
     adbArgs = 'adbArgs',
 }
+
+export enum StaticNodeType {
+    /** webview事件 */
+    webviewEvent = 'webviewEvent',
+    /** devtools接收 */
+    devtoolsInput = 'devtoolsInput',
+    /** devtools事件 */
+    devtoolsEvent = 'devtoolsEvent',
+    /** webview接收 */
+    webviewInput = 'webviewInput',
+}
+
+export const StaticNodeSet = new Set(Object.keys(StaticNodeType));
+
+export enum NormalNodeType {
+    console = 'console',
+    middleware = 'middleware',
+    cdp = 'cdp',
+}
+
+export enum FlowWebviewMethod {
+    /** 输出文本到outputChannel */
+    log,
+    /** 更新flow文件内容 */
+    edit,
+    /** 打开编辑器 */
+    openEdit,
+    /** 展示信息 */
+    showInfo,
+}
+
+export namespace FlowWebviewPayload {
+    export type log = string;
+    export type edit = { name: string }
+    export type openEdit = { name: string }
+    export type showInfo = string;
+}
+
+export namespace FlowWebviewRecord {
+    export interface log {
+        type: FlowWebviewMethod.log;
+        data: FlowWebviewPayload.log;
+    }
+    export interface edit {
+        type: FlowWebviewMethod.edit;
+        data: FlowWebviewPayload.edit
+    }
+    export interface openEdit {
+        type: FlowWebviewMethod.openEdit,
+        data: FlowWebviewPayload.openEdit
+    }
+    export interface showInfo {
+        type: FlowWebviewMethod.showInfo,
+        data: FlowWebviewPayload.showInfo,
+    }
+}

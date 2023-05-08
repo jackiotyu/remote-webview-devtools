@@ -122,6 +122,13 @@
   resolved "https://mirrors.cloud.tencent.com/npm/@jridgewell/sourcemap-codec/-/sourcemap-codec-1.4.15.tgz#d7c6e6755c78567a951e04ab52ef0fd26de59f32"
   integrity sha512-eF2rxCRulEKXHTRiDrDy6erMYWqNw4LPdQ8UQA4huuxaQsVeRPFl2oM8oDGxMFhJUWZf9McpLtJasDDZb/Bpeg==
 
+"@types/nanoid@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.npmmirror.com/@types/nanoid/-/nanoid-3.0.0.tgz#c757b20f343f3a1dd76e80a9a431b6290fc20f35"
+  integrity sha512-UXitWSmXCwhDmAKe7D3hNQtQaHeHt5L8LO1CB8GF8jlYVzOv5cBWDNqiJ+oPEWrWei3i3dkZtHY/bUtd0R/uOQ==
+  dependencies:
+    nanoid "*"
+
 "@types/vscode-webview@^1.57.1":
   version "1.57.1"
   resolved "https://mirrors.cloud.tencent.com/npm/@types/vscode-webview/-/vscode-webview-1.57.1.tgz#0bf2c9d57698b99be2bb2813272169f7f62eb714"
@@ -580,6 +587,11 @@ muggle-string@^0.2.2:
   version "0.2.2"
   resolved "https://mirrors.cloud.tencent.com/npm/muggle-string/-/muggle-string-0.2.2.tgz#786aa53fea1652c61c6a59e1f839292b262bc72a"
   integrity sha512-YVE1mIJ4VpUMqZObFndk9CJu6DBJR/GB13p3tXuNbwD4XExaI5EOuRl6BHeIDxIqXZVxSfAC+y6U1Z/IxCfKUg==
+
+nanoid@*, nanoid@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.npmmirror.com/nanoid/-/nanoid-4.0.2.tgz#140b3c5003959adbebf521c170f282c5e7f9fb9e"
+  integrity sha512-7ZtY5KTCNheRGfEFxnedV5zFiORN1+Y1N6zvPTnHQd8ENUvfaDBeuJDZb2bN/oXwXxu3qkTXDzy57W5vAmDTBw==
 
 nanoid@^3.3.6:
   version "3.3.6"

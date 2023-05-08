@@ -1,7 +1,9 @@
 import * as vscode from 'vscode';
 import { nanoid } from 'nanoid';
-import { FLOW_EDITOR } from '../../constants';
-import outputChannel from '../output/outputChannel'
+import { FLOW_EDITOR, FlowWebviewMethod } from '../../constants';
+import type { FlowWebviewPayload } from '../../constants';
+import outputChannel from '../output/outputChannel';
+import GlobalStorage from '../adaptor/globalStorage'
 
 export class FlowDocProvider implements vscode.CustomTextEditorProvider {
     private static readonly viewType = FLOW_EDITOR;
@@ -45,15 +47,42 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
         webviewPanel.webview.onDidReceiveMessage((e) => {
             console.log(e, 'message');
             switch (e.type) {
-                case 'log':
+                case FlowWebviewMethod.log:
                     outputChannel.printDebug(e.data);
-                case 'edit':
+                    return;
+                case FlowWebviewMethod.edit:
                     this.updateTextDocument(document, e.data);
+                    return;
+                case FlowWebviewMethod.openEdit:
+                    this.openEdit(e.data);
+                    return;
+                case FlowWebviewMethod.showInfo:
+                    this.showInfo(e.data);
                     return;
             }
         });
 
         updateWebview();
+    }
+
+    async showInfo(data: FlowWebviewPayload.showInfo) {
+        vscode.window.showInformationMessage(data);
+    }
+
+    async openEdit(data: FlowWebviewPayload.openEdit) {
+        let list = GlobalStorage.getFlowList();
+        console.log(list, 'list');
+        return;
+        // let { name } = data;
+        // let content = GlobalStorage.existsScript(name)
+        //     ? GlobalStorage.getScript(name)
+        //     : 'export default function subscribe(message) {}';
+        // GlobalStorage.setScript(name, content);
+        // let scriptPath = GlobalStorage.getScriptPath(name);
+        // console.log(scriptPath, 'scriptPath');
+        // let doc = await vscode.workspace.openTextDocument(scriptPath);
+        // vscode.window.showTextDocument(doc, {preserveFocus: false, viewColumn: vscode.ViewColumn.Two});
+        // console.log(doc, 'doc')
     }
 
     getHtmlForWebview(panel: vscode.WebviewPanel) {

@@ -5,6 +5,7 @@
     "module": "ESNext",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
+    "baseUrl": ".",
 
     /* Bundler mode */
     "moduleResolution": "Node",
@@ -25,7 +26,8 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@/*": ["./src"]
+      "@/*": ["./src", "./src/*"],
+      "@ext/*": ["../src", "../src/*"],
     }
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
