@@ -79,6 +79,12 @@ async function addFlow() {
     void await vscode.commands.executeCommand("vscode.openWith", fileUri, FLOW_EDITOR);
 }
 
+async function openFlow(name: string) {
+    let filePath = GlobalStorage.getFlowPath(name);
+    let fileUri = vscode.Uri.file(filePath);
+    void await vscode.commands.executeCommand("vscode.openWith", fileUri, FLOW_EDITOR);
+}
+
 export class CommandsManager {
     private context: vscode.ExtensionContext;
     constructor(context: vscode.ExtensionContext) {
@@ -93,6 +99,7 @@ export class CommandsManager {
             vscode.commands.registerCommand(CommandName.openSetting, openSetting),
             vscode.commands.registerCommand(CommandName.connectDevtoolsProtocol, (item: PageItem) => connectDevtoolsProtocol(item)),
             vscode.commands.registerCommand(CommandName.addFlow, () => addFlow()),
+            vscode.commands.registerCommand(CommandName.openFlow, openFlow),
         );
         this.context.subscriptions.push({
             dispose: () => {

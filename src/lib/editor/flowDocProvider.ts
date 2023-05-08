@@ -65,7 +65,7 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
         });
         setTimeout(() => {
             updateWebview();
-        }, 300)
+        }, 500)
     }
 
     async showInfo(data: FlowWebviewPayload.showInfo) {

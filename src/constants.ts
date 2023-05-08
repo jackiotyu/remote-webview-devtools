@@ -23,6 +23,7 @@ export enum CommandName {
     /** 连接到devtools协议中间件 */
     connectDevtoolsProtocol = 'RemoteWebviewDevtools.connectDevtoolsProtocol',
     addFlow = 'RemoteWebviewDevtools.addFlow',
+    openFlow = 'RemoteWebviewDevtools.openFlow',
 }
 
 export enum Config {

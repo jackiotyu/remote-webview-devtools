@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { AdbViewProvider } from './adbView';
+import { FlowViewProvider } from './flowView';
 import { Explorer } from './types';
 
 export class TreeDataManager {
@@ -7,6 +8,9 @@ export class TreeDataManager {
         context.subscriptions.push(
             vscode.window.registerTreeDataProvider(
                 Explorer.adbView, new AdbViewProvider()
+            ),
+            vscode.window.registerTreeDataProvider(
+                Explorer.flowView, new FlowViewProvider()
             )
         );
     }

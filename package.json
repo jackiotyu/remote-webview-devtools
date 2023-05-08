@@ -79,7 +79,7 @@
           "icon": "$(window)"
         },
         {
-          "id": "RWD.flows",
+          "id": "RWD.flowView",
           "name": "流程管理"
         },
         {

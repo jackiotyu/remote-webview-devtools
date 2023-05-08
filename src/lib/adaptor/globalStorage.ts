@@ -78,7 +78,7 @@ export default class GlobalStorage {
     static getFlowList() {
         fs.ensureDirSync(this.flowPath);
         let reg = new RegExp(this.flowExtName.replace('.', '\.') + '$', 'i');
-        return fs.readdirSync(this.flowPath).filter(i => reg.test(i));
+        return fs.readdirSync(this.flowPath).filter(i => reg.test(i)).map(i => i.replace(this.flowExtName, ''));
     }
     static ensureFileSync(filePath: string) {
         fs.ensureFileSync(filePath);
