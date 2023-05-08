@@ -1,14 +1,20 @@
-import { Position } from '@vue-flow/core';
-import { StaticNodeType } from '../common/types.ts';
+export enum Position {
+    Left = 'left',
+    Top = 'top',
+    Right = 'right',
+    Bottom = 'bottom',
+}
 
-/**
- * You can pass elements together as a v-model value
- * or split them up into nodes and edges and pass them to the `nodes` and `edges` props of Vue Flow (or useVueFlow composable)
- */
-
-export { StaticNodeType };
-
-export const StaticNodeTypeSet = new Set<`${StaticNodeType}`>(Object.values(StaticNodeType));
+export enum StaticNodeType {
+    /** webview事件 */
+    webviewEvent = 'webviewEvent',
+    /** devtools接收 */
+    devtoolsInput = 'devtoolsInput',
+    /** devtools事件 */
+    devtoolsEvent = 'devtoolsEvent',
+    /** webview接收 */
+    webviewInput = 'webviewInput',
+}
 
 export const initialElements = [
     {

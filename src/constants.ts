@@ -1,7 +1,9 @@
+import { ModuleType } from '@/../protocol/flow'
+
 export const EXTENSION_NAME: 'RemoteWebviewDevtools' = 'RemoteWebviewDevtools';
 export const SCHEME = 'REMOTE_WEBVIEW_DEVTOOLS';
 export const FLOW_EDITOR = 'REMOTE_WEBVIEW_DEVTOOLS.FLOW_EDITOR';
-export const FLOW_EXT_NAME = '.rwd-flow';
+export const FLOW_EXT_NAME = '.rwdFlow';
 
 export enum CommandName {
     /** 打开webview */
@@ -19,7 +21,8 @@ export enum CommandName {
     openSetting = 'RemoteWebviewDevtools.openSetting',
     openDocumentFromCodeLens = 'RemoteWebviewDevtools.openDocumentFromCodeLens',
     /** 连接到devtools协议中间件 */
-    connectDevtoolsProtocol = 'RemoteWebviewDevtools.connectDevtoolsProtocol'
+    connectDevtoolsProtocol = 'RemoteWebviewDevtools.connectDevtoolsProtocol',
+    addFlow = 'RemoteWebviewDevtools.addFlow',
 }
 
 export enum Config {
@@ -56,12 +59,13 @@ export enum FlowWebviewMethod {
     openEdit,
     /** 展示信息 */
     showInfo,
+    update,
 }
 
 export namespace FlowWebviewPayload {
     export type log = string;
-    export type edit = { name: string }
-    export type openEdit = { name: string }
+    export type edit = Record<string, any>;
+    export type openEdit = { name: string, use: ModuleType }
     export type showInfo = string;
 }
 

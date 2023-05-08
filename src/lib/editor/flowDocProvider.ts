@@ -3,7 +3,8 @@ import { nanoid } from 'nanoid';
 import { FLOW_EDITOR, FlowWebviewMethod } from '../../constants';
 import type { FlowWebviewPayload } from '../../constants';
 import outputChannel from '../output/outputChannel';
-import GlobalStorage from '../adaptor/globalStorage'
+import GlobalStorage from '../adaptor/globalStorage';
+import fs from 'fs-extra'
 
 export class FlowDocProvider implements vscode.CustomTextEditorProvider {
     public static readonly viewType = FLOW_EDITOR;
@@ -20,7 +21,8 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
         webviewPanel.webview.options = {
             enableScripts: true,
             localResourceRoots: [
-                vscode.Uri.joinPath(this.context.extensionUri, 'web-flow')
+                vscode.Uri.joinPath(this.context.extensionUri, 'web-flow'),
+                vscode.Uri.joinPath(this.context.globalStorageUri),
             ]
         };
         webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel);
@@ -28,7 +30,7 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
         function updateWebview() {
             webviewPanel.webview.postMessage({
                 type: 'update',
-                text: document.getText(),
+                data: document.getText(),
             });
         }
 
@@ -61,8 +63,9 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
                     return;
             }
         });
-
-        updateWebview();
+        setTimeout(() => {
+            updateWebview();
+        }, 300)
     }
 
     async showInfo(data: FlowWebviewPayload.showInfo) {
@@ -70,16 +73,14 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
     }
 
     async openEdit(data: FlowWebviewPayload.openEdit) {
-        let { name } = data;
+        let { name, use } = data;
         let content = GlobalStorage.existsScript(name)
             ? GlobalStorage.getScript(name)
-            : 'export default function subscribe(message) {}';
+            : GlobalStorage.getScriptTpl(use);
         GlobalStorage.setScript(name, content);
         let scriptPath = GlobalStorage.getScriptPath(name);
-        console.log(scriptPath, 'scriptPath');
         let doc = await vscode.workspace.openTextDocument(scriptPath);
         vscode.window.showTextDocument(doc, {preserveFocus: false, viewColumn: vscode.ViewColumn.Two});
-        console.log(doc, 'doc')
     }
 
     getHtmlForWebview(panel: vscode.WebviewPanel) {
@@ -123,11 +124,12 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
     }
 
     private updateTextDocument(document: vscode.TextDocument, json: any) {
-        const edit = new vscode.WorkspaceEdit();
-        // 替换所有数据
-        edit.replace(document.uri, new vscode.Range(0, 0, document.lineCount, 0), JSON.stringify(json, null, 2));
-
-        return vscode.workspace.applyEdit(edit);
+        fs.writeFile(document.uri.fsPath, JSON.stringify(json));
+        // const edit = new vscode.WorkspaceEdit();
+        // // 替换所有数据
+        // edit.replace(document.uri, new vscode.Range(0, 0, document.lineCount, 0), JSON.stringify(json, null, 2));
+        // Promise.resolve().then(() => vscode.workspace.applyEdit(edit))
+        // ;
     }
 }
 
@@ -136,7 +138,12 @@ export default class FlowDocRegister {
         context.subscriptions.push(
             vscode.window.registerCustomEditorProvider(
                 FlowDocProvider.viewType,
-                new FlowDocProvider(context)
+                new FlowDocProvider(context),
+                {
+                    webviewOptions: {
+                        retainContextWhenHidden: true,
+                    }
+                }
             ),
         );
     }

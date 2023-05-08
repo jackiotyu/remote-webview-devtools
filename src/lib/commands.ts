@@ -2,12 +2,13 @@ import * as vscode from 'vscode';
 import * as net from 'net';
 import { ConnectEditor } from './editor/connectEditor'
 import { FrontEndWebview } from './webview';
-import { CommandName } from '../constants';
+import { CommandName, FLOW_EDITOR } from '../constants';
 import { Execute } from './adb/execute';
 import { getWebViewPages, findDevices } from './adb/bridge';
 import { pickWebViewPage } from './adb/ui';
 import { adbEvent } from './event/adbEvent';
 import { PageDetailItem, PageItem } from './explorer/adbTreeItem';
+import GlobalStorage from './adaptor/globalStorage';
 
 async function trackDevices(context: vscode.ExtensionContext) {
     try {
@@ -72,6 +73,12 @@ async function connectDevtoolsProtocol(item: PageItem) {
     }
 }
 
+async function addFlow() {
+    let filePath = GlobalStorage.generateFlow();
+    let fileUri = vscode.Uri.file(filePath);
+    void await vscode.commands.executeCommand("vscode.openWith", fileUri, FLOW_EDITOR);
+}
+
 export class CommandsManager {
     private context: vscode.ExtensionContext;
     constructor(context: vscode.ExtensionContext) {
@@ -85,6 +92,7 @@ export class CommandsManager {
             vscode.commands.registerCommand(CommandName.copyDetail, copyDetail),
             vscode.commands.registerCommand(CommandName.openSetting, openSetting),
             vscode.commands.registerCommand(CommandName.connectDevtoolsProtocol, (item: PageItem) => connectDevtoolsProtocol(item)),
+            vscode.commands.registerCommand(CommandName.addFlow, () => addFlow()),
         );
         this.context.subscriptions.push({
             dispose: () => {

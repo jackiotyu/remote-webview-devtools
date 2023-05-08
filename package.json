@@ -44,6 +44,11 @@
         "command": "RemoteWebviewDevtools.connectDevtoolsProtocol",
         "title": "连接devtools协议",
         "icon": "$(symbol-namespace)"
+      },
+      {
+        "command": "RemoteWebviewDevtools.addFlow",
+        "title": "添加流程",
+        "icon": "$(add)"
       }
     ],
     "customEditors": [
@@ -52,7 +57,7 @@
         "displayName": "webview devtools 连接配置",
         "selector": [
           {
-            "filenamePattern": "*.rwd-flow"
+            "filenamePattern": "*.rwdFlow"
           }
         ]
       }
@@ -72,6 +77,10 @@
           "id": "RWD.adbView",
           "name": "adb连接webView",
           "icon": "$(window)"
+        },
+        {
+          "id": "RWD.flows",
+          "name": "流程管理"
         },
         {
           "id": "RWD.actions",
@@ -103,6 +112,11 @@
         {
           "command": "RemoteWebviewDevtools.openSetting",
           "when": "view == RWD.adbView"
+        },
+        {
+          "command": "RemoteWebviewDevtools.addFlow",
+          "when": "view == RWD.flows",
+          "group": "navigation"
         }
       ],
       "view/item/context": [

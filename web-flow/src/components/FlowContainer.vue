@@ -1,17 +1,22 @@
 <script lang="ts" setup>
-import { nextTick, watch, watchEffect, ref } from 'vue';
+import { nextTick, watch, watchEffect, ref, onBeforeMount, onBeforeUnmount } from 'vue';
 import { Panel, PanelPosition, VueFlow, useVueFlow, Position } from '@vue-flow/core';
 import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
 import { MiniMap } from '@vue-flow/minimap';
-import { initialElements, StaticNodeTypeSet, StaticNodeType } from './initial-elements.js';
+import { StaticNodeTypeSet, StaticNodeType } from './initial-elements.js';
 import { onKeyStroke, useManualRefHistory, useMagicKeys } from '@vueuse/core';
 import Sidebar, { NodeInterface } from './Sidebar.vue';
 import { checkInvalidConnect } from '../utils/index';
 import { FlowWebviewMethod, FlowWebviewRecord } from '@ext/constants';
 import { StaticNodeSet } from '@/common/types';
+import { nanoid } from 'nanoid';
+import { debounce } from 'lodash';
 
-const vscode = window.acquireVsCodeApi();
+
+onBeforeMount(() => {
+    window.vscode ??= window.acquireVsCodeApi();
+})
 
 /**
  * useVueFlow provides all event handlers and store properties
@@ -28,15 +33,15 @@ const {
     project,
     vueFlowRef,
     getSelectedElements,
+    onNodesChange,
+    onEdgesChange,
 } = useVueFlow();
 
 function checkDeleteNode () {
     if (getSelectedElements.value.length) {
         getSelectedElements.value.forEach((node) => {
             if (StaticNodeTypeSet.has(node.id as StaticNodeType)) return;
-            commit();
             elements.value = elements.value.filter((ele) => ele.id !== node.id);
-            commit();
         });
     }
 }
@@ -59,9 +64,12 @@ watchEffect(() => {
     }
 });
 
-let id = 0;
 function getId () {
-    return `dndnode_${id++}`;
+    return nanoid();
+}
+
+function getScriptId (node: { sid: string; use: string }) {
+    return node.sid + '.' + node.use;
 }
 
 function onDragOver (event: DragEvent) {
@@ -83,10 +91,11 @@ function onDrop (event: DragEvent) {
         x: event.clientX - left,
         y: event.clientY - top,
     });
-
+    const id = getId();
     const newNode = {
-        id: getId(),
         ...node,
+        id: id,
+        sid: id,
         position,
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
@@ -118,7 +127,49 @@ function onDrop (event: DragEvent) {
 /**
  * Our elements
  */
-const elements = ref(initialElements);
+const elements = ref<Record<string, any>>([]);
+let canShow = ref(false);
+
+function receiveExtMsg (event: MessageEvent) {
+    let { type, data } = event.data;
+    console.log('receiveExtMsg', data, type)
+    canShow.value = true;
+    switch (type) {
+        case 'update':
+            elements.value = JSON.parse(data);
+            break;
+    }
+}
+
+const saveFunc = debounce(() => {
+    const data = toObject();
+    const message: FlowWebviewRecord.edit = {
+        type: FlowWebviewMethod.edit,
+        data: [...data.edges, ...data.nodes],
+    };
+    vscode?.postMessage(message);
+}, 300)
+
+const commitFunc = debounce(() => {
+    commit();
+}, 30)
+
+const changeFunc = () => {
+    saveFunc();
+    commitFunc();
+}
+
+onNodesChange(changeFunc)
+onEdgesChange(changeFunc)
+
+onBeforeMount(() => {
+    window.addEventListener('message', receiveExtMsg);
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener('message', receiveExtMsg);
+});
+
 const { commit, undo, redo } = useManualRefHistory(elements, { clone: true });
 commit();
 
@@ -129,12 +180,10 @@ commit();
  */
 onPaneReady(({ fitView }) => {
     fitView();
-    commit();
 });
 
 onNodeDragStop((e) => {
     console.log('drag stop', e);
-    commit();
 });
 
 onConnect((params) => {
@@ -143,7 +192,6 @@ onConnect((params) => {
     addEdges([
         { ...params, animated: true, label: 'connect', style: { stroke: 'orange' }, labelBgStyle: { fill: 'orange' } },
     ]);
-    commit();
 });
 
 const dark = ref(false);
@@ -163,7 +211,7 @@ function handleRedo () {
  * toObject transforms your current graph data to an easily persist-able object
  */
 function logToObject () {
-    vscode.postMessage({ type: FlowWebviewMethod.log, data: toObject() });
+    vscode?.postMessage({ type: FlowWebviewMethod.log, data: toObject() });
     return console.log(toObject());
 }
 
@@ -177,26 +225,26 @@ function toggleClass () {
 
 function onNodeDoubleClick ({ node }: { node: any }) {
     console.log(node, 'nodeDoubleClick');
-
     if (StaticNodeSet.has(node.uid)) {
-        const message: FlowWebviewRecord.showInfo = { type: FlowWebviewMethod.showInfo, data: '无法修改固定节点' };
-        vscode.postMessage(message);
+        const message: FlowWebviewRecord.showInfo = {
+            type: FlowWebviewMethod.showInfo,
+            data: '无法修改固定节点',
+        };
+        vscode?.postMessage(message);
         return;
     }
-
-    let name = node.label;
     const message: FlowWebviewRecord.openEdit = {
         type: FlowWebviewMethod.openEdit,
-        data: { name: name + 1 },
+        data: { name: getScriptId(node), use: node.use },
     };
-    vscode.postMessage(message);
+    vscode?.postMessage(message);
 }
 
 // TODO 保存设置 console cdp
 </script>
 
 <template>
-    <div class="dndflow" :class="{ dark }" @drop="onDrop">
+    <div class="dndflow" :class="{ dark }" @drop="onDrop" v-if="canShow">
         <Sidebar />
 
         <VueFlow v-model="elements" class="basicflow" :default-viewport="{ zoom: 0.5, x: 0, y: 0 }" :min-zoom="0.2"

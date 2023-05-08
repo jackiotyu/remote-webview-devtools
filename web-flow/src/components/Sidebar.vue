@@ -1,11 +1,13 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { NormalNodeType } from '../common/types.ts';
+import { ModuleType } from '@/../../protocol/flow.ts';
 
 export interface NodeInterface {
-  type: 'input' | 'output' | 'default';
-  label: string;
-  uid: NormalNodeType;
+    type: 'input' | 'output' | 'default';
+    label: string;
+    uid: NormalNodeType;
+    use: ModuleType;
 }
 
 function onDragStart(event: DragEvent, node: NodeInterface) {
@@ -16,9 +18,24 @@ function onDragStart(event: DragEvent, node: NodeInterface) {
 }
 
 const nodes = ref<NodeInterface[]>([
-    { type: 'output', label: 'console输出', uid: NormalNodeType.console },
-    { type: 'input', label: '注入cdp指令', uid: NormalNodeType.cdp },
-    { type: 'default', label: '中间件', uid: NormalNodeType.middleware },
+    {
+        type: 'output',
+        label: 'console输出',
+        uid: NormalNodeType.console,
+        use: ModuleType.target,
+    },
+    {
+        type: 'input',
+        label: '注入cdp指令',
+        uid: NormalNodeType.cdp,
+        use: ModuleType.source,
+    },
+    {
+        type: 'default',
+        label: '中间件',
+        uid: NormalNodeType.middleware,
+        use: ModuleType.middleware,
+    },
 ]);
 </script>
 

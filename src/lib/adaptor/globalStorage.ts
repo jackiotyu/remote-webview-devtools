@@ -1,7 +1,10 @@
 import * as vscode from 'vscode';
 import fs from 'fs-extra';
 import path from 'path';
-import { FLOW_EXT_NAME } from '../../constants'
+import { nanoid } from 'nanoid'
+import { ModuleType } from '../../../protocol/flow'
+import { FLOW_EXT_NAME } from '../../constants';
+import { initialElements } from '../tpl/data'
 
 export default class GlobalStorage {
     private static storageUri: vscode.Uri;
@@ -10,25 +13,25 @@ export default class GlobalStorage {
     private static flowExtName: string = FLOW_EXT_NAME;
     private static storagePath: string;
     private static protocolPath: string;
+    private static tplPath: string;
     static init(context: vscode.ExtensionContext) {
         this.storageUri = context.globalStorageUri;
         this.storagePath = this.storageUri.fsPath;
         this.protocolPath = path.join(context.extensionPath, 'protocol');
         this.scriptPath = path.join(this.storageUri.fsPath, 'script');
+        this.tplPath = path.join(this.storagePath, 'tpl');
         this.flowPath = path.join(this.storageUri.fsPath, 'flow');
-        let protocolPath = path.join(this.storagePath, 'protocol')
         console.log(this.storagePath, 'storagePath')
-        if(!fs.existsSync(protocolPath)) {
-            fs.copySync(this.protocolPath, protocolPath);
-            fs.copyFileSync(
-                path.join(this.protocolPath, 'tsconfig.json'),
-                path.join(this.storagePath,  'tsconfig.json')
-            );
+        if(!fs.existsSync(this.tplPath)) {
+            fs.copySync(this.protocolPath, this.storagePath);
         }
 
     }
     static getScriptPath(name: string) {
         return path.join(this.scriptPath, name + '.ts')
+    }
+    static getScriptTplPath(type: ModuleType) {
+        return path.join(this.tplPath, type + '.ts')
     }
     static getFlowPath(name: string) {
         return path.join(this.flowPath, name + this.flowExtName);
@@ -46,6 +49,11 @@ export default class GlobalStorage {
     /** 获取脚本内容 */
     static getScript(name: string) {
         const filePath = this.getScriptPath(name);
+        return this.safeReadFile(filePath);
+    }
+    /** 获取脚本模板内容 */
+    static getScriptTpl(type: ModuleType) {
+        const filePath = this.getScriptTplPath(type);
         return this.safeReadFile(filePath);
     }
     /** 获取flow内容 */
@@ -84,5 +92,10 @@ export default class GlobalStorage {
     private static safeReadFile(filePath: string) {
         fs.ensureFileSync(filePath);
         return fs.readFileSync(filePath, 'utf-8');
+    }
+    static generateFlow() {
+        let filePath = this.getFlowPath(nanoid());
+        this.safeSaveFile(filePath, JSON.stringify(initialElements));
+        return filePath;
     }
 }
