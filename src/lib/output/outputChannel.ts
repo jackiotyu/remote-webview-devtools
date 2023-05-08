@@ -16,7 +16,8 @@ export default class OutputChannel {
     static printDebug(value: any) {
         if(typeof value === 'object') value = JSON.stringify(value);
         // this.debugChannel.show();
-        this.debugChannel.appendLine(`[${+new Date()}]`);
+        this.debugChannel.appendLine(`[CONSOLE ${+new Date()}]>>>`);
         this.debugChannel.appendLine(`${value}`);
+        this.debugChannel.appendLine('');
     }
 }

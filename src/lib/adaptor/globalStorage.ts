@@ -63,6 +63,10 @@ export default class GlobalStorage {
         const filePath = this.getFlowPath(name);
         return fs.existsSync(filePath);
     }
+    static getScriptList() {
+        fs.ensureDirSync(this.scriptPath);
+        return fs.readdirSync(this.scriptPath).filter(i => i.endsWith('.ts'));
+    }
     static getFlowList() {
         fs.ensureDirSync(this.flowPath);
         let reg = new RegExp(this.flowExtName.replace('.', '\.') + '$', 'i');

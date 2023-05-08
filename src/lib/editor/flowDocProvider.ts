@@ -6,7 +6,7 @@ import outputChannel from '../output/outputChannel';
 import GlobalStorage from '../adaptor/globalStorage'
 
 export class FlowDocProvider implements vscode.CustomTextEditorProvider {
-    private static readonly viewType = FLOW_EDITOR;
+    public static readonly viewType = FLOW_EDITOR;
     private context: vscode.ExtensionContext;
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
@@ -70,19 +70,16 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
     }
 
     async openEdit(data: FlowWebviewPayload.openEdit) {
-        let list = GlobalStorage.getFlowList();
-        console.log(list, 'list');
-        return;
-        // let { name } = data;
-        // let content = GlobalStorage.existsScript(name)
-        //     ? GlobalStorage.getScript(name)
-        //     : 'export default function subscribe(message) {}';
-        // GlobalStorage.setScript(name, content);
-        // let scriptPath = GlobalStorage.getScriptPath(name);
-        // console.log(scriptPath, 'scriptPath');
-        // let doc = await vscode.workspace.openTextDocument(scriptPath);
-        // vscode.window.showTextDocument(doc, {preserveFocus: false, viewColumn: vscode.ViewColumn.Two});
-        // console.log(doc, 'doc')
+        let { name } = data;
+        let content = GlobalStorage.existsScript(name)
+            ? GlobalStorage.getScript(name)
+            : 'export default function subscribe(message) {}';
+        GlobalStorage.setScript(name, content);
+        let scriptPath = GlobalStorage.getScriptPath(name);
+        console.log(scriptPath, 'scriptPath');
+        let doc = await vscode.workspace.openTextDocument(scriptPath);
+        vscode.window.showTextDocument(doc, {preserveFocus: false, viewColumn: vscode.ViewColumn.Two});
+        console.log(doc, 'doc')
     }
 
     getHtmlForWebview(panel: vscode.WebviewPanel) {
@@ -137,7 +134,10 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
 export default class FlowDocRegister {
     constructor(context: vscode.ExtensionContext) {
         context.subscriptions.push(
-            vscode.window.registerCustomEditorProvider(FLOW_EDITOR, new FlowDocProvider(context)),
+            vscode.window.registerCustomEditorProvider(
+                FlowDocProvider.viewType,
+                new FlowDocProvider(context)
+            ),
         );
     }
 }
