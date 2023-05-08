@@ -2,18 +2,19 @@ import * as vscode from 'vscode';
 import { CommandName } from '../../constants';
 
 export enum FlowNodeEnum {
-    flow = 'flow',
+    flowItem = 'RWD.flowItem',
 }
 
 export class FlowItem extends vscode.TreeItem {
-    type: FlowNodeEnum.flow;
+    type: FlowNodeEnum.flowItem;
     constructor(
-        type: FlowNodeEnum.flow,
+        type: FlowNodeEnum.flowItem,
         name: string,
         collapsibleState?: vscode.TreeItemCollapsibleState,
     ) {
         super(name, collapsibleState);
         this.type = type;
+        this.contextValue = 'RWD.flowItem';
         this.command = {
             command: CommandName.openFlow,
             arguments: [name],

@@ -98,4 +98,14 @@ export default class GlobalStorage {
         this.safeSaveFile(filePath, JSON.stringify(initialElements));
         return filePath;
     }
+    static renameFlow(oldName: string, newName: string) {
+        let oldPath = this.getFlowPath(oldName);
+        let newPath = this.getFlowPath(newName);
+        fs.ensureFileSync(oldPath);
+        fs.renameSync(oldPath, newPath);
+    }
+    static deleteFlow(name:string) {
+        const filePath = this.getFlowPath(name);
+        fs.removeSync(filePath);
+    }
 }

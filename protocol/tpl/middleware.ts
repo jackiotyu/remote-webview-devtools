@@ -1,4 +1,4 @@
-import { ScriptModule } from '../flow';
+import type { ScriptModule } from '../flow';
 
 export default {
     /**

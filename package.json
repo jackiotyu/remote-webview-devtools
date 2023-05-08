@@ -47,8 +47,18 @@
       },
       {
         "command": "RemoteWebviewDevtools.addFlow",
-        "title": "添加流程",
+        "title": "添加flow",
         "icon": "$(add)"
+      },
+      {
+        "command": "RemoteWebviewDevtools.renameFlow",
+        "title": "修改flow名",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "RemoteWebviewDevtools.deleteFlow",
+        "title": "删除flow",
+        "icon": "$(remove)"
       }
     ],
     "customEditors": [
@@ -59,7 +69,8 @@
           {
             "filenamePattern": "*.rwdFlow"
           }
-        ]
+        ],
+        "priority": "option"
       }
     ],
     "viewsContainers": {
@@ -115,7 +126,7 @@
         },
         {
           "command": "RemoteWebviewDevtools.addFlow",
-          "when": "view == RWD.flows",
+          "when": "view == RWD.flowView",
           "group": "navigation"
         }
       ],
@@ -127,6 +138,16 @@
         {
           "command": "RemoteWebviewDevtools.connectDevtoolsProtocol",
           "when": "view == RWD.adbView && viewItem === RWD.PageItem",
+          "group": "inline"
+        },
+        {
+          "command": "RemoteWebviewDevtools.renameFlow",
+          "when": "view == RWD.flowView && viewItem === RWD.flowItem",
+          "group": "inline"
+        },
+        {
+          "command": "RemoteWebviewDevtools.deleteFlow",
+          "when": "view == RWD.flowView && viewItem === RWD.flowItem",
           "group": "inline"
         }
       ]

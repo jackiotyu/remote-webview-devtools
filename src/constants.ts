@@ -24,6 +24,8 @@ export enum CommandName {
     connectDevtoolsProtocol = 'RemoteWebviewDevtools.connectDevtoolsProtocol',
     addFlow = 'RemoteWebviewDevtools.addFlow',
     openFlow = 'RemoteWebviewDevtools.openFlow',
+    renameFlow = 'RemoteWebviewDevtools.renameFlow',
+    deleteFlow = 'RemoteWebviewDevtools.deleteFlow',
 }
 
 export enum Config {

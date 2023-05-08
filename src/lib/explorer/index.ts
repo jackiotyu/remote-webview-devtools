@@ -7,10 +7,10 @@ export class TreeDataManager {
     constructor(context: vscode.ExtensionContext) {
         context.subscriptions.push(
             vscode.window.registerTreeDataProvider(
-                Explorer.adbView, new AdbViewProvider()
+                Explorer.adbView, new AdbViewProvider(context)
             ),
             vscode.window.registerTreeDataProvider(
-                Explorer.flowView, new FlowViewProvider()
+                Explorer.flowView, new FlowViewProvider(context)
             )
         );
     }

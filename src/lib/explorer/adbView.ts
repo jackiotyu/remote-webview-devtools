@@ -16,7 +16,7 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
     private devices: AdbDevice[] = [];
     private adbMap: AdbMap = new AdbMap();
     private deviceTracker?: { timer: NodeJS.Timeout, resolve: () => void };
-    constructor() {
+    constructor(context: vscode.ExtensionContext) {
         adbEvent.event((devices) => {
             this.devices = devices;
             this.refresh();
@@ -35,6 +35,7 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
                this.clearTracker();
             }
         });
+        context.subscriptions.push(this._onDidChangeTreeData);
     }
     get refreshDelay() {
         return ConfigAdaptor.get(Config.refresh);

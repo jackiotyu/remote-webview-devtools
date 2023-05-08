@@ -7,7 +7,9 @@ import { Execute } from './adb/execute';
 import { getWebViewPages, findDevices } from './adb/bridge';
 import { pickWebViewPage } from './adb/ui';
 import { adbEvent } from './event/adbEvent';
+import { flowEvent } from './event/flowEvent';
 import { PageDetailItem, PageItem } from './explorer/adbTreeItem';
+import { FlowItem } from './explorer/flowTreeItem';
 import GlobalStorage from './adaptor/globalStorage';
 
 async function trackDevices(context: vscode.ExtensionContext) {
@@ -77,12 +79,38 @@ async function addFlow() {
     let filePath = GlobalStorage.generateFlow();
     let fileUri = vscode.Uri.file(filePath);
     void await vscode.commands.executeCommand("vscode.openWith", fileUri, FLOW_EDITOR);
+    flowEvent.fire();
 }
 
 async function openFlow(name: string) {
     let filePath = GlobalStorage.getFlowPath(name);
     let fileUri = vscode.Uri.file(filePath);
     void await vscode.commands.executeCommand("vscode.openWith", fileUri, FLOW_EDITOR);
+}
+
+async function renameFlow(item: FlowItem) {
+    let newName = await vscode.window.showInputBox({
+        placeHolder: "请输入新名称",
+        title: '修改flow名称',
+        value: item.label as string,
+        validateInput(value) {
+            if(!value) return '请输入名称';
+            if(value === item.label) return '与旧名称相同';
+            if(GlobalStorage.existsFlow(value)) return '同名文件已存在';
+        },
+    });
+    if(!newName) return;
+    GlobalStorage.renameFlow(item.label as string, newName);
+    flowEvent.fire();
+}
+
+async function deleteFlow(item: FlowItem) {
+    const ok = '确定';
+    const cancel = '取消'
+    let confirm = await vscode.window.showWarningMessage('确定删除？', ok, cancel);
+    if(confirm !== ok) return;
+    GlobalStorage.deleteFlow(item.label as string);
+    flowEvent.fire();
 }
 
 export class CommandsManager {
@@ -100,6 +128,8 @@ export class CommandsManager {
             vscode.commands.registerCommand(CommandName.connectDevtoolsProtocol, (item: PageItem) => connectDevtoolsProtocol(item)),
             vscode.commands.registerCommand(CommandName.addFlow, () => addFlow()),
             vscode.commands.registerCommand(CommandName.openFlow, openFlow),
+            vscode.commands.registerCommand(CommandName.renameFlow, (name: FlowItem) => renameFlow(name)),
+            vscode.commands.registerCommand(CommandName.deleteFlow, (name: FlowItem) => deleteFlow(name)),
         );
         this.context.subscriptions.push({
             dispose: () => {
