@@ -7,9 +7,10 @@ import { MiniMap } from '@vue-flow/minimap';
 import { StaticNodeTypeSet, StaticNodeType } from './initial-elements.js';
 import { onKeyStroke, useManualRefHistory, useMagicKeys } from '@vueuse/core';
 import Sidebar, { NodeInterface } from './Sidebar.vue';
+import ActionBar from './ActionBar.vue';
 import { checkInvalidConnect } from '../utils/index';
 import { FlowWebviewMethod, FlowWebviewRecord } from '@ext/constants';
-import { StaticNodeSet } from '@/common/types';
+import { StaticNodeSet, LinkNodeType } from '@/common/types';
 import { nanoid } from 'nanoid';
 import { debounce } from 'lodash';
 
@@ -147,7 +148,7 @@ const saveFunc = debounce(() => {
         type: FlowWebviewMethod.edit,
         data: [...data.edges, ...data.nodes],
     };
-    vscode?.postMessage(message);
+    window.vscode?.postMessage(message);
 }, 300)
 
 const commitFunc = debounce(() => {
@@ -211,7 +212,7 @@ function handleRedo () {
  * toObject transforms your current graph data to an easily persist-able object
  */
 function logToObject () {
-    vscode?.postMessage({ type: FlowWebviewMethod.log, data: toObject() });
+    window.vscode?.postMessage({ type: FlowWebviewMethod.log, data: toObject() });
     return console.log(toObject());
 }
 
@@ -230,14 +231,18 @@ function onNodeDoubleClick ({ node }: { node: any }) {
             type: FlowWebviewMethod.showInfo,
             data: '无法修改固定节点',
         };
-        vscode?.postMessage(message);
+        window.vscode?.postMessage(message);
         return;
     }
     const message: FlowWebviewRecord.openEdit = {
         type: FlowWebviewMethod.openEdit,
         data: { name: getScriptId(node), use: node.use },
     };
-    vscode?.postMessage(message);
+    window.vscode?.postMessage(message);
+}
+
+function handleDeploy() {
+    window.vscode?.postMessage({ type: FlowWebviewMethod.deploy })
 }
 
 // TODO 保存设置 console cdp
@@ -246,6 +251,7 @@ function onNodeDoubleClick ({ node }: { node: any }) {
 <template>
     <div class="dndflow" :class="{ dark }" @drop="onDrop" v-if="canShow">
         <Sidebar />
+        <ActionBar @deploy="handleDeploy" />
 
         <VueFlow v-model="elements" class="basicflow" :default-viewport="{ zoom: 0.5, x: 0, y: 0 }" :min-zoom="0.2"
             :max-zoom="4" @dragover="onDragOver" @nodeDoubleClick="onNodeDoubleClick">

@@ -53,6 +53,23 @@ export enum NormalNodeType {
     cdp = 'cdp',
 }
 
+export enum LinkNodeType {
+    link = 'link',
+}
+
+export const SourceNodeSet = new Set([
+    StaticNodeType.devtoolsEvent,
+    StaticNodeType.webviewEvent,
+    NormalNodeType.cdp,
+]);
+
+export const TargetNodeSet = new Set([
+    StaticNodeType.devtoolsInput,
+    StaticNodeType.webviewInput,
+    NormalNodeType.console,
+]);
+
+
 export enum FlowWebviewMethod {
     /** 输出文本到outputChannel */
     log,
@@ -63,13 +80,15 @@ export enum FlowWebviewMethod {
     /** 展示信息 */
     showInfo,
     update,
+    deploy,
 }
 
 export namespace FlowWebviewPayload {
     export type log = string;
     export type edit = Record<string, any>;
-    export type openEdit = { name: string, use: ModuleType }
+    export type openEdit = { name: string, use: ModuleType };
     export type showInfo = string;
+    export type deploy = void;
 }
 
 export namespace FlowWebviewRecord {
@@ -88,5 +107,9 @@ export namespace FlowWebviewRecord {
     export interface showInfo {
         type: FlowWebviewMethod.showInfo,
         data: FlowWebviewPayload.showInfo,
+    }
+    export interface deploy {
+        type: FlowWebviewMethod.deploy,
+        data: FlowWebviewPayload.deploy,
     }
 }

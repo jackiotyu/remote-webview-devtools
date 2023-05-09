@@ -4,7 +4,7 @@ export default {
     /**
      * @param fire 发送消息给下一个流程
      */
-    from: (fire) => {
+    trigger: (fire) => {
 
     },
 } as ScriptModule.Source;

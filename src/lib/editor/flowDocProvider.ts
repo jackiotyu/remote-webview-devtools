@@ -4,7 +4,10 @@ import { FLOW_EDITOR, FlowWebviewMethod } from '../../constants';
 import type { FlowWebviewPayload } from '../../constants';
 import outputChannel from '../output/outputChannel';
 import GlobalStorage from '../adaptor/globalStorage';
-import fs from 'fs-extra'
+import { deployEvent } from '../event/tunnelEvent'
+import { compilerFlow } from '../compiler/compiler'
+import fs from 'fs-extra';
+import path from 'path';
 
 export class FlowDocProvider implements vscode.CustomTextEditorProvider {
     public static readonly viewType = FLOW_EDITOR;
@@ -61,11 +64,23 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
                 case FlowWebviewMethod.showInfo:
                     this.showInfo(e.data);
                     return;
+                case FlowWebviewMethod.deploy:
+                    this.deploy(document);
+                    return;
             }
         });
         setTimeout(() => {
             updateWebview();
         }, 500)
+    }
+
+    async deploy(document: vscode.TextDocument) {
+        vscode.window.showInformationMessage('部署中');
+        let filePath = document.uri.fsPath
+        let flowName = filePath.split(path.sep).pop()!.split('.').shift()
+        console.log(flowName, 'flowName', filePath);
+        if(!flowName) return;
+        deployEvent.fire(flowName);
     }
 
     async showInfo(data: FlowWebviewPayload.showInfo) {

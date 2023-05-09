@@ -4,7 +4,7 @@ export default {
     /**
      * @param message 上一个消息源发送的消息
      */
-    end: (message) => {
+    trigger: (message) => {
 
     },
 } as ScriptModule.Target;

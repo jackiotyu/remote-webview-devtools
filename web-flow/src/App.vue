@@ -68,6 +68,56 @@ body.dark {
   fill: #999999;
 }
 
+
+.dndflow .action-bar {
+  position: fixed;
+  bottom: 80px;
+  margin: 0 auto;
+  /* width: 200px; */
+  left: 50%;
+  display: flex;
+  justify-content: center;
+  /* background: rgba(255, 255, 255, 0.5); */
+  /* filter: blur(10); */
+  z-index: 1;
+  /* padding: 10px; */
+  /* border-radius: 10px; */
+}
+
+.dndflow .action-bar .action-btn {
+  padding: 14px;
+  box-sizing: border-box;
+  background-color: #000000;
+  display: inline-block;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 6px solid #cccccc;
+  /* -webkit-box-shadow: 0 1px 4px 1px rgb(0 0 0 / 8%); */
+  /* box-shadow: 0 1px 4px 1px rgb(0 0 0 / 8%); */
+  animation: shadowSpread linear infinite;
+  animation-duration: 1.2s;
+  transition: box-shadow 1.2s;
+}
+
+@keyframes shadowSpread {
+  0% {
+    box-shadow: 0 1px 4px 1px rgb(0 0 0 / 8%);
+  }
+  50% {
+    box-shadow: 0 1px 12px 6px #cccccc;
+  }
+  100% {
+    box-shadow: 0 1px 12px 6px rgb(255, 255, 255);
+  }
+}
+
+
+.dndflow .action-bar .action-btn .icon {
+  fill: #ffffff;
+  width: 40px;
+  height: 40px;
+}
+
 .dndflow.dark aside {
   background: #999999;
   color: #999999;

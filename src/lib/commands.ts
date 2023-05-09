@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as net from 'net';
-import { ConnectEditor } from './editor/connectEditor'
+// import { ConnectEditor } from './editor/connectEditor'
+import { createTunnel } from '../lib/event/tunnelEvent'
 import { FrontEndWebview } from './webview';
 import { CommandName, FLOW_EDITOR } from '../constants';
 import { Execute } from './adb/execute';
@@ -67,9 +68,26 @@ async function connectDevtoolsProtocol(item: PageItem) {
         return;
     }
     try {
-        let { title, url, webSocketDebuggerUrl } = item.page;
-        const headerText = '// '+ [title,url,webSocketDebuggerUrl].join('\n// ')
-        new ConnectEditor(item.page.webSocketDebuggerUrl, headerText);
+        let { title, webSocketDebuggerUrl } = item.page;
+        let flowList = GlobalStorage.getFlowList();
+        const addFlow = '添加flow';
+        const cancel = '取消'
+        if(!flowList.length) {
+            let confirm = await vscode.window.showWarningMessage('当前没有flow', addFlow, cancel);
+            if(confirm === addFlow) {
+                vscode.commands.executeCommand(CommandName.addFlow);
+            }
+            return;
+        }
+        let flow = await vscode.window.showQuickPick([...flowList, addFlow], { title: `请选择为${title}选择flow`, canPickMany: false, ignoreFocusOut: true });
+        if(flow === addFlow) {
+            vscode.commands.executeCommand(CommandName.addFlow);
+            return;
+        }
+        if(!flow) return;
+        console.log('pick flow', flow);
+        createTunnel(webSocketDebuggerUrl, flow);
+        vscode.commands.executeCommand(CommandName.openFlow, flow);
     } catch (err) {
         console.log(err, 'err');
     }

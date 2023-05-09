@@ -26,16 +26,16 @@ export namespace ScriptModule {
     /** 中间件模块 */
     export interface Middleware {
         /** 外部调用方法，固定此名称 */
-        pipe: PipeMethod;
+        trigger: PipeMethod;
     }
     /** 数据源模块 */
     export interface Source {
         /** 外部调用方法，固定此名称 */
-        from: FromMethod;
+        trigger: FromMethod;
     }
     /** 数据接收模块 */
     export interface Target {
         /** 外部调用方法，固定此名称 */
-        end: TargetMethod;
+        trigger: TargetMethod;
     }
 }

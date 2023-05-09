@@ -1,24 +1,27 @@
 import * as vscode from 'vscode';
-import {  } from 'node:vm';
-import { ScriptModule, CDPMessage } from '../../../protocol/flow';
+import GlobalStorage from '../adaptor/globalStorage';
+import { ScriptModule, CDPMessage, ModuleType } from '../../../protocol/flow';
+import { compilerFlow, compilerScript } from '../compiler/compiler';
+import { SourceNodeSet, TargetNodeSet, NormalNodeType, StaticNodeType } from '../../constants'
 
 type CDPPayload = CDPMessage;
 
 type EventInstance = InstanceType<typeof vscode.EventEmitter<CDPPayload>>;
 
-export default class TunnelEvent {
-    private static context: vscode.ExtensionContext;
-    private static eventMap: Map<string, EventInstance> = new Map();
-    static init(context: vscode.ExtensionContext) {
-        this.context = context;
-        this.context.subscriptions.push({ dispose: this.dispose });
+export const deployEvent = new vscode.EventEmitter<string>();
+
+export class TunnelEvent {
+    public id: string;
+    private eventMap: Map<string, EventInstance> = new Map();
+    constructor(id: string) {
+        this.id = id;
     }
     /** 注册事件 */
-    static register(eventName: string) {
+    register(eventName: string) {
         this.eventMap.set(eventName, new vscode.EventEmitter<CDPPayload>());
     }
     /** 绑定事件回调 */
-    static bindEvent(eventName: string, callback: (message: CDPPayload) => CDPPayload | void) {
+    bindEvent(eventName: string, callback: (message: CDPPayload) => CDPPayload | void) {
         let event = this.eventMap.get(eventName);
         if (!event) {
             this.register(eventName);
@@ -27,71 +30,168 @@ export default class TunnelEvent {
         event.event(callback);
     }
     /** 触发消息执行 */
-    static trigger(eventName: string, message: CDPPayload | void) {
+    trigger(eventName: string, message: CDPPayload | void) {
         if (!message) return;
+        console.log(eventName, 'trigger event🚀')
         this.eventMap.get(eventName)?.fire(message);
     }
-    static dispose = () => {
+    getEvent(eventName: string) {
+        return this.eventMap.get(eventName);
+    }
+    dispose = () => {
         this.eventMap.forEach((item) => item.dispose());
         this.eventMap.clear();
     };
 }
 
-type NodeList = { uid: string; source?: string; target?: string }[];
+type UidType = NormalNodeType | StaticNodeType;
 
-export function reduceChain(list: NodeList) {
-    let allNodeMap = new Map(list.map((item) => [item.uid, item]));
-    // 找到数据源节点
-    let sourceNodes: NodeList = [];
-    list = list.filter((item) => {
-        if (['data'].includes(item.uid)) {
-            sourceNodes.push(item);
-            return false;
-        }
-        return true;
-    });
-    let linkNodes: NodeList = [];
-    list = list.filter((item) => {
-        if (['link'].includes(item.uid)) {
-            linkNodes.push(item);
-            return false;
-        }
-        return true;
-    });
-    sourceNodes.forEach((item) => {
-        TunnelEvent.register(item.uid);
-    });
-    linkNodes.forEach((linkNode) => {
-        let source = linkNode.source as string;
-        let target = linkNode.target as string;
-        let sourceNode = allNodeMap.get(source);
-        let targetNode = allNodeMap.get(target);
-        if (!sourceNode) return;
-        if (!targetNode) return;
-        TunnelEvent.bindEvent(sourceNode.uid, (message) => {
-            type TriggerType =  (message: CDPPayload, fire: (message: CDPPayload | void) => any) => any
+type NodeList = { id: string, uid: UidType; source?: string; target?: string, sid?: string }[];
 
-            // TODO 注册回调
-            let module: { trigger: TriggerType } = { trigger: (message, fire) => message };
+type ScriptNode = { id: string, uid: UidType, sid: string, use: ModuleType };
 
-            let fire = (message: CDPPayload | void) => {
-                TunnelEvent.trigger(targetNode!.uid, message);
-            };
-            module.trigger(message, fire);
-        });
-    });
+const tunnelEventMap = new Map<string, TunnelEvent>();
 
-    sourceNodes.forEach(item => {
-        if(item.uid === 'autostart') {
-            let module: ScriptModule.Source = { from: (fire) => {} }
-            let fire = (message: CDPMessage) => {
-                TunnelEvent.trigger(item.uid, message);
-            }
-            module.from(fire)
-        }
-    })
-
-    // 暴露trigger给数据源使用
-    // let next = (message) => TunnelEvent.trigger(source.uid, message);
-    // sourceModule.next(message, next)
+function getScriptId (node: { sid: string; use: string }) {
+    return node.sid + '.' + node.use;
 }
+
+// TODO 处理flow
+export function reduceChain(list: NodeList, tunnelEvent: TunnelEvent) {
+    try {
+        let processList = list.filter(i => i.uid);
+        let allNodeMap = new Map(processList.map((item) => [item.id, item]));
+        // 找到数据源节点
+        let sourceNodes: NodeList = [];
+        processList = processList.filter((item) => {
+            if (SourceNodeSet.has(item.uid)) {
+                sourceNodes.push(item);
+                return false;
+            }
+            return true;
+        });
+        let linkNodes: NodeList = [];
+        list.filter((item) => {
+            if (item.source && item.target) {
+                linkNodes.push(item);
+                return false;
+            }
+            return true;
+        });
+        sourceNodes.forEach((item) => {
+            tunnelEvent.register(item.uid);
+        });
+
+        let targetNodes = processList.filter(item => {
+            return TargetNodeSet.has(item.uid);
+        });
+
+        targetNodes.forEach(item => {
+            console.log(item.uid, 'target event');
+            tunnelEvent.register(item.uid);
+        })
+
+        linkNodes.forEach((linkNode) => {
+            // XXX uid和id不同, linkNode使用的都是id
+            let source = linkNode.source as string;
+            let target = linkNode.target as string;
+            let sourceNode = allNodeMap.get(source) as ScriptNode;
+            let targetNode = allNodeMap.get(target) as ScriptNode;
+            if (!sourceNode) return;
+            if (!targetNode) return;
+            let module = compilerScript(getScriptId(sourceNode));
+            console.log('target', targetNode.uid);
+            let fire = (message: CDPPayload | void) => {
+                console.log(message, '>> uid', targetNode.uid);
+                tunnelEvent.trigger(targetNode!.uid, message);
+            };
+            tunnelEvent.bindEvent(sourceNode.uid, (message) => {
+                // TODO 注册回调
+                module.default.trigger?.(message, fire);
+            });
+        });
+
+        sourceNodes.forEach((item) => {
+            if (item.uid === NormalNodeType.cdp) {
+                let module = compilerScript(getScriptId(item as ScriptNode));
+                let fire = (message: CDPMessage) => {
+                    tunnelEvent.trigger(item.uid, message);
+                };
+                module.default.trigger?.(fire);
+            }
+        });
+
+        // TODO webview接收事件
+    } catch (err) {
+        console.log('reduceChain', err);
+    }
+}
+
+export function createTunnelEvent(webSocketDebuggerUrl: string) {
+    let tunnelEvent = tunnelEventMap.get(webSocketDebuggerUrl);
+    if (tunnelEvent) return tunnelEvent;
+    tunnelEvent = new TunnelEvent(webSocketDebuggerUrl);
+    tunnelEventMap.set(webSocketDebuggerUrl, tunnelEvent);
+    return tunnelEvent;
+}
+
+export class Tunnel {
+    private id: string;
+    private flow: string;
+    private tunnelEvent: TunnelEvent;
+    private disposables: vscode.Disposable[] = [];
+    constructor(id: string, flow: string) {
+        this.id = id;
+        this.flow = flow;
+        this.tunnelEvent = createTunnelEvent(id);
+        this.initEvent();
+    }
+    trigger(eventName: string, message: CDPPayload | void) {
+        this.tunnelEvent.trigger(eventName, message);
+    }
+    bindEvent(eventName: string, handler: (message: CDPMessage) => void ) {
+        this.tunnelEvent.bindEvent(eventName, handler);
+    }
+    async initEvent() {
+        try {
+            this.tunnelEvent.dispose();
+            let nodeStr = GlobalStorage.getFlow(this.flow);
+            let nodes: NodeList | undefined = JSON.parse(nodeStr);
+            if (!nodes) return;
+            if (!Array.isArray(nodes)) return;
+            let success = await compilerFlow(this.flow);
+            if(!success) return;
+            reduceChain(nodes, this.tunnelEvent);
+            this.dispose();
+            this.disposables.push(
+                // TODO 监听部署事件
+                deployEvent.event((id) => {
+                    if (id === this.flow) {
+                        this.initEvent();
+                    }
+                }),
+            );
+            vscode.window.showInformationMessage(`flow: [ ${this.flow} ] 部署成功`);
+        } catch {}
+    }
+    dispose() {
+        this.disposables.forEach(item => item.dispose());
+        this.disposables = [];
+    }
+}
+
+export const tunnelMap = new Map<string, Tunnel>();
+
+export function createTunnel(webSocketDebuggerUrl: string, flow: string) {
+    let tunnel = tunnelMap.get(webSocketDebuggerUrl);
+    if (tunnel) return tunnel;
+    tunnel = new Tunnel(webSocketDebuggerUrl, flow);
+    tunnelMap.set(webSocketDebuggerUrl, tunnel);
+    return tunnel;
+}
+
+export function getTunnel(webSocketDebuggerUrl: string) {
+    return tunnelMap.get(webSocketDebuggerUrl);
+}
+
+export default tunnelEventMap;

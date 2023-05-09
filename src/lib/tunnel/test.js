@@ -5,16 +5,48 @@ const RES_PREFIX = '[EDU_RES]';
 
 const URLSearchParams = URL.URLSearchParams;
 
-let id = 10000;
+let id = 100000;
 
 let reqMap = new Map();
 let resBodyMap = new Map();
 let reqDataMap = new Map();
 let send = false;
 
+let pid = 0;
+let cid = 0;
+let wxObjectId = 0;
+
 out.backendReceive = function backendReceive (frontend, backend, message) {
     try {
-        const { method, params } = JSON.parse(message);
+        const { method, params, id: resId, result } = JSON.parse(message);
+        if(resId === pid || resId === cid) {
+            console.log(result, 'evaluate result');
+            if(resId === pid) {
+                wxObjectId = result.objectId;
+            }
+        }
+        if(method === 'Runtime.consoleAPICalled' && params.args && params.args[0].value === '[EDU_REQ_DEBUG_VALUE]') {
+            console.log('catch EDU_REQ_DEBUG_VALUE', params);
+            let objectId = params.args[1].objectId;
+            pid = id++;
+            backend.send(JSON.stringify({
+                id: pid,
+                method: 'Runtime.evaluate',
+                params: {
+                    expression: 'wx'
+                }
+            }));
+            cid = id++;
+            backend.send(JSON.stringify({
+                id: cid,
+                method: 'Runtime.evaluate',
+                params: {
+                    expression: 'wx.isDebug = true; wx.isDebug',
+                }
+            }));
+            return;
+        }
+
         if(method === 'Runtime.consoleAPICalled' && params.args && [REQ_PREFIX,RES_PREFIX].includes(params.args[0]?.value)) {
             const { args, timestamp } = params;
             let [ prefixObj, idObj, dataObj ] = args;

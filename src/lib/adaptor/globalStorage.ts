@@ -14,6 +14,7 @@ export default class GlobalStorage {
     private static storagePath: string;
     private static protocolPath: string;
     private static tplPath: string;
+    private static outScriptPath: string;
     static init(context: vscode.ExtensionContext) {
         this.storageUri = context.globalStorageUri;
         this.storagePath = this.storageUri.fsPath;
@@ -21,13 +22,19 @@ export default class GlobalStorage {
         this.scriptPath = path.join(this.storageUri.fsPath, 'script');
         this.tplPath = path.join(this.storagePath, 'tpl');
         this.flowPath = path.join(this.storageUri.fsPath, 'flow');
+        this.outScriptPath = path.join(this.storagePath, 'out', 'script');
         console.log(this.storagePath, 'storagePath')
         if(!fs.existsSync(this.tplPath)) {
             fs.copySync(this.protocolPath, this.storagePath);
         }
-
     }
-    static getScriptPath(name: string) {
+    static getStoragePath() {
+        return this.storagePath;
+    }
+    static getScriptPath(name: string, isOutFile = false) {
+        if(isOutFile) {
+            return path.join(this.outScriptPath, name + '.js')
+        }
         return path.join(this.scriptPath, name + '.ts')
     }
     static getScriptTplPath(type: ModuleType) {
@@ -107,5 +114,10 @@ export default class GlobalStorage {
     static deleteFlow(name:string) {
         const filePath = this.getFlowPath(name);
         fs.removeSync(filePath);
+    }
+    static getJsScriptContent(name: string) {
+        let filepath = this.getScriptPath(name, true);
+        fs.ensureFileSync(filepath);
+        return fs.readFileSync(filepath, 'utf-8');
     }
 }
