@@ -85,7 +85,6 @@ async function connectDevtoolsProtocol(item: PageItem) {
             return;
         }
         if(!flow) return;
-        console.log('pick flow', flow);
         createTunnel(webSocketDebuggerUrl, flow);
         vscode.commands.executeCommand(CommandName.openFlow, flow);
     } catch (err) {

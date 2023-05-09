@@ -225,7 +225,6 @@ function toggleClass () {
 }
 
 function onNodeDoubleClick ({ node }: { node: any }) {
-    console.log(node, 'nodeDoubleClick');
     if (StaticNodeSet.has(node.uid)) {
         const message: FlowWebviewRecord.showInfo = {
             type: FlowWebviewMethod.showInfo,

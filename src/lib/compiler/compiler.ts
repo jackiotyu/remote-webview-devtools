@@ -6,11 +6,9 @@ import GlobalStorage from '../adaptor/globalStorage';
 const execPromise = promisify(exec);
 
 export function compilerFlow(flow: string) {
-    console.log('compilerFlow exec', GlobalStorage.getStoragePath())
     return execPromise('tsc', {
         cwd: GlobalStorage.getStoragePath()
     }).then(res => {
-        console.log('compilerFlow res', { res });
         if(res.stderr) {
             vscode.window.showErrorMessage('[编译文件失败]: ' + res.stderr);
             return false;
@@ -28,6 +26,6 @@ export function compilerScript(name: string) {
     let base = { exports: {}, require: require, setImmediate, setTimeout, setInterval, console };
     let context = vm.createContext({ module: base, exports: base.exports })
     script.runInContext(context);
-    console.log(base, 'module')
+    console.log(base, 'module', content, name);
     return base.exports as { default: { trigger?: (...args: any[]) => any } }
 }

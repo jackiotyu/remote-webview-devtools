@@ -23,7 +23,6 @@ export default class GlobalStorage {
         this.tplPath = path.join(this.storagePath, 'tpl');
         this.flowPath = path.join(this.storageUri.fsPath, 'flow');
         this.outScriptPath = path.join(this.storagePath, 'out', 'script');
-        console.log(this.storagePath, 'storagePath')
         if(!fs.existsSync(this.tplPath)) {
             fs.copySync(this.protocolPath, this.storagePath);
         }

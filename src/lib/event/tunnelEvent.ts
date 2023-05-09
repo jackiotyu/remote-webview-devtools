@@ -32,7 +32,6 @@ export class TunnelEvent {
     /** 触发消息执行 */
     trigger(eventName: string, message: CDPPayload | void) {
         if (!message) return;
-        console.log(eventName, 'trigger event🚀')
         this.eventMap.get(eventName)?.fire(message);
     }
     getEvent(eventName: string) {
@@ -87,7 +86,6 @@ export function reduceChain(list: NodeList, tunnelEvent: TunnelEvent) {
         });
 
         targetNodes.forEach(item => {
-            console.log(item.uid, 'target event');
             tunnelEvent.register(item.uid);
         })
 
@@ -99,15 +97,18 @@ export function reduceChain(list: NodeList, tunnelEvent: TunnelEvent) {
             let targetNode = allNodeMap.get(target) as ScriptNode;
             if (!sourceNode) return;
             if (!targetNode) return;
-            let module = compilerScript(getScriptId(sourceNode));
-            console.log('target', targetNode.uid);
+
             let fire = (message: CDPPayload | void) => {
-                console.log(message, '>> uid', targetNode.uid);
                 tunnelEvent.trigger(targetNode!.uid, message);
             };
             tunnelEvent.bindEvent(sourceNode.uid, (message) => {
-                // TODO 注册回调
-                module.default.trigger?.(message, fire);
+                if(sourceNode.sid) {
+                    let module = compilerScript(getScriptId(sourceNode));
+                    // TODO 注册回调
+                    module.default.trigger?.(message, fire);
+                } else {
+                    fire(message);
+                }
             });
         });
 

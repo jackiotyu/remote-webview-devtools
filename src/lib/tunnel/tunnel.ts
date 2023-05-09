@@ -89,11 +89,9 @@ export class CDPTunnel {
         let tunnel = getTunnel(this._ws);
         if(!tunnel) return;
         tunnel.bindEvent(StaticNodeType.devtoolsInput, (message) => {
-            console.log('devtools input', message);
             this._frontend?.send(JSON.stringify(message));
         });
         tunnel.bindEvent(StaticNodeType.webviewInput, (message) => {
-            console.log('webview input', message);
             this._backend.send(JSON.stringify(message));
         });
         this.completeTarget = true;
