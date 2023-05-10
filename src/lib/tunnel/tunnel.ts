@@ -43,14 +43,14 @@ export class CDPTunnel {
             this._backend.close();
         });
         frontend.on('message', (data, isBinary) => {
-            let intercept = this.triggerEvent(StaticNodeType.devtoolsEvent, JSON.parse(data.toString()));
-            if (intercept) return;
+            this.triggerEvent(StaticNodeType.devtoolsEvent, JSON.parse(data.toString()));
+            // if (intercept) return;
             this._backend.send(data, { binary: isBinary });
         });
         this._backend.onmessage = (event) => {
             if (event.data && this.judgeIsCdpMessage(event.data)) {
-                let intercept = this.triggerEvent(StaticNodeType.webviewEvent, event.data);
-                if (intercept) return;
+                this.triggerEvent(StaticNodeType.webviewEvent, event.data);
+                // if (intercept) return;
             }
             frontend.send(event.data);
         };
