@@ -10,7 +10,7 @@ import Sidebar, { NodeInterface } from './Sidebar.vue';
 import ActionBar from './ActionBar.vue';
 import { checkInvalidConnect } from '../utils/index';
 import { FlowWebviewMethod, FlowWebviewRecord } from '@ext/constants';
-import { StaticNodeSet, LinkNodeType } from '@/common/types';
+import { StaticNodeSet } from '@/common/types';
 import { nanoid } from 'nanoid';
 import { debounce } from 'lodash';
 
@@ -42,7 +42,7 @@ function checkDeleteNode () {
     if (getSelectedElements.value.length) {
         getSelectedElements.value.forEach((node) => {
             if (StaticNodeTypeSet.has(node.id as StaticNodeType)) return;
-            elements.value = elements.value.filter((ele) => ele.id !== node.id);
+            elements.value = elements.value.filter((ele: { id: string }) => ele.id !== node.id);
         });
     }
 }
@@ -128,7 +128,7 @@ function onDrop (event: DragEvent) {
 /**
  * Our elements
  */
-const elements = ref<Record<string, any>>([]);
+const elements = ref([]);
 let canShow = ref(false);
 
 function receiveExtMsg (event: MessageEvent) {

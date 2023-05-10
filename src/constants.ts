@@ -1,4 +1,4 @@
-import { ModuleType } from '@/../protocol/flow'
+import { ModuleType } from '../protocol/flow';
 
 export const EXTENSION_NAME: 'RemoteWebviewDevtools' = 'RemoteWebviewDevtools';
 export const SCHEME = 'REMOTE_WEBVIEW_DEVTOOLS';
@@ -51,10 +51,6 @@ export enum NormalNodeType {
     console = 'console',
     middleware = 'middleware',
     cdp = 'cdp',
-}
-
-export enum LinkNodeType {
-    link = 'link',
 }
 
 export const SourceNodeSet = new Set([

@@ -25,6 +25,7 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
             enableScripts: true,
             localResourceRoots: [
                 vscode.Uri.joinPath(this.context.extensionUri, 'web-flow'),
+                vscode.Uri.joinPath(this.context.extensionUri, 'dist-web-flow'),
                 vscode.Uri.joinPath(this.context.globalStorageUri),
             ]
         };
@@ -99,16 +100,13 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
 
     getHtmlForWebview(panel: vscode.WebviewPanel) {
         let hotScript: string = '';
-        let nonce = `nonce-${nanoid()}`;
+        let nonce = panel.webview.cspSource;
         let styleCsp: string = panel.webview.cspSource;
         let imgCsp: string = panel.webview.cspSource;
-        let connectScp = '';
+        let connectScp = ';';
 
-        const resourceRoot = vscode.Uri.joinPath(this.context.extensionUri, 'dist-web-flow/assets');
-
-        let scriptUri: vscode.Uri | string = panel.webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist-web-flow/assets/js', 'main.js'));
-
-
+        let scriptUri: vscode.Uri | string = panel.webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist-web-flow/static/js', 'index.js'));
+        let styleUri: vscode.Uri | string = panel.webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist-web-flow/static/css', 'index.css'));
 
         if(process.env.NODE_ENV !== 'production') {
             const scriptHost = `http://localhost:5173`;
@@ -117,8 +115,10 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
             nonce = 'http://localhost:5173';
             styleCsp = nonce;
             imgCsp = nonce;
-            connectScp = 'connect-src ws://localhost:5173'
+            connectScp = 'connect-src ws://localhost:5173;'
+            styleUri = ''
         }
+
         return `
             <!DOCTYPE html>
             <html lang="en">
@@ -126,8 +126,9 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
                 <meta charset="UTF-8">
                 <meta http-equiv="content-type" content="text/html; charset=utf-8">
                 <meta name="referrer" content="no-referrer">
-                <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${imgCsp}; style-src 'self' 'unsafe-inline' ${styleCsp}; script-src ${nonce}; ${connectScp};">
+                <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${imgCsp}; style-src 'self' 'unsafe-inline' ${styleCsp}; script-src ${nonce}; ${connectScp}">
                 ${hotScript}
+                <link rel="stylesheet" href="${styleUri}">
             </head>
             <body>
                 <div id="app"></div>

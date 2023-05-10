@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as net from 'net';
-// import { ConnectEditor } from './editor/connectEditor'
 import { createTunnel } from '../lib/event/tunnelEvent'
 import { FrontEndWebview } from './webview';
 import { CommandName, FLOW_EDITOR } from '../constants';
