@@ -3,7 +3,7 @@
   "name": "RemoteWebviewDevtools",
   "displayName": "remote webview devtools 远程连接webview devtools",
   "description": "",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.60.0"
   },
@@ -14,7 +14,9 @@
     "git": "https://github.com/jackiotyu/remote-webview-devtools.git"
   },
   "icon": "images/icon.png",
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
