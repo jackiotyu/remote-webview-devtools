@@ -20,13 +20,13 @@ function onDragStart(event: DragEvent, node: NodeInterface) {
 const nodes = ref<NodeInterface[]>([
     {
         type: 'output',
-        label: 'console输出',
+        label: '输出',
         uid: NormalNodeType.console,
         use: ModuleType.target,
     },
     {
         type: 'input',
-        label: '注入cdp指令',
+        label: '输入',
         uid: NormalNodeType.cdp,
         use: ModuleType.source,
     },
