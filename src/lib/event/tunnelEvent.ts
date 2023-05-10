@@ -246,6 +246,16 @@ export class Tunnel {
     }
 }
 
+export function deleteTunnelByFlow(flow: string) {
+    getTunnelByFlow(flow)?.dispose();
+    tunnelMap.delete(flow);
+    linkMap.forEach((flowName, webSocketDebuggerUrl) => {
+        if(flowName === flow){
+            linkMap.delete(webSocketDebuggerUrl);
+        }
+    })
+}
+
 export function createTunnel(webSocketDebuggerUrl: string, flow: string) {
     let tunnel = tunnelMap.get(flow) || new Tunnel(flow);
     linkMap.set(webSocketDebuggerUrl, flow);
