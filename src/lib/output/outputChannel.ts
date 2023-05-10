@@ -6,18 +6,21 @@ export default class OutputChannel {
     public static dispose = () => {
         this.defaultChannel.dispose();
         this.debugChannel.dispose();
+    };
+    static print(...value: string[]) {
+        this.defaultChannel.show();
+        this.debugChannel.appendLine(`[${new Date().toLocaleString()}]`);
+        value.forEach((item) => {
+            this.defaultChannel.appendLine(`${item}`);
+        });
+        this.debugChannel.appendLine('');
     }
-    static print(value: string) {
-        if(typeof value === 'object') value = JSON.stringify(value);
-        // this.defaultChannel.show();
-        this.defaultChannel.appendLine(`[${+new Date()}]`);
-        this.defaultChannel.appendLine(`${value}`);
-    }
-    static printDebug(value: any) {
-        if(typeof value === 'object') value = JSON.stringify(value);
-        // this.debugChannel.show();
-        this.debugChannel.appendLine(`[CONSOLE ${+new Date()}]>>>`);
-        this.debugChannel.appendLine(`${value}`);
+    static printDebug(...value: string[]) {
+        this.debugChannel.show();
+        this.debugChannel.appendLine(`[${new Date().toLocaleString()}]`);
+        value.forEach((item) => {
+            this.debugChannel.appendLine(`${item}`);
+        });
         this.debugChannel.appendLine('');
     }
 }
