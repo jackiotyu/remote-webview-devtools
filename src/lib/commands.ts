@@ -59,7 +59,7 @@ function copyDetail(item: PageDetailItem) {
 }
 
 function openSetting() {
-    void vscode.commands.executeCommand('workbench.action.openSettings', `@ext:jackiotyu.remote-webview-devtools` );
+    void vscode.commands.executeCommand('workbench.action.openSettings', `@ext:jackiotyu.RemoteWebviewDevtools` );
 }
 
 async function connectDevtoolsProtocol(item: PageItem) {
