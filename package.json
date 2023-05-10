@@ -1,7 +1,7 @@
 {
   "publisher": "jackiotyu",
   "name": "RemoteWebviewDevtools",
-  "displayName": "remote webview devtools 远程连接webview devtools",
+  "displayName": "remote webview devtools",
   "description": "",
   "version": "0.1.3",
   "engines": {
@@ -42,8 +42,8 @@
       },
       {
         "command": "RemoteWebviewDevtools.connectDevtoolsProtocol",
-        "title": "连接devtools协议",
-        "icon": "$(symbol-namespace)"
+        "title": "用指定流程连接devtools协议",
+        "icon": "$(sync)"
       },
       {
         "command": "RemoteWebviewDevtools.addFlow",

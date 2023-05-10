@@ -49,9 +49,10 @@ export class FrontEndWebviewProvider {
         this.panel.webview.html = this.getWebviewContent();
 
         webviewMap.set(options.ws, this.panel);
-        this.panel.onDidDispose(() => {
+        let dispose = this.panel.onDidDispose(() => {
             this.tunnel.onClose();
             webviewMap.delete(options.ws);
+            dispose.dispose();
         });
     }
 

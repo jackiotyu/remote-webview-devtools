@@ -248,6 +248,7 @@ function handleDeploy() {
 </script>
 
 <template>
+    <!-- TODO 展示当前连接的webview -->
     <div class="dndflow" :class="{ dark }" @drop="onDrop" v-if="canShow">
         <Sidebar />
         <ActionBar @deploy="handleDeploy" />

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import GlobalStorage from '../adaptor/globalStorage';
-import { ScriptModule, CDPMessage, ModuleType } from '../../../protocol/flow';
+import { CDPMessage, ModuleType } from '../../../protocol/flow';
 import { compilerFlow, compilerScript } from '../compiler/compiler';
 import { SourceNodeSet, TargetNodeSet, NormalNodeType, StaticNodeType } from '../../constants'
 
@@ -10,7 +10,25 @@ type EventInstance = InstanceType<typeof vscode.EventEmitter<CDPPayload>>;
 
 export const deployEvent = new vscode.EventEmitter<string>();
 
-export class TunnelEvent {
+export const tunnelMap = new Map<string, Tunnel>();
+
+/**
+ * webSocketDebuggerUrl -> flow
+ */
+type WebSocketDebuggerUrl = string;
+type Flow = string;
+export const linkMap = new Map<WebSocketDebuggerUrl, Flow>();
+
+// 监听部署事件
+deployEvent.event((id) => {
+    let tunnel = tunnelMap.get(id);
+    if(tunnel) {
+        tunnel.initEvent();
+    } else {
+        vscode.window.showErrorMessage('当前没有绑定devtools');
+    }
+});
+class SocketEvent {
     public id: string;
     private eventMap: Map<string, EventInstance> = new Map();
     constructor(id: string) {
@@ -49,7 +67,7 @@ type NodeList = { id: string, uid: UidType; source?: string; target?: string, si
 
 type ScriptNode = { id: string, uid: UidType, sid: string, use: ModuleType };
 
-const tunnelEventMap = new Map<string, TunnelEvent>();
+const eventMap = new Map<string, SocketEvent>();
 
 function getScriptId (node: { sid: string; use: string }) {
     return node.sid + '.' + node.use;
@@ -58,9 +76,9 @@ function getScriptId (node: { sid: string; use: string }) {
 /**
  * 处理flow
  * @param list
- * @param tunnelEvent
+ * @param socketEvent
  */
-export function reduceChain(list: NodeList, tunnelEvent: TunnelEvent) {
+export function reduceChain(list: NodeList, socketEvent: SocketEvent) {
     try {
         let processList = list.filter(i => i.uid);
         let allNodeMap = new Map(processList.map((item) => [item.id, item]));
@@ -82,7 +100,7 @@ export function reduceChain(list: NodeList, tunnelEvent: TunnelEvent) {
             return true;
         });
         sourceNodes.forEach((item) => {
-            tunnelEvent.register(item.uid);
+            socketEvent.register(item.uid);
         });
 
         let targetNodes = processList.filter(item => {
@@ -90,7 +108,7 @@ export function reduceChain(list: NodeList, tunnelEvent: TunnelEvent) {
         });
 
         targetNodes.forEach(item => {
-            tunnelEvent.register(item.uid);
+            socketEvent.register(item.uid);
         })
 
         linkNodes.forEach((linkNode) => {
@@ -103,10 +121,10 @@ export function reduceChain(list: NodeList, tunnelEvent: TunnelEvent) {
             if (!targetNode) return;
 
             let fire = (message: CDPPayload | void) => {
-                tunnelEvent.trigger(targetNode!.uid, message);
+                socketEvent.trigger(targetNode!.uid, message);
             };
             let module = compilerScript(getScriptId(sourceNode));
-            tunnelEvent.bindEvent(sourceNode.uid, (message) => {
+            socketEvent.bindEvent(sourceNode.uid, (message) => {
                 if(sourceNode.sid) {
                     if(!module.default) {
                         module = compilerScript(getScriptId(sourceNode));
@@ -123,7 +141,7 @@ export function reduceChain(list: NodeList, tunnelEvent: TunnelEvent) {
             if (item.uid === NormalNodeType.cdp) {
                 let module = compilerScript(getScriptId(item as ScriptNode));
                 let fire = (message: CDPMessage) => {
-                    tunnelEvent.trigger(item.uid, message);
+                    socketEvent.trigger(item.uid, message);
                 };
                 module.default.trigger?.(fire);
             }
@@ -133,71 +151,82 @@ export function reduceChain(list: NodeList, tunnelEvent: TunnelEvent) {
     }
 }
 
-export function createTunnelEvent(webSocketDebuggerUrl: string) {
-    let tunnelEvent = tunnelEventMap.get(webSocketDebuggerUrl);
+function createSocketEvent(webSocketDebuggerUrl: string) {
+    let tunnelEvent = eventMap.get(webSocketDebuggerUrl);
     if (tunnelEvent) return tunnelEvent;
-    tunnelEvent = new TunnelEvent(webSocketDebuggerUrl);
-    tunnelEventMap.set(webSocketDebuggerUrl, tunnelEvent);
+    tunnelEvent = new SocketEvent(webSocketDebuggerUrl);
+    eventMap.set(webSocketDebuggerUrl, tunnelEvent);
     return tunnelEvent;
 }
 
 export class Tunnel {
-    private id: string;
     private flow: string;
-    private tunnelEvent: TunnelEvent;
     private disposables: vscode.Disposable[] = [];
-    constructor(id: string, flow: string) {
-        this.id = id;
+    constructor(flow: string) {
         this.flow = flow;
-        this.tunnelEvent = createTunnelEvent(id);
-        this.initEvent();
     }
-    trigger(eventName: string, message: CDPPayload | void) {
-        this.tunnelEvent.trigger(eventName, message);
+    trigger(webSocketDebuggerUrl: string, eventName: string, message: CDPPayload | void) {
+       let socketEvent = eventMap.get(webSocketDebuggerUrl);
+       socketEvent?.trigger(eventName, message);
     }
-    bindEvent(eventName: string, handler: (message: CDPMessage) => void ) {
-        this.tunnelEvent.bindEvent(eventName, handler);
+    bindEvent(webSocketDebuggerUrl: string, eventName: string, handler: (message: CDPMessage) => void ) {
+        let socketEvent = eventMap.get(webSocketDebuggerUrl);
+        socketEvent?.bindEvent(eventName, handler);
     }
     async initEvent() {
         try {
-            this.tunnelEvent.dispose();
+            this.dispose();
             let nodeStr = GlobalStorage.getFlow(this.flow);
-            let nodes: NodeList | undefined = JSON.parse(nodeStr);
+            let nodes: NodeList | undefined | Record<string, any> = JSON.parse(nodeStr);
             if (!nodes) return;
             if (!Array.isArray(nodes)) return;
             let success = await compilerFlow(this.flow);
             if(!success) return;
-            reduceChain(nodes, this.tunnelEvent);
-            this.dispose();
-            this.disposables.push(
-                // TODO 监听部署事件
-                deployEvent.event((id) => {
-                    if (id === this.flow) {
-                        this.initEvent();
-                    }
-                }),
-            );
+            this.forEachEvent((webSocketDebuggerUrl) => {
+                console.log('添加节点事件', webSocketDebuggerUrl);
+                let socketEvent = createSocketEvent(webSocketDebuggerUrl);
+                reduceChain([...nodes as NodeList], socketEvent);
+            });
             vscode.window.showInformationMessage(`flow: [ ${this.flow} ] 部署成功`);
         } catch {}
+    }
+    forEachEvent(callback: (webSocketDebuggerUrl: string) => void) {
+        linkMap.forEach((flow, webSocketDebuggerUrl) => {
+            if(flow === this.flow) {
+                callback(webSocketDebuggerUrl);
+            }
+        })
     }
     dispose() {
         this.disposables.forEach(item => item.dispose());
         this.disposables = [];
+        this.forEachEvent((webSocketDebuggerUrl) => {
+            eventMap.get(webSocketDebuggerUrl)?.dispose();
+            eventMap.delete(webSocketDebuggerUrl);
+        })
+    }
+    checkDispose(webSocketDebuggerUrl: string) {
+        linkMap.delete(webSocketDebuggerUrl);
+        if(!new Set([...linkMap.values()]).has(this.flow)) {
+            this.dispose();
+            tunnelMap.delete(this.flow);
+            console.log('清除所有事件');
+        }
     }
 }
 
-export const tunnelMap = new Map<string, Tunnel>();
 
 export function createTunnel(webSocketDebuggerUrl: string, flow: string) {
-    let tunnel = tunnelMap.get(webSocketDebuggerUrl);
-    if (tunnel) return tunnel;
-    tunnel = new Tunnel(webSocketDebuggerUrl, flow);
-    tunnelMap.set(webSocketDebuggerUrl, tunnel);
+    let tunnel = tunnelMap.get(flow) || new Tunnel(flow);
+    linkMap.set(webSocketDebuggerUrl, flow);
+    tunnelMap.set(flow, tunnel);
+    tunnel.initEvent();
     return tunnel;
 }
 
 export function getTunnel(webSocketDebuggerUrl: string) {
-    return tunnelMap.get(webSocketDebuggerUrl);
+    let flow = linkMap.get(webSocketDebuggerUrl);
+    if(flow) return tunnelMap.get(flow);
 }
 
-export default tunnelEventMap;
+export default eventMap;

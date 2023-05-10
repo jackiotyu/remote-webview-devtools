@@ -1,7 +1,7 @@
 import WebSocket, { WebSocketServer } from 'ws';
 import { customAlphabet } from 'nanoid';
 import { parse } from 'url';
-import tunnelEventMap, { getTunnel } from '../event/tunnelEvent';
+import eventMap, { getTunnel } from '../event/tunnelEvent';
 import type { AddressInfo } from 'ws';
 import type { IncomingMessage } from 'http';
 import type { CDPMessage } from '../../../protocol/flow';
@@ -72,9 +72,10 @@ export class CDPTunnel {
         this._server.off('connection', this.onConnect);
         this._backend?.terminate();
         this._frontend?.terminate();
-        // TODO tunnel回收
-        getTunnel(this._ws)?.dispose();
-        tunnelEventMap.delete(this._ws);
+        // tunnel回收
+        getTunnel(this._ws)?.checkDispose(this._ws);
+        eventMap.get(this._ws)?.dispose();
+        eventMap.delete(this._ws);
     };
 
     triggerEvent(eventName: StaticNodeType, message: CDPMessage) {
@@ -82,7 +83,7 @@ export class CDPTunnel {
         try {
             let tunnel = getTunnel(this._ws);
             if (!tunnel) return false;
-            tunnel.trigger(eventName, message);
+            tunnel.trigger(this._ws, eventName, message);
             return true;
         } catch(err) {
             console.error(err, 'CDPTunnel triggerEvent fail')
@@ -93,10 +94,10 @@ export class CDPTunnel {
     registerTargetEvent() {
         let tunnel = getTunnel(this._ws);
         if(!tunnel) return;
-        tunnel.bindEvent(StaticNodeType.devtoolsInput, (message) => {
+        tunnel.bindEvent(this._ws, StaticNodeType.devtoolsInput, (message) => {
             this._frontend?.send(JSON.stringify(message));
         });
-        tunnel.bindEvent(StaticNodeType.webviewInput, (message) => {
+        tunnel.bindEvent(this._ws, StaticNodeType.webviewInput, (message) => {
             this._backend.send(JSON.stringify(message));
         });
         this.completeTarget = true;

@@ -7,20 +7,24 @@ export default class OutputChannel {
         this.defaultChannel.dispose();
         this.debugChannel.dispose();
     };
-    static print(...value: string[]) {
-        this.defaultChannel.show();
+    static print(...args: string[]) {
+        this.defaultChannel.appendLine(`[${new Date().toLocaleString()}]`);
+        args.forEach((item) => {
+            this.defaultChannel.appendLine(item);
+        });
+        this.defaultChannel.appendLine('');
+    }
+    static printDebug(...args: string[]) {
         this.debugChannel.appendLine(`[${new Date().toLocaleString()}]`);
-        value.forEach((item) => {
-            this.defaultChannel.appendLine(`${item}`);
+        args.forEach((item) => {
+            this.debugChannel.appendLine(item);
         });
         this.debugChannel.appendLine('');
     }
-    static printDebug(...value: string[]) {
+    static showDebugChannel() {
         this.debugChannel.show();
-        this.debugChannel.appendLine(`[${new Date().toLocaleString()}]`);
-        value.forEach((item) => {
-            this.debugChannel.appendLine(`${item}`);
-        });
-        this.debugChannel.appendLine('');
+    }
+    static showPrintChannel() {
+        return this.defaultChannel.show();
     }
 }

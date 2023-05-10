@@ -51,10 +51,9 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
 
         // 从webview接收消息
         webviewPanel.webview.onDidReceiveMessage((e) => {
-            console.log(e, 'message');
             switch (e.type) {
                 case FlowWebviewMethod.log:
-                    outputChannel.printDebug(e.data);
+                    outputChannel.showDebugChannel();
                     return;
                 case FlowWebviewMethod.edit:
                     this.updateTextDocument(document, e.data);
