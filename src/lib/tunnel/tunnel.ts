@@ -1,8 +1,7 @@
 import WebSocket, { WebSocketServer } from 'ws';
 import { customAlphabet } from 'nanoid';
 import { parse } from 'url';
-import LiveScript, { OutModule } from './liveScript';
-import { getTunnel } from '../event/tunnelEvent';
+import tunnelEventMap, { getTunnel } from '../event/tunnelEvent';
 import type { AddressInfo } from 'ws';
 import type { IncomingMessage } from 'http';
 import type { CDPMessage } from '../../../protocol/flow';
@@ -61,7 +60,11 @@ export class CDPTunnel {
 
     judgeIsCdpMessage(message: any): message is CDPMessage {
         // TODO 暂时不校验太多属性
-        return message && typeof message === 'object';
+        let data;
+        try {
+            data = (typeof message === 'string') ? JSON.parse(message) : message;
+        }catch {}
+        return data && typeof data === 'object';
     }
 
     onClose = () => {
@@ -70,6 +73,8 @@ export class CDPTunnel {
         this._backend?.terminate();
         this._frontend?.terminate();
         // TODO tunnel回收
+        getTunnel(this._ws)?.dispose();
+        tunnelEventMap.delete(this._ws);
     };
 
     triggerEvent(eventName: StaticNodeType, message: CDPMessage) {

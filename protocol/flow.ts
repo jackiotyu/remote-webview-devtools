@@ -6,14 +6,14 @@ export interface CDPMessage {
 }
 
 /** 提供给脚本调用回调，执行后触发下一个流程 */
-export type FireMethod = (message: CDPMessage) => void;
+export type FireMethod = (message: CDPMessage | string) => void;
 
 /** 脚本模块需要提供的函数 */
-export type PipeMethod = (message: CDPMessage, send: FireMethod) => any;
+export type PipeMethod = (message: CDPMessage | string, send: FireMethod) => any;
 
 export type FromMethod = (send: FireMethod) => any;
 
-export type TargetMethod = (message: CDPMessage) => any;
+export type TargetMethod = (message: CDPMessage | string) => any;
 
 export enum ModuleType {
     source = 'source',

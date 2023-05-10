@@ -3,6 +3,8 @@ import vm from 'node:vm';
 import { exec } from 'child_process';
 import { promisify } from 'node:util'
 import GlobalStorage from '../adaptor/globalStorage';
+import ws from 'ws';
+
 const execPromise = promisify(exec);
 
 export function compilerFlow(flow: string) {
@@ -23,8 +25,8 @@ export function compilerFlow(flow: string) {
 export function compilerScript(name: string) {
     let content = GlobalStorage.getJsScriptContent(name);
     let script = new vm.Script(content);
-    let base = { exports: {}, require: require, setImmediate, setTimeout, setInterval, console };
-    let context = vm.createContext({ module: base, exports: base.exports })
+    let base = { exports: {} };
+    let context = vm.createContext({ ...global, module: base, exports: base.exports, require, setImmediate, setTimeout, setInterval, console, vscode, ws });
     script.runInContext(context);
     return base.exports as { default: { trigger?: (...args: any[]) => any } }
 }
