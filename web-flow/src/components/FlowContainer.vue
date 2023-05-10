@@ -244,6 +244,10 @@ function handleDeploy() {
     window.vscode?.postMessage({ type: FlowWebviewMethod.deploy })
 }
 
+function handleUnlinkAll() {
+    window.vscode?.postMessage({ type: FlowWebviewMethod.unlinkAll })
+}
+
 // TODO 保存设置 console cdp
 </script>
 
@@ -251,7 +255,7 @@ function handleDeploy() {
     <!-- TODO 展示当前连接的webview -->
     <div class="dndflow" :class="{ dark }" @drop="onDrop" v-if="canShow">
         <Sidebar />
-        <ActionBar @deploy="handleDeploy" />
+        <ActionBar @deploy="handleDeploy" @unlinkAll="handleUnlinkAll" />
 
         <VueFlow v-model="elements" class="basicflow" :default-viewport="{ zoom: 0.5, x: 0, y: 0 }" :min-zoom="0.2"
             :max-zoom="4" @dragover="onDragOver" @nodeDoubleClick="onNodeDoubleClick">

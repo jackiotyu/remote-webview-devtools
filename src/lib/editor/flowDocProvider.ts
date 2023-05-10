@@ -4,8 +4,7 @@ import { FLOW_EDITOR, FlowWebviewMethod } from '../../constants';
 import type { FlowWebviewPayload } from '../../constants';
 import outputChannel from '../output/outputChannel';
 import GlobalStorage from '../adaptor/globalStorage';
-import { deployEvent } from '../event/tunnelEvent'
-import { compilerFlow } from '../compiler/compiler'
+import { deployEvent, unlinkEvent, getTunnelByFlow } from '../event/tunnelEvent'
 import fs from 'fs-extra';
 import path from 'path';
 
@@ -67,6 +66,8 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
                 case FlowWebviewMethod.deploy:
                     this.deploy(document);
                     return;
+                case FlowWebviewMethod.unlinkAll:
+                    this.unlinkAll(document);
             }
         });
         setTimeout(() => {
@@ -74,10 +75,24 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
         }, 500)
     }
 
-    async deploy(document: vscode.TextDocument) {
-        vscode.window.showInformationMessage('部署中');
+    getFlowName(document: vscode.TextDocument) {
         let filePath = document.uri.fsPath
         let flowName = filePath.split(path.sep).pop()!.split('.').shift();
+        return flowName;
+    }
+
+    unlinkAll(document: vscode.TextDocument) {
+        let flowName = this.getFlowName(document);
+        if(!flowName) return;
+        if(!getTunnelByFlow(flowName)){
+            vscode.window.showErrorMessage('当前未连接任何devtools');
+            return;
+        }
+        unlinkEvent.fire(flowName);
+    }
+
+    async deploy(document: vscode.TextDocument) {
+        let flowName = this.getFlowName(document);
         if(!flowName) return;
         deployEvent.fire(flowName);
     }

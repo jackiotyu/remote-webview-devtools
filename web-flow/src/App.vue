@@ -97,6 +97,11 @@ body.dark {
   animation: shadowSpread linear infinite;
   animation-duration: 1.2s;
   transition: box-shadow 1.2s;
+  margin: 0 8px;
+}
+
+.dndflow .action-bar .action-btn.unlinkAll {
+  background-color: crimson;
 }
 
 @keyframes shadowSpread {
@@ -114,8 +119,8 @@ body.dark {
 
 .dndflow .action-bar .action-btn .icon {
   fill: #ffffff;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
 }
 
 .dndflow.dark aside {

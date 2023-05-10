@@ -77,6 +77,7 @@ export enum FlowWebviewMethod {
     showInfo,
     update,
     deploy,
+    unlinkAll
 }
 
 export namespace FlowWebviewPayload {

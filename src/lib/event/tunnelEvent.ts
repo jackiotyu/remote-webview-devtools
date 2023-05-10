@@ -2,13 +2,15 @@ import * as vscode from 'vscode';
 import GlobalStorage from '../adaptor/globalStorage';
 import { CDPMessage, ModuleType } from '../../../protocol/flow';
 import { compilerFlow, compilerScript } from '../compiler/compiler';
-import { SourceNodeSet, TargetNodeSet, NormalNodeType, StaticNodeType } from '../../constants'
+import { SourceNodeSet, TargetNodeSet, NormalNodeType, StaticNodeType } from '../../constants';
 
 type CDPPayload = CDPMessage;
 
 type EventInstance = InstanceType<typeof vscode.EventEmitter<CDPPayload>>;
 
 export const deployEvent = new vscode.EventEmitter<string>();
+
+export const unlinkEvent = new vscode.EventEmitter<string>();
 
 export const tunnelMap = new Map<string, Tunnel>();
 
@@ -21,13 +23,18 @@ export const linkMap = new Map<WebSocketDebuggerUrl, Flow>();
 
 // 监听部署事件
 deployEvent.event((id) => {
-    let tunnel = tunnelMap.get(id);
-    if(tunnel) {
-        tunnel.initEvent();
-    } else {
-        vscode.window.showErrorMessage('当前没有绑定devtools');
-    }
+    vscode.window.withProgress({ location: vscode.ProgressLocation.Notification }, async (progress) => {
+        let tunnel = tunnelMap.get(id);
+        if (tunnel) {
+            progress.report({ message: '部署中' });
+            await tunnel.initEvent();
+            progress.report({ message: '部署成功' });
+        } else {
+            vscode.window.showErrorMessage('当前没有绑定devtools');
+        }
+    });
 });
+
 class SocketEvent {
     public id: string;
     private eventMap: Map<string, EventInstance> = new Map();
@@ -63,13 +70,13 @@ class SocketEvent {
 
 type UidType = NormalNodeType | StaticNodeType;
 
-type NodeList = { id: string, uid: UidType; source?: string; target?: string, sid?: string }[];
+type NodeList = { id: string; uid: UidType; source?: string; target?: string; sid?: string }[];
 
-type ScriptNode = { id: string, uid: UidType, sid: string, use: ModuleType };
+type ScriptNode = { id: string; uid: UidType; sid: string; use: ModuleType };
 
 const eventMap = new Map<string, SocketEvent>();
 
-function getScriptId (node: { sid: string; use: string }) {
+function getScriptId(node: { sid: string; use: string }) {
     return node.sid + '.' + node.use;
 }
 
@@ -80,7 +87,7 @@ function getScriptId (node: { sid: string; use: string }) {
  */
 export function reduceChain(list: NodeList, socketEvent: SocketEvent) {
     try {
-        let processList = list.filter(i => i.uid);
+        let processList = list.filter((i) => i.uid);
         let allNodeMap = new Map(processList.map((item) => [item.id, item]));
         // 找到数据源节点
         let sourceNodes: NodeList = [];
@@ -103,13 +110,13 @@ export function reduceChain(list: NodeList, socketEvent: SocketEvent) {
             socketEvent.register(item.uid);
         });
 
-        let targetNodes = processList.filter(item => {
+        let targetNodes = processList.filter((item) => {
             return TargetNodeSet.has(item.uid);
         });
 
-        targetNodes.forEach(item => {
+        targetNodes.forEach((item) => {
             socketEvent.register(item.uid);
-        })
+        });
 
         linkNodes.forEach((linkNode) => {
             // XXX uid和id不同, linkNode使用的都是id
@@ -125,8 +132,8 @@ export function reduceChain(list: NodeList, socketEvent: SocketEvent) {
             };
             let module = compilerScript(getScriptId(sourceNode));
             socketEvent.bindEvent(sourceNode.uid, (message) => {
-                if(sourceNode.sid) {
-                    if(!module.default) {
+                if (sourceNode.sid) {
+                    if (!module.default) {
                         module = compilerScript(getScriptId(sourceNode));
                     }
                     // 注册回调
@@ -166,10 +173,10 @@ export class Tunnel {
         this.flow = flow;
     }
     trigger(webSocketDebuggerUrl: string, eventName: string, message: CDPPayload | void) {
-       let socketEvent = eventMap.get(webSocketDebuggerUrl);
-       socketEvent?.trigger(eventName, message);
+        let socketEvent = eventMap.get(webSocketDebuggerUrl);
+        socketEvent?.trigger(eventName, message);
     }
-    bindEvent(webSocketDebuggerUrl: string, eventName: string, handler: (message: CDPMessage) => void ) {
+    bindEvent(webSocketDebuggerUrl: string, eventName: string, handler: (message: CDPMessage) => void) {
         let socketEvent = eventMap.get(webSocketDebuggerUrl);
         socketEvent?.bindEvent(eventName, handler);
     }
@@ -181,40 +188,63 @@ export class Tunnel {
             if (!nodes) return;
             if (!Array.isArray(nodes)) return;
             let success = await compilerFlow(this.flow);
-            if(!success) return;
+            if (!success) return;
+
+            this.disposables.push(
+                unlinkEvent.event((flow) => {
+                    if (flow === this.flow) {
+                        vscode.window.withProgress(
+                            {
+                                location: vscode.ProgressLocation.Notification,
+                            },
+                            async (progress) => {
+                                progress.report({ message: '断开连接中' });
+                                try {
+                                    this.deleteAllEvent();
+                                } catch (err) {
+                                    vscode.window.showErrorMessage('发生错误,' + err);
+                                }
+                            },
+                        );
+                    }
+                }),
+            );
+
             this.forEachEvent((webSocketDebuggerUrl) => {
                 console.log('添加节点事件', webSocketDebuggerUrl);
                 let socketEvent = createSocketEvent(webSocketDebuggerUrl);
-                reduceChain([...nodes as NodeList], socketEvent);
+                reduceChain([...(nodes as NodeList)], socketEvent);
             });
             vscode.window.showInformationMessage(`flow: [ ${this.flow} ] 部署成功`);
         } catch {}
     }
     forEachEvent(callback: (webSocketDebuggerUrl: string) => void) {
         linkMap.forEach((flow, webSocketDebuggerUrl) => {
-            if(flow === this.flow) {
+            if (flow === this.flow) {
                 callback(webSocketDebuggerUrl);
             }
-        })
+        });
     }
     dispose() {
-        this.disposables.forEach(item => item.dispose());
+        this.disposables.forEach((item) => item.dispose());
         this.disposables = [];
+        this.deleteAllEvent();
+    }
+    deleteAllEvent() {
         this.forEachEvent((webSocketDebuggerUrl) => {
             eventMap.get(webSocketDebuggerUrl)?.dispose();
             eventMap.delete(webSocketDebuggerUrl);
-        })
+        });
     }
     checkDispose(webSocketDebuggerUrl: string) {
         linkMap.delete(webSocketDebuggerUrl);
-        if(!new Set([...linkMap.values()]).has(this.flow)) {
+        if (!new Set([...linkMap.values()]).has(this.flow)) {
             this.dispose();
             tunnelMap.delete(this.flow);
             console.log('清除所有事件');
         }
     }
 }
-
 
 export function createTunnel(webSocketDebuggerUrl: string, flow: string) {
     let tunnel = tunnelMap.get(flow) || new Tunnel(flow);
@@ -224,9 +254,13 @@ export function createTunnel(webSocketDebuggerUrl: string, flow: string) {
     return tunnel;
 }
 
-export function getTunnel(webSocketDebuggerUrl: string) {
+export function getTunnelByFlow(flow: string) {
+    return tunnelMap.get(flow);
+}
+
+export function getTunnelByWs(webSocketDebuggerUrl: string) {
     let flow = linkMap.get(webSocketDebuggerUrl);
-    if(flow) return tunnelMap.get(flow);
+    if (flow) return tunnelMap.get(flow);
 }
 
 export default eventMap;

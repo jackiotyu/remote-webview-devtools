@@ -10,7 +10,7 @@ export class TunnelStore {
     static setTunnel(webSocketDebuggerUrl: string, tunnel: TunnelItem) {
         TunnelStore.socketStore.set(webSocketDebuggerUrl, tunnel);
     }
-    static getTunnel(webSocketDebuggerUrl: string) {
+    static getTunnelByWs(webSocketDebuggerUrl: string) {
         return TunnelStore.socketStore.get(webSocketDebuggerUrl);
     }
     static clear() {
