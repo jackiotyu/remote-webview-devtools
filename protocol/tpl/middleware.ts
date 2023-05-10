@@ -3,9 +3,9 @@ import type { ScriptModule } from '../flow';
 export default {
     /**
      * @param message 上一个消息源发送的消息
-     * @param fire 发送消息给下一个流程
+     * @param send 发送消息给下一个流程，可多次调用，调用一次即发送一次
      */
-    trigger: (message, fire) => {
-        fire(message);
+    trigger: (message, send) => {
+        send(message);
     },
 } as ScriptModule.Middleware;

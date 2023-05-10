@@ -80,7 +80,7 @@ export class CDPTunnel {
             tunnel.trigger(eventName, message);
             return true;
         } catch(err) {
-            console.log(err, 'CDPTunnel triggerEvent fail')
+            console.error(err, 'CDPTunnel triggerEvent fail')
         }
         return false;
     }

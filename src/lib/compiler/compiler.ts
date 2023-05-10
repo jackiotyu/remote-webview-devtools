@@ -26,6 +26,5 @@ export function compilerScript(name: string) {
     let base = { exports: {}, require: require, setImmediate, setTimeout, setInterval, console };
     let context = vm.createContext({ module: base, exports: base.exports })
     script.runInContext(context);
-    console.log(base, 'module', content, name);
     return base.exports as { default: { trigger?: (...args: any[]) => any } }
 }

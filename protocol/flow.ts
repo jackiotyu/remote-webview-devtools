@@ -9,9 +9,9 @@ export interface CDPMessage {
 export type FireMethod = (message: CDPMessage) => void;
 
 /** 脚本模块需要提供的函数 */
-export type PipeMethod = (message: CDPMessage, fire: FireMethod) => any;
+export type PipeMethod = (message: CDPMessage, send: FireMethod) => any;
 
-export type FromMethod = (fire: FireMethod) => any;
+export type FromMethod = (send: FireMethod) => any;
 
 export type TargetMethod = (message: CDPMessage) => any;
 

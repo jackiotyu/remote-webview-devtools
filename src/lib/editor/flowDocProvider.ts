@@ -78,7 +78,6 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
         vscode.window.showInformationMessage('部署中');
         let filePath = document.uri.fsPath
         let flowName = filePath.split(path.sep).pop()!.split('.').shift()
-        console.log(flowName, 'flowName', filePath);
         if(!flowName) return;
         deployEvent.fire(flowName);
     }

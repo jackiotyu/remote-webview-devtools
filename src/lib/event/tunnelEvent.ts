@@ -55,7 +55,11 @@ function getScriptId (node: { sid: string; use: string }) {
     return node.sid + '.' + node.use;
 }
 
-// TODO 处理flow
+/**
+ * 处理flow
+ * @param list
+ * @param tunnelEvent
+ */
 export function reduceChain(list: NodeList, tunnelEvent: TunnelEvent) {
     try {
         let processList = list.filter(i => i.uid);
@@ -101,10 +105,13 @@ export function reduceChain(list: NodeList, tunnelEvent: TunnelEvent) {
             let fire = (message: CDPPayload | void) => {
                 tunnelEvent.trigger(targetNode!.uid, message);
             };
+            let module = compilerScript(getScriptId(sourceNode));
             tunnelEvent.bindEvent(sourceNode.uid, (message) => {
                 if(sourceNode.sid) {
-                    let module = compilerScript(getScriptId(sourceNode));
-                    // TODO 注册回调
+                    if(!module.default) {
+                        module = compilerScript(getScriptId(sourceNode));
+                    }
+                    // 注册回调
                     module.default.trigger?.(message, fire);
                 } else {
                     fire(message);
@@ -121,10 +128,8 @@ export function reduceChain(list: NodeList, tunnelEvent: TunnelEvent) {
                 module.default.trigger?.(fire);
             }
         });
-
-        // TODO webview接收事件
     } catch (err) {
-        console.log('reduceChain', err);
+        console.error('reduceChain', err);
     }
 }
 
