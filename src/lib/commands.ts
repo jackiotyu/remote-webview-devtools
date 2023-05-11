@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as net from 'net';
-import { createTunnel, deleteTunnelByFlow, getTunnelByFlow } from '../lib/event/tunnelEvent';
+import { createTunnel, deleteTunnelByFlow, getTunnelByFlow, getTunnelByWs } from '../lib/event/tunnelEvent';
 import { FrontEndWebview } from './webview';
 import { CommandName, FLOW_EDITOR } from '../constants';
 import { Execute } from './adb/execute';
@@ -9,8 +9,9 @@ import { pickWebViewPage } from './adb/ui';
 import { adbEvent } from './event/adbEvent';
 import { flowEvent } from './event/flowEvent';
 import { PageDetailItem, PageItem } from './explorer/adbTreeItem';
-import { FlowItem } from './explorer/flowTreeItem';
+import { FlowItem, FlowConnectItem } from './explorer/flowTreeItem';
 import GlobalStorage from './adaptor/globalStorage';
+import { getDocFileName } from '../utils/index'
 
 async function trackDevices(context: vscode.ExtensionContext) {
     try {
@@ -97,6 +98,9 @@ async function connectDevtoolsProtocol(item: PageItem) {
         }
         if (!flow) return;
         createTunnel(webSocketDebuggerUrl, flow);
+        let activeTextEditor = vscode.window.activeTextEditor;
+        let activeFlowName = activeTextEditor && getDocFileName(activeTextEditor.document)
+        if(activeFlowName === flow) return;
         vscode.commands.executeCommand(CommandName.openFlow, flow);
     } catch (err) {
         console.log(err, 'err');
@@ -143,7 +147,11 @@ async function deleteFlow(item: FlowItem) {
     if (confirm !== ok) return;
     GlobalStorage.deleteFlow(item.label as string);
     deleteTunnelByFlow(item.label as string);
-    flowEvent.fire();
+}
+
+function deleteFlowConnect(item: FlowConnectItem) {
+    let ws = item.label as string;
+    getTunnelByWs(ws)?.checkDispose(ws);
 }
 
 export class CommandsManager {
@@ -165,6 +173,7 @@ export class CommandsManager {
             vscode.commands.registerCommand(CommandName.openFlow, openFlow),
             vscode.commands.registerCommand(CommandName.renameFlow, (name: FlowItem) => renameFlow(name)),
             vscode.commands.registerCommand(CommandName.deleteFlow, (name: FlowItem) => deleteFlow(name)),
+            vscode.commands.registerCommand(CommandName.deleteFlowConnect, deleteFlowConnect)
         );
         this.context.subscriptions.push({
             dispose: () => {

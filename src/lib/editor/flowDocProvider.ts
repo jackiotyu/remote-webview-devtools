@@ -6,7 +6,7 @@ import outputChannel from '../output/outputChannel';
 import GlobalStorage from '../adaptor/globalStorage';
 import { deployEvent, unlinkEvent, getTunnelByFlow } from '../event/tunnelEvent'
 import fs from 'fs-extra';
-import path from 'path';
+import { getDocFileName } from '../../utils/index'
 
 export class FlowDocProvider implements vscode.CustomTextEditorProvider {
     public static readonly viewType = FLOW_EDITOR;
@@ -75,14 +75,8 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
         }, 500)
     }
 
-    getFlowName(document: vscode.TextDocument) {
-        let filePath = document.uri.fsPath
-        let flowName = filePath.split(path.sep).pop()!.split('.').shift();
-        return flowName;
-    }
-
     unlinkAll(document: vscode.TextDocument) {
-        let flowName = this.getFlowName(document);
+        let flowName = getDocFileName(document);
         if(!flowName) return;
         if(!getTunnelByFlow(flowName)){
             vscode.window.showErrorMessage('当前未连接任何devtools');
@@ -92,7 +86,7 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
     }
 
     async deploy(document: vscode.TextDocument) {
-        let flowName = this.getFlowName(document);
+        let flowName = getDocFileName(document);
         if(!flowName) return;
         deployEvent.fire(flowName);
     }

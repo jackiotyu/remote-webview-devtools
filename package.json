@@ -59,6 +59,11 @@
         "command": "RemoteWebviewDevtools.deleteFlow",
         "title": "删除flow",
         "icon": "$(remove)"
+      },
+      {
+        "command": "RemoteWebviewDevtools.deleteFlowConnect",
+        "title": "删除flow与devtools的连接",
+        "icon": "$(remove)"
       }
     ],
     "customEditors": [
@@ -134,6 +139,10 @@
         {
           "command": "RemoteWebviewDevtools.copyDetail",
           "when": "view === RWD.adbView && viewItem === RWD.PageDetailItem"
+        },
+        {
+          "command": "RemoteWebviewDevtools.deleteFlowConnect",
+          "when": "view === RWD.flowView && viewItem === RWD.flowConnectItem"
         },
         {
           "command": "RemoteWebviewDevtools.connectDevtoolsProtocol",

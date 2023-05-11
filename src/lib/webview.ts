@@ -106,3 +106,10 @@ export class FrontEndWebview {
         this.panel = new FrontEndWebviewProvider(context, options).panelInstance;
     }
 }
+
+export function deleteFrontEndWebview(ws: string) {
+    let webView = webviewMap.get(ws);
+    if(!webView) return;
+    webView.dispose();
+    webviewMap.delete(ws);
+}

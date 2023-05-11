@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import GlobalStorage from '../adaptor/globalStorage';
 import { CDPMessage, ModuleType } from '../../../protocol/flow';
 import { compilerFlow, compilerScript } from '../compiler/compiler';
+import { flowEvent } from './flowEvent';
 import { SourceNodeSet, TargetNodeSet, NormalNodeType, StaticNodeType } from '../../constants';
 
 type CDPPayload = CDPMessage;
@@ -19,7 +20,23 @@ export const tunnelMap = new Map<string, Tunnel>();
  */
 type WebSocketDebuggerUrl = string;
 type Flow = string;
-export const linkMap = new Map<WebSocketDebuggerUrl, Flow>();
+
+class LinkMap<T, K> extends Map {
+    set(ws: T, flow: K) {
+        flowEvent.fire();
+        return super.set(ws, flow);
+    }
+    delete(ws: T): boolean {
+        flowEvent.fire();
+        return super.delete(ws);
+    }
+    clear(): void {
+        flowEvent.fire();
+        super.clear();
+    }
+}
+
+export const linkMap = new LinkMap<WebSocketDebuggerUrl, Flow>();
 
 // 监听部署事件
 deployEvent.event((id) => {
@@ -250,10 +267,10 @@ export function deleteTunnelByFlow(flow: string) {
     getTunnelByFlow(flow)?.dispose();
     tunnelMap.delete(flow);
     linkMap.forEach((flowName, webSocketDebuggerUrl) => {
-        if(flowName === flow){
+        if (flowName === flow) {
             linkMap.delete(webSocketDebuggerUrl);
         }
-    })
+    });
 }
 
 export function createTunnel(webSocketDebuggerUrl: string, flow: string) {
@@ -271,6 +288,16 @@ export function getTunnelByFlow(flow: string) {
 export function getTunnelByWs(webSocketDebuggerUrl: string) {
     let flow = linkMap.get(webSocketDebuggerUrl);
     if (flow) return tunnelMap.get(flow);
+}
+
+export function getWsListByFlow(flow: string) {
+    let list: string[] = [];
+    linkMap.forEach((flowName, webSocketDebuggerUrl) => {
+        if (flow === flowName) {
+            list.push(webSocketDebuggerUrl);
+        }
+    });
+    return list;
 }
 
 export default eventMap;

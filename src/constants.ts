@@ -10,6 +10,7 @@ export enum CommandName {
     openWebview = 'RemoteWebviewDevtools.openWebview',
     /** 刷新webview连接 */
     refreshConnects = 'RemoteWebviewDevtools.refreshConnects',
+    /** 连接设备 */
     trackDevices = 'RemoteWebviewDevtools.trackDevices',
     /** 更新设备列表 */
     refreshAdbDevices = 'RemoteWebviewDevtools.refreshAdbDevices',
@@ -18,14 +19,21 @@ export enum CommandName {
     /** 更新页面链接列表 */
     refreshPages = 'RemoteWebviewDevtools.refreshPages',
     copyDetail = 'RemoteWebviewDevtools.copyDetail',
+    /** 打开设置 */
     openSetting = 'RemoteWebviewDevtools.openSetting',
     openDocumentFromCodeLens = 'RemoteWebviewDevtools.openDocumentFromCodeLens',
     /** 连接到devtools协议中间件 */
     connectDevtoolsProtocol = 'RemoteWebviewDevtools.connectDevtoolsProtocol',
+    /** 添加flow */
     addFlow = 'RemoteWebviewDevtools.addFlow',
+    /** 打开flow */
     openFlow = 'RemoteWebviewDevtools.openFlow',
+    /** 重命名flow */
     renameFlow = 'RemoteWebviewDevtools.renameFlow',
+    /** 删除flow */
     deleteFlow = 'RemoteWebviewDevtools.deleteFlow',
+    /** 删除flow与devtools的连接 */
+    deleteFlowConnect = 'RemoteWebviewDevtools.deleteFlowConnect'
 }
 
 export enum Config {
