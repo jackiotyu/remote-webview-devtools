@@ -167,13 +167,13 @@
           "type": "number",
           "default": 0,
           "scope": "machine",
-          "description": "自动刷新列表间隔(毫秒), 设置为0时禁用自动刷新, 默认为0"
+          "description": "自动刷新列表间隔(单位：毫秒), 设置为0时禁用自动刷新, 默认为0"
         },
         "RemoteWebviewDevtools.adbPath": {
           "type": "string",
           "default": "",
           "scope": "machine",
-          "description": "adb执行文件路径"
+          "description": "adb可执行文件路径"
         },
         "RemoteWebviewDevtools.adbArgs": {
           "type": "array",
