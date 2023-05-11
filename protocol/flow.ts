@@ -1,8 +1,8 @@
 export interface CDPMessage {
     id?: string | number;
     method?: string;
-    params: string;
-    result: string;
+    params?: string;
+    result?: string;
 }
 
 /** 提供给脚本调用回调，执行后触发下一个流程 */
