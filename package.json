@@ -46,7 +46,7 @@
       },
       {
         "command": "RemoteWebviewDevtools.connectDevtoolsProtocol",
-        "title": "用指定流程连接devtools协议",
+        "title": "连接到flow",
         "icon": "$(sync)"
       },
       {
@@ -100,7 +100,7 @@
         },
         {
           "id": "RWD.flowView",
-          "name": "流程管理"
+          "name": "flow管理"
         },
         {
           "id": "RWD.actions",

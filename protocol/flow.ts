@@ -5,7 +5,7 @@ export interface CDPMessage {
     result?: string;
 }
 
-/** 提供给脚本调用回调，执行后触发下一个流程 */
+/** 提供给脚本调用回调，执行后触发下一个节点 */
 export type FireMethod = (message: CDPMessage | string) => void;
 
 /** 脚本模块需要提供的函数 */

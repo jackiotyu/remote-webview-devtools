@@ -143,7 +143,6 @@ export function reduceChain(list: NodeList, socketEvent: SocketEvent) {
             let targetNode = allNodeMap.get(target) as ScriptNode;
             if (!sourceNode) return;
             if (!targetNode) return;
-
             let fire = (message: CDPPayload | void) => {
                 socketEvent.trigger(targetNode!.uid, message);
             };
@@ -154,7 +153,7 @@ export function reduceChain(list: NodeList, socketEvent: SocketEvent) {
                         module = compilerScript(getScriptId(sourceNode));
                     }
                     // 注册回调
-                    module.default.trigger?.(message, fire);
+                    module?.default.trigger?.(message, fire);
                 } else {
                     fire(message);
                 }
@@ -167,9 +166,18 @@ export function reduceChain(list: NodeList, socketEvent: SocketEvent) {
                 let fire = (message: CDPMessage) => {
                     socketEvent.trigger(item.uid, message);
                 };
-                module.default.trigger?.(fire);
+                module?.default.trigger?.(fire);
             }
         });
+
+        targetNodes.forEach(item => {
+            if(item.sid && item.uid === NormalNodeType.console) {
+                let module = compilerScript(getScriptId(item as ScriptNode));
+                socketEvent.bindEvent(item.uid, (message) => {
+                    module.default?.trigger?.(message);
+                });
+            }
+        })
     } catch (err) {
         console.error('reduceChain', err);
     }
