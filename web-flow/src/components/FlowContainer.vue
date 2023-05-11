@@ -165,6 +165,7 @@ onEdgesChange(changeFunc)
 
 onBeforeMount(() => {
     window.addEventListener('message', receiveExtMsg);
+    window.vscode?.postMessage({ type: FlowWebviewMethod.update })
 });
 
 onBeforeUnmount(() => {

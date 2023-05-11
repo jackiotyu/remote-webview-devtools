@@ -51,6 +51,9 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
         // 从webview接收消息
         webviewPanel.webview.onDidReceiveMessage((e) => {
             switch (e.type) {
+                case FlowWebviewMethod.update:
+                    updateWebview();
+                    return;
                 case FlowWebviewMethod.log:
                     outputChannel.showDebugChannel();
                     return;
@@ -70,9 +73,6 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
                     this.unlinkAll(document);
             }
         });
-        setTimeout(() => {
-            updateWebview();
-        }, 500)
     }
 
     unlinkAll(document: vscode.TextDocument) {

@@ -19,12 +19,6 @@ function onDragStart(event: DragEvent, node: NodeInterface) {
 
 const nodes = ref<NodeInterface[]>([
     {
-        type: 'output',
-        label: '输出',
-        uid: NormalNodeType.console,
-        use: ModuleType.target,
-    },
-    {
         type: 'input',
         label: '输入',
         uid: NormalNodeType.cdp,
@@ -35,6 +29,12 @@ const nodes = ref<NodeInterface[]>([
         label: '中间件',
         uid: NormalNodeType.middleware,
         use: ModuleType.middleware,
+    },
+    {
+        type: 'output',
+        label: '输出',
+        uid: NormalNodeType.console,
+        use: ModuleType.target,
     },
 ]);
 </script>
