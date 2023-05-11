@@ -54,8 +54,8 @@ export class FlowDocProvider implements vscode.CustomTextEditorProvider {
                 case FlowWebviewMethod.update:
                     updateWebview();
                     return;
-                case FlowWebviewMethod.log:
-                    outputChannel.showDebugChannel();
+                case FlowWebviewMethod.toggleLog:
+                    outputChannel.toggleLogDebugChannel();
                     return;
                 case FlowWebviewMethod.edit:
                     this.updateTextDocument(document, e.data);

@@ -87,7 +87,7 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
                         AdbTreeItemEnum.webView,
                         item,
                         port,
-                        vscode.TreeItemCollapsibleState.Collapsed
+                        vscode.TreeItemCollapsibleState.Expanded
                     );
                 }));
             }).catch(() => []);

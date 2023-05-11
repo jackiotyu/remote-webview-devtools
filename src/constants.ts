@@ -76,7 +76,7 @@ export const TargetNodeSet = new Set([
 
 export enum FlowWebviewMethod {
     /** 输出文本到outputChannel */
-    log,
+    toggleLog,
     /** 更新flow文件内容 */
     edit,
     /** 打开编辑器 */
@@ -98,7 +98,7 @@ export namespace FlowWebviewPayload {
 
 export namespace FlowWebviewRecord {
     export interface log {
-        type: FlowWebviewMethod.log;
+        type: FlowWebviewMethod.toggleLog;
         data: FlowWebviewPayload.log;
     }
     export interface edit {

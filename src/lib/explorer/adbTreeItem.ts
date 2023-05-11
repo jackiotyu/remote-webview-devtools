@@ -28,7 +28,7 @@ export class DeviceItem extends TreeItem {
         this.type = type;
         this.children = children;
         this.device = device;
-        this.iconPath = new vscode.ThemeIcon('broadcast', new vscode.ThemeColor('badge.foreground'));
+        this.iconPath = new vscode.ThemeIcon('broadcast', new vscode.ThemeColor('charts.green'));
         this.contextValue = 'RWD.adbDevices';
     }
 }
@@ -48,7 +48,7 @@ export class WebViewItem extends TreeItem {
         this.type = type;
         this.webView = webView;
         this.port = port;
-        this.iconPath = new vscode.ThemeIcon('default-view-icon', new vscode.ThemeColor('badge.foreground'));
+        this.iconPath = new vscode.ThemeIcon('default-view-icon', new vscode.ThemeColor('charts.foreground'));
         this.contextValue = 'RWD.webViews';
     }
 }
@@ -70,7 +70,7 @@ export class PageItem extends vscode.TreeItem {
             arguments: [page.webSocketDebuggerUrl, page.title],
             title: '打开webView调试',
         };
-        this.iconPath = new vscode.ThemeIcon('notebook-execute', new vscode.ThemeColor('button.foreground'));
+        this.iconPath = new vscode.ThemeIcon('notebook-execute', new vscode.ThemeColor('charts.green'));
         this.contextValue = 'RWD.PageItem';
     }
 }

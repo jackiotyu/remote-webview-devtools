@@ -6,6 +6,6 @@ export default {
      */
     trigger: (message) => {
         // 默认打印到 RWD DEBUG 面板，点击flow右上角的 terminal 图标可直接打开
-        Logger.printDebug(message as string);
+        Logger.printDebug(JSON.stringify(message));
     },
 } as ScriptModule.Target;

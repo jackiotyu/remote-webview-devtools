@@ -30,12 +30,15 @@ export class FlowViewProvider implements vscode.TreeDataProvider<TreeItem> {
     getChildren(element?: TreeItem | undefined): vscode.ProviderResult<TreeItem[]> {
         if (!element) {
             return this.data.map((name) => {
-                return new FlowItem(FlowNodeEnum.flowItem, name, vscode.TreeItemCollapsibleState.Collapsed);
+                let wsList = getWsListByFlow(name);
+                let state = wsList.length
+                    ? vscode.TreeItemCollapsibleState.Expanded
+                    : vscode.TreeItemCollapsibleState.None;
+                return new FlowItem(FlowNodeEnum.flowItem, name, wsList, state);
             });
         }
         if (element.type === FlowNodeEnum.flowItem) {
-            let wsList = getWsListByFlow(element.label as string);
-            return wsList.map((webSocketDebuggerUrl) => {
+            return element.children.map((webSocketDebuggerUrl) => {
                 return new FlowConnectItem(
                     FlowNodeEnum.flowConnectItem,
                     webSocketDebuggerUrl,

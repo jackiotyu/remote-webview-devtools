@@ -3,6 +3,8 @@ import * as vscode from 'vscode';
 export default class OutputChannel {
     private static defaultChannel = vscode.window.createOutputChannel('RWD Log');
     private static debugChannel = vscode.window.createOutputChannel('RWD Debug');
+    private static debugChannelVisible = false;
+    private static defaultChannelVisible = false;
     public static dispose = () => {
         this.defaultChannel.dispose();
         this.debugChannel.dispose();
@@ -21,10 +23,22 @@ export default class OutputChannel {
         });
         this.debugChannel.appendLine('');
     }
-    static showDebugChannel() {
-        this.debugChannel.show();
+    static toggleLogDebugChannel() {
+        if(this.debugChannelVisible) {
+            this.debugChannel.hide();
+            this.debugChannelVisible = false;
+        } else {
+            this.debugChannel.show();
+            this.debugChannelVisible = true;
+        }
     }
-    static showPrintChannel() {
-        return this.defaultChannel.show();
+    static togglePrintChannel() {
+        if(this.debugChannelVisible) {
+            this.defaultChannel.hide();
+            this.defaultChannelVisible = false;
+        } else {
+            this.defaultChannel.show();
+            this.defaultChannelVisible = true;
+        }
     }
 }

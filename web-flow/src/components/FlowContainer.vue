@@ -213,7 +213,7 @@ function handleRedo () {
  * toObject transforms your current graph data to an easily persist-able object
  */
 function logToObject () {
-    window.vscode?.postMessage({ type: FlowWebviewMethod.log, data: toObject() });
+    window.vscode?.postMessage({ type: FlowWebviewMethod.toggleLog, data: toObject() });
     return console.log(toObject());
 }
 
