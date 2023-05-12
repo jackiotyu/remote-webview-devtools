@@ -274,11 +274,15 @@ export class Tunnel {
 export function deleteTunnelByFlow(flow: string) {
     getTunnelByFlow(flow)?.dispose();
     tunnelMap.delete(flow);
-    linkMap.forEach((flowName, webSocketDebuggerUrl) => {
-        if (flowName === flow) {
-            linkMap.delete(webSocketDebuggerUrl);
-        }
-    });
+    if(linkMap.size) {
+        linkMap.forEach((flowName, webSocketDebuggerUrl) => {
+            if (flowName === flow) {
+                linkMap.delete(webSocketDebuggerUrl);
+            }
+        });
+    } else {
+        flowEvent.fire();
+    }
 }
 
 export function createTunnel(webSocketDebuggerUrl: string, flow: string) {
