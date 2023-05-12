@@ -82,6 +82,16 @@
         "priority": "option"
       }
     ],
+    "languages": [
+      {
+        "id": "rwdFlow",
+        "extensions": [".rwdFlow"],
+        "icon": {
+          "light": "./images/icon.svg",
+          "dark": "./images/icon-dark.svg"
+        }
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {

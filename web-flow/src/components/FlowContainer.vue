@@ -133,7 +133,6 @@ let canShow = ref(false);
 
 function receiveExtMsg (event: MessageEvent) {
     let { type, data } = event.data;
-    console.log('receiveExtMsg', data, type)
     canShow.value = true;
     switch (type) {
         case 'update':
