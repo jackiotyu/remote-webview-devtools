@@ -112,7 +112,11 @@ export class InspectorFrontendHostStub {
         if (text === undefined || text === null) {
             return;
         }
-        void navigator.clipboard.writeText(text);
+        if(!window.isTop) {
+            window.parent.postMessage({ command: 'copyText', data: text }, '*');
+        } else {
+            void navigator.clipboard.writeText(text);
+        }
     }
     openInNewTab(url) {
         window.open(url, '_blank');
