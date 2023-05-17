@@ -1,0 +1,1 @@
+declare const mDNS: typeof import('multicast-dns');

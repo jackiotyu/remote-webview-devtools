@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^20.1.2"
+    "@types/node": "^20.1.2",
+    "@types/ws": "^8.5.4",
+    "@types/multicast-dns": "^7.2.1"
   }
 }

@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
 import fs from 'fs-extra';
 import path from 'path';
-import { nanoid } from 'nanoid'
-import { ModuleType } from '../../../protocol/flow'
+import { nanoid } from 'nanoid';
+import { ModuleType } from '../../../protocol/flow';
 import { FLOW_EXT_NAME } from '../../constants';
-import { initialElements } from '../tpl/data'
+import { initialElements } from '../tpl/data';
+import { exec } from 'child_process';
 
 export default class GlobalStorage {
     private static storageUri: vscode.Uri;
@@ -23,22 +24,23 @@ export default class GlobalStorage {
         this.tplPath = path.join(this.storagePath, 'tpl');
         this.flowPath = path.join(this.storageUri.fsPath, 'flow');
         this.outScriptPath = path.join(this.storagePath, 'out', 'script');
-        if(!fs.existsSync(this.tplPath) || process.env.NODE_ENV !== 'production') {
-            fs.ensureDir(this.protocolPath);
-            fs.copySync(this.protocolPath, this.storagePath);
-        }
+        // if(!fs.existsSync(this.tplPath) || process.env.NODE_ENV !== 'production') {
+        exec('npm install', { cwd: this.storagePath, timeout: 20000 });
+        fs.ensureDir(this.protocolPath);
+        fs.copySync(this.protocolPath, this.storagePath);
+        // }
     }
     static getStoragePath() {
         return this.storagePath;
     }
     static getScriptPath(name: string, isOutFile = false) {
-        if(isOutFile) {
-            return path.join(this.outScriptPath, name + '.js')
+        if (isOutFile) {
+            return path.join(this.outScriptPath, name + '.js');
         }
-        return path.join(this.scriptPath, name + '.ts')
+        return path.join(this.scriptPath, name + '.ts');
     }
     static getScriptTplPath(type: ModuleType) {
-        return path.join(this.tplPath, type + '.ts')
+        return path.join(this.tplPath, type + '.ts');
     }
     static getFlowPath(name: string) {
         return path.join(this.flowPath, name + this.flowExtName);
@@ -80,12 +82,15 @@ export default class GlobalStorage {
     }
     static getScriptList() {
         fs.ensureDirSync(this.scriptPath);
-        return fs.readdirSync(this.scriptPath).filter(i => i.endsWith('.ts'));
+        return fs.readdirSync(this.scriptPath).filter((i) => i.endsWith('.ts'));
     }
     static getFlowList() {
         fs.ensureDirSync(this.flowPath);
-        let reg = new RegExp(this.flowExtName.replace('.', '\.') + '$', 'i');
-        return fs.readdirSync(this.flowPath).filter(i => reg.test(i)).map(i => i.replace(this.flowExtName, ''));
+        let reg = new RegExp(this.flowExtName.replace('.', '.') + '$', 'i');
+        return fs
+            .readdirSync(this.flowPath)
+            .filter((i) => reg.test(i))
+            .map((i) => i.replace(this.flowExtName, ''));
     }
     static ensureFileSync(filePath: string) {
         fs.ensureFileSync(filePath);
@@ -111,7 +116,7 @@ export default class GlobalStorage {
         fs.ensureFileSync(oldPath);
         fs.renameSync(oldPath, newPath);
     }
-    static deleteFlow(name:string) {
+    static deleteFlow(name: string) {
         const filePath = this.getFlowPath(name);
         fs.removeSync(filePath);
     }

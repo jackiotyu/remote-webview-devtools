@@ -3,8 +3,9 @@ import vm from 'node:vm';
 import { exec } from 'child_process';
 import { promisify } from 'node:util';
 import GlobalStorage from '../adaptor/globalStorage';
-import OutputChannel from '../output/outputChannel'
+import OutputChannel from '../output/outputChannel';
 import ws from 'ws';
+import mDNS from 'multicast-dns';
 
 const execPromise = promisify(exec);
 
@@ -37,6 +38,7 @@ export function compilerScript(name: string) {
         Logger: OutputChannel,
         window: vscode.window,
         ws,
+        mDNS,
     });
     script.runInContext(context);
     return base.exports as { default: { trigger?: (...args: any[]) => any } };

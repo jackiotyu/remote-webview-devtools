@@ -14,3 +14,4 @@ vsc-extension-quickstart.md
 **/*.ts
 protocol/node_modules/**
 !protocol/**/*
+package-lock.json
