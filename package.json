@@ -36,6 +36,11 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "RemoteWebviewDevtools.refreshDebugPages",
+        "title": "更新debug页面列表",
+        "icon": "$(refresh)"
+      },
+      {
         "command": "RemoteWebviewDevtools.copyDetail",
         "title": "复制值"
       },
@@ -111,6 +116,11 @@
           "icon": "$(window)"
         },
         {
+          "id": "RWD.connectView",
+          "name": "搜索debug页面连接",
+          "icon": "$(window)"
+        },
+        {
           "id": "RWD.flowView",
           "name": "flow管理"
         },
@@ -142,8 +152,9 @@
           "group": "navigation"
         },
         {
-          "command": "RemoteWebviewDevtools.openSetting",
-          "when": "view == RWD.adbView"
+          "command": "RemoteWebviewDevtools.refreshDebugPages",
+          "when": "view == RWD.connectView",
+          "group": "navigation"
         },
         {
           "command": "RemoteWebviewDevtools.addFlow",
@@ -155,6 +166,10 @@
         {
           "command": "RemoteWebviewDevtools.copyDetail",
           "when": "view === RWD.adbView && viewItem === RWD.PageDetailItem"
+        },
+        {
+          "command": "RemoteWebviewDevtools.copyDetail",
+          "when": "view === RWD.connectView && viewItem === RWD.PageDetailItem"
         },
         {
           "command": "RemoteWebviewDevtools.deleteFlowConnect",
@@ -208,13 +223,20 @@
           "items": {
             "type": "string"
           }
+        },
+        "RemoteWebviewDevtools.port": {
+          "type": "number",
+          "default": 9222,
+          "scope": "machine",
+          "description": "设置搜索debug页面连接的端口, 默认9222"
         }
       }
     },
     "configurationDefaults": {
       "RemoteWebviewDevtools.refresh": 0,
       "RemoteWebviewDevtools.adbPath": "",
-      "RemoteWebviewDevtools.adbArgs": []
+      "RemoteWebviewDevtools.adbArgs": [],
+      "RemoteWebviewDevtools.port": 9222
     }
   },
   "scripts": {

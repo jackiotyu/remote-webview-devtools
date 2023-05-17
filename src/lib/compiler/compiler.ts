@@ -34,7 +34,6 @@ export function compilerScript(name: string) {
         ...global,
         module: base,
         exports: base.exports,
-        require,
         Logger: OutputChannel,
         window: vscode.window,
         ws,

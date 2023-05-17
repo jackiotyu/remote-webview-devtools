@@ -14,6 +14,8 @@ export enum CommandName {
     trackDevices = 'RemoteWebviewDevtools.trackDevices',
     /** 更新设备列表 */
     refreshAdbDevices = 'RemoteWebviewDevtools.refreshAdbDevices',
+    /** 更新连接列表 */
+    refreshDebugPages = 'RemoteWebviewDevtools.refreshDebugPages',
     /** 更新webView列表 */
     refreshWebViews = 'RemoteWebviewDevtools.refreshWebViews',
     /** 更新页面链接列表 */
@@ -40,6 +42,7 @@ export enum Config {
     refresh = 'refresh',
     adbPath = 'adbPath',
     adbArgs = 'adbArgs',
+    port = 'port',
 }
 
 export enum StaticNodeType {

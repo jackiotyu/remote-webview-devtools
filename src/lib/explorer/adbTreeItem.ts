@@ -15,17 +15,15 @@ class TreeItem extends vscode.TreeItem {
 }
 
 export class DeviceItem extends TreeItem {
-    type: AdbTreeItemEnum.device;
+    readonly type = AdbTreeItemEnum.device;
     children: AdbWebView[];
     device: Device;
     constructor(
-        type: AdbTreeItemEnum.device,
         children: AdbWebView[],
         device: Device,
         collapsibleState?: vscode.TreeItemCollapsibleState
     ) {
         super(`${device.model } ${ device.serial} ${device.state}`, collapsibleState);
-        this.type = type;
         this.children = children;
         this.device = device;
         this.iconPath = new vscode.ThemeIcon('broadcast', new vscode.ThemeColor('charts.green'));
@@ -34,18 +32,16 @@ export class DeviceItem extends TreeItem {
 }
 
 export class WebViewItem extends TreeItem {
-    type: AdbTreeItemEnum.webView;
+    readonly type = AdbTreeItemEnum.webView;
     webView: WebView;
     port: number;
     constructor(
-        type: AdbTreeItemEnum.webView,
         webView: WebView,
         port: number,
         collapsibleState?: vscode.TreeItemCollapsibleState
     ) {
         const label = `${webView.packageName} ${webView.socket}`;
         super(label, collapsibleState);
-        this.type = type;
         this.webView = webView;
         this.port = port;
         this.iconPath = new vscode.ThemeIcon('default-view-icon', new vscode.ThemeColor('charts.foreground'));
@@ -54,16 +50,14 @@ export class WebViewItem extends TreeItem {
 }
 
 export class PageItem extends vscode.TreeItem {
-    type: AdbTreeItemEnum.page;
+    readonly type = AdbTreeItemEnum.page;
     page: WebViewPage;
     constructor(
-        type: AdbTreeItemEnum.page,
         page: WebViewPage,
         collapsibleState?: vscode.TreeItemCollapsibleState
     ) {
         const label = `${page.title} ${page.url}`;
         super(label, collapsibleState);
-        this.type = type;
         this.page = page;
         this.command = {
             command: CommandName.openWebview,
@@ -76,10 +70,9 @@ export class PageItem extends vscode.TreeItem {
 }
 
 export class PageDetailItem extends vscode.TreeItem {
-    type: AdbTreeItemEnum.detail;
-    constructor(type: AdbTreeItemEnum.detail, key: string, value: string) {
+    readonly type = AdbTreeItemEnum.detail;
+    constructor(key: string, value: string) {
         super(key, vscode.TreeItemCollapsibleState.None);
-        this.type = type;
         this.description = value;
         this.contextValue = 'RWD.PageDetailItem';
     }

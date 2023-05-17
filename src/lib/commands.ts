@@ -2,16 +2,17 @@ import * as vscode from 'vscode';
 import * as net from 'net';
 import { createTunnel, deleteTunnelByFlow, getTunnelByFlow, getTunnelByWs } from '../lib/event/tunnelEvent';
 import { FrontEndWebview } from './webview';
-import { CommandName, FLOW_EDITOR } from '../constants';
+import { CommandName, Config, FLOW_EDITOR } from '../constants';
 import { Execute } from './adb/execute';
 import { getWebViewPages, findDevices } from './adb/bridge';
 import { pickWebViewPage } from './adb/ui';
-import { adbEvent } from './event/adbEvent';
+import { adbEvent, debugPageEvent } from './event/adbEvent';
 import { flowEvent } from './event/flowEvent';
 import { PageDetailItem, PageItem } from './explorer/adbTreeItem';
 import { FlowItem, FlowConnectItem } from './explorer/flowTreeItem';
 import GlobalStorage from './adaptor/globalStorage';
 import { getDocFileName } from '../utils/index'
+
 
 async function trackDevices(context: vscode.ExtensionContext) {
     try {
@@ -38,7 +39,7 @@ async function openWebview(context: vscode.ExtensionContext, wsLink?: string, ti
     if (!wsLink) {
         wsLink = await vscode.window.showInputBox({
             title: '输入webSocket链接',
-            placeHolder: '输入webSocket链接，例如ws://127.0.0.1:9229/xx',
+            placeHolder: '输入webSocket链接，例如ws://127.0.0.1:9222/xx',
             validateInput(value) {
                 const ip =
                     value
@@ -61,6 +62,10 @@ async function openWebview(context: vscode.ExtensionContext, wsLink?: string, ti
 async function refreshAdbDevices() {
     const devices = await findDevices();
     adbEvent.fire(devices.map((item) => ({ ...item, webViews: [] })));
+}
+
+function refreshDebugPages() {
+    debugPageEvent.fire();
 }
 
 function copyDetail(item: PageDetailItem) {
@@ -164,6 +169,7 @@ export class CommandsManager {
             ),
             vscode.commands.registerCommand(CommandName.trackDevices, () => trackDevices(this.context)),
             vscode.commands.registerCommand(CommandName.refreshAdbDevices, refreshAdbDevices),
+            vscode.commands.registerCommand(CommandName.refreshDebugPages, refreshDebugPages),
             vscode.commands.registerCommand(CommandName.copyDetail, copyDetail),
             vscode.commands.registerCommand(CommandName.openSetting, openSetting),
             vscode.commands.registerCommand(CommandName.connectDevtoolsProtocol, (item: PageItem) =>

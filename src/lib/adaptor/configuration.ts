@@ -5,12 +5,16 @@ export { Config };
 export class ConfigAdaptor {
     static extName = EXTENSION_NAME;
     static get(key: Config.refresh): number;
+    static get(key: Config.port): number;
     static get(key: Config.adbPath): string;
     static get(key: Config.adbArgs): string[];
     static get(key: Config) {
         const value = vscode.workspace.getConfiguration(EXTENSION_NAME).get(key);
         if (key === Config.refresh) {
             return Number(value) || 0;
+        }
+        if(key === Config.port) {
+            return Number(value) || 9222;
         }
         return value;
     }

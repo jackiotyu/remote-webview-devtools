@@ -69,7 +69,7 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
         if (!element) {
             // 设备
             return this.devices.map((item) => {
-                return new DeviceItem(AdbTreeItemEnum.device, item.webViews, item, vscode.TreeItemCollapsibleState.Expanded);
+                return new DeviceItem(item.webViews, item, vscode.TreeItemCollapsibleState.Expanded);
             });
         }
 
@@ -84,7 +84,6 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
                 return Promise.all(webViews.map(async (item) => {
                     const port = await forwardDebugger(item);
                     return new WebViewItem(
-                        AdbTreeItemEnum.webView,
                         item,
                         port,
                         vscode.TreeItemCollapsibleState.Expanded
@@ -104,7 +103,7 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
                     ? vscode.TreeItemCollapsibleState.Collapsed
                     : vscode.TreeItemCollapsibleState.None;
                 return pages.map((item) => {
-                    return new PageItem(AdbTreeItemEnum.page, item, collapsibleState);
+                    return new PageItem(item, collapsibleState);
                 });
             }).catch(() => []);
         }
@@ -114,7 +113,7 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
             type WebViewPageKey = keyof WebViewPage;
             return (Object.keys(detail) as WebViewPageKey[]).map((key: WebViewPageKey) => {
                 const value = detail[key];
-                return new PageDetailItem(AdbTreeItemEnum.detail, key, value);
+                return new PageDetailItem(key, value);
             });
         }
 
