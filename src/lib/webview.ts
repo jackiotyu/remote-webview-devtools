@@ -85,7 +85,7 @@ export class FrontEndWebviewProvider {
                 </style>
                 <script src="${scriptSrc}"></script>
             </head>
-            <body style="width: 100vw;height: 100vh;padding: 4px 0 0;margin: 0;display: flex;box-sizing: border-box;">
+            <body style="width: 100vw;height: 100vh;padding: 0;margin: 0;display: flex;box-sizing: border-box;">
                 <iframe class="devtools-frame" frameBorder="0" src="${frontEndPath}?ws=${tunnel.link}" allow="clipboard-read; clipboard-write self ${frontEndPath}"></iframe>
             </body>
             </html>

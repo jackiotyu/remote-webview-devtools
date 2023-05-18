@@ -683,7 +683,8 @@ export class ConsoleView extends UI.Widget.VBox {
     immediatelyScrollToBottom() {
         // This will scroll viewport and trigger its refresh.
         this.viewport.setStickToBottom(true);
-        this.promptElement.scrollIntoView(true);
+        // 这里直接对齐会导致向上多了4px
+        // this.promptElement.scrollIntoView(true);
     }
     updateFilterStatus() {
         if (this.hiddenByFilterCount === this.lastShownHiddenByFilterCount) {
