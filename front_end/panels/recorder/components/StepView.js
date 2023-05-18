@@ -248,7 +248,7 @@ class StepView extends HTMLElement {
         this.#recorderSettings = data.recorderSettings;
         this.#render();
         if (this.#state !== prevState && this.#state === 'current' && !this.#isVisible) {
-            this.scrollIntoView();
+            this.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
         }
     }
     get step() {

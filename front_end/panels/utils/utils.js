@@ -106,7 +106,7 @@ async function buildStyleRuleMaps(content) {
     return { declarationIDToStyleRule, styleRuleIDToStyleRule };
 }
 export function highlightElement(element) {
-    element.scrollIntoViewIfNeeded();
+    element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'start' });
     element.animate([
         { offset: 0, backgroundColor: 'rgba(255, 255, 0, 0.2)' },
         { offset: 0.1, backgroundColor: 'rgba(255, 255, 0, 0.7)' },

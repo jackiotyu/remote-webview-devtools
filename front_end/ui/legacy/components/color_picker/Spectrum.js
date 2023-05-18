@@ -508,7 +508,7 @@ export class Spectrum extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) {
         for (const palette of this.palettes.values()) {
             this.palettePanel.appendChild(this.createPreviewPaletteElement(palette));
         }
-        this.contentElement.scrollIntoView({ block: 'end' });
+        this.contentElement.scrollIntoView({ block: 'end', behavior: 'smooth', inline: 'start' });
     }
     togglePalettePanel(show) {
         if (this.palettePanelShowing === show) {

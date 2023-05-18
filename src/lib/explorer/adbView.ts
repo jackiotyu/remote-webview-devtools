@@ -113,7 +113,7 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
             type WebViewPageKey = keyof WebViewPage;
             return (Object.keys(detail) as WebViewPageKey[]).map((key: WebViewPageKey) => {
                 const value = detail[key];
-                return new PageDetailItem(key, value);
+                return new PageDetailItem(key, value || '');
             });
         }
 

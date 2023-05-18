@@ -739,7 +739,7 @@ class StylePropertiesSection {
             onContainerLinkClick: (event) => {
                 event.preventDefault();
                 void ElementsPanel.instance().revealAndSelectNode(container.containerNode, true, true);
-                void container.containerNode.scrollIntoView();
+                void container.containerNode.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
             },
         };
         containerElement.addEventListener('queriedsizerequested', async () => {
@@ -1170,7 +1170,7 @@ class StylePropertiesSection {
         if (UI.UIUtils.isBeingEdited(element)) {
             return;
         }
-        element.scrollIntoViewIfNeeded(false);
+        element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
         // Reset selector marks in group, and normalize whitespace.
         const textContent = element.textContent;
         if (textContent !== null) {

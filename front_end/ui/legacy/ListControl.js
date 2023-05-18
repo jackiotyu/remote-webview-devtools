@@ -240,7 +240,13 @@ export class ListControl {
     }
     scrollIntoView(index, center) {
         if (this.mode === ListMode.NonViewport) {
-            this.elementAtIndex(index).scrollIntoViewIfNeeded(Boolean(center));
+
+            this.elementAtIndex(index).scrollIntoView({
+                behavior: 'smooth',
+                block: !!center ? 'center' : 'nearest',
+                inline: 'start'
+            });
+            // this.elementAtIndex(index).scrollIntoViewIfNeeded(Boolean(center));
             return;
         }
         const top = this.offsetAtIndex(index);

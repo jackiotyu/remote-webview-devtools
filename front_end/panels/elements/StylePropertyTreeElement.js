@@ -1130,7 +1130,7 @@ export class StylePropertyTreeElement extends UI.TreeOutline.TreeElement {
         this.originalPropertyText = this.property.propertyText || '';
         this.parentPaneInternal.setEditingStyle(true, this);
         if (selectElement && selectElement.parentElement) {
-            selectElement.parentElement.scrollIntoViewIfNeeded(false);
+            selectElement.parentElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
         }
         this.prompt = new CSSPropertyPrompt(this, isEditingName);
         this.prompt.setAutocompletionTimeout(0);

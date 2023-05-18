@@ -629,13 +629,13 @@ class ElementsPanel extends UI.Panel.Panel {
             return;
         }
         const treeElement = this.treeElementForNode(searchResult.node);
-        void searchResult.node.scrollIntoView();
+        void searchResult.node.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
         if (treeElement) {
             this.searchConfig && treeElement.highlightSearchResults(this.searchConfig.query);
             treeElement.reveal();
             const matches = treeElement.listItemElement.getElementsByClassName(UI.UIUtils.highlightedSearchResultClassName);
             if (matches.length) {
-                matches[0].scrollIntoViewIfNeeded(false);
+                matches[0].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
             }
             treeElement.select(/* omitFocus */ true);
         }

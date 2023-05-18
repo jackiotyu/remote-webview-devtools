@@ -18,7 +18,7 @@ const nodeToLayoutElement = (node) => {
         enabled: false,
         reveal: () => {
             void ElementsPanel.instance().revealAndSelectNode(node, true, true);
-            void node.scrollIntoView();
+            void node.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
         },
         highlight: () => {
             node.highlight();

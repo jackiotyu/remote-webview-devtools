@@ -617,7 +617,7 @@ export class ElementsTreeElement extends UI.TreeOutline.TreeElement {
         });
     }
     populateScrollIntoView(contextMenu) {
-        contextMenu.viewSection().appendItem(i18nString(UIStrings.scrollIntoView), () => this.nodeInternal.scrollIntoView());
+        contextMenu.viewSection().appendItem(i18nString(UIStrings.scrollIntoView), () => this.nodeInternal.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' }));
     }
     populateTextContextMenu(contextMenu, textNode) {
         if (!this.editing) {
@@ -716,7 +716,7 @@ export class ElementsTreeElement extends UI.TreeOutline.TreeElement {
         attr.style.marginRight = '2px'; // overrides the .editing margin rule
         const tag = this.listItemElement.getElementsByClassName('webkit-html-tag')[0];
         this.insertInLastAttributePosition(tag, attr);
-        attr.scrollIntoViewIfNeeded(true);
+        attr.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'start' });
         return this.startEditingAttribute(attr, attr);
     }
     triggerEditAttribute(attributeName) {

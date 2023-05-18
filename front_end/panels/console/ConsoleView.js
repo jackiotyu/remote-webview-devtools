@@ -684,7 +684,7 @@ export class ConsoleView extends UI.Widget.VBox {
         // This will scroll viewport and trigger its refresh.
         this.viewport.setStickToBottom(true);
         // 这里直接对齐会导致向上多了4px
-        // this.promptElement.scrollIntoView(true);
+        this.promptElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
     }
     updateFilterStatus() {
         if (this.hiddenByFilterCount === this.lastShownHiddenByFilterCount) {
@@ -895,7 +895,7 @@ export class ConsoleView extends UI.Widget.VBox {
         this.viewport.setStickToBottom(this.isScrolledToBottom());
         // Scroll, in case mutations moved the element below the visible area.
         if (treeOutlineElement.offsetHeight <= this.messagesElement.offsetHeight) {
-            treeOutlineElement.scrollIntoViewIfNeeded();
+            treeOutlineElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'start' });
         }
         this.pendingBatchResize = false;
     }
@@ -1267,7 +1267,7 @@ export class ConsoleView extends UI.Widget.VBox {
         const highlightNode = message.searchHighlightNode(matchRange.matchIndex);
         highlightNode.classList.add(UI.UIUtils.highlightedCurrentSearchResultClassName);
         this.viewport.scrollItemIntoView(matchRange.messageIndex);
-        highlightNode.scrollIntoViewIfNeeded();
+        highlightNode.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'start' });
     }
     updateStickToBottomOnPointerDown(isRightClick) {
         this.muteViewportUpdates = !isRightClick;

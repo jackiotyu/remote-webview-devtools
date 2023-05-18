@@ -937,7 +937,7 @@ export class AppManifestTreeElement extends ApplicationPanelTreeElement {
         }
     }
     onInvoke() {
-        this.view.getManifestElement().scrollIntoView();
+        this.view.getManifestElement().scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
         UI.ARIAUtils.alert(i18nString(UIStrings.onInvokeAlert, { PH1: this.listItemElement.title }));
     }
     showManifestView() {
@@ -962,7 +962,7 @@ export class ManifestChildTreeElement extends ApplicationPanelTreeElement {
     }
     onInvoke() {
         this.parent?.showManifestView();
-        this.#sectionElement.scrollIntoView();
+        this.#sectionElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
         UI.ARIAUtils.alert(i18nString(UIStrings.onInvokeAlert, { PH1: this.listItemElement.title }));
         Host.userMetrics.manifestSectionSelected(this.listItemElement.title);
     }

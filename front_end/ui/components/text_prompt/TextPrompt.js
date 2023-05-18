@@ -85,7 +85,7 @@ class TextPrompt extends HTMLElement {
         this.#suggestion().value = this.#text();
         if (this.#input().hasFocus()) {
             this.moveCaretToEndOfInput();
-            this.#input().scrollIntoView();
+            this.#input().scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
         }
     }
     #suggestion() {

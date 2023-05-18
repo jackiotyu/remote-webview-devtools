@@ -323,7 +323,7 @@ export class Editor {
         this.item = item;
         this.index = index;
         this.commitButton.textContent = commitButtonTitle;
-        this.element.scrollIntoViewIfNeeded(false);
+        this.element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
         if (this.controls.length) {
             this.controls[0].focus();
         }

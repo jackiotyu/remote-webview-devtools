@@ -186,7 +186,7 @@ export class TextPrompt extends Common.ObjectWrapper.ObjectWrapper {
         this.previousText = this.text();
         if (this.element().hasFocus()) {
             this.moveCaretToEndOfPrompt();
-            this.element().scrollIntoView();
+            this.element().scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
         }
     }
     setSelectedRange(startIndex, endIndex) {

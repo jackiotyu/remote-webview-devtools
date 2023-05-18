@@ -798,7 +798,7 @@ export class DOMNode {
         object.release();
         node.highlightForTwoSeconds();
         function scrollIntoView() {
-            this.scrollIntoViewIfNeeded(true);
+            this.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'start' });
         }
     }
     async focus() {

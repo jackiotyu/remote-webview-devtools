@@ -1384,7 +1384,7 @@ export class DataGridImpl extends Common.ObjectWrapper.ObjectWrapper {
         return this.dataTableHeadInternal.offsetHeight;
     }
     revealNode(element) {
-        element.scrollIntoViewIfNeeded(false);
+        element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
         // The header row is a child of the scrollable container, and uses position: sticky
         // so scrollIntoViewIfNeeded may place the element behind it. If the element is
         // obscured by the header, adjust the scrollTop so that the element is fully revealed.

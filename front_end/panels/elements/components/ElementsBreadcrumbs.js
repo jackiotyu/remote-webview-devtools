@@ -315,6 +315,8 @@ class ElementsBreadcrumbs extends HTMLElement {
                     // deeply nested element, and the slow scrolling of the breadcrumbs
                     // is just a distraction and not useful.
                     behavior: 'auto',
+                    block: 'nearest',
+                    inline: 'start'
                 });
             });
         }

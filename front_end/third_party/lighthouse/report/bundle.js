@@ -4815,7 +4815,7 @@ class ReportRenderer {
           if (!selector || !reportRoot) return;
           const destEl = this._dom.find(selector, reportRoot);
           e.preventDefault();
-          destEl.scrollIntoView();
+          destEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
         });
         this._opts.onPageAnchorRendered?.(gaugeWrapperEl);
       }

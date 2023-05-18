@@ -212,7 +212,7 @@ export class DevicesSettingsTab extends UI.Widget.VBox {
         else {
             this.emulatedDevicesList.saveCustomDevices();
         }
-        this.addCustomButton.scrollIntoViewIfNeeded();
+        this.addCustomButton.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'start' });
         this.addCustomButton.focus();
         this.ariaSuccessMessageElement.setAttribute('aria-label', i18nString(UIStrings.deviceAddedOrUpdated, { PH1: device.title }));
     }
