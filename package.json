@@ -3,7 +3,7 @@
   "name": "RemoteWebviewDevtools",
   "displayName": "remote webview devtools",
   "description": "",
-  "version": "0.1.9",
+  "version": "0.2.10",
   "engines": {
     "vscode": "^1.63.0"
   },
