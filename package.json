@@ -3,7 +3,7 @@
   "name": "RemoteWebviewDevtools",
   "displayName": "remote webview devtools",
   "description": "",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "engines": {
     "vscode": "^1.63.0"
   },
@@ -178,6 +178,11 @@
         {
           "command": "RemoteWebviewDevtools.connectDevtoolsProtocol",
           "when": "view == RWD.adbView && viewItem === RWD.PageItem",
+          "group": "inline"
+        },
+        {
+          "command": "RemoteWebviewDevtools.connectDevtoolsProtocol",
+          "when": "view == RWD.connectView && viewItem === RWD.connectPageItem",
           "group": "inline"
         },
         {

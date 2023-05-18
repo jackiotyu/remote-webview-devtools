@@ -22,7 +22,7 @@ export class ConnectPageItem extends vscode.TreeItem {
             title: '打开webView调试',
         };
         this.iconPath = new vscode.ThemeIcon('notebook-execute', new vscode.ThemeColor('charts.green'));
-        this.contextValue = 'RWD.ConnectItem';
+        this.contextValue = 'RWD.connectPageItem';
     }
 }
 
