@@ -1,2 +1,2 @@
 export {};
-//# sourceMappingURL=PuppeteerViewport.js.map
+//# map=PuppeteerViewport.js.map

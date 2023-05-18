@@ -50,4 +50,4 @@ export var Events;
     Events["ViewRegistered"] = "viewRegistered";
     Events["ShowViewRequested"] = "showViewRequested";
 })(Events || (Events = {}));
-//# sourceMappingURL=RecorderPluginManager.js.map
+//# map=RecorderPluginManager.js.map

@@ -14,4 +14,4 @@ import * as StepEditor from './StepEditor.js';
 import * as StepView from './StepView.js';
 import * as TimelineSection from './TimelineSection.js';
 export { ControlButton, CreateRecordingView, RecorderInput, RecordingListView, RecordingView, ReplayButton, SelectButton, SplitView, StartView, StepEditor, StepView, TimelineSection, };
-//# sourceMappingURL=components.js.map
+//# map=components.js.map

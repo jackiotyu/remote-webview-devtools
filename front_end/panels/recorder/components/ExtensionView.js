@@ -92,4 +92,4 @@ class ExtensionView extends HTMLElement {
 }
 export { ExtensionView };
 ComponentHelpers.CustomElements.defineComponent('devtools-recorder-extension-view', ExtensionView);
-//# sourceMappingURL=ExtensionView.js.map
+//# map=ExtensionView.js.map

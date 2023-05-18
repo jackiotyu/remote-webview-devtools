@@ -46,4 +46,4 @@ export class AffectedSourcesView extends AffectedResourcesView {
         this.#appendAffectedSources(this.issue.sources());
     }
 }
-//# sourceMappingURL=AffectedSourcesView.js.map
+//# map=AffectedSourcesView.js.map

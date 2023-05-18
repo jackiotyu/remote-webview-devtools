@@ -55,6 +55,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=domBreakpointsSidebarPane.css */
+
 `);
 export default styles;

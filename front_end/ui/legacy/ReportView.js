@@ -191,4 +191,4 @@ export class Section extends VBox {
         this.element.classList.toggle('show-mask', masked);
     }
 }
-//# sourceMappingURL=ReportView.js.map
+//# map=ReportView.js.map

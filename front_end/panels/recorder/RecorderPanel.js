@@ -57,4 +57,4 @@ export class ActionDelegate {
         return true;
     }
 }
-//# sourceMappingURL=RecorderPanel.js.map
+//# map=RecorderPanel.js.map

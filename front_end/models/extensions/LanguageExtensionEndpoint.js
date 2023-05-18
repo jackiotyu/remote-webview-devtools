@@ -95,4 +95,4 @@ export class LanguageExtensionEndpoint {
         return this.endpoint.sendRequest("releaseObject" /* PrivateAPI.LanguageExtensionPluginCommands.ReleaseObject */, { objectId });
     }
 }
-//# sourceMappingURL=LanguageExtensionEndpoint.js.map
+//# map=LanguageExtensionEndpoint.js.map

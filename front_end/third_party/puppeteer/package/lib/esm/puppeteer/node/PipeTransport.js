@@ -68,4 +68,4 @@ _PipeTransport_pipeWrite = new WeakMap(), _PipeTransport_eventListeners = new We
     }
     __classPrivateFieldSet(this, _PipeTransport_pendingMessage, buffer.toString(undefined, start), "f");
 };
-//# sourceMappingURL=PipeTransport.js.map
+//# map=PipeTransport.js.map

@@ -374,4 +374,4 @@ export class ActionDelegate {
         }
     }
 }
-//# sourceMappingURL=LiveHeapProfileView.js.map
+//# map=LiveHeapProfileView.js.map

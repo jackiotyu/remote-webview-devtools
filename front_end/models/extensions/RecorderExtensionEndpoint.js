@@ -64,4 +64,4 @@ export class RecorderExtensionEndpoint extends ExtensionEndpoint {
         return this.sendRequest("replay" /* PrivateAPI.RecorderExtensionPluginCommands.Replay */, { recording });
     }
 }
-//# sourceMappingURL=RecorderExtensionEndpoint.js.map
+//# map=RecorderExtensionEndpoint.js.map

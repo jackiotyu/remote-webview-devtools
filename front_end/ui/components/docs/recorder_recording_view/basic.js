@@ -93,4 +93,4 @@ const data = {
 const component1 = new RecorderComponents.RecordingView.RecordingView();
 component1.data = data;
 document.getElementById('container')?.appendChild(component1);
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

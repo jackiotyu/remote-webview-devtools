@@ -15,4 +15,4 @@ import * as JSONFormatter from './JSONFormatter.js';
 import * as ScopeParser from './ScopeParser.js';
 import * as Substitute from './Substitute.js';
 export { CSSFormatter, CSSRuleParser, FormattedContentBuilder, FormatterWorker, HTMLFormatter, JavaScriptFormatter, JSONFormatter, ScopeParser, Substitute, };
-//# sourceMappingURL=formatter_worker.js.map
+//# map=formatter_worker.js.map

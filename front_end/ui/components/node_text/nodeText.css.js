@@ -33,6 +33,6 @@ styles.replaceSync(
   color: var(--override-node-text-multiple-descriptors-id, var(--override-node-text-id-color, var(--color-token-attribute)));
 }
 
-/*# sourceURL=nodeText.css */
+
 `);
 export default styles;

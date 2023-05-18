@@ -389,4 +389,4 @@ export class ChartViewport extends UI.Widget.VBox {
         return this.visibleRightTime;
     }
 }
-//# sourceMappingURL=ChartViewport.js.map
+//# map=ChartViewport.js.map

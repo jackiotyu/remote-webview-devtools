@@ -27,4 +27,4 @@ export const parseText = (text) => {
         unit: result.groups.unit,
     };
 };
-//# sourceMappingURL=CSSLengthUtils.js.map
+//# map=CSSLengthUtils.js.map

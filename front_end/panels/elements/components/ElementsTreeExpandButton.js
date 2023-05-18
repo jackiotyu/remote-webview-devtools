@@ -30,4 +30,4 @@ class ElementsTreeExpandButton extends HTMLElement {
 }
 export { ElementsTreeExpandButton };
 ComponentHelpers.CustomElements.defineComponent('devtools-elements-tree-expand-button', ElementsTreeExpandButton);
-//# sourceMappingURL=ElementsTreeExpandButton.js.map
+//# map=ElementsTreeExpandButton.js.map

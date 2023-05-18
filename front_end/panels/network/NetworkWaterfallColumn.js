@@ -533,4 +533,4 @@ export class NetworkWaterfallColumn extends UI.Widget.VBox {
         context.restore();
     }
 }
-//# sourceMappingURL=NetworkWaterfallColumn.js.map
+//# map=NetworkWaterfallColumn.js.map

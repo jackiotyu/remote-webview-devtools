@@ -148,6 +148,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=callStackSidebarPane.css */
+
 `);
 export default styles;

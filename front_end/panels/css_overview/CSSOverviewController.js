@@ -18,4 +18,4 @@ export class OverviewController extends Common.ObjectWrapper.ObjectWrapper {
         this.dispatchEventToListeners("Reset" /* Events.Reset */);
     }
 }
-//# sourceMappingURL=CSSOverviewController.js.map
+//# map=CSSOverviewController.js.map

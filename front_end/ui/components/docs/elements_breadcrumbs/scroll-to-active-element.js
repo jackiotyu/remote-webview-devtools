@@ -75,4 +75,4 @@ btn?.addEventListener('click', () => {
         selectedNode: divCrumb,
     };
 });
-//# sourceMappingURL=scroll-to-active-element.js.map
+//# map=scroll-to-active-element.js.map

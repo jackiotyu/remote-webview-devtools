@@ -106,4 +106,4 @@ export function getLocalizedViewLocationCategory(category) {
             return i18n.i18n.lockedString('');
     }
 }
-//# sourceMappingURL=ViewRegistration.js.map
+//# map=ViewRegistration.js.map

@@ -190,4 +190,4 @@ _FirefoxTargetManager_connection = new WeakMap(), _FirefoxTargetManager_discover
         __classPrivateFieldGet(this, _FirefoxTargetManager_initializeCallback, "f").call(this);
     }
 };
-//# sourceMappingURL=FirefoxTargetManager.js.map
+//# map=FirefoxTargetManager.js.map

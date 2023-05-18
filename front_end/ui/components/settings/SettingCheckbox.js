@@ -53,4 +53,4 @@ class SettingCheckbox extends HTMLElement {
 }
 export { SettingCheckbox };
 ComponentHelpers.CustomElements.defineComponent('setting-checkbox', SettingCheckbox);
-//# sourceMappingURL=SettingCheckbox.js.map
+//# map=SettingCheckbox.js.map

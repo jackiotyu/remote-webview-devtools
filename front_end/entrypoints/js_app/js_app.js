@@ -37,4 +37,4 @@ export class JsMainImpl {
 }
 Common.Runnable.registerEarlyInitializationRunnable(JsMainImpl.instance);
 new Main.MainImpl.MainImpl();
-//# sourceMappingURL=js_app.js.map
+//# map=js_app.js.map

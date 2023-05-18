@@ -43,6 +43,6 @@ styles.replaceSync(
   cursor: text;
 }
 
-/*# sourceURL=classesPaneWidget.css */
+
 `);
 export default styles;

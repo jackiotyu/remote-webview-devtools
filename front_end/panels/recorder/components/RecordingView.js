@@ -1025,4 +1025,4 @@ class RecordingView extends HTMLElement {
 }
 export { RecordingView };
 ComponentHelpers.CustomElements.defineComponent('devtools-recording-view', RecordingView);
-//# sourceMappingURL=RecordingView.js.map
+//# map=RecordingView.js.map

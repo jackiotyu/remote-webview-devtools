@@ -241,4 +241,4 @@ export class CSSPositionFallbackRule {
         return this.#tryRules;
     }
 }
-//# sourceMappingURL=CSSRule.js.map
+//# map=CSSRule.js.map

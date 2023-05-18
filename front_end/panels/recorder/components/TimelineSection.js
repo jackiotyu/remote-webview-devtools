@@ -52,4 +52,4 @@ class TimelineSection extends HTMLElement {
 }
 export { TimelineSection };
 ComponentHelpers.CustomElements.defineComponent('devtools-timeline-section', TimelineSection);
-//# sourceMappingURL=TimelineSection.js.map
+//# map=TimelineSection.js.map

@@ -7,4 +7,4 @@ import * as IssueRevealer from './IssueRevealer.js';
 import * as IssuesPane from './IssuesPane.js';
 import * as IssueView from './IssueView.js';
 export { CSPViolationsView, IssueAggregator, IssueRevealer, IssuesPane, IssueView, };
-//# sourceMappingURL=issues.js.map
+//# map=issues.js.map

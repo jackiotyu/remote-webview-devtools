@@ -13,4 +13,4 @@ import * as PersistenceUtils from './PersistenceUtils.js';
 import * as PlatformFileSystem from './PlatformFileSystem.js';
 import * as WorkspaceSettingsTab from './WorkspaceSettingsTab.js';
 export { Automapping, EditFileSystemView, FileSystemWorkspaceBinding, IsolatedFileSystem, IsolatedFileSystemManager, NetworkPersistenceManager, Persistence, PersistenceActions, PersistenceUtils, PlatformFileSystem, WorkspaceSettingsTab, };
-//# sourceMappingURL=persistence.js.map
+//# map=persistence.js.map

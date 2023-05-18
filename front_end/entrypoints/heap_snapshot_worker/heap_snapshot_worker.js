@@ -6,4 +6,4 @@ import * as HeapSnapshot from './HeapSnapshot.js';
 import * as HeapSnapshotLoader from './HeapSnapshotLoader.js';
 import * as HeapSnapshotWorkerDispatcher from './HeapSnapshotWorkerDispatcher.js';
 export { AllocationProfile, HeapSnapshot, HeapSnapshotLoader, HeapSnapshotWorkerDispatcher, };
-//# sourceMappingURL=heap_snapshot_worker.js.map
+//# map=heap_snapshot_worker.js.map

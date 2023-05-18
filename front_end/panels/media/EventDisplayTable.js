@@ -138,4 +138,4 @@ export class PlayerEventsView extends UI.Widget.VBox {
         this.registerCSSFiles([eventDisplayTableStyles]);
     }
 }
-//# sourceMappingURL=EventDisplayTable.js.map
+//# map=EventDisplayTable.js.map

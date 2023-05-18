@@ -74,6 +74,6 @@ styles.replaceSync(
   border-bottom: var(--legacy-divider-border);
 }
 
-/*# sourceURL=webSocketFrameView.css */
+
 `);
 export default styles;

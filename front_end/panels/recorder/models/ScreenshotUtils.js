@@ -38,4 +38,4 @@ export async function takeScreenshot() {
     const data = await captureScreenshot();
     return await resizeScreenshot(data);
 }
-//# sourceMappingURL=ScreenshotUtils.js.map
+//# map=ScreenshotUtils.js.map

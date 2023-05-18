@@ -285,4 +285,4 @@ class StyleFile {
     }
 }
 export { StyleFile };
-//# sourceMappingURL=StylesSourceMapping.js.map
+//# map=StylesSourceMapping.js.map

@@ -100,4 +100,4 @@ function renderExample2() {
 }
 renderExample1();
 renderExample2();
-//# sourceMappingURL=flamechart.js.map
+//# map=flamechart.js.map

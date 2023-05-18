@@ -60,4 +60,4 @@ export class ComboBoxOfCheckBoxes extends UI.Toolbar.ToolbarButton {
         contextMenu.markAsMenuItemCheckBox();
     }
 }
-//# sourceMappingURL=ComboBoxOfCheckBoxes.js.map
+//# map=ComboBoxOfCheckBoxes.js.map

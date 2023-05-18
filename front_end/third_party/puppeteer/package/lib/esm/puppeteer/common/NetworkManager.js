@@ -436,4 +436,4 @@ _NetworkManager_client = new WeakMap(), _NetworkManager_ignoreHTTPSErrors = new 
     __classPrivateFieldGet(this, _NetworkManager_instances, "m", _NetworkManager_forgetRequest).call(this, request, true);
     this.emit(NetworkManagerEmittedEvents.RequestFailed, request);
 };
-//# sourceMappingURL=NetworkManager.js.map
+//# map=NetworkManager.js.map

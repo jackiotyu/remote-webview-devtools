@@ -122,4 +122,4 @@ export class GPUTrackAppender {
         return { title, formattedTime: getFormattedTime(event.dur) };
     }
 }
-//# sourceMappingURL=GPUTrackAppender.js.map
+//# map=GPUTrackAppender.js.map

@@ -71,4 +71,4 @@ export class NodeWebSocketTransport {
     }
 }
 _NodeWebSocketTransport_ws = new WeakMap();
-//# sourceMappingURL=NodeWebSocketTransport.js.map
+//# map=NodeWebSocketTransport.js.map

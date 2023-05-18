@@ -1157,7 +1157,7 @@ export class DebuggerPlugin extends Plugin {
             const editorLocation = this.editor.editor.posAtDOM(event.target);
             const line = this.editor.state.doc.lineAt(editorLocation);
             const uiLocation = this.transformer.editorLocationToUILocation(line.number - 1, editorLocation - line.from);
-            void this.setBreakpoint(uiLocation.lineNumber, uiLocation.columnNumber, EMPTY_BREAKPOINT_CONDITION, /* enabled */ true, 
+            void this.setBreakpoint(uiLocation.lineNumber, uiLocation.columnNumber, EMPTY_BREAKPOINT_CONDITION, /* enabled */ true,
             /* isLogpoint */ false);
         }
     }
@@ -1190,7 +1190,7 @@ export class DebuggerPlugin extends Plugin {
                 Host.userMetrics.breakpointEditDialogRevealedFrom(2 /* Host.UserMetrics.BreakpointEditDialogRevealedFrom.BreakpointMarkerContextMenu */);
                 this.editBreakpointCondition({ line, breakpoint: null, location: uiLocation, isLogpoint: true });
             });
-            contextMenu.debugSection().appendItem(i18nString(UIStrings.neverPauseHere), () => this.setBreakpoint(uiLocation.lineNumber, uiLocation.columnNumber, NEVER_PAUSE_HERE_CONDITION, /* enabled */ true, 
+            contextMenu.debugSection().appendItem(i18nString(UIStrings.neverPauseHere), () => this.setBreakpoint(uiLocation.lineNumber, uiLocation.columnNumber, NEVER_PAUSE_HERE_CONDITION, /* enabled */ true,
             /* isLogpoint */ false));
         }
         void contextMenu.show();
@@ -2036,4 +2036,4 @@ function inlineConditionalBreakpointArrow(color, outline, opacity = '1') {
 function inlineLogpointArrow(color, outline, opacity = '1') {
     return `url('data:image/svg+xml,<svg width="11" height="12" viewBox="0 0 11 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.5 0.5H5.80139C6.29382 0.5 6.7549 0.741701 7.03503 1.14669L10.392 6L7.03503 10.8533C6.7549 11.2583 6.29382 11.5 5.80139 11.5H0.5V0.5Z" fill="${encodeURIComponent(color)}" stroke="${encodeURIComponent(outline)}" fill-opacity="${encodeURIComponent(opacity)}"/><circle cx="3" cy="6" r="1" fill="white"/><circle cx="7" cy="6" r="1" fill="white"/></svg>')`;
 }
-//# sourceMappingURL=DebuggerPlugin.js.map
+//# map=DebuggerPlugin.js.map

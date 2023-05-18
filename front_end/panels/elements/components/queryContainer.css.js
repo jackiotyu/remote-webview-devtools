@@ -39,6 +39,6 @@ styles.replaceSync(
   transform: rotate(90deg);
 }
 
-/*# sourceURL=queryContainer.css */
+
 `);
 export default styles;

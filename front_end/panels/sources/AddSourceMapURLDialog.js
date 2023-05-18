@@ -69,4 +69,4 @@ export class AddDebugInfoURLDialog extends UI.Widget.HBox {
         this.registerCSSFiles([dialogStyles]);
     }
 }
-//# sourceMappingURL=AddSourceMapURLDialog.js.map
+//# map=AddSourceMapURLDialog.js.map

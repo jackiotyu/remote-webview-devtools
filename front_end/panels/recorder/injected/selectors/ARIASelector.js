@@ -139,4 +139,4 @@ class ARIASelectorComputer {
 export const computeARIASelector = (node, bindings) => {
     return new ARIASelectorComputer(bindings).compute(node);
 };
-//# sourceMappingURL=ARIASelector.js.map
+//# map=ARIASelector.js.map

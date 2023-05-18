@@ -10,4 +10,4 @@ const component = new RecorderComponents.ControlButton.ControlButton();
 component.shape = 'circle';
 component.label = 'ControlButton';
 document.getElementById('container')?.appendChild(component);
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

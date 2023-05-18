@@ -48,4 +48,4 @@ export var Events;
 })(Events || (Events = {}));
 // TODO(jarhar): this is the one of the two usages of Capability.None. Do something about it!
 SDKModel.register(StorageKeyManager, { capabilities: Capability.None, autostart: false });
-//# sourceMappingURL=StorageKeyManager.js.map
+//# map=StorageKeyManager.js.map

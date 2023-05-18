@@ -1160,4 +1160,4 @@ export var EntryType;
     EntryType["TrackAppender"] = "TrackAppender";
     EntryType["Screenshot"] = "Screenshot";
 })(EntryType || (EntryType = {}));
-//# sourceMappingURL=TimelineFlameChartDataProvider.js.map
+//# map=TimelineFlameChartDataProvider.js.map

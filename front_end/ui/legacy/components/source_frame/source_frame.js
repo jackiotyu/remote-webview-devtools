@@ -10,4 +10,4 @@ import * as ResourceSourceFrame from './ResourceSourceFrame.js';
 import * as SourceFrame from './SourceFrame.js';
 import * as XMLView from './XMLView.js';
 export { BinaryResourceViewFactory, FontView, ImageView, JSONView, PreviewFactory, ResourceSourceFrame, SourceFrame, XMLView, };
-//# sourceMappingURL=source_frame.js.map
+//# map=source_frame.js.map

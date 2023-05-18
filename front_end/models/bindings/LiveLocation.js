@@ -61,4 +61,4 @@ export class LiveLocationPool {
         }
     }
 }
-//# sourceMappingURL=LiveLocation.js.map
+//# map=LiveLocation.js.map

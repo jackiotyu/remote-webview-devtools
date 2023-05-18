@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 export {};
-//# sourceMappingURL=Product.js.map
+//# map=Product.js.map

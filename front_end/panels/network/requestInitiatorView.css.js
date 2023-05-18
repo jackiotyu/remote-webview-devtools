@@ -16,6 +16,6 @@ styles.replaceSync(
   margin: 6px;
 }
 
-/*# sourceURL=requestInitiatorView.css */
+
 `);
 export default styles;

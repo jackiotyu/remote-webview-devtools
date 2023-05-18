@@ -276,4 +276,4 @@ function throughputText(throughput) {
     // for these two versions: one with decimal places and one without.
     return i18nString(UIStrings.fsmbits, { PH1: (throughputInKbps / 1000) | 0 });
 }
-//# sourceMappingURL=ThrottlingSettingsTab.js.map
+//# map=ThrottlingSettingsTab.js.map

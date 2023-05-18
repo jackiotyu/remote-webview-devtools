@@ -132,7 +132,7 @@ class SourceScopeRemoteObject extends SDK.RemoteObject.RemoteObjectImpl {
         const properties = [];
         const namespaces = {};
         function makeProperty(name, obj) {
-            return new SDK.RemoteObject.RemoteObjectProperty(name, obj, 
+            return new SDK.RemoteObject.RemoteObjectProperty(name, obj,
             /* enumerable=*/ false, /* writable=*/ false, /* isOwn=*/ true, /* wasThrown=*/ false);
         }
         for (const variable of this.variables) {
@@ -902,4 +902,4 @@ class ModelData {
         return this.project;
     }
 }
-//# sourceMappingURL=DebuggerLanguagePlugins.js.map
+//# map=DebuggerLanguagePlugins.js.map

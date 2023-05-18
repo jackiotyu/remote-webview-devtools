@@ -103,6 +103,6 @@ styles.replaceSync(
   color: var(--color-error-text);
 }
 
-/*# sourceURL=stepEditor.css */
+
 `);
 export default styles;

@@ -190,6 +190,6 @@ input::-webkit-inner-spin-button {
   background-color: var(--legacy-focus-bg-color);
 }
 
-/*# sourceURL=fontEditor.css */
+
 `);
 export default styles;

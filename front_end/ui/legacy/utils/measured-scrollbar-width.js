@@ -24,4 +24,4 @@ export function measuredScrollbarWidth(document) {
     document.body.removeChild(scrollDiv);
     return _measuredScrollbarWidth;
 }
-//# sourceMappingURL=measured-scrollbar-width.js.map
+//# map=measured-scrollbar-width.js.map

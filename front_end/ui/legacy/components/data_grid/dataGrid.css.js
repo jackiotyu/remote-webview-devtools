@@ -344,6 +344,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=dataGrid.css */
+
 `);
 export default styles;

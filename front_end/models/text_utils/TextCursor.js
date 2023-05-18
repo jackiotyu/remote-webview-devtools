@@ -41,4 +41,4 @@ export class TextCursor {
         return this.columnNumberInternal;
     }
 }
-//# sourceMappingURL=TextCursor.js.map
+//# map=TextCursor.js.map

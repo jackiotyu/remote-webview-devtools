@@ -328,4 +328,4 @@ export class PlayerMessagesView extends UI.Widget.VBox {
         this.registerCSSFiles([playerMessagesViewStyles]);
     }
 }
-//# sourceMappingURL=PlayerMessagesView.js.map
+//# map=PlayerMessagesView.js.map

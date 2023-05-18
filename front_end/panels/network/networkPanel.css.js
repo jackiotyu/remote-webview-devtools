@@ -198,6 +198,6 @@ devtools-request-headers {
   min-width: 360px;
 }
 
-/*# sourceURL=networkPanel.css */
+
 `);
 export default styles;

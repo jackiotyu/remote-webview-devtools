@@ -194,4 +194,4 @@ const theme = CodeMirror.EditorView.baseTheme({
         backgroundColor: 'var(--color-coverage-used)',
     },
 });
-//# sourceMappingURL=CoveragePlugin.js.map
+//# map=CoveragePlugin.js.map

@@ -252,4 +252,4 @@ export var ConditionName;
     ConditionName["CAN_DOCK"] = "can_dock";
     ConditionName["NOT_SOURCES_HIDE_ADD_FOLDER"] = "!sources.hide_add_folder";
 })(ConditionName || (ConditionName = {}));
-//# sourceMappingURL=Runtime.js.map
+//# map=Runtime.js.map

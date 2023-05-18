@@ -1774,7 +1774,7 @@ export class TimelineUIUtils {
             contentHelper.appendTextRow(i18nString(UIStrings.compilationCacheStatus), i18nString(UIStrings.scriptNotEligible));
         }
     }
-    static async buildTraceEventDetails(event, model, linkifier, detailed, 
+    static async buildTraceEventDetails(event, model, linkifier, detailed,
     // TODO(crbug.com/1430809): the order of these arguments is slightly
     // awkward because to change them is to cause a lot of layout tests to be
     // updated. We should rewrite those tests as unit tests in this codebase,
@@ -3247,4 +3247,4 @@ export function timeStampForEventAdjustedForClosestNavigationIfPossible(event, m
     }
     return TraceEngine.Types.Timing.MilliSeconds(eventTimeStamp);
 }
-//# sourceMappingURL=TimelineUIUtils.js.map
+//# map=TimelineUIUtils.js.map

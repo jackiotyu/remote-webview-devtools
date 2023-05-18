@@ -608,4 +608,4 @@ export class WidgetFocusRestorer {
 function parentWidgetElementOrShadowHost(element) {
     return element.parentElementOrShadowHost();
 }
-//# sourceMappingURL=Widget.js.map
+//# map=Widget.js.map

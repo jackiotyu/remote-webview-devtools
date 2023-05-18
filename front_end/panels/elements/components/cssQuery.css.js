@@ -24,6 +24,6 @@ styles.replaceSync(
   cursor: var(--override-styles-section-text-hover-cursor);
 }
 
-/*# sourceURL=cssQuery.css */
+
 `);
 export default styles;

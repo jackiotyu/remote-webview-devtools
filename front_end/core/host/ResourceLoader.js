@@ -233,4 +233,4 @@ export const loadAsStream = function (url, headers, stream, callback, allowRemot
         finishedCallback({ statusCode: 404, messageOverride });
     }
 };
-//# sourceMappingURL=ResourceLoader.js.map
+//# map=ResourceLoader.js.map

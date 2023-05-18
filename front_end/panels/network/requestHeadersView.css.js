@@ -28,6 +28,6 @@ styles.replaceSync(
   background-color: var(--color-background);
 }
 
-/*# sourceURL=requestHeadersView.css */
+
 `);
 export default styles;

@@ -221,4 +221,4 @@ export class BackendSettingsSync {
     }
 }
 SDK.ChildTargetManager.ChildTargetManager.install();
-//# sourceMappingURL=InspectorMain.js.map
+//# map=InspectorMain.js.map

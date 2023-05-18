@@ -288,4 +288,4 @@ export function getLocalizedActionCategory(category) {
     // Not all categories are cleanly typed yet. Return the category as-is in this case.
     return i18n.i18n.lockedString(category);
 }
-//# sourceMappingURL=ActionRegistration.js.map
+//# map=ActionRegistration.js.map

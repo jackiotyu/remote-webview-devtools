@@ -392,4 +392,4 @@ export class BreakpointsSidebarController {
         }));
     }
 }
-//# sourceMappingURL=BreakpointsSidebarPane.js.map
+//# map=BreakpointsSidebarPane.js.map

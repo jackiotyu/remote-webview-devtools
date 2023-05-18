@@ -99,4 +99,4 @@ export class SharedStorageEventsView extends UI.SplitWidget.SplitWidget {
         return this.#sharedStorageEventGrid;
     }
 }
-//# sourceMappingURL=SharedStorageEventsView.js.map
+//# map=SharedStorageEventsView.js.map

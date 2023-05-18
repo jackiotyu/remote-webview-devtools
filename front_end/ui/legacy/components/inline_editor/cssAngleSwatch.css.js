@@ -37,6 +37,6 @@ styles.replaceSync(
   border-radius: 5px;
 }
 
-/*# sourceURL=cssAngleSwatch.css */
+
 `);
 export default styles;

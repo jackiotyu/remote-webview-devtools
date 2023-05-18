@@ -540,4 +540,4 @@ export class SearchConfig {
         };
     }
 }
-//# sourceMappingURL=SearchableView.js.map
+//# map=SearchableView.js.map

@@ -99,6 +99,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=eventListenersView.css */
+
 `);
 export default styles;

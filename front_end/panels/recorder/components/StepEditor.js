@@ -1013,4 +1013,4 @@ StepEditor = __decorate([
     customElement('devtools-recorder-step-editor')
 ], StepEditor);
 export { StepEditor };
-//# sourceMappingURL=StepEditor.js.map
+//# map=StepEditor.js.map

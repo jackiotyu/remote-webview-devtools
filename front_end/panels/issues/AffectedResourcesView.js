@@ -225,4 +225,4 @@ export class AffectedResourcesView extends UI.TreeOutline.TreeElement {
         return cell;
     }
 }
-//# sourceMappingURL=AffectedResourcesView.js.map
+//# map=AffectedResourcesView.js.map

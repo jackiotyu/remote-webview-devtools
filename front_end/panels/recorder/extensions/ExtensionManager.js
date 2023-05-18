@@ -96,4 +96,4 @@ export var Events;
 (function (Events) {
     Events["ExtensionsUpdated"] = "extensionsUpdated";
 })(Events || (Events = {}));
-//# sourceMappingURL=ExtensionManager.js.map
+//# map=ExtensionManager.js.map

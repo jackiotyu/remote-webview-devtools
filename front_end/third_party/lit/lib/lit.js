@@ -26,4 +26,4 @@ var f;A.finalized=!0,A.elementProperties=new Map,A.elementStyles=[],A.shadowRoot
  * SPDX-License-Identifier: BSD-3-Clause
  */
 const dt=!1;export{n as CSSResult,lt as LitElement,A as ReactiveElement,rt as UpdatingElement,at as _$LE,et as _$LH,l as adoptStyles,r as css,$ as defaultConverter,h as getCompatibleStyle,j as html,dt as isServer,B as noChange,v as notEqual,D as nothing,it as render,e as supportsAdoptingStyleSheets,z as svg,o as unsafeCSS};
-//# sourceMappingURL=lit.js.map
+//# map=lit.js.map

@@ -561,4 +561,4 @@ export class PlayerPropertiesView extends UI.Widget.VBox {
         this.registerCSSFiles([playerPropertiesViewStyles]);
     }
 }
-//# sourceMappingURL=PlayerPropertiesView.js.map
+//# map=PlayerPropertiesView.js.map

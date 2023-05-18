@@ -991,4 +991,4 @@ function createCheckIcon() {
     icon.data = { iconName: 'checkmark', color: 'var(--icon-checkmark-green)', width: '14px', height: '14px' };
     return icon;
 }
-//# sourceMappingURL=CSSOverviewCompletedView.js.map
+//# map=CSSOverviewCompletedView.js.map

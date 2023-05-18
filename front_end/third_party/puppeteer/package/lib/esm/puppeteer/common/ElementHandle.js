@@ -842,4 +842,4 @@ function computeQuadArea(quad) {
     }
     return Math.abs(area);
 }
-//# sourceMappingURL=ElementHandle.js.map
+//# map=ElementHandle.js.map

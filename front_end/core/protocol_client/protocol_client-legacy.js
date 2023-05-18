@@ -18,4 +18,4 @@ ProtocolClient.test = ProtocolClientModule.InspectorBackend.test;
 ProtocolClient.TargetBase = ProtocolClientModule.InspectorBackend.TargetBase;
 /** @constructor */
 ProtocolClient.NodeURL = ProtocolClientModule.NodeURL.NodeURL;
-//# sourceMappingURL=protocol_client-legacy.js.map
+//# map=protocol_client-legacy.js.map

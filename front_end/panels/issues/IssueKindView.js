@@ -121,4 +121,4 @@ export class IssueKindView extends UI.TreeOutline.TreeElement {
         this.#issueCount.textContent = `${count}`;
     }
 }
-//# sourceMappingURL=IssueKindView.js.map
+//# map=IssueKindView.js.map

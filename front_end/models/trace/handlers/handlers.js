@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 export * as ModelHandlers from './ModelHandlers.js';
 export * as Types from './types.js';
-//# sourceMappingURL=handlers.js.map
+//# map=handlers.js.map

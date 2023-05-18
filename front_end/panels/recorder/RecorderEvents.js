@@ -20,4 +20,4 @@ class RecordingStateChangedEvent extends Event {
     }
 }
 export { RecordingStateChangedEvent };
-//# sourceMappingURL=RecorderEvents.js.map
+//# map=RecorderEvents.js.map

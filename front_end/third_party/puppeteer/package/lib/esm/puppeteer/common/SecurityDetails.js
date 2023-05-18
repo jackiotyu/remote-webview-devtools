@@ -89,4 +89,4 @@ export class SecurityDetails {
     }
 }
 _SecurityDetails_subjectName = new WeakMap(), _SecurityDetails_issuer = new WeakMap(), _SecurityDetails_validFrom = new WeakMap(), _SecurityDetails_validTo = new WeakMap(), _SecurityDetails_protocol = new WeakMap(), _SecurityDetails_sanList = new WeakMap();
-//# sourceMappingURL=SecurityDetails.js.map
+//# map=SecurityDetails.js.map

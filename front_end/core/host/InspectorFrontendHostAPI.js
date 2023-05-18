@@ -121,4 +121,4 @@ export var EnumeratedHistogram;
     EnumeratedHistogram["VMInlineScriptTypeShown"] = "DevTools.VMInlineScriptShown";
     EnumeratedHistogram["BreakpointsRestoredFromStorageCount"] = "DevTools.BreakpointsRestoredFromStorageCount";
 })(EnumeratedHistogram || (EnumeratedHistogram = {}));
-//# sourceMappingURL=InspectorFrontendHostAPI.js.map
+//# map=InspectorFrontendHostAPI.js.map

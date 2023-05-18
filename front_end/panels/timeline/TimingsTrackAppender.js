@@ -283,4 +283,4 @@ export class TimingsTrackAppender {
         return { title, formattedTime: getFormattedTime(event.dur) };
     }
 }
-//# sourceMappingURL=TimingsTrackAppender.js.map
+//# map=TimingsTrackAppender.js.map

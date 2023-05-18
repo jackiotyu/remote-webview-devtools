@@ -44,4 +44,4 @@ component.addEventListener('breadcrumbsnodeselected', ({ legacyDomNode }) => {
     // eslint-disable-next-line no-console
     console.log('node selected', legacyDomNode);
 });
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

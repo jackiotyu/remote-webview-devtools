@@ -70,4 +70,4 @@ Common.Revealer.registerRevealer({
         return Issues.IssueRevealer.IssueRevealer.instance();
     },
 });
-//# sourceMappingURL=issues-meta.js.map
+//# map=issues-meta.js.map

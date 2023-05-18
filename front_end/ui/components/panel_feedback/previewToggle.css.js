@@ -48,6 +48,6 @@ styles.replaceSync(
   color: var(--color-text-secondary);
 }
 
-/*# sourceURL=previewToggle.css */
+
 `);
 export default styles;

@@ -30,4 +30,4 @@ import * as TimingsTrackAppender from './TimingsTrackAppender.js';
 import * as UIDevtoolsController from './UIDevtoolsController.js';
 import * as UIDevtoolsUtils from './UIDevtoolsUtils.js';
 export { AppenderUtils, CLSLinkifier, CompatibilityTracksAppender, CountersGraph, EventsTimelineTreeView, GPUTrackAppender, InteractionsTrackAppender, LayoutShiftsTrackAppender, PerformanceModel, SaveFileFormatter, TimelineController, TimelineDetailsView, TimelineEventOverview, TimelineFilters, TimelineFlameChartDataProvider, TimelineFlameChartNetworkDataProvider, TimelineFlameChartView, TimelineHistoryManager, TimelineLayersView, TimelineLoader, TimelinePaintProfilerView, TimelinePanel, TimelineSelection, TimelineTreeView, TimelineUIUtils, TimingsTrackAppender, UIDevtoolsController, UIDevtoolsUtils, };
-//# sourceMappingURL=timeline.js.map
+//# map=timeline.js.map

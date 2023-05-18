@@ -1839,4 +1839,4 @@ QuickOpen.FilteredListWidget.registerProvider({
     titlePrefix: i18nLazyString(UIStrings.open),
     titleSuggestion: i18nLazyString(UIStrings.file),
 });
-//# sourceMappingURL=sources-meta.js.map
+//# map=sources-meta.js.map

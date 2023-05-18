@@ -542,4 +542,4 @@ export class SourceMap {
     }
     SourceMap.StringCharIterator = StringCharIterator;
 })(SourceMap || (SourceMap = {}));
-//# sourceMappingURL=SourceMap.js.map
+//# map=SourceMap.js.map

@@ -142,4 +142,4 @@ export class NetworkEventManager {
     }
 }
 _NetworkEventManager_requestWillBeSentMap = new WeakMap(), _NetworkEventManager_requestPausedMap = new WeakMap(), _NetworkEventManager_httpRequestsMap = new WeakMap(), _NetworkEventManager_responseReceivedExtraInfoMap = new WeakMap(), _NetworkEventManager_queuedRedirectInfoMap = new WeakMap(), _NetworkEventManager_queuedEventGroupMap = new WeakMap();
-//# sourceMappingURL=NetworkEventManager.js.map
+//# map=NetworkEventManager.js.map

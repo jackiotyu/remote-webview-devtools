@@ -37,4 +37,4 @@ Animation.AnimationUI = AnimationModule.AnimationUI.AnimationUI;
  * @enum {string}
  */
 Animation.AnimationUI.Events = AnimationModule.AnimationUI.Events;
-//# sourceMappingURL=animation-legacy.js.map
+//# map=animation-legacy.js.map

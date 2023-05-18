@@ -63,6 +63,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=cssOverviewSidebarPanel.css */
+
 `);
 export default styles;

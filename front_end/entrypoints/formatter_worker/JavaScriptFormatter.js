@@ -455,4 +455,4 @@ export class JavaScriptFormatter {
         return '';
     }
 }
-//# sourceMappingURL=JavaScriptFormatter.js.map
+//# map=JavaScriptFormatter.js.map

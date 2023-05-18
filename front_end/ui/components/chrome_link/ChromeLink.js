@@ -48,4 +48,4 @@ class ChromeLink extends HTMLElement {
 }
 export { ChromeLink };
 ComponentHelpers.CustomElements.defineComponent('devtools-chrome-link', ChromeLink);
-//# sourceMappingURL=ChromeLink.js.map
+//# map=ChromeLink.js.map

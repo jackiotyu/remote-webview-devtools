@@ -1006,4 +1006,4 @@ const sourceFrameTheme = CodeMirror.EditorView.theme({
         color: 'var(--color-primary-old)',
     },
 });
-//# sourceMappingURL=SourceFrame.js.map
+//# map=SourceFrame.js.map

@@ -20,4 +20,4 @@ export class CSSLayer extends CSSQuery {
         return true;
     }
 }
-//# sourceMappingURL=CSSLayer.js.map
+//# map=CSSLayer.js.map

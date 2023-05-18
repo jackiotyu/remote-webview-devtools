@@ -86,4 +86,4 @@ class AutocompleteHistory {
     }
 }
 export { AutocompleteHistory };
-//# sourceMappingURL=AutocompleteHistory.js.map
+//# map=AutocompleteHistory.js.map

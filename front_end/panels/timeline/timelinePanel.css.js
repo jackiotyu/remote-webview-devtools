@@ -639,6 +639,6 @@ devtools-feedback-button {
   float: right;
 }
 
-/*# sourceURL=timelinePanel.css */
+
 `);
 export default styles;

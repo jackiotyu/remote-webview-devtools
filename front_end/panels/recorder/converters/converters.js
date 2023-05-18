@@ -8,4 +8,4 @@ import * as LighthouseConverter from './LighthouseConverter.js';
 import * as PuppeteerConverter from './PuppeteerConverter.js';
 import * as PuppeteerReplayConverter from './PuppeteerReplayConverter.js';
 export { Converter, ExtensionConverter, JSONConverter, LighthouseConverter, PuppeteerConverter, PuppeteerReplayConverter, };
-//# sourceMappingURL=converters.js.map
+//# map=converters.js.map

@@ -438,4 +438,4 @@ export class ResourceScriptFile extends Common.ObjectWrapper.ObjectWrapper {
         return this.#uiSourceCodeInternal;
     }
 }
-//# sourceMappingURL=ResourceScriptMapping.js.map
+//# map=ResourceScriptMapping.js.map

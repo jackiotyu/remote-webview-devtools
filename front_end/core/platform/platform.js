@@ -48,4 +48,4 @@ export { DCHECK } from './dcheck.js';
  */
 export { assertNever, assertNotNullOrUndefined, assertUnhandled } from './typescript-utilities.js';
 export { ArrayUtilities, Brand, DateUtilities, DevToolsPath, DOMUtilities, KeyboardUtilities, MapUtilities, NumberUtilities, SetUtilities, StringUtilities, TypeScriptUtilities, UIString, UserVisibleError, };
-//# sourceMappingURL=platform.js.map
+//# map=platform.js.map

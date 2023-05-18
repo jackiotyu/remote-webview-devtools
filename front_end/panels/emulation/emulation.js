@@ -14,4 +14,4 @@ import * as DeviceModeWrapper from './DeviceModeWrapper.js';
 import * as InspectedPagePlaceholder from './InspectedPagePlaceholder.js';
 import * as MediaQueryInspector from './MediaQueryInspector.js';
 export { AdvancedApp, DeviceModeToolbar, DeviceModeView, DeviceModeWrapper, InspectedPagePlaceholder, MediaQueryInspector, };
-//# sourceMappingURL=emulation.js.map
+//# map=emulation.js.map

@@ -110,4 +110,4 @@ export class Dialog {
     }
 }
 _Dialog_client = new WeakMap(), _Dialog_type = new WeakMap(), _Dialog_message = new WeakMap(), _Dialog_defaultValue = new WeakMap(), _Dialog_handled = new WeakMap();
-//# sourceMappingURL=Dialog.js.map
+//# map=Dialog.js.map

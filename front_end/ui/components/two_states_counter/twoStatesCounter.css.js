@@ -43,6 +43,6 @@ styles.replaceSync(
   background-color: var(--color-background-elevation-2);
 }
 
-/*# sourceURL=twoStatesCounter.css */
+
 `);
 export default styles;

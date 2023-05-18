@@ -14,4 +14,4 @@ import * as SharedStorageMetadataView from './SharedStorageMetadataView.js';
 import * as StackTrace from './StackTrace.js';
 import * as TrustTokensView from './TrustTokensView.js';
 export { BackForwardCacheView, BounceTrackingMitigationsView, EndpointsGrid, FrameDetailsView, InterestGroupAccessGrid, OriginTrialTreeView, ProtocolHandlersView, ReportsGrid, SharedStorageAccessGrid, SharedStorageMetadataView, StackTrace, TrustTokensView, };
-//# sourceMappingURL=components.js.map
+//# map=components.js.map

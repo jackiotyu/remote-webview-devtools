@@ -109,4 +109,4 @@ class CSSShadowSwatch extends HTMLSpanElement {
     static constructorInternal = null;
 }
 export { CSSShadowSwatch };
-//# sourceMappingURL=Swatches.js.map
+//# map=Swatches.js.map

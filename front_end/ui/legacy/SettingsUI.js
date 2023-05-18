@@ -156,4 +156,4 @@ export const createControlForSetting = function (setting, subtitle) {
             return null;
     }
 };
-//# sourceMappingURL=SettingsUI.js.map
+//# map=SettingsUI.js.map

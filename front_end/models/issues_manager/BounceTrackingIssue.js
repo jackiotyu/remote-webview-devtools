@@ -55,4 +55,4 @@ export class BounceTrackingIssue extends Issue {
         return [new BounceTrackingIssue(details, issuesModel)];
     }
 }
-//# sourceMappingURL=BounceTrackingIssue.js.map
+//# map=BounceTrackingIssue.js.map

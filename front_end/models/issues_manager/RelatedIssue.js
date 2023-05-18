@@ -57,4 +57,4 @@ export async function reveal(obj, category) {
         return Common.Revealer.reveal(candidates[0]);
     }
 }
-//# sourceMappingURL=RelatedIssue.js.map
+//# map=RelatedIssue.js.map

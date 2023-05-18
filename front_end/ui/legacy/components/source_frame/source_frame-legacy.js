@@ -29,4 +29,4 @@ SourceFrame.LineDecorator = SourceFrameModule.SourceFrame.LineDecorator;
 SourceFrame.XMLView = SourceFrameModule.XMLView.XMLView;
 /** @constructor */
 SourceFrame.XMLView.Node = SourceFrameModule.XMLView.XMLViewNode;
-//# sourceMappingURL=source_frame-legacy.js.map
+//# map=source_frame-legacy.js.map

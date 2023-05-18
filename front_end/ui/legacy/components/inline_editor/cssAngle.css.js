@@ -34,6 +34,6 @@ devtools-css-angle-editor {
   display: inline-block;
 }
 
-/*# sourceURL=cssAngle.css */
+
 `);
 export default styles;

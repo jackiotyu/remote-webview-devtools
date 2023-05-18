@@ -238,4 +238,4 @@ export const Prerender2ReasonDescription = {
     'SameSiteCrossOriginNavigationNotOptIn': { name: i18nLazyString(UIStrings.SameSiteCrossOriginNavigationNotOptIn) },
     'ActivationNavigationParameterMismatch': { name: i18nLazyString(UIStrings.ActivationNavigationParameterMismatch) },
 };
-//# sourceMappingURL=Prerender2.js.map
+//# map=Prerender2.js.map

@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as SyncSection from './SyncSection.js';
 export { SyncSection, };
-//# sourceMappingURL=components.js.map
+//# map=components.js.map

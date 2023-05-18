@@ -1427,4 +1427,4 @@ export const KnownDevices = Object.freeze(knownDevicesByName);
  * @public
  */
 export const devices = KnownDevices;
-//# sourceMappingURL=Device.js.map
+//# map=Device.js.map

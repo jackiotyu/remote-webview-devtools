@@ -20,4 +20,4 @@ document.getElementById('container')?.appendChild(component1);
 const component2 = new RecorderComponents.CreateRecordingView.CreateRecordingView();
 document.getElementById('container')?.appendChild(component2);
 component2.shadowRoot?.querySelector('devtools-control-button')?.click();
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

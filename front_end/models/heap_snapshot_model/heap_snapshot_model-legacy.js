@@ -43,4 +43,4 @@ HeapSnapshotModel.SearchConfig = HeapSnapshotModelModule.HeapSnapshotModel.Searc
 HeapSnapshotModel.Samples = HeapSnapshotModelModule.HeapSnapshotModel.Samples;
 /** @constructor */
 HeapSnapshotModel.Location = HeapSnapshotModelModule.HeapSnapshotModel.Location;
-//# sourceMappingURL=heap_snapshot_model-legacy.js.map
+//# map=heap_snapshot_model-legacy.js.map

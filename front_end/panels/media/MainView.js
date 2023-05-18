@@ -236,4 +236,4 @@ export class MainView extends UI.Panel.PanelWithSidebar {
         anchor.click();
     }
 }
-//# sourceMappingURL=MainView.js.map
+//# map=MainView.js.map

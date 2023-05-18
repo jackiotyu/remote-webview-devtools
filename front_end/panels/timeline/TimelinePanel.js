@@ -1409,4 +1409,4 @@ export class ActionDelegate {
         return false;
     }
 }
-//# sourceMappingURL=TimelinePanel.js.map
+//# map=TimelinePanel.js.map

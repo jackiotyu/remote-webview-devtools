@@ -63,4 +63,4 @@ class ColorMixSwatch extends HTMLElement {
 }
 export { ColorMixSwatch };
 ComponentHelpers.CustomElements.defineComponent('devtools-color-mix-swatch', ColorMixSwatch);
-//# sourceMappingURL=ColorMixSwatch.js.map
+//# map=ColorMixSwatch.js.map

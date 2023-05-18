@@ -524,4 +524,4 @@ export class TimelineFrameBeginFrameQueue {
         return framesToVisualize;
     }
 }
-//# sourceMappingURL=TimelineFrameModel.js.map
+//# map=TimelineFrameModel.js.map

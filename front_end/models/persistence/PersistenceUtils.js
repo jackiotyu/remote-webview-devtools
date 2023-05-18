@@ -88,4 +88,4 @@ export class LinkDecorator extends Common.ObjectWrapper.ObjectWrapper {
         return PersistenceUtils.iconForUISourceCode(uiSourceCode);
     }
 }
-//# sourceMappingURL=PersistenceUtils.js.map
+//# map=PersistenceUtils.js.map

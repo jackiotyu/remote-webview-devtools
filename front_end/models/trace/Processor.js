@@ -192,4 +192,4 @@ class TraceEventIterator {
         }
     }
 }
-//# sourceMappingURL=Processor.js.map
+//# map=Processor.js.map

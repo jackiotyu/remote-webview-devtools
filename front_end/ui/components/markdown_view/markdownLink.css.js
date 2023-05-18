@@ -21,6 +21,6 @@ styles.replaceSync(
   text-decoration: underline;
 }
 
-/*# sourceURL=markdownLink.css */
+
 `);
 export default styles;

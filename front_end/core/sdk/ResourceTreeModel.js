@@ -1011,4 +1011,4 @@ class PreloadDispatcher {
     }
 }
 SDKModel.register(ResourceTreeModel, { capabilities: Capability.DOM, autostart: true, early: true });
-//# sourceMappingURL=ResourceTreeModel.js.map
+//# map=ResourceTreeModel.js.map

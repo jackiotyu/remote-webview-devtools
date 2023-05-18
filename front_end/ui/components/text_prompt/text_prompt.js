@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as TextPrompt from './TextPrompt.js';
 export { TextPrompt, };
-//# sourceMappingURL=text_prompt.js.map
+//# map=text_prompt.js.map

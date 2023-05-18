@@ -819,4 +819,4 @@ export class ContentProviderContextMenuProvider {
         contextMenu.clipboardSection().appendItem(UI.UIUtils.copyFileNameLabel(), () => Host.InspectorFrontendHost.InspectorFrontendHostInstance.copyText(contentProvider.displayName()));
     }
 }
-//# sourceMappingURL=Linkifier.js.map
+//# map=Linkifier.js.map

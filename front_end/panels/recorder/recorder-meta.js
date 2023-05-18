@@ -130,4 +130,4 @@ UI.ActionRegistration.registerActionExtension({
         { shortcut: 'Meta+B', platform: "mac" /* UI.ActionRegistration.Platforms.Mac */ },
     ],
 });
-//# sourceMappingURL=recorder-meta.js.map
+//# map=recorder-meta.js.map

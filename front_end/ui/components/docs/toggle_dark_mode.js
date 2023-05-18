@@ -28,4 +28,4 @@ export function init() {
         document.body.appendChild(button);
     });
 }
-//# sourceMappingURL=toggle_dark_mode.js.map
+//# map=toggle_dark_mode.js.map

@@ -86,4 +86,4 @@ class ValueInterpreterSettings extends HTMLElement {
 }
 export { ValueInterpreterSettings };
 ComponentHelpers.CustomElements.defineComponent('devtools-linear-memory-inspector-interpreter-settings', ValueInterpreterSettings);
-//# sourceMappingURL=ValueInterpreterSettings.js.map
+//# map=ValueInterpreterSettings.js.map

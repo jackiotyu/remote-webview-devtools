@@ -67,7 +67,7 @@ export class FormatterWorkerPool {
             task.callback(null);
         }
     }
-    runChunkedTask(methodName, params, 
+    runChunkedTask(methodName, params,
     // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     callback) {
@@ -133,4 +133,4 @@ class Task {
 export function formatterWorkerPool() {
     return FormatterWorkerPool.instance();
 }
-//# sourceMappingURL=FormatterWorkerPool.js.map
+//# map=FormatterWorkerPool.js.map

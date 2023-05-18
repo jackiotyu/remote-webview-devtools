@@ -107,4 +107,4 @@ class TextPrompt extends HTMLElement {
 }
 export { TextPrompt };
 ComponentHelpers.CustomElements.defineComponent('devtools-text-prompt', TextPrompt);
-//# sourceMappingURL=TextPrompt.js.map
+//# map=TextPrompt.js.map

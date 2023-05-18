@@ -72,6 +72,6 @@ styles.replaceSync(
   overflow-x: hidden;
 }
 
-/*# sourceURL=playerPropertiesView.css */
+
 `);
 export default styles;

@@ -72,4 +72,4 @@ export class Message {
         this.show = show;
     }
 }
-//# sourceMappingURL=Console.js.map
+//# map=Console.js.map

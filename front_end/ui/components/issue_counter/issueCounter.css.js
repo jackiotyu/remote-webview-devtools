@@ -16,6 +16,6 @@ styles.replaceSync(
   display: inline-block;
 }
 
-/*# sourceURL=issueCounter.css */
+
 `);
 export default styles;

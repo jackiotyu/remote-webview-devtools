@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import '../devtools_app/devtools_app.js';
 import '../../panels/screencast/screencast-meta.js';
-//# sourceMappingURL=inspector.js.map
+//# map=inspector.js.map

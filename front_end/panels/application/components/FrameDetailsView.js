@@ -766,4 +766,4 @@ class FrameDetailsReportView extends HTMLElement {
 }
 export { FrameDetailsReportView };
 ComponentHelpers.CustomElements.defineComponent('devtools-resources-frame-details-view', FrameDetailsReportView);
-//# sourceMappingURL=FrameDetailsView.js.map
+//# map=FrameDetailsView.js.map

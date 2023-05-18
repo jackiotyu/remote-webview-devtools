@@ -136,4 +136,4 @@ export class ButtonProvider {
         return this.button;
     }
 }
-//# sourceMappingURL=ElementStatePaneWidget.js.map
+//# map=ElementStatePaneWidget.js.map

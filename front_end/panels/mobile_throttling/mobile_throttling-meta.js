@@ -121,4 +121,4 @@ Common.Settings.registerSettingExtension({
     settingType: Common.Settings.SettingType.ARRAY,
     defaultValue: [],
 });
-//# sourceMappingURL=mobile_throttling-meta.js.map
+//# map=mobile_throttling-meta.js.map

@@ -85,4 +85,4 @@ class EditableSpan extends HTMLElement {
 }
 export { EditableSpan };
 ComponentHelpers.CustomElements.defineComponent('devtools-editable-span', EditableSpan);
-//# sourceMappingURL=EditableSpan.js.map
+//# map=EditableSpan.js.map

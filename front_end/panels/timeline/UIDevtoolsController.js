@@ -38,4 +38,4 @@ export class UIDevtoolsController extends TimelineController {
         TimelineUIUtils.setTimelineMainEventCategories(UIDevtoolsUtils.getMainCategoriesList());
     }
 }
-//# sourceMappingURL=UIDevtoolsController.js.map
+//# map=UIDevtoolsController.js.map

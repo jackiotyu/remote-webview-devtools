@@ -16,6 +16,6 @@ styles.replaceSync(
   font-family: Menlo, monospace;
 }
 
-/*# sourceURL=nodeStackTraceWidget.css */
+
 `);
 export default styles;

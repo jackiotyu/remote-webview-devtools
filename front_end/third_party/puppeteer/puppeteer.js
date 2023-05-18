@@ -7,4 +7,4 @@ import { Frame } from './package/lib/esm/puppeteer/common/Frame.js';
 import { ElementHandle } from './package/lib/esm/puppeteer/common/ElementHandle.js';
 import { CDPPage } from './package/lib/esm/puppeteer/common/Page.js';
 export { CDPBrowser as Browser, Connection, ElementHandle, Frame, CDPPage as Page };
-//# sourceMappingURL=puppeteer.js.map
+//# map=puppeteer.js.map

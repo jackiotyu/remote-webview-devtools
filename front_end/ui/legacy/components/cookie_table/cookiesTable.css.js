@@ -43,6 +43,6 @@ styles.replaceSync(
   background-color: var(--override-flagged-row-background-color-even);
 }
 
-/*# sourceURL=cookiesTable.css */
+
 `);
 export default styles;

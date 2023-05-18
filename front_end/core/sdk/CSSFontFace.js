@@ -30,4 +30,4 @@ export class CSSFontFace {
         return this.#fontVariationAxesByTag.get(tag);
     }
 }
-//# sourceMappingURL=CSSFontFace.js.map
+//# map=CSSFontFace.js.map

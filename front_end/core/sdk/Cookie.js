@@ -221,4 +221,4 @@ export var Attributes;
     Attributes["Priority"] = "priority";
     Attributes["PartitionKey"] = "partitionKey";
 })(Attributes || (Attributes = {}));
-//# sourceMappingURL=Cookie.js.map
+//# map=Cookie.js.map

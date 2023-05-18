@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 export * as Timing from './Timing.js';
 export * as TraceEvents from './TraceEvents.js';
-//# sourceMappingURL=types.js.map
+//# map=types.js.map

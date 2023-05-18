@@ -476,4 +476,4 @@ class FormatterElement {
         this.name = name;
     }
 }
-//# sourceMappingURL=HTMLFormatter.js.map
+//# map=HTMLFormatter.js.map

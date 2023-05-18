@@ -123,4 +123,4 @@ export class EventEmitter {
         return ((_a = this.eventsMap.get(event)) === null || _a === void 0 ? void 0 : _a.length) || 0;
     }
 }
-//# sourceMappingURL=EventEmitter.js.map
+//# map=EventEmitter.js.map

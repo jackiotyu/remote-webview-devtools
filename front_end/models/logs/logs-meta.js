@@ -71,4 +71,4 @@ Common.Settings.registerSettingExtension({
     defaultValue: true,
     storageType: Common.Settings.SettingStorageType.Session,
 });
-//# sourceMappingURL=logs-meta.js.map
+//# map=logs-meta.js.map

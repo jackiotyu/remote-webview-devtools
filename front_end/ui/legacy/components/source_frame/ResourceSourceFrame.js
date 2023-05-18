@@ -88,4 +88,4 @@ export class SearchableContainer extends UI.Widget.VBox {
         this.sourceFrame.revealPosition({ lineNumber, columnNumber }, true);
     }
 }
-//# sourceMappingURL=ResourceSourceFrame.js.map
+//# map=ResourceSourceFrame.js.map

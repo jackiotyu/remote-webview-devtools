@@ -88,6 +88,6 @@ styles.replaceSync(
   opacity: 60%;
 }
 
-/*# sourceURL=consolePinPane.css */
+
 `);
 export default styles;

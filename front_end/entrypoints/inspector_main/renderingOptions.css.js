@@ -35,6 +35,6 @@ styles.replaceSync(
   margin-bottom: 16px;
 }
 
-/*# sourceURL=renderingOptions.css */
+
 `);
 export default styles;

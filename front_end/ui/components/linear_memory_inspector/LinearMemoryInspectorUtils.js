@@ -23,4 +23,4 @@ export function parseAddress(address) {
     }
     return newAddress;
 }
-//# sourceMappingURL=LinearMemoryInspectorUtils.js.map
+//# map=LinearMemoryInspectorUtils.js.map

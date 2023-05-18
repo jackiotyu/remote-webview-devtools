@@ -70,4 +70,4 @@ export class ReportingApiReportsView extends UI.SplitWidget.SplitWidget {
         return this.reportsGrid;
     }
 }
-//# sourceMappingURL=ReportingApiReportsView.js.map
+//# map=ReportingApiReportsView.js.map

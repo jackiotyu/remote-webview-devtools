@@ -107,7 +107,7 @@ export class RecordingPlayer extends Common.ObjectWrapper.ObjectWrapper {
             if (targetInfo.openerId !== mainTargetId) {
                 return;
             }
-            void puppeteerConnection._createSession(targetInfo, 
+            void puppeteerConnection._createSession(targetInfo,
             /* emulateAutoAttach= */ true);
         });
         return { page, browser };
@@ -234,4 +234,4 @@ export class RecordingPlayer extends Common.ObjectWrapper.ObjectWrapper {
         }
     }
 }
-//# sourceMappingURL=RecordingPlayer.js.map
+//# map=RecordingPlayer.js.map

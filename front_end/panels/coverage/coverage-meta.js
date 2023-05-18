@@ -78,4 +78,4 @@ UI.ActionRegistration.registerActionExtension({
     category: UI.ActionRegistration.ActionCategory.PERFORMANCE,
     title: i18nLazyString(UIStrings.startInstrumentingCoverageAnd),
 });
-//# sourceMappingURL=coverage-meta.js.map
+//# map=coverage-meta.js.map

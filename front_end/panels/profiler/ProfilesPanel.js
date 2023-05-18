@@ -625,7 +625,7 @@ export class JSProfilerPanel extends ProfilesPanel {
                 delegate: openPerformancePanel,
                 dismiss: false,
             },
-        ], 
+        ],
         /* disableSetting? */ undefined);
         infobar.setParentView(this);
         this.splitWidget().mainWidget()?.element.prepend(infobar.element);
@@ -680,4 +680,4 @@ export class JSProfilerPanel extends ProfilesPanel {
         return true;
     }
 }
-//# sourceMappingURL=ProfilesPanel.js.map
+//# map=ProfilesPanel.js.map

@@ -65,4 +65,4 @@ export class LogManager {
         }
     }
 }
-//# sourceMappingURL=LogManager.js.map
+//# map=LogManager.js.map

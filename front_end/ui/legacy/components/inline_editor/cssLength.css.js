@@ -67,6 +67,6 @@ styles.replaceSync(
   width: 0.6em;
 }
 
-/*# sourceURL=cssLength.css */
+
 `);
 export default styles;

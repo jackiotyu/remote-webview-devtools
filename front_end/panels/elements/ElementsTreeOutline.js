@@ -1569,4 +1569,4 @@ export class ShortcutTreeElement extends UI.TreeOutline.TreeElement {
         return true;
     }
 }
-//# sourceMappingURL=ElementsTreeOutline.js.map
+//# map=ElementsTreeOutline.js.map

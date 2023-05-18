@@ -44,4 +44,4 @@ export function createDeferredPromise(opts) {
         },
     });
 }
-//# sourceMappingURL=DeferredPromise.js.map
+//# map=DeferredPromise.js.map

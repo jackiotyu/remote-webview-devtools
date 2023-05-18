@@ -277,4 +277,4 @@ export class WorkerDetailsView extends UI.ThrottledWidget.ThrottledWidget {
         this.registerCSSFiles([openedWindowDetailsViewStyles]);
     }
 }
-//# sourceMappingURL=OpenedWindowDetailsView.js.map
+//# map=OpenedWindowDetailsView.js.map

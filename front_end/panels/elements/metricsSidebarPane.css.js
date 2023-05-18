@@ -163,6 +163,6 @@ visible. */
   color: var(--override-box-model-text-color);
 }
 
-/*# sourceURL=metricsSidebarPane.css */
+
 `);
 export default styles;

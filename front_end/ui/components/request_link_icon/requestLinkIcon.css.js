@@ -31,6 +31,6 @@ devtools-icon {
   color: var(--color-link);
 }
 
-/*# sourceURL=requestLinkIcon.css */
+
 `);
 export default styles;

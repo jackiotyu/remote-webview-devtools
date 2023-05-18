@@ -421,4 +421,4 @@ class TickingFlameChartDataProvider {
         return new Map();
     }
 }
-//# sourceMappingURL=TickingFlameChart.js.map
+//# map=TickingFlameChart.js.map

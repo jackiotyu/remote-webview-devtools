@@ -21,6 +21,6 @@ styles.replaceSync(
   background-color: var(--icon-default);
 }
 
-/*# sourceURL=./elementsPanelLink.css */
+
 `);
 export default styles;

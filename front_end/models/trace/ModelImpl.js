@@ -173,4 +173,4 @@ export function isModelUpdateDataComplete(eventData) {
 export function isModelUpdateDataProgress(eventData) {
     return eventData.type === "PROGRESS_UPDATE" /* ModelUpdateType.PROGRESS_UPDATE */;
 }
-//# sourceMappingURL=ModelImpl.js.map
+//# map=ModelImpl.js.map

@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as PerformanceMonitor from './PerformanceMonitor.js';
 export { PerformanceMonitor, };
-//# sourceMappingURL=performance_monitor.js.map
+//# map=performance_monitor.js.map

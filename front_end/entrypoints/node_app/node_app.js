@@ -69,4 +69,4 @@ UI.ViewManager.registerViewExtension({
 self.runtime = Root.Runtime.Runtime.instance({ forceNew: true });
 Common.Runnable.registerEarlyInitializationRunnable(NodeMainImpl.instance);
 new Main.MainImpl.MainImpl();
-//# sourceMappingURL=node_app.js.map
+//# map=node_app.js.map

@@ -165,4 +165,4 @@ class IssueCounter extends HTMLElement {
 }
 export { IssueCounter };
 ComponentHelpers.CustomElements.defineComponent('issue-counter', IssueCounter);
-//# sourceMappingURL=IssueCounter.js.map
+//# map=IssueCounter.js.map

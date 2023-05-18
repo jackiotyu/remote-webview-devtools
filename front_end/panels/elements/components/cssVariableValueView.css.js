@@ -15,6 +15,6 @@ styles.replaceSync(
   padding: 4px 8px;
 }
 
-/*# sourceURL=cssVariableValueView.css */
+
 `);
 export default styles;

@@ -255,4 +255,4 @@ export class SharedStorageItemsView extends StorageItemsView {
             .map(node => node.data);
     }
 }
-//# sourceMappingURL=SharedStorageItemsView.js.map
+//# map=SharedStorageItemsView.js.map

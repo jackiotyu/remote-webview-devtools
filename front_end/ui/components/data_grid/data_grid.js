@@ -8,4 +8,4 @@ import * as DataGridEvents from './DataGridEvents.js';
 import * as DataGridRenderers from './DataGridRenderers.js';
 import * as DataGridUtils from './DataGridUtils.js';
 export { DataGrid, DataGridController, DataGridControllerIntegrator, DataGridEvents, DataGridRenderers, DataGridUtils, };
-//# sourceMappingURL=data_grid.js.map
+//# map=data_grid.js.map

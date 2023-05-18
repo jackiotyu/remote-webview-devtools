@@ -45,6 +45,6 @@ devtools-data-grid-controller {
   vertical-align: text-bottom;
 }
 
-/*# sourceURL=preloadingGrid.css */
+
 `);
 export default styles;

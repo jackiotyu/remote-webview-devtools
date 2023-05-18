@@ -131,6 +131,6 @@ styles.replaceSync(
   background: linear-gradient(90deg, transparent 0%, rgb(48 55 68) 25%); /* stylelint-disable-line plugin/use_theme_colors */
 }
 
-/*# sourceURL=linearMemoryHighlightChipList.css */
+
 `);
 export default styles;

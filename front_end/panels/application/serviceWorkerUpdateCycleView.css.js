@@ -120,6 +120,6 @@ table.service-worker-update-timing-table > tr.service-worker-update-timeline > t
   padding-left: 12px;
 }
 
-/*# sourceURL=serviceWorkerUpdateCycleView.css */
+
 `);
 export default styles;

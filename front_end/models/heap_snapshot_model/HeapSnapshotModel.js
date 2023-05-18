@@ -279,4 +279,4 @@ export class Location {
         this.columnNumber = columnNumber;
     }
 }
-//# sourceMappingURL=HeapSnapshotModel.js.map
+//# map=HeapSnapshotModel.js.map

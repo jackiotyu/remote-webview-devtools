@@ -241,4 +241,4 @@ export class LiveLocation extends LiveLocationWithPool {
         return false;
     }
 }
-//# sourceMappingURL=CSSWorkspaceBinding.js.map
+//# map=CSSWorkspaceBinding.js.map

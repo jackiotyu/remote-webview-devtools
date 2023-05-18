@@ -108,4 +108,4 @@ export class CSSOverviewSidebarPanel extends Common.ObjectWrapper.eventMixin(UI.
         this.registerCSSFiles([cssOverviewSidebarPanelStyles]);
     }
 }
-//# sourceMappingURL=CSSOverviewSidebarPanel.js.map
+//# map=CSSOverviewSidebarPanel.js.map

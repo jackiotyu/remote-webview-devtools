@@ -136,4 +136,4 @@ export class ThreadsSidebarPane extends UI.Widget.VBox {
         this.registerCSSFiles([threadsSidebarPaneStyles]);
     }
 }
-//# sourceMappingURL=ThreadsSidebarPane.js.map
+//# map=ThreadsSidebarPane.js.map

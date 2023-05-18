@@ -322,4 +322,4 @@ class ElementsBreadcrumbs extends HTMLElement {
 }
 export { ElementsBreadcrumbs };
 ComponentHelpers.CustomElements.defineComponent('devtools-elements-breadcrumbs', ElementsBreadcrumbs);
-//# sourceMappingURL=ElementsBreadcrumbs.js.map
+//# map=ElementsBreadcrumbs.js.map

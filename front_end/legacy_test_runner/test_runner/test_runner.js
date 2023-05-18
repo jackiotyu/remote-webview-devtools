@@ -102,4 +102,4 @@ export class _TestObserver {
 SDK.targetManager.observeTargets(new _TestObserver());
 const globalTestRunner = self.TestRunner;
 export { globalTestRunner as TestRunner };
-//# sourceMappingURL=test_runner.js.map
+//# map=test_runner.js.map

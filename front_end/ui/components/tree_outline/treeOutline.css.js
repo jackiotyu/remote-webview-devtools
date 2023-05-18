@@ -126,6 +126,6 @@ ul[role="tree"]:focus-within [role="treeitem"].selected > .arrow-and-key-wrapper
   }
 }
 
-/*# sourceURL=treeOutline.css */
+
 `);
 export default styles;

@@ -50,4 +50,4 @@ export class HiddenIssuesRow extends UI.TreeOutline.TreeElement {
         this.#numHiddenAggregatedIssues.textContent = `${count}`;
     }
 }
-//# sourceMappingURL=HiddenIssuesRow.js.map
+//# map=HiddenIssuesRow.js.map

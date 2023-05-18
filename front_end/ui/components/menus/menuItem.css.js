@@ -59,6 +59,6 @@ styles.replaceSync(
   outline: none;
 }
 
-/*# sourceURL=menuItem.css */
+
 `);
 export default styles;

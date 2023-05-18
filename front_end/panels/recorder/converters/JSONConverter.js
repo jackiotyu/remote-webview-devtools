@@ -35,4 +35,4 @@ export class JSONConverter {
         return 'application/json';
     }
 }
-//# sourceMappingURL=JSONConverter.js.map
+//# map=JSONConverter.js.map

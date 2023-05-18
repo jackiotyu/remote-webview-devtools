@@ -126,4 +126,4 @@ function createProtocolError(error, method, object) {
     }
     return rewriteError(error, message, object.message);
 }
-//# sourceMappingURL=Connection.js.map
+//# map=Connection.js.map

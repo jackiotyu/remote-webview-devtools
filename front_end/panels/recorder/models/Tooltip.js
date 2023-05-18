@@ -10,4 +10,4 @@ export function getTooltipForActions(translation, action) {
     }
     return title;
 }
-//# sourceMappingURL=Tooltip.js.map
+//# map=Tooltip.js.map

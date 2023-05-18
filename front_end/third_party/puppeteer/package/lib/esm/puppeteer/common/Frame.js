@@ -795,4 +795,4 @@ export class Frame {
     }
 }
 _Frame_url = new WeakMap(), _Frame_detached = new WeakMap(), _Frame_client = new WeakMap();
-//# sourceMappingURL=Frame.js.map
+//# map=Frame.js.map

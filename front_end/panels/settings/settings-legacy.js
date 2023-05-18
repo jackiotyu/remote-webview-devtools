@@ -35,4 +35,4 @@ Settings.ExperimentsSettingsTab = SettingsModule.SettingsScreen.ExperimentsSetti
  * @constructor
  */
 Settings.KeybindsSettingsTab = SettingsModule.KeybindsSettingsTab.KeybindsSettingsTab;
-//# sourceMappingURL=settings-legacy.js.map
+//# map=settings-legacy.js.map

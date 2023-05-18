@@ -93,4 +93,4 @@ export const debug = (prefix) => {
         console.log(`${prefix}:`, ...logArgs);
     };
 };
-//# sourceMappingURL=Debug.js.map
+//# map=Debug.js.map

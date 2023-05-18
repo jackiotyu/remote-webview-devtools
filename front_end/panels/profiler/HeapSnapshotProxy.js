@@ -214,7 +214,7 @@ export class HeapSnapshotProxyObject {
     callFactoryMethod(
     // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    _callback, _methodName, _proxyConstructor, 
+    _callback, _methodName, _proxyConstructor,
     // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/naming-convention
     ..._var_args) {
@@ -363,4 +363,4 @@ export class HeapSnapshotProviderProxy extends HeapSnapshotProxyObject {
         await this.callMethodPromise('sortAndRewind', comparator);
     }
 }
-//# sourceMappingURL=HeapSnapshotProxy.js.map
+//# map=HeapSnapshotProxy.js.map

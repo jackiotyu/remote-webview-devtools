@@ -79,4 +79,4 @@ Profiler.ProfilesPanel = ProfilerModule.ProfilesPanel.ProfilesPanel;
 Profiler.ProfileTypeSidebarSection = ProfilerModule.ProfilesPanel.ProfileTypeSidebarSection;
 /** @constructor */
 Profiler.JSProfilerPanel = ProfilerModule.ProfilesPanel.JSProfilerPanel;
-//# sourceMappingURL=profiler-legacy.js.map
+//# map=profiler-legacy.js.map

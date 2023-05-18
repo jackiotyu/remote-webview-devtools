@@ -115,6 +115,6 @@ styles.replaceSync(
   overflow: hidden;
 }
 
-/*# sourceURL=indexedDBViews.css */
+
 `);
 export default styles;

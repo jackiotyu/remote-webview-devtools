@@ -59,6 +59,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=changesSidebar.css */
+
 `);
 export default styles;

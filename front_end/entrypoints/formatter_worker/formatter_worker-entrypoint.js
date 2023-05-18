@@ -33,4 +33,4 @@ self.onmessage = function (event) {
     }
 };
 self.postMessage('workerReady');
-//# sourceMappingURL=formatter_worker-entrypoint.js.map
+//# map=formatter_worker-entrypoint.js.map

@@ -8,4 +8,4 @@ await ComponentHelpers.ComponentServerSetup.setup();
 await FrontendHelpers.initializeGlobalVars();
 const component = new TextEditor.TextEditor.TextEditor();
 document.getElementById('container')?.appendChild(component);
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

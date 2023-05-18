@@ -12,4 +12,4 @@ component.innerHTML = `
   `;
 component.traceable = false;
 component.inherited = true;
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

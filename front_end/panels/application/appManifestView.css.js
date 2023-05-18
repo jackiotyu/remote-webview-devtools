@@ -41,6 +41,6 @@ styles.replaceSync(
   outline-width: unset;
 }
 
-/*# sourceURL=appManifestView.css */
+
 `);
 export default styles;

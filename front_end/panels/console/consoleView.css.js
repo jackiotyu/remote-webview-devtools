@@ -559,6 +559,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=consoleView.css */
+
 `);
 export default styles;

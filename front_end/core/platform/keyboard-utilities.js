@@ -19,4 +19,4 @@ export function isEscKey(event) {
 export function isEnterOrSpaceKey(event) {
     return event.key === 'Enter' || event.key === ' ';
 }
-//# sourceMappingURL=keyboard-utilities.js.map
+//# map=keyboard-utilities.js.map

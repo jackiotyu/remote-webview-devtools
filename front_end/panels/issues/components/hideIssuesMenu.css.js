@@ -31,6 +31,6 @@ styles.replaceSync(
   --icon-color: var(--icon-default-hover);
 }
 
-/*# sourceURL=./hideIssuesMenu.css */
+
 `);
 export default styles;

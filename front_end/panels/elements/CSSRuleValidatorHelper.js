@@ -58,4 +58,4 @@ export const isMulticolContainer = (computedStyles) => {
     const columnCount = computedStyles.get('column-count');
     return columnWidth !== 'auto' || columnCount !== 'auto';
 };
-//# sourceMappingURL=CSSRuleValidatorHelper.js.map
+//# map=CSSRuleValidatorHelper.js.map

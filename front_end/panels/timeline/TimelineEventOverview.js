@@ -528,4 +528,4 @@ export class Quantizer {
         this.remainder = this.quantDuration - interval;
     }
 }
-//# sourceMappingURL=TimelineEventOverview.js.map
+//# map=TimelineEventOverview.js.map

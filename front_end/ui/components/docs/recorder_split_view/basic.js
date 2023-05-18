@@ -16,4 +16,4 @@ document.getElementById('container').innerHTML = `
         </div>
     </devtools-split-view>
 `;
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

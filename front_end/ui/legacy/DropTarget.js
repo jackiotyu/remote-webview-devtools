@@ -87,4 +87,4 @@ export const Type = {
     WebFile: { kind: 'file', type: /[\w]+/ },
     ImageFile: { kind: 'file', type: /image\/.*/ },
 };
-//# sourceMappingURL=DropTarget.js.map
+//# map=DropTarget.js.map

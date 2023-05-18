@@ -53,4 +53,4 @@ export const PredefinedNetworkConditions = Object.freeze({
  * @public
  */
 export const networkConditions = PredefinedNetworkConditions;
-//# sourceMappingURL=PredefinedNetworkConditions.js.map
+//# map=PredefinedNetworkConditions.js.map

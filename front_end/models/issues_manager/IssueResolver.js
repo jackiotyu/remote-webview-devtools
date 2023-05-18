@@ -38,4 +38,4 @@ export class IssueResolver extends Common.ResolverBase.ResolverBase {
         this.#issuesListener = null;
     }
 }
-//# sourceMappingURL=IssueResolver.js.map
+//# map=IssueResolver.js.map

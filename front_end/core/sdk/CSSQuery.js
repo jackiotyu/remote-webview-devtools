@@ -51,4 +51,4 @@ export class CSSQuery {
         return new CSSLocation(header, lineNumber, this.columnNumberInSource());
     }
 }
-//# sourceMappingURL=CSSQuery.js.map
+//# map=CSSQuery.js.map

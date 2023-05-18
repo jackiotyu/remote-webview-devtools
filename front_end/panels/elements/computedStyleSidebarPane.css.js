@@ -49,6 +49,6 @@ styles.replaceSync(
   min-height: auto;
 }
 
-/*# sourceURL=computedStyleSidebarPane.css */
+
 `);
 export default styles;

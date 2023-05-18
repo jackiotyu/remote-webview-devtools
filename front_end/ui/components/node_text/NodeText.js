@@ -53,4 +53,4 @@ class NodeText extends HTMLElement {
 }
 export { NodeText };
 ComponentHelpers.CustomElements.defineComponent('devtools-node-text', NodeText);
-//# sourceMappingURL=NodeText.js.map
+//# map=NodeText.js.map

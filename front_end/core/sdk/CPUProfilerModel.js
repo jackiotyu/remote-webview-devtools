@@ -138,4 +138,4 @@ export var Events;
     Events["ConsoleProfileFinished"] = "ConsoleProfileFinished";
 })(Events || (Events = {}));
 SDKModel.register(CPUProfilerModel, { capabilities: Capability.JS, autostart: true });
-//# sourceMappingURL=CPUProfilerModel.js.map
+//# map=CPUProfilerModel.js.map

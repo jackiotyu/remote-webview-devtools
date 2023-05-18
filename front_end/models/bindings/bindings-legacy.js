@@ -66,4 +66,4 @@ Bindings.StyleFile = BindingsModule.StylesSourceMapping.StyleFile;
 Bindings.TempFile = BindingsModule.TempFile.TempFile;
 /** @constructor */
 Bindings.TempFileBackingStorage = BindingsModule.TempFile.TempFileBackingStorage;
-//# sourceMappingURL=bindings-legacy.js.map
+//# map=bindings-legacy.js.map

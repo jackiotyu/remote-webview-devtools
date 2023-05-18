@@ -12,4 +12,4 @@ function appendComponent(data) {
     document.getElementById('container')?.appendChild(component);
 }
 appendComponent({});
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

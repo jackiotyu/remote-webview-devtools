@@ -344,4 +344,4 @@ export class FileSystem extends Workspace.Workspace.ProjectStore {
     }
 }
 const sourceCodeToMetadataMap = new WeakMap();
-//# sourceMappingURL=FileSystemWorkspaceBinding.js.map
+//# map=FileSystemWorkspaceBinding.js.map

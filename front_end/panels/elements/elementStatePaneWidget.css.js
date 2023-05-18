@@ -33,6 +33,6 @@ styles.replaceSync(
   padding: 0;
 }
 
-/*# sourceURL=elementStatePaneWidget.css */
+
 `);
 export default styles;

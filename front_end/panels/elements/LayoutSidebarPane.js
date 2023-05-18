@@ -220,4 +220,4 @@ export class LayoutSidebarPane extends UI.ThrottledWidget.ThrottledWidget {
         this.uaShadowDOMSetting.removeChangeListener(this.update, this);
     }
 }
-//# sourceMappingURL=LayoutSidebarPane.js.map
+//# map=LayoutSidebarPane.js.map

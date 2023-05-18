@@ -31,4 +31,4 @@ export function data() {
 export function deps() {
     return ['Meta'];
 }
-//# sourceMappingURL=ScreenshotsHandler.js.map
+//# map=ScreenshotsHandler.js.map

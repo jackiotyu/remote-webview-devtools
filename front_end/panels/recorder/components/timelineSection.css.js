@@ -147,6 +147,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=timelineSection.css */
+
 `);
 export default styles;

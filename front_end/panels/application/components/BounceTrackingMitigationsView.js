@@ -168,4 +168,4 @@ class BounceTrackingMitigationsView extends HTMLElement {
 }
 export { BounceTrackingMitigationsView };
 ComponentHelpers.CustomElements.defineComponent('devtools-bounce-tracking-mitigations-view', BounceTrackingMitigationsView);
-//# sourceMappingURL=BounceTrackingMitigationsView.js.map
+//# map=BounceTrackingMitigationsView.js.map

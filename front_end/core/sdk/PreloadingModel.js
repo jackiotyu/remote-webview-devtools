@@ -380,4 +380,4 @@ class SourceRegistry {
         this.map = new Map(sources.map(s => [makePreloadingAttemptId(s.key), s]));
     }
 }
-//# sourceMappingURL=PreloadingModel.js.map
+//# map=PreloadingModel.js.map

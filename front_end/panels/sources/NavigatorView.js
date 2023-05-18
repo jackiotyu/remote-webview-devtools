@@ -1612,4 +1612,4 @@ export class NavigatorGroupTreeNode extends NavigatorTreeNode {
         }
     }
 }
-//# sourceMappingURL=NavigatorView.js.map
+//# map=NavigatorView.js.map

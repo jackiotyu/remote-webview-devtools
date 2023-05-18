@@ -204,4 +204,4 @@ export const measureTextWidth = (text, fontStyle) => {
     context.restore();
     return width;
 };
-//# sourceMappingURL=NodeView.js.map
+//# map=NodeView.js.map

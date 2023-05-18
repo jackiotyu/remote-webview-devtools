@@ -509,4 +509,4 @@ export var Events;
     Events["RequestAdded"] = "RequestAdded";
     Events["RequestUpdated"] = "RequestUpdated";
 })(Events || (Events = {}));
-//# sourceMappingURL=NetworkLog.js.map
+//# map=NetworkLog.js.map

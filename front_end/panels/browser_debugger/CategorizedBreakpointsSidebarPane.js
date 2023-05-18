@@ -193,4 +193,4 @@ export class CategorizedBreakpointsSidebarPane extends UI.Widget.VBox {
         this.#categoriesTreeOutline.registerCSSFiles([categorizedBreakpointsSidebarPaneStyles]);
     }
 }
-//# sourceMappingURL=CategorizedBreakpointsSidebarPane.js.map
+//# map=CategorizedBreakpointsSidebarPane.js.map

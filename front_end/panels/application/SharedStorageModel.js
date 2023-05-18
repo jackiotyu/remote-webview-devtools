@@ -176,4 +176,4 @@ export var Events;
     Events["SharedStorageAdded"] = "SharedStorageAdded";
     Events["SharedStorageRemoved"] = "SharedStorageRemoved";
 })(Events || (Events = {}));
-//# sourceMappingURL=SharedStorageModel.js.map
+//# map=SharedStorageModel.js.map

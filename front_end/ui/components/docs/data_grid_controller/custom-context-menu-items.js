@@ -27,4 +27,4 @@ component.data = {
     },
 };
 document.getElementById('container')?.appendChild(component);
-//# sourceMappingURL=custom-context-menu-items.js.map
+//# map=custom-context-menu-items.js.map

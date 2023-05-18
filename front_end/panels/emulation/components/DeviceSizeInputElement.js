@@ -104,4 +104,4 @@ class SizeInputElement extends HTMLElement {
 }
 export { SizeInputElement };
 ComponentHelpers.CustomElements.defineComponent('device-mode-emulation-size-input', SizeInputElement);
-//# sourceMappingURL=DeviceSizeInputElement.js.map
+//# map=DeviceSizeInputElement.js.map

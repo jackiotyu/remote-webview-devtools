@@ -192,4 +192,4 @@ const templateCache = new Map();
 export const html = (strings, ...vararg) => {
     return Fragment.cached(strings, ...vararg).element();
 };
-//# sourceMappingURL=Fragment.js.map
+//# map=Fragment.js.map

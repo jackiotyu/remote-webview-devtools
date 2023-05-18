@@ -256,6 +256,6 @@ devtools-recorder-step-editor:hover {
   opacity: 50%;
 }
 
-/*# sourceURL=stepView.css */
+
 `);
 export default styles;

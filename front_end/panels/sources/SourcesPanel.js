@@ -1249,4 +1249,4 @@ const registeredNavigatorViews = [
         experiment: undefined,
     },
 ];
-//# sourceMappingURL=SourcesPanel.js.map
+//# map=SourcesPanel.js.map

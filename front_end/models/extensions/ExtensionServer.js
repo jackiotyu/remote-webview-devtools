@@ -960,7 +960,7 @@ export class ExtensionServer extends Common.ObjectWrapper.ObjectWrapper {
             silent: true,
             returnByValue: returnByValue,
             generatePreview: false,
-        }, 
+        },
         /* userGesture */ false, /* awaitPromise */ false)
             .then(onEvaluate);
         function onEvaluate(result) {
@@ -1053,4 +1053,4 @@ export class ExtensionStatus {
         this.E_FAILED = makeStatus.bind(null, 'E_FAILED', 'Operation failed: %s');
     }
 }
-//# sourceMappingURL=ExtensionServer.js.map
+//# map=ExtensionServer.js.map

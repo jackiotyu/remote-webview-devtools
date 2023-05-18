@@ -567,4 +567,4 @@ export function getAllHotFunctionsBetweenTimestamps(calls, begin, end, minSelfPe
     const hot = [...functions].filter(info => info.selfDurPercent >= minSelfPercent);
     return hot.sort((a, b) => a.selfDurPercent > b.selfDurPercent ? -1 : 1);
 }
-//# sourceMappingURL=SamplesHandler.js.map
+//# map=SamplesHandler.js.map

@@ -32,4 +32,4 @@ export class SnippetsPlugin extends Plugin {
         return TextEditor.JavaScript.completion();
     }
 }
-//# sourceMappingURL=SnippetsPlugin.js.map
+//# map=SnippetsPlugin.js.map

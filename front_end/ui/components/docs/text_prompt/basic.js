@@ -13,4 +13,4 @@ textPrompt.data = {
     prefix: 'Open',
     suggestion: 'File',
 };
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

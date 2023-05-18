@@ -267,4 +267,4 @@ export class Step {
         return this.value;
     }
 }
-//# sourceMappingURL=DOMPath.js.map
+//# map=DOMPath.js.map

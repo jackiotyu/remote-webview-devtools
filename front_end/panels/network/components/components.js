@@ -8,4 +8,4 @@ import * as RequestHeadersView from './RequestHeadersView.js';
 import * as RequestTrustTokensView from './RequestTrustTokensView.js';
 import * as ResponseHeaderSection from './ResponseHeaderSection.js';
 export { EditableSpan, HeaderSectionRow, RequestHeaderSection, RequestHeadersView, RequestTrustTokensView, ResponseHeaderSection, };
-//# sourceMappingURL=components.js.map
+//# map=components.js.map

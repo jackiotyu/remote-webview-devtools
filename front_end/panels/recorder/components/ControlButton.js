@@ -51,4 +51,4 @@ ControlButton = __decorate([
     customElement('devtools-control-button')
 ], ControlButton);
 export { ControlButton };
-//# sourceMappingURL=ControlButton.js.map
+//# map=ControlButton.js.map

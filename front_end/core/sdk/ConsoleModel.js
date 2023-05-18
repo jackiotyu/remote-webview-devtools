@@ -375,7 +375,7 @@ export class ConsoleModel extends SDKModel {
             return;
         }
         const globalObject = result.object;
-        const callFunctionResult = 
+        const callFunctionResult =
         // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
         // @ts-expect-error
         await globalObject.callFunction(saveVariable, [RemoteObject.toCallArgument(remoteObject)]);
@@ -665,4 +665,4 @@ export const MessageSourceDisplayName = new Map(([
     ["recommendation" /* Protocol.Log.LogEntrySource.Recommendation */, 'recommendation'],
     ["other" /* Protocol.Log.LogEntrySource.Other */, 'other'],
 ]));
-//# sourceMappingURL=ConsoleModel.js.map
+//# map=ConsoleModel.js.map

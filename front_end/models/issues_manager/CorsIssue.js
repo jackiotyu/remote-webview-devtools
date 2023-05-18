@@ -238,4 +238,4 @@ export class CorsIssue extends Issue {
         return [new CorsIssue(corsIssueDetails, issuesModel, inspectorIssue.issueId)];
     }
 }
-//# sourceMappingURL=CorsIssue.js.map
+//# map=CorsIssue.js.map

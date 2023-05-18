@@ -205,4 +205,4 @@ class Binding {
         return this.uiSourceCode;
     }
 }
-//# sourceMappingURL=SASSSourceMapping.js.map
+//# map=SASSSourceMapping.js.map

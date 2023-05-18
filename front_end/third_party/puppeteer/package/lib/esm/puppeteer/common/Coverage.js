@@ -366,4 +366,4 @@ function convertToDisjointRanges(nestedRanges) {
         return range.end - range.start > 0;
     });
 }
-//# sourceMappingURL=Coverage.js.map
+//# map=Coverage.js.map

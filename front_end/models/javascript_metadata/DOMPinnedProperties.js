@@ -1713,4 +1713,4 @@ export const DOMPinnedProperties = {
         },
     },
 };
-//# sourceMappingURL=DOMPinnedProperties.js.map
+//# map=DOMPinnedProperties.js.map

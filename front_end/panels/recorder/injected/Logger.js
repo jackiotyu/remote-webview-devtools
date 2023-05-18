@@ -31,4 +31,4 @@ export class Logger {
         return value;
     }
 }
-//# sourceMappingURL=Logger.js.map
+//# map=Logger.js.map

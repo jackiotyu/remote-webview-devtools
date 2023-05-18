@@ -23,6 +23,6 @@ devtools-data-grid-controller {
   outline-offset: 2px;
 }
 
-/*# sourceURL=bounceTrackingMitigationsView.css */
+
 `);
 export default styles;

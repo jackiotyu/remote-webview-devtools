@@ -28,6 +28,6 @@ styles.replaceSync(
   background-color: var(--icon-css-hover);
 }
 
-/*# sourceURL=bezierSwatch.css */
+
 `);
 export default styles;

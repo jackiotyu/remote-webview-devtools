@@ -53,6 +53,6 @@ input.devtools-text-input[type="text"]::placeholder {
   }
 }
 
-/*# sourceURL=protocolHandlersView.css */
+
 `);
 export default styles;

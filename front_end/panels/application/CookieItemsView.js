@@ -295,4 +295,4 @@ export class CookieItemsView extends StorageItemsView {
         this.registerCSSFiles([cookieItemsViewStyles]);
     }
 }
-//# sourceMappingURL=CookieItemsView.js.map
+//# map=CookieItemsView.js.map

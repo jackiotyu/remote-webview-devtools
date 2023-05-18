@@ -242,22 +242,22 @@ export class PreloadingView extends UI.Widget.VBox {
         this.preloadingGrid.addEventListener('cellfocused', this.onPreloadingGridCellFocused.bind(this));
         const vsplitPreloadingAttempts = this.makeVsplit(this.preloadingGrid, this.preloadingDetails);
         this.hsplit = new UI.SplitWidget.SplitWidget(
-        /* isVertical */ false, 
-        /* secondIsSidebar */ false, 
-        /* settingName */ undefined, 
-        /* defaultSidebarWidth */ undefined, 
-        /* defaultSidebarHeight */ 200, 
+        /* isVertical */ false,
+        /* secondIsSidebar */ false,
+        /* settingName */ undefined,
+        /* defaultSidebarWidth */ undefined,
+        /* defaultSidebarHeight */ 200,
         /* constraintsInDip */ undefined);
         this.hsplit.setSidebarWidget(this.vsplitRuleSets);
         this.hsplit.setMainWidget(vsplitPreloadingAttempts);
         const usedPreloadingContainer = new UI.Widget.VBox();
         usedPreloadingContainer.contentElement.appendChild(this.usedPreloading);
         this.hsplitUsedPreloading = new UI.SplitWidget.SplitWidget(
-        /* isVertical */ false, 
-        /* secondIsSidebar */ true, 
-        /* settingName */ undefined, 
-        /* defaultSidebarWidth */ undefined, 
-        /* defaultSidebarHeight */ 50, 
+        /* isVertical */ false,
+        /* secondIsSidebar */ true,
+        /* settingName */ undefined,
+        /* defaultSidebarWidth */ undefined,
+        /* defaultSidebarHeight */ 50,
         /* constraintsInDip */ undefined);
         this.hsplitUsedPreloading.setMainWidget(this.hsplit);
         this.hsplitUsedPreloading.setSidebarWidget(usedPreloadingContainer);
@@ -273,11 +273,11 @@ export class PreloadingView extends UI.Widget.VBox {
         rightContainer.contentElement.classList.add('overflow-auto');
         rightContainer.contentElement.appendChild(right);
         const vsplit = new UI.SplitWidget.SplitWidget(
-        /* isVertical */ true, 
-        /* secondIsSidebar */ true, 
-        /* settingName */ undefined, 
-        /* defaultSidebarWidth */ 400, 
-        /* defaultSidebarHeight */ undefined, 
+        /* isVertical */ true,
+        /* secondIsSidebar */ true,
+        /* settingName */ undefined,
+        /* defaultSidebarWidth */ 400,
+        /* defaultSidebarHeight */ undefined,
         /* constraintsInDip */ undefined);
         vsplit.setMainWidget(leftContainer);
         vsplit.setSidebarWidget(rightContainer);
@@ -449,4 +449,4 @@ export class PreloadingView extends UI.Widget.VBox {
         return this.featureFlagWarningsPromise;
     }
 }
-//# sourceMappingURL=PreloadingView.js.map
+//# map=PreloadingView.js.map

@@ -116,4 +116,4 @@ export const renderToken = (token) => {
     }
     return template;
 };
-//# sourceMappingURL=MarkdownView.js.map
+//# map=MarkdownView.js.map

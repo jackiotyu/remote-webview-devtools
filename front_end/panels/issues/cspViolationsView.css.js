@@ -19,6 +19,6 @@ styles.replaceSync(
   border-bottom: var(--color-details-hairline);
 }
 
-/*# sourceURL=cspViolationsView.css */
+
 `);
 export default styles;

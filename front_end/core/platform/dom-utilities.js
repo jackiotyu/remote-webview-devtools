@@ -106,4 +106,4 @@ export function rangeOfWord(rootNode, offset, stopCharacters, stayWithinNode, di
     result.setEnd(endNode, endOffset);
     return result;
 }
-//# sourceMappingURL=dom-utilities.js.map
+//# map=dom-utilities.js.map

@@ -34,4 +34,4 @@ UI.ViewManager.registerViewExtension({
         return LinearMemoryInspector.LinearMemoryInspectorPane.Wrapper.instance();
     },
 });
-//# sourceMappingURL=linear_memory_inspector-meta.js.map
+//# map=linear_memory_inspector-meta.js.map

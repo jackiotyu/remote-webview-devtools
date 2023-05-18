@@ -47,4 +47,4 @@ export const contentAsDataURL = function (content, mimeType, contentEncoded, cha
     return 'data:' + mimeType + (charset ? ';charset=' + charset : '') + (contentEncoded ? ';base64' : '') + ',' +
         content;
 };
-//# sourceMappingURL=ContentProvider.js.map
+//# map=ContentProvider.js.map

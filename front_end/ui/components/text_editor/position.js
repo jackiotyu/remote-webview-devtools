@@ -12,4 +12,4 @@ export function toLineColumn(doc, offset) {
     const line = doc.lineAt(offset);
     return { lineNumber: line.number - 1, columnNumber: offset - line.from };
 }
-//# sourceMappingURL=position.js.map
+//# map=position.js.map

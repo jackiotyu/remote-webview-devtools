@@ -152,4 +152,4 @@ export class FilePathScoreFunction {
         return this.sequenceCharScore(query, data, i, j - consecutiveMatch, consecutiveMatch);
     }
 }
-//# sourceMappingURL=FilePathScoreFunction.js.map
+//# map=FilePathScoreFunction.js.map

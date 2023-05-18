@@ -18,4 +18,4 @@ if (container) {
 </${PanelIntroductionSteps.PanelIntroductionSteps.PanelIntroductionSteps.litTagName}>
                  `, container, { host: this });
 }
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

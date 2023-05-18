@@ -1444,4 +1444,4 @@ export class HighlightPseudoStylePropertiesSection extends StylePropertiesSectio
         return false;
     }
 }
-//# sourceMappingURL=StylePropertiesSection.js.map
+//# map=StylePropertiesSection.js.map

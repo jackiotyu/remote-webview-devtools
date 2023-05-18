@@ -434,4 +434,4 @@ class MenuCloseRequest extends Event {
     }
 }
 export { MenuCloseRequest };
-//# sourceMappingURL=Menu.js.map
+//# map=Menu.js.map

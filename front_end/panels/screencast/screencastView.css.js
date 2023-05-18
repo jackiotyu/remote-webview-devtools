@@ -162,6 +162,6 @@ styles.replaceSync(
   align-items: center;
 }
 
-/*# sourceURL=screencastView.css */
+
 `);
 export default styles;

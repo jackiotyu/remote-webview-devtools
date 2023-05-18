@@ -298,4 +298,4 @@ export class FunctionAllocationInfo {
         }
     }
 }
-//# sourceMappingURL=AllocationProfile.js.map
+//# map=AllocationProfile.js.map

@@ -589,4 +589,4 @@ export class HeapFlameChartDataProvider extends ProfileFlameChartDataProvider {
         return ProfileView.buildPopoverTable(entryInfo);
     }
 }
-//# sourceMappingURL=HeapProfileView.js.map
+//# map=HeapProfileView.js.map

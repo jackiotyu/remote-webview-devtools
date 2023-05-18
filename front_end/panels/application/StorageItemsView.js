@@ -104,4 +104,4 @@ export class StorageItemsView extends UI.Widget.VBox {
     refreshItems() {
     }
 }
-//# sourceMappingURL=StorageItemsView.js.map
+//# map=StorageItemsView.js.map

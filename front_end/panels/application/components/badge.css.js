@@ -31,6 +31,6 @@ styles.replaceSync(
   font-family: var(--source-code-font-family);
 }
 
-/*# sourceURL=badge.css */
+
 `);
 export default styles;

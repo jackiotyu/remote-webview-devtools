@@ -77,6 +77,6 @@ styles.replaceSync(
   background-color: var(--legacy-item-selection-bg-color);
 }
 
-/*# sourceURL=valueInterpreterDisplay.css */
+
 `);
 export default styles;

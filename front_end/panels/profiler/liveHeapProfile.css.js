@@ -28,6 +28,6 @@ styles.replaceSync(
   border-bottom: 1px solid var(--color-details-hairline);
 }
 
-/*# sourceURL=liveHeapProfile.css */
+
 `);
 export default styles;

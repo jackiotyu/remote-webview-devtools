@@ -117,4 +117,4 @@ export class CSSAnimationModel {
         return new CSSAnimationModel(parts);
     }
 }
-//# sourceMappingURL=CSSAnimationModel.js.map
+//# map=CSSAnimationModel.js.map

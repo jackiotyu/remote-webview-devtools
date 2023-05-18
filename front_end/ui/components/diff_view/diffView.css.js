@@ -81,6 +81,6 @@ styles.replaceSync(
   background-color: var(--override-spacer-background-color);
 }
 
-/*# sourceURL=diffView.css */
+
 `);
 export default styles;

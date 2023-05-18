@@ -359,4 +359,4 @@ _FrameManager_page = new WeakMap(), _FrameManager_networkManager = new WeakMap()
     this._frameTree.removeFrame(frame);
     this.emit(FrameManagerEmittedEvents.FrameDetached, frame);
 };
-//# sourceMappingURL=FrameManager.js.map
+//# map=FrameManager.js.map

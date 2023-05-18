@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as PuppeteerConnection from './PuppeteerConnection.js';
 export { PuppeteerConnection, };
-//# sourceMappingURL=puppeteer.js.map
+//# map=puppeteer.js.map

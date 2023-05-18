@@ -109,4 +109,4 @@ class LinearMemoryHighlightChipList extends HTMLElement {
 }
 export { LinearMemoryHighlightChipList };
 ComponentHelpers.CustomElements.defineComponent('devtools-linear-memory-highlight-chip-list', LinearMemoryHighlightChipList);
-//# sourceMappingURL=LinearMemoryHighlightChipList.js.map
+//# map=LinearMemoryHighlightChipList.js.map

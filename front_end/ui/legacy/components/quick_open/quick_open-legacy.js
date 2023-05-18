@@ -43,4 +43,4 @@ QuickOpen.QuickOpen._history = QuickOpenModule.QuickOpen.history;
  * @constructor
  */
 QuickOpen.QuickOpen.ShowActionDelegate = QuickOpenModule.QuickOpen.ShowActionDelegate;
-//# sourceMappingURL=quick_open-legacy.js.map
+//# map=quick_open-legacy.js.map

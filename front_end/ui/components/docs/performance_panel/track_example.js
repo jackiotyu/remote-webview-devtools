@@ -61,4 +61,4 @@ async function renderContent(expanded) {
         console.error(error);
     }
 }
-//# sourceMappingURL=track_example.js.map
+//# map=track_example.js.map

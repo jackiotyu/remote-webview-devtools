@@ -172,6 +172,6 @@ button.link:focus-visible {
   background-color: inherit;
 }
 
-/*# sourceURL=serviceWorkersView.css */
+
 `);
 export default styles;

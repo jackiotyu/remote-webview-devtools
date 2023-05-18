@@ -14,4 +14,4 @@ export async function setup() {
     };
     ThemeSupport.ThemeSupport.instance({ forceNew: true, setting });
 }
-//# sourceMappingURL=component-server-setup.js.map
+//# map=component-server-setup.js.map

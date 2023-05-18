@@ -547,4 +547,4 @@ export function parseCommandInput(input) {
     const parameters = json ? json.parameters || json.params || json.args || json.arguments : null;
     return { command, parameters };
 }
-//# sourceMappingURL=ProtocolMonitor.js.map
+//# map=ProtocolMonitor.js.map

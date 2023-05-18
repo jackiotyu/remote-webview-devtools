@@ -148,4 +148,4 @@ class ColorSwatch extends HTMLElement {
 }
 export { ColorSwatch };
 ComponentHelpers.CustomElements.defineComponent('devtools-color-swatch', ColorSwatch);
-//# sourceMappingURL=ColorSwatch.js.map
+//# map=ColorSwatch.js.map

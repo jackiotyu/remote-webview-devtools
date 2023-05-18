@@ -101,4 +101,4 @@ export class ContrastInfo extends Common.ObjectWrapper.ObjectWrapper {
         return this.contrastRatioThresholds[level];
     }
 }
-//# sourceMappingURL=ContrastInfo.js.map
+//# map=ContrastInfo.js.map

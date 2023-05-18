@@ -23,4 +23,4 @@ class SecondsTag {
 export function Seconds(value) {
     return value;
 }
-//# sourceMappingURL=Timing.js.map
+//# map=Timing.js.map

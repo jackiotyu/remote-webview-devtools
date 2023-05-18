@@ -84,4 +84,4 @@ export class LiveHeapProfile {
         this.loadEventCallback();
     }
 }
-//# sourceMappingURL=LiveHeapProfile.js.map
+//# map=LiveHeapProfile.js.map

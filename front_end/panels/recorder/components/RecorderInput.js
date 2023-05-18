@@ -289,4 +289,4 @@ RecorderInput = __decorate([
     customElement('devtools-recorder-input')
 ], RecorderInput);
 export { RecorderInput };
-//# sourceMappingURL=RecorderInput.js.map
+//# map=RecorderInput.js.map

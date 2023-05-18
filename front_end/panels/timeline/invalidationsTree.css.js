@@ -41,6 +41,6 @@ styles.replaceSync(
   white-space: normal;
 }
 
-/*# sourceURL=invalidationsTree.css */
+
 `);
 export default styles;

@@ -18,6 +18,6 @@ styles.replaceSync(
   outline-offset: 2px;
 }
 
-/*# sourceURL=chromeLink.css */
+
 `);
 export default styles;

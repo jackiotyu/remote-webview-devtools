@@ -742,7 +742,7 @@ export class NetworkPersistenceManager extends Common.ObjectWrapper.ObjectWrappe
         else {
             const responseBody = await interceptedRequest.responseBody();
             if (!responseBody.error && responseBody.content) {
-                void interceptedRequest.continueRequestWithContent(new Blob([responseBody.content], { type: mimeType }), /* encoded */ true, responseHeaders, 
+                void interceptedRequest.continueRequestWithContent(new Blob([responseBody.content], { type: mimeType }), /* encoded */ true, responseHeaders,
                 /* isBodyOverridden */ false);
             }
         }
@@ -780,4 +780,4 @@ export function extractDirectoryIndex(pattern) {
     }
     return { head: pattern };
 }
-//# sourceMappingURL=NetworkPersistenceManager.js.map
+//# map=NetworkPersistenceManager.js.map

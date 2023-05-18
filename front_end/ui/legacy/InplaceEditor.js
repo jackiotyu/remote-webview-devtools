@@ -183,4 +183,4 @@ export class Config {
         this.postKeydownFinishHandler = postKeydownFinishHandler;
     }
 }
-//# sourceMappingURL=InplaceEditor.js.map
+//# map=InplaceEditor.js.map

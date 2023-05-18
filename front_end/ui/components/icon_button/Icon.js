@@ -94,4 +94,4 @@ class Icon extends HTMLElement {
 }
 export { Icon };
 ComponentHelpers.CustomElements.defineComponent('devtools-icon', Icon);
-//# sourceMappingURL=Icon.js.map
+//# map=Icon.js.map

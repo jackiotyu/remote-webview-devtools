@@ -25,4 +25,4 @@ ColorPicker.Spectrum.PaletteGenerator = ColorPickerModule.Spectrum.PaletteGenera
 ColorPicker.Spectrum.Swatch = ColorPickerModule.Spectrum.Swatch;
 ColorPicker.Spectrum.Events = ColorPickerModule.Spectrum.Events;
 ColorPicker.Spectrum._ChangeSource = ColorPickerModule.Spectrum.ChangeSource;
-//# sourceMappingURL=color_picker-legacy.js.map
+//# map=color_picker-legacy.js.map

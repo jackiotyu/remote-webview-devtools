@@ -50,6 +50,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=propertiesWidget.css */
+
 `);
 export default styles;

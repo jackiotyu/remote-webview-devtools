@@ -81,4 +81,4 @@ export class TimespanView extends UI.Dialog.Dialog {
         await this.panel.handleRunCancel();
     }
 }
-//# sourceMappingURL=LighthouseTimespanView.js.map
+//# map=LighthouseTimespanView.js.map

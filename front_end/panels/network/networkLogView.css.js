@@ -463,6 +463,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=networkLogView.css */
+
 `);
 export default styles;

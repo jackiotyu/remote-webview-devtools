@@ -10,4 +10,4 @@ export const FORMATTABLE_MEDIA_TYPES = [
     "text/javascript" /* FormattableMediaTypes.TEXT_JAVASCRIPT */,
     "text/x-scss" /* FormattableMediaTypes.TEXT_X_SCSS */,
 ];
-//# sourceMappingURL=FormatterActions.js.map
+//# map=FormatterActions.js.map

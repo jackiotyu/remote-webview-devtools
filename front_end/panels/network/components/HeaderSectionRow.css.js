@@ -183,6 +183,6 @@ x-link .inline-icon { /* stylelint-disable-line selector-type-no-unknown */
   margin-left: auto;
 }
 
-/*# sourceURL=HeaderSectionRow.css */
+
 `);
 export default styles;

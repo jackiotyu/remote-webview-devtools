@@ -724,4 +724,4 @@ export class Section {
         return contentElement;
     }
 }
-//# sourceMappingURL=ServiceWorkersView.js.map
+//# map=ServiceWorkersView.js.map

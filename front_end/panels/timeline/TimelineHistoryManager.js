@@ -411,4 +411,4 @@ export class ToolbarButton extends UI.Toolbar.ToolbarItem {
         this.contentElement.textContent = text;
     }
 }
-//# sourceMappingURL=TimelineHistoryManager.js.map
+//# map=TimelineHistoryManager.js.map

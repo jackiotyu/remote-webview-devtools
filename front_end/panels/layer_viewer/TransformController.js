@@ -227,4 +227,4 @@ export var Events;
 (function (Events) {
     Events["TransformChanged"] = "TransformChanged";
 })(Events || (Events = {}));
-//# sourceMappingURL=TransformController.js.map
+//# map=TransformController.js.map

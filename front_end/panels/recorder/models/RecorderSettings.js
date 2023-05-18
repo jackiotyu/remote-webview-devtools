@@ -70,4 +70,4 @@ export class RecorderSettings {
         this.#preferredCopyFormat.set(value);
     }
 }
-//# sourceMappingURL=RecorderSettings.js.map
+//# map=RecorderSettings.js.map

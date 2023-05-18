@@ -129,4 +129,4 @@ export { LinkSwatch };
 ComponentHelpers.CustomElements.defineComponent('devtools-base-link-swatch', BaseLinkSwatch);
 ComponentHelpers.CustomElements.defineComponent('devtools-link-swatch', LinkSwatch);
 ComponentHelpers.CustomElements.defineComponent('devtools-css-var-swatch', CSSVarSwatch);
-//# sourceMappingURL=LinkSwatch.js.map
+//# map=LinkSwatch.js.map

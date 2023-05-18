@@ -389,4 +389,4 @@ class HeadersViewComponent extends HTMLElement {
 }
 export { HeadersViewComponent };
 ComponentHelpers.CustomElements.defineComponent('devtools-sources-headers-view', HeadersViewComponent);
-//# sourceMappingURL=HeadersView.js.map
+//# map=HeadersView.js.map

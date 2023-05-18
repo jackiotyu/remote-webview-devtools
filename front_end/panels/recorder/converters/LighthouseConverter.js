@@ -36,4 +36,4 @@ export class LighthouseConverter {
         return 'text/javascript';
     }
 }
-//# sourceMappingURL=LighthouseConverter.js.map
+//# map=LighthouseConverter.js.map

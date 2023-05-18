@@ -1986,4 +1986,4 @@ export class Generator {
         return space.min + Math.floor(index / (count - 1) * (space.max - space.min));
     }
 }
-//# sourceMappingURL=Color.js.map
+//# map=Color.js.map

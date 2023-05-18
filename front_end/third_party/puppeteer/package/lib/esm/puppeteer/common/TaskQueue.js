@@ -44,4 +44,4 @@ export class TaskQueue {
     }
 }
 _TaskQueue_chain = new WeakMap();
-//# sourceMappingURL=TaskQueue.js.map
+//# map=TaskQueue.js.map

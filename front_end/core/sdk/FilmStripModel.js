@@ -94,4 +94,4 @@ export class Frame {
         return this.#snapshot.objectPromise();
     }
 }
-//# sourceMappingURL=FilmStripModel.js.map
+//# map=FilmStripModel.js.map

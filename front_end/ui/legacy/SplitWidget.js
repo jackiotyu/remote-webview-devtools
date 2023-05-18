@@ -774,4 +774,4 @@ export var Events;
 })(Events || (Events = {}));
 const MinPadding = 20;
 const suppressUnused = function (_value) { };
-//# sourceMappingURL=SplitWidget.js.map
+//# map=SplitWidget.js.map

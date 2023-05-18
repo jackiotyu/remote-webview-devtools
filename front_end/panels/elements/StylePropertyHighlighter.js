@@ -82,4 +82,4 @@ export class StylePropertyHighlighter {
         highlightElement(treeElement.listItemElement);
     }
 }
-//# sourceMappingURL=StylePropertyHighlighter.js.map
+//# map=StylePropertyHighlighter.js.map

@@ -13,4 +13,4 @@ component.data = {
     quickStartLinkText: 'Quick start: get started with the Recorder',
 };
 document.getElementById('container')?.appendChild(component);
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

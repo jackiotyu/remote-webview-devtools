@@ -84,4 +84,4 @@ export const KNOWN_EVENTS = new Map([
     ["Decode LazyPixelRef" /* KnownEventName.DecodeLazyPixelRef */, { category: "Paint" /* EventCategory.Paint */, label: 'Decode LazyPixelRef' }],
     ["GPUTask" /* KnownEventName.GPUTask */, { category: "Paint" /* EventCategory.Paint */, label: 'GPU Task' }],
 ]);
-//# sourceMappingURL=types.js.map
+//# map=types.js.map

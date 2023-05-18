@@ -62,4 +62,4 @@ export function localeLanguagesMatch(localeString1, localeString2) {
     const locale2 = new Intl.Locale(localeString2);
     return locale1.language === locale2.language;
 }
-//# sourceMappingURL=DevToolsLocale.js.map
+//# map=DevToolsLocale.js.map

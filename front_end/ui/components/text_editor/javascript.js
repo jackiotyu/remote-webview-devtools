@@ -345,7 +345,7 @@ async function completeExpressionInScope() {
     if (!selectedFrame) {
         return result;
     }
-    const scopeObjectForScope = (scope) => 
+    const scopeObjectForScope = (scope) =>
     // TODO(crbug.com/1444349): Inline into `map` call below when experiment is removed.
     Root.Runtime.experiments.isEnabled('evaluateExpressionsWithSourceMaps') ?
         SourceMapScopes.NamesResolver.resolveScopeInObject(scope) :
@@ -675,4 +675,4 @@ function tooltipBuilder(signatures, currentIndex) {
     }
     return { dom: tooltip };
 }
-//# sourceMappingURL=javascript.js.map
+//# map=javascript.js.map

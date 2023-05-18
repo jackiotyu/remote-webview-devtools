@@ -42,6 +42,6 @@ styles.replaceSync(
   border-top: var(--legacy-divider-border);
 }
 
-/*# sourceURL=changesView.css */
+
 `);
 export default styles;

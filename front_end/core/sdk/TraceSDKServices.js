@@ -185,4 +185,4 @@ export async function getMetadataForFreshRecording(recordStartTime) {
         return undefined;
     }
 }
-//# sourceMappingURL=TraceSDKServices.js.map
+//# map=TraceSDKServices.js.map

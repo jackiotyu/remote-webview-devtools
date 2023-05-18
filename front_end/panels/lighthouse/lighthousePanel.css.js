@@ -62,6 +62,6 @@ button.view-trace {
   position: absolute;
 }
 
-/*# sourceURL=lighthousePanel.css */
+
 `);
 export default styles;

@@ -247,6 +247,6 @@ table.network-timing-table > tr:not(.network-timing-table-header):not(.network-t
   }
 }
 
-/*# sourceURL=networkTimingTable.css */
+
 `);
 export default styles;

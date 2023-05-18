@@ -139,4 +139,4 @@ class HeapProfilerDispatcher {
     }
 }
 SDKModel.register(HeapProfilerModel, { capabilities: Capability.JS, autostart: false });
-//# sourceMappingURL=HeapProfilerModel.js.map
+//# map=HeapProfilerModel.js.map

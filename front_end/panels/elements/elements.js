@@ -62,4 +62,4 @@ import * as StylesSidebarPane from './StylesSidebarPane.js';
 import * as TopLayerContainer from './TopLayerContainer.js';
 import * as WebCustomData from './WebCustomData.js';
 export { AccessibilityTreeUtils, AccessibilityTreeView, ClassesPaneWidget, ColorSwatchPopoverIcon, ComputedStyleModel, ComputedStyleWidget, CSSRuleValidator, DOMLinkifier, DOMPath, ElementsPanel, ElementsSidebarPane, ElementStatePaneWidget, ElementsTreeElement, ElementsTreeElementHighlighter, ElementsTreeOutline, EventListenersWidget, InspectElementModeController, LayersWidget, LayoutSidebarPane, MarkerDecorator, MetricsSidebarPane, NodeStackTraceWidget, PlatformFontsWidget, PropertiesWidget, StyleEditorWidget, StylePropertiesSection, StylePropertyHighlighter, StylePropertyTreeElement, StylePropertyUtils, StylesSidebarPane, TopLayerContainer, WebCustomData, };
-//# sourceMappingURL=elements.js.map
+//# map=elements.js.map

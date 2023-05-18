@@ -255,4 +255,4 @@ export class SourceRange {
         this.length = length;
     }
 }
-//# sourceMappingURL=TextRange.js.map
+//# map=TextRange.js.map

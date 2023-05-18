@@ -197,4 +197,4 @@ class ValueInterpreterDisplay extends HTMLElement {
 }
 export { ValueInterpreterDisplay };
 ComponentHelpers.CustomElements.defineComponent('devtools-linear-memory-inspector-interpreter-display', ValueInterpreterDisplay);
-//# sourceMappingURL=ValueInterpreterDisplay.js.map
+//# map=ValueInterpreterDisplay.js.map

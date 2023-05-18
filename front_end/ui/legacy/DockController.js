@@ -204,4 +204,4 @@ export class CloseButtonProvider {
         return DockController.instance().closeButton;
     }
 }
-//# sourceMappingURL=DockController.js.map
+//# map=DockController.js.map

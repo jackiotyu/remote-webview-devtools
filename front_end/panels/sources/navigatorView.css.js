@@ -16,6 +16,6 @@ styles.replaceSync(
   padding-left: 8px;
 }
 
-/*# sourceURL=navigatorView.css */
+
 `);
 export default styles;

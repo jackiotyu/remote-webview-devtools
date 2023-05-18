@@ -87,6 +87,6 @@ styles.replaceSync(
   --icon-color: var(--icon-toggled);
 }
 
-/*# sourceURL=stylePropertyEditor.css */
+
 `);
 export default styles;

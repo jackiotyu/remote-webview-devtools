@@ -363,6 +363,6 @@ devtools-recorder-extension-view {
   flex: 1;
 }
 
-/*# sourceURL=recordingView.css */
+
 `);
 export default styles;

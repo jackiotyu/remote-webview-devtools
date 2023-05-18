@@ -183,6 +183,6 @@ td .text-button {
   display: none;
 }
 
-/*# sourceURL=webauthnPane.css */
+
 `);
 export default styles;

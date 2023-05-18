@@ -37,6 +37,6 @@ styles.replaceSync(
   height: 14px;
 }
 
-/*# sourceURL=sharedStorageMetadataViewResetBudgetButton.css */
+
 `);
 export default styles;

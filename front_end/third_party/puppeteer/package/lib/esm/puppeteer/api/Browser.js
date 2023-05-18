@@ -241,4 +241,4 @@ export class Browser extends EventEmitter {
         throw new Error('Not implemented');
     }
 }
-//# sourceMappingURL=Browser.js.map
+//# map=Browser.js.map

@@ -74,4 +74,4 @@ const issueDescriptions = new Map([
         },
     ],
 ]);
-//# sourceMappingURL=ClientHintIssue.js.map
+//# map=ClientHintIssue.js.map

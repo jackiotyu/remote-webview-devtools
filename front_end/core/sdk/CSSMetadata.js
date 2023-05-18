@@ -1281,4 +1281,4 @@ const Weight = new Map([
 ]);
 // Common keywords to CSS properties
 const CommonKeywords = ['auto', 'none'];
-//# sourceMappingURL=CSSMetadata.js.map
+//# map=CSSMetadata.js.map

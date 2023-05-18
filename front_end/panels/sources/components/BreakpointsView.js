@@ -597,4 +597,4 @@ class BreakpointsView extends HTMLElement {
 }
 export { BreakpointsView };
 ComponentHelpers.CustomElements.defineComponent('devtools-breakpoint-view', BreakpointsView);
-//# sourceMappingURL=BreakpointsView.js.map
+//# map=BreakpointsView.js.map

@@ -33,4 +33,4 @@ UI.ViewManager.registerViewExtension({
         i18n.i18n.lockedLazyString('pwa'),
     ],
 });
-//# sourceMappingURL=lighthouse-meta.js.map
+//# map=lighthouse-meta.js.map

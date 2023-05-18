@@ -737,4 +737,4 @@ export class WebauthnPaneImpl extends UI.Widget.VBox {
         this.registerCSSFiles([webauthnPaneStyles]);
     }
 }
-//# sourceMappingURL=WebauthnPane.js.map
+//# map=WebauthnPane.js.map

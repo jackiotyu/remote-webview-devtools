@@ -74,4 +74,4 @@ export class CompilerSourceMappingContentProvider {
         return TextUtils.TextUtils.performSearchInContent(content, query, caseSensitive, isRegex);
     }
 }
-//# sourceMappingURL=CompilerSourceMappingContentProvider.js.map
+//# map=CompilerSourceMappingContentProvider.js.map

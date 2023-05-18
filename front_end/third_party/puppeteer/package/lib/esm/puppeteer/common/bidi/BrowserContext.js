@@ -45,4 +45,4 @@ export class BrowserContext extends BrowserContextBase {
     async close() { }
 }
 _BrowserContext_connection = new WeakMap();
-//# sourceMappingURL=BrowserContext.js.map
+//# map=BrowserContext.js.map

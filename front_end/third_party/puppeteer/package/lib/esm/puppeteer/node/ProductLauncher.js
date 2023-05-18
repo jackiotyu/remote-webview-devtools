@@ -100,4 +100,4 @@ export class ProductLauncher {
     }
 }
 _ProductLauncher_product = new WeakMap();
-//# sourceMappingURL=ProductLauncher.js.map
+//# map=ProductLauncher.js.map

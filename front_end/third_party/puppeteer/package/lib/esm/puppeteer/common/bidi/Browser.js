@@ -68,4 +68,4 @@ export class Browser extends BrowserBase {
     }
 }
 _Browser_process = new WeakMap(), _Browser_closeCallback = new WeakMap(), _Browser_connection = new WeakMap();
-//# sourceMappingURL=Browser.js.map
+//# map=Browser.js.map

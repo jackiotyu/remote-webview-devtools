@@ -71,4 +71,4 @@ component.data = {
         },
     ],
 };
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

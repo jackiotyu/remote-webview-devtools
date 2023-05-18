@@ -117,6 +117,6 @@ styles.replaceSync(
   opacity: 0%;
 }
 
-/*# sourceURL=performanceMonitor.css */
+
 `);
 export default styles;

@@ -186,4 +186,4 @@ export function getQueryHandlerAndSelector(selector) {
     }
     return { updatedSelector: selector, queryHandler: defaultHandler };
 }
-//# sourceMappingURL=QueryHandler.js.map
+//# map=QueryHandler.js.map

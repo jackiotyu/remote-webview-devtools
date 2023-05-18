@@ -12,4 +12,4 @@ self.onmessage = (event) => {
     }));
 };
 self.postMessage('workerReady');
-//# sourceMappingURL=wasmparser_worker-entrypoint.js.map
+//# map=wasmparser_worker-entrypoint.js.map

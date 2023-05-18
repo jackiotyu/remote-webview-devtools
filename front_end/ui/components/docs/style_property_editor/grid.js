@@ -38,4 +38,4 @@ component.addEventListener('propertydeselected', (event) => {
         authoredProperties,
     };
 });
-//# sourceMappingURL=grid.js.map
+//# map=grid.js.map

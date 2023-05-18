@@ -85,4 +85,4 @@ export class WebAudioModel extends SDK.SDKModel.SDKModel {
     }
 }
 SDK.SDKModel.SDKModel.register(WebAudioModel, { capabilities: SDK.Target.Capability.DOM, autostart: false });
-//# sourceMappingURL=WebAudioModel.js.map
+//# map=WebAudioModel.js.map

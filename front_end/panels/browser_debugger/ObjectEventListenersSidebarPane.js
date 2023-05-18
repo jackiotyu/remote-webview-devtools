@@ -74,8 +74,8 @@ export class ObjectEventListenersSidebarPane extends UI.Widget.VBox {
             silent: true,
             returnByValue: false,
             generatePreview: false,
-        }, 
-        /* userGesture */ false, 
+        },
+        /* userGesture */ false,
         /* awaitPromise */ false)
             .then(result => {
             if ('error' in result || result.exceptionDetails) {
@@ -90,4 +90,4 @@ export class ObjectEventListenersSidebarPane extends UI.Widget.VBox {
     }
 }
 export const objectGroupName = 'object-event-listeners-sidebar-pane';
-//# sourceMappingURL=ObjectEventListenersSidebarPane.js.map
+//# map=ObjectEventListenersSidebarPane.js.map

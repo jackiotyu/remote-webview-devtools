@@ -47,4 +47,4 @@ class FeedbackButton extends HTMLElement {
 }
 export { FeedbackButton };
 ComponentHelpers.CustomElements.defineComponent('devtools-feedback-button', FeedbackButton);
-//# sourceMappingURL=FeedbackButton.js.map
+//# map=FeedbackButton.js.map

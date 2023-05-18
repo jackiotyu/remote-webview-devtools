@@ -139,6 +139,6 @@ styles.replaceSync(
   color: var(--color-accent-red);
 }
 
-/*# sourceURL=requestPayloadTree.css */
+
 `);
 export default styles;

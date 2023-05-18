@@ -119,6 +119,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=lockIcon.css */
+
 `);
 export default styles;

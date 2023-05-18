@@ -113,4 +113,4 @@ export var CPUThrottlingRates;
     CPUThrottlingRates[CPUThrottlingRates["MidTierMobile"] = 4] = "MidTierMobile";
     CPUThrottlingRates[CPUThrottlingRates["LowEndMobile"] = 6] = "LowEndMobile";
 })(CPUThrottlingRates || (CPUThrottlingRates = {}));
-//# sourceMappingURL=CPUThrottlingManager.js.map
+//# map=CPUThrottlingManager.js.map

@@ -269,4 +269,4 @@ class OriginTrialTreeView extends HTMLElement {
 }
 export { OriginTrialTreeView };
 ComponentHelpers.CustomElements.defineComponent('devtools-resources-origin-trial-tree-view', OriginTrialTreeView);
-//# sourceMappingURL=OriginTrialTreeView.js.map
+//# map=OriginTrialTreeView.js.map

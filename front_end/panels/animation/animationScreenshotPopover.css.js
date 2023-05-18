@@ -24,6 +24,6 @@ img {
   background: var(--legacy-selection-bg-color);
 }
 
-/*# sourceURL=animationScreenshotPopover.css */
+
 `);
 export default styles;

@@ -99,4 +99,4 @@ export class InterestGroupStorageView extends UI.SplitWidget.SplitWidget {
         return this.interestGroupGrid;
     }
 }
-//# sourceMappingURL=InterestGroupStorageView.js.map
+//# map=InterestGroupStorageView.js.map

@@ -165,4 +165,4 @@ class SplitView extends HTMLElement {
 }
 export { SplitView };
 ComponentHelpers.CustomElements.defineComponent('devtools-split-view', SplitView);
-//# sourceMappingURL=SplitView.js.map
+//# map=SplitView.js.map

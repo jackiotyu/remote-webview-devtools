@@ -39,4 +39,4 @@ Persistence.PersistenceUtils = PersistenceModule.PersistenceUtils.PersistenceUti
 Persistence.PlatformFileSystem = PersistenceModule.PlatformFileSystem.PlatformFileSystem;
 /** @constructor */
 Persistence.WorkspaceSettingsTab = PersistenceModule.WorkspaceSettingsTab.WorkspaceSettingsTab;
-//# sourceMappingURL=persistence-legacy.js.map
+//# map=persistence-legacy.js.map

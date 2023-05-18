@@ -446,4 +446,4 @@ export class CPUProfileDataModel extends ProfileTreeModel {
         return [...this.#idToNode.values()];
     }
 }
-//# sourceMappingURL=CPUProfileDataModel.js.map
+//# map=CPUProfileDataModel.js.map

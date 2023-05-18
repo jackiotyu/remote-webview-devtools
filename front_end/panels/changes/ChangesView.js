@@ -243,4 +243,4 @@ export class DiffUILocationRevealer {
         ChangesView.instance().changesSidebar.selectUISourceCode(diffUILocation.uiSourceCode, omitFocus);
     }
 }
-//# sourceMappingURL=ChangesView.js.map
+//# map=ChangesView.js.map

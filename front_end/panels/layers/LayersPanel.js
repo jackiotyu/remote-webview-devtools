@@ -188,4 +188,4 @@ export const DetailsViewTabs = {
     Details: 'details',
     Profiler: 'profiler',
 };
-//# sourceMappingURL=LayersPanel.js.map
+//# map=LayersPanel.js.map

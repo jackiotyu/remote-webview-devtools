@@ -63,6 +63,6 @@ styles.replaceSync(
   max-width: 100%;
 }
 
-/*# sourceURL=categorizedBreakpointsSidebarPane.css */
+
 `);
 export default styles;

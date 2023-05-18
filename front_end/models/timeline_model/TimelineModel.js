@@ -2254,4 +2254,4 @@ function getOrCreateEventData(event) {
 }
 const eventToData = new WeakMap();
 const eventToInvalidation = new WeakMap();
-//# sourceMappingURL=TimelineModel.js.map
+//# map=TimelineModel.js.map

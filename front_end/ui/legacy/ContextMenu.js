@@ -506,4 +506,4 @@ export var ItemLocation;
     ItemLocation["NAVIGATOR_MENU_DEFAULT"] = "navigatorMenu/default";
     ItemLocation["TIMELINE_MENU_OPEN"] = "timelineMenu/open";
 })(ItemLocation || (ItemLocation = {}));
-//# sourceMappingURL=ContextMenu.js.map
+//# map=ContextMenu.js.map

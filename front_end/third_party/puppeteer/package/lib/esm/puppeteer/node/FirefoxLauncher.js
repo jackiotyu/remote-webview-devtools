@@ -358,4 +358,4 @@ export class FirefoxLauncher extends ProductLauncher {
         return temporaryProfilePath;
     }
 }
-//# sourceMappingURL=FirefoxLauncher.js.map
+//# map=FirefoxLauncher.js.map

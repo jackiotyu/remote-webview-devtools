@@ -186,4 +186,4 @@ const issueTypes = new Map([
     ["FormLabelHasNeitherForNorNestedInput" /* Protocol.Audits.GenericIssueErrorType.FormLabelHasNeitherForNorNestedInput */, IssueKind.Improvement],
     ["FormInputHasWrongButWellIntendedAutocompleteValueError" /* Protocol.Audits.GenericIssueErrorType.FormInputHasWrongButWellIntendedAutocompleteValueError */, IssueKind.Improvement],
 ]);
-//# sourceMappingURL=GenericIssue.js.map
+//# map=GenericIssue.js.map

@@ -290,4 +290,4 @@ export class CompatibilityTracksAppender {
         return track.highlightedEntryInfo(event);
     }
 }
-//# sourceMappingURL=CompatibilityTracksAppender.js.map
+//# map=CompatibilityTracksAppender.js.map

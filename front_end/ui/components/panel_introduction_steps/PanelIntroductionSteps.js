@@ -31,4 +31,4 @@ class PanelIntroductionSteps extends HTMLElement {
 }
 export { PanelIntroductionSteps };
 ComponentHelpers.CustomElements.defineComponent('devtools-panel-introduction-steps', PanelIntroductionSteps);
-//# sourceMappingURL=PanelIntroductionSteps.js.map
+//# map=PanelIntroductionSteps.js.map

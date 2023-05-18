@@ -20,4 +20,4 @@ userAgentsForm.value = {
     showMobileCheckbox: true,
 };
 userAgentClientHintsContainer?.appendChild(userAgentsForm);
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

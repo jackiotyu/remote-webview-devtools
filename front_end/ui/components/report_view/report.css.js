@@ -34,6 +34,6 @@ styles.replaceSync(
   grid-column-start: span 2;
 }
 
-/*# sourceURL=report.css */
+
 `);
 export default styles;

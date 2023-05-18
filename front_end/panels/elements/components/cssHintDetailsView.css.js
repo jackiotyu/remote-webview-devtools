@@ -42,6 +42,6 @@ code {
   white-space: nowrap;
 }
 
-/*# sourceURL=cssHintDetailsView.css */
+
 `);
 export default styles;

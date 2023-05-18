@@ -147,4 +147,4 @@ class ProtocolHandlersView extends HTMLElement {
 }
 export { ProtocolHandlersView };
 ComponentHelpers.CustomElements.defineComponent('devtools-protocol-handlers-view', ProtocolHandlersView);
-//# sourceMappingURL=ProtocolHandlersView.js.map
+//# map=ProtocolHandlersView.js.map

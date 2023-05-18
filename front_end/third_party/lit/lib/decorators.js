@@ -14,4 +14,4 @@ const e=(e,t)=>"method"===t.kind&&t.descriptor&&!("value"in t.descriptor)?{...t,
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */const n=e=>t=>"function"==typeof t?((e,t)=>(customElements.define(e,t),t))(e,t):((e,t)=>{const{kind:i,elements:n}=t;return{kind:i,elements:n,finisher(t){customElements.define(e,t)}}})(e,t);export{n as customElement,t as property,i as state};
-//# sourceMappingURL=decorators.js.map
+//# map=decorators.js.map

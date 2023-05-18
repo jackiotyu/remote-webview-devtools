@@ -14,4 +14,4 @@ import * as ValueInterpreterDisplay from './ValueInterpreterDisplay.js';
 import * as ValueInterpreterDisplayUtils from './ValueInterpreterDisplayUtils.js';
 import * as ValueInterpreterSettings from './ValueInterpreterSettings.js';
 export { LinearMemoryHighlightChipList, LinearMemoryInspector, LinearMemoryInspectorController, LinearMemoryInspectorPane, LinearMemoryInspectorUtils, LinearMemoryNavigator, LinearMemoryValueInterpreter, LinearMemoryViewer, LinearMemoryViewerUtils, ValueInterpreterDisplay, ValueInterpreterDisplayUtils, ValueInterpreterSettings, };
-//# sourceMappingURL=linear_memory_inspector.js.map
+//# map=linear_memory_inspector.js.map

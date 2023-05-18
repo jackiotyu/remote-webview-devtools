@@ -57,4 +57,4 @@ export function getRegisteredDecorators() {
         },
     ];
 }
-//# sourceMappingURL=MarkerDecorator.js.map
+//# map=MarkerDecorator.js.map

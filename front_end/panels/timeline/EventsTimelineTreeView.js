@@ -193,4 +193,4 @@ class Filters extends Common.ObjectWrapper.ObjectWrapper {
     static durationFilterPresetsMs = [0, 1, 15];
 }
 export { Filters };
-//# sourceMappingURL=EventsTimelineTreeView.js.map
+//# map=EventsTimelineTreeView.js.map

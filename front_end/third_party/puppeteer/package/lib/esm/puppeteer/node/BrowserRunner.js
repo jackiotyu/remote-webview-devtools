@@ -310,4 +310,4 @@ function pidExists(pid) {
         throw error;
     }
 }
-//# sourceMappingURL=BrowserRunner.js.map
+//# map=BrowserRunner.js.map

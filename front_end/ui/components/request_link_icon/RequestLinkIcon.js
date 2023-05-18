@@ -177,4 +177,4 @@ class RequestLinkIcon extends HTMLElement {
 }
 export { RequestLinkIcon };
 ComponentHelpers.CustomElements.defineComponent('devtools-request-link-icon', RequestLinkIcon);
-//# sourceMappingURL=RequestLinkIcon.js.map
+//# map=RequestLinkIcon.js.map

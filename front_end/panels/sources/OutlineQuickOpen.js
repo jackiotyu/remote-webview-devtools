@@ -341,4 +341,4 @@ export class OutlineQuickOpen extends QuickOpen.FilteredListWidget.Provider {
         return i18nString(UIStrings.noResultsFound);
     }
 }
-//# sourceMappingURL=OutlineQuickOpen.js.map
+//# map=OutlineQuickOpen.js.map

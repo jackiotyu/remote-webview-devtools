@@ -89,6 +89,6 @@ styles.replaceSync(
   color: var(--color-text-primary);
 }
 
-/*# sourceURL=controlButton.css */
+
 `);
 export default styles;

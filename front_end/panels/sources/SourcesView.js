@@ -646,4 +646,4 @@ var SourceViewType;
     SourceViewType["HeadersView"] = "HeadersView";
     SourceViewType["SourceView"] = "SourceView";
 })(SourceViewType || (SourceViewType = {}));
-//# sourceMappingURL=SourcesView.js.map
+//# map=SourcesView.js.map

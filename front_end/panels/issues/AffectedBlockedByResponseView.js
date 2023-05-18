@@ -72,4 +72,4 @@ export class AffectedBlockedByResponseView extends AffectedResourcesView {
         this.#appendDetails(this.issue.getBlockedByResponseDetails());
     }
 }
-//# sourceMappingURL=AffectedBlockedByResponseView.js.map
+//# map=AffectedBlockedByResponseView.js.map

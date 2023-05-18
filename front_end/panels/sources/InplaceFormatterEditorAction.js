@@ -110,4 +110,4 @@ export class InplaceFormatterEditorAction {
     }
 }
 registerEditorAction(InplaceFormatterEditorAction.instance);
-//# sourceMappingURL=InplaceFormatterEditorAction.js.map
+//# map=InplaceFormatterEditorAction.js.map

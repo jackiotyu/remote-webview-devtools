@@ -267,4 +267,4 @@ const highlightedLineState = CodeMirror.StateField.define({
     },
     provide: field => CodeMirror.EditorView.decorations.from(field, value => value),
 });
-//# sourceMappingURL=TextEditor.js.map
+//# map=TextEditor.js.map

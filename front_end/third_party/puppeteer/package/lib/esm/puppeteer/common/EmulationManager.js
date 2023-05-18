@@ -48,4 +48,4 @@ export class EmulationManager {
     }
 }
 _EmulationManager_client = new WeakMap(), _EmulationManager_emulatingMobile = new WeakMap(), _EmulationManager_hasTouch = new WeakMap();
-//# sourceMappingURL=EmulationManager.js.map
+//# map=EmulationManager.js.map

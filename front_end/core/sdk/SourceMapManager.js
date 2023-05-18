@@ -156,4 +156,4 @@ export var Events;
     Events["SourceMapAttached"] = "SourceMapAttached";
     Events["SourceMapDetached"] = "SourceMapDetached";
 })(Events || (Events = {}));
-//# sourceMappingURL=SourceMapManager.js.map
+//# map=SourceMapManager.js.map

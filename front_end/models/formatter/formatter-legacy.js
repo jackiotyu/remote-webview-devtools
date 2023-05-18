@@ -10,4 +10,4 @@ Formatter.FormatterWorkerPool = FormatterModule.FormatterWorkerPool.FormatterWor
 Formatter.formatterWorkerPool = FormatterModule.FormatterWorkerPool.formatterWorkerPool;
 /** @interface */
 Formatter.FormatterSourceMapping = FormatterModule.ScriptFormatter.FormatterSourceMapping;
-//# sourceMappingURL=formatter-legacy.js.map
+//# map=formatter-legacy.js.map

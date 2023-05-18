@@ -168,4 +168,4 @@ export class CSSLinearEasingModel {
         return `linear(${args})`;
     }
 }
-//# sourceMappingURL=CSSLinearEasingModel.js.map
+//# map=CSSLinearEasingModel.js.map

@@ -104,4 +104,4 @@ class CSSOverviewStartView extends HTMLElement {
 }
 export { CSSOverviewStartView };
 ComponentHelpers.CustomElements.defineComponent('devtools-css-overview-start-view', CSSOverviewStartView);
-//# sourceMappingURL=CSSOverviewStartView.js.map
+//# map=CSSOverviewStartView.js.map

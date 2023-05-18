@@ -141,4 +141,4 @@ class InterestGroupAccessGrid extends HTMLElement {
 }
 export { InterestGroupAccessGrid };
 ComponentHelpers.CustomElements.defineComponent('devtools-interest-group-access-grid', InterestGroupAccessGrid);
-//# sourceMappingURL=InterestGroupAccessGrid.js.map
+//# map=InterestGroupAccessGrid.js.map

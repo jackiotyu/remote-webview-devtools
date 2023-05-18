@@ -21,4 +21,4 @@
 export const getFetch = async () => {
     return globalThis.fetch || (await import('cross-fetch')).fetch;
 };
-//# sourceMappingURL=fetch.js.map
+//# map=fetch.js.map

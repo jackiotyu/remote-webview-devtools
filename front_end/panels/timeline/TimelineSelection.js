@@ -48,4 +48,4 @@ export class TimelineSelection {
         return new TimelineSelection(TraceEngine.Types.Timing.MilliSeconds(startTime), TraceEngine.Types.Timing.MilliSeconds(endTime), SelectionRangeSymbol);
     }
 }
-//# sourceMappingURL=TimelineSelection.js.map
+//# map=TimelineSelection.js.map

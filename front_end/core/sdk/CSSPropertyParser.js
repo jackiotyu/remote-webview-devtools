@@ -58,4 +58,4 @@ export function splitByComma(value) {
 export function stripComments(value) {
     return value.replaceAll(/(\/\*(?:.|\s)*?\*\/)/g, '');
 }
-//# sourceMappingURL=CSSPropertyParser.js.map
+//# map=CSSPropertyParser.js.map

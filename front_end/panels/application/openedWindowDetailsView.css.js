@@ -77,6 +77,6 @@ styles.replaceSync(
   text-overflow: ellipsis;
 }
 
-/*# sourceURL=openedWindowDetailsView.css */
+
 `);
 export default styles;

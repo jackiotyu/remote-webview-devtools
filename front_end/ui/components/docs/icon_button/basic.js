@@ -56,4 +56,4 @@ appendComponent({
     leadingText: 'Issues:',
     compact: true,
 });
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

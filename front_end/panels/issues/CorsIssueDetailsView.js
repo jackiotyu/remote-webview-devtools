@@ -441,4 +441,4 @@ export class CorsIssueDetailsView extends AffectedResourcesView {
         }
     }
 }
-//# sourceMappingURL=CorsIssueDetailsView.js.map
+//# map=CorsIssueDetailsView.js.map

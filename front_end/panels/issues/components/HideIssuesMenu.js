@@ -60,4 +60,4 @@ class HideIssuesMenu extends HTMLElement {
 }
 export { HideIssuesMenu };
 ComponentHelpers.CustomElements.defineComponent('devtools-hide-issues-menu', HideIssuesMenu);
-//# sourceMappingURL=HideIssuesMenu.js.map
+//# map=HideIssuesMenu.js.map

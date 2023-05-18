@@ -23,4 +23,4 @@ import '../../panels/console_counters/console_counters-meta.js';
 import '../../ui/legacy/components/object_ui/object_ui-meta.js';
 import '../main/main.js';
 // We generate the descriptors in this file, which depend on the runtime.
-//# sourceMappingURL=shell.js.map
+//# map=shell.js.map

@@ -92,6 +92,6 @@ devtools-feedback-button {
   color: var(--color-primary-old);
 }
 
-/*# sourceURL=cssOverviewStartView.css */
+
 `);
 export default styles;

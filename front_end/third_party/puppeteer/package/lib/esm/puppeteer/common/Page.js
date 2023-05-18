@@ -2451,13 +2451,13 @@ _CDPPage_closed = new WeakMap(), _CDPPage_client = new WeakMap(), _CDPPage_targe
     assert(dialogType, 'Unknown javascript dialog type: ' + event.type);
     const dialog = new Dialog(__classPrivateFieldGet(this, _CDPPage_client, "f"), dialogType, event.message, event.defaultPrompt);
     this.emit("dialog" /* PageEmittedEvents.Dialog */, dialog);
-}, _CDPPage_resetDefaultBackgroundColor = 
+}, _CDPPage_resetDefaultBackgroundColor =
 /**
  * Resets default white background
  */
 async function _CDPPage_resetDefaultBackgroundColor() {
     await __classPrivateFieldGet(this, _CDPPage_client, "f").send('Emulation.setDefaultBackgroundColorOverride');
-}, _CDPPage_setTransparentBackgroundColor = 
+}, _CDPPage_setTransparentBackgroundColor =
 /**
  * Hides default white background
  */
@@ -2612,4 +2612,4 @@ function convertPrintParameterToInches(parameter) {
     }
     return pixels / 96;
 }
-//# sourceMappingURL=Page.js.map
+//# map=Page.js.map

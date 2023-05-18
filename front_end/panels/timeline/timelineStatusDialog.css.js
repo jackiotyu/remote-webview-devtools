@@ -87,6 +87,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=timelineStatusDialog.css */
+
 `);
 export default styles;

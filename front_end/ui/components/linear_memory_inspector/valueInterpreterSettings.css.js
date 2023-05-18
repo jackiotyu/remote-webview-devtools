@@ -52,6 +52,6 @@ styles.replaceSync(
   margin-top: 6px;
 }
 
-/*# sourceURL=valueInterpreterSettings.css */
+
 `);
 export default styles;

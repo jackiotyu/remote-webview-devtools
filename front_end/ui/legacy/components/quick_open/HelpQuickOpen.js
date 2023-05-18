@@ -59,4 +59,4 @@ registerProvider({
     titlePrefix: () => 'Help',
     titleSuggestion: undefined,
 });
-//# sourceMappingURL=HelpQuickOpen.js.map
+//# map=HelpQuickOpen.js.map

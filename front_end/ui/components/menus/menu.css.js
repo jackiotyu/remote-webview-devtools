@@ -49,6 +49,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=menu.css */
+
 `);
 export default styles;

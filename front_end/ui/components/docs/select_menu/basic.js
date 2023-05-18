@@ -199,4 +199,4 @@ menus.forEach((menu, i) => {
         ph.appendChild(selectMenu);
     }
 });
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

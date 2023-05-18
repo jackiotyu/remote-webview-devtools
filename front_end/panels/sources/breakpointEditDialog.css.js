@@ -68,6 +68,6 @@ styles.replaceSync(
   --icon-color: var(--icon-default-hover);
 }
 
-/*# sourceURL=breakpointEditDialog.css */
+
 `);
 export default styles;

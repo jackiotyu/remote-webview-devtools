@@ -30,4 +30,4 @@ export class IssueRevealer {
         }
     }
 }
-//# sourceMappingURL=IssueRevealer.js.map
+//# map=IssueRevealer.js.map

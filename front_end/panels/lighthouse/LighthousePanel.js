@@ -291,4 +291,4 @@ export class LighthousePanel extends UI.Panel.Panel {
         this.registerCSSFiles([lighthousePanelStyles]);
     }
 }
-//# sourceMappingURL=LighthousePanel.js.map
+//# map=LighthousePanel.js.map

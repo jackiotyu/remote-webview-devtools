@@ -605,4 +605,4 @@ export class Touchscreen {
     }
 }
 _Touchscreen_client = new WeakMap(), _Touchscreen_keyboard = new WeakMap();
-//# sourceMappingURL=Input.js.map
+//# map=Input.js.map

@@ -90,4 +90,4 @@ export const RevealerDestination = {
     APPLICATION_PANEL: i18nLazyString(UIStrings.applicationPanel),
     SOURCES_PANEL: i18nLazyString(UIStrings.sourcesPanel),
 };
-//# sourceMappingURL=Revealer.js.map
+//# map=Revealer.js.map

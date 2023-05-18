@@ -164,4 +164,4 @@ const theme = CodeMirror.EditorView.baseTheme({
 });
 export const MemoryProfilePlugin = makeLineLevelProfilePlugin(SourceFrame.SourceFrame.DecoratorType.MEMORY);
 export const PerformanceProfilePlugin = makeLineLevelProfilePlugin(SourceFrame.SourceFrame.DecoratorType.PERFORMANCE);
-//# sourceMappingURL=ProfilePlugin.js.map
+//# map=ProfilePlugin.js.map

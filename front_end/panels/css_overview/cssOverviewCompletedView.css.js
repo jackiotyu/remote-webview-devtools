@@ -368,6 +368,6 @@ styles.replaceSync(
   forced-color-adjust: none; /* show colors in high contrast theme */
 }
 
-/*# sourceURL=cssOverviewCompletedView.css */
+
 `);
 export default styles;

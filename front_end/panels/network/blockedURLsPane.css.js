@@ -88,6 +88,6 @@ styles.replaceSync(
   height: 22px;
 }
 
-/*# sourceURL=blockedURLsPane.css */
+
 `);
 export default styles;

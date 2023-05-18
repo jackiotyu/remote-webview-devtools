@@ -34,4 +34,4 @@ UI.ViewManager.registerViewExtension({
         return Layers.LayersPanel.LayersPanel.instance();
     },
 });
-//# sourceMappingURL=layers-meta.js.map
+//# map=layers-meta.js.map

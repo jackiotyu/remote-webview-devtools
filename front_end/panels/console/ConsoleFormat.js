@@ -204,4 +204,4 @@ export const updateStyle = (currentStyle, styleToAdd) => {
         });
     }
 };
-//# sourceMappingURL=ConsoleFormat.js.map
+//# map=ConsoleFormat.js.map

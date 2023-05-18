@@ -16,6 +16,6 @@ styles.replaceSync(
   overflow: auto;
 }
 
-/*# sourceURL=accessibilityTreeView.css */
+
 `);
 export default styles;

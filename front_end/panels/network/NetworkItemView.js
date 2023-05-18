@@ -221,7 +221,7 @@ export class NetworkItemView extends UI.TabbedPane.TabbedPane {
         }
         if (this.requestInternal.queryParameters || await this.requestInternal.requestFormData()) {
             this.payloadView = new RequestPayloadView(this.requestInternal);
-            this.appendTab(NetworkForward.UIRequestLocation.UIRequestTabs.Payload, i18nString(UIStrings.payload), this.payloadView, i18nString(UIStrings.payload), /* userGesture=*/ void 0, 
+            this.appendTab(NetworkForward.UIRequestLocation.UIRequestTabs.Payload, i18nString(UIStrings.payload), this.payloadView, i18nString(UIStrings.payload), /* userGesture=*/ void 0,
             /* isCloseable=*/ void 0, /* isPreviewFeature=*/ void 0, /* index=*/ 1);
         }
     }
@@ -277,4 +277,4 @@ export class NetworkItemView extends UI.TabbedPane.TabbedPane {
         return this.headersViewComponent;
     }
 }
-//# sourceMappingURL=NetworkItemView.js.map
+//# map=NetworkItemView.js.map

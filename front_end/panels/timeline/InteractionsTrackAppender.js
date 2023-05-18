@@ -167,4 +167,4 @@ export function titleForInteractionEvent(event) {
     }
     return event.type;
 }
-//# sourceMappingURL=InteractionsTrackAppender.js.map
+//# map=InteractionsTrackAppender.js.map

@@ -249,4 +249,4 @@ globalThis.global.document.documentElement = {};
 globalThis.global.document.documentElement.style = {
     WebkitAppearance: 'WebkitAppearance',
 };
-//# sourceMappingURL=LighthouseWorkerService.js.map
+//# map=LighthouseWorkerService.js.map

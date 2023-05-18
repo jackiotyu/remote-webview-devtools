@@ -578,4 +578,4 @@ export class IDBDataGridNode extends DataGrid.DataGrid.DataGridNode {
         return cell;
     }
 }
-//# sourceMappingURL=IndexedDBViews.js.map
+//# map=IndexedDBViews.js.map

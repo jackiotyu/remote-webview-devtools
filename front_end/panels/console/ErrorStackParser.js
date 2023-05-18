@@ -124,4 +124,4 @@ function framesMatch(parsedFrame, protocolFrame) {
     return url === protocolFrame.url && lineNumber === protocolFrame.lineNumber &&
         columnNumber === protocolFrame.columnNumber;
 }
-//# sourceMappingURL=ErrorStackParser.js.map
+//# map=ErrorStackParser.js.map

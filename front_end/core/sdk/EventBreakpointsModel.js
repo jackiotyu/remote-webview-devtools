@@ -130,4 +130,4 @@ export class EventBreakpointsManager {
     }
 }
 SDKModel.register(EventBreakpointsModel, { capabilities: Capability.EventBreakpoints, autostart: false });
-//# sourceMappingURL=EventBreakpointsModel.js.map
+//# map=EventBreakpointsModel.js.map

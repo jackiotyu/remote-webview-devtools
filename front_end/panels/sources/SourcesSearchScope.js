@@ -261,4 +261,4 @@ export class FileBasedSearchResult {
         return this.searchMatches[index].lineNumber + 1;
     }
 }
-//# sourceMappingURL=SourcesSearchScope.js.map
+//# map=SourcesSearchScope.js.map

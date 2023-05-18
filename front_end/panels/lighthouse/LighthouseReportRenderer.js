@@ -145,4 +145,4 @@ export class LighthouseReportRenderer {
         }
     }
 }
-//# sourceMappingURL=LighthouseReportRenderer.js.map
+//# map=LighthouseReportRenderer.js.map

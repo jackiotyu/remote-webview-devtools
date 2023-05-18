@@ -35,6 +35,6 @@ styles.replaceSync(
   color: var(--color-input-text-disabled);
 }
 
-/*# sourceURL=textInput.css */
+
 `);
 export default styles;

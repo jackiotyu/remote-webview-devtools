@@ -458,4 +458,4 @@ export class Category extends UI.TreeOutline.TreeElement {
         this.expandedSetting.set(false);
     }
 }
-//# sourceMappingURL=RequestPayloadView.js.map
+//# map=RequestPayloadView.js.map

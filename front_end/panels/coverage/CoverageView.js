@@ -500,4 +500,4 @@ export class ActionDelegate {
         }
     }
 }
-//# sourceMappingURL=CoverageView.js.map
+//# map=CoverageView.js.map

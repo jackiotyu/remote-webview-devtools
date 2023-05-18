@@ -71,6 +71,6 @@ styles.replaceSync(
   overflow: hidden;
 }
 
-/*# sourceURL=serviceWorkerCacheViews.css */
+
 `);
 export default styles;

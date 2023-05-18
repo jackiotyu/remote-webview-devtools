@@ -37,4 +37,4 @@ export class CSSOverviewProcessingView extends UI.Widget.Widget {
         this.registerCSSFiles([cssOverviewProcessingViewStyles]);
     }
 }
-//# sourceMappingURL=CSSOverviewProcessingView.js.map
+//# map=CSSOverviewProcessingView.js.map

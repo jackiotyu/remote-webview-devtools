@@ -409,4 +409,4 @@ export function ResourceWebSocketFrameNodeTimeComparator(a, b) {
 // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const _clearFrameOffsets = new WeakMap();
-//# sourceMappingURL=ResourceWebSocketFrameView.js.map
+//# map=ResourceWebSocketFrameView.js.map

@@ -30,6 +30,6 @@ devtools-data-grid-controller {
   vertical-align: text-bottom;
 }
 
-/*# sourceURL=ruleSetGrid.css */
+
 `);
 export default styles;

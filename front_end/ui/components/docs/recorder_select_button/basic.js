@@ -67,4 +67,4 @@ litRender(LitHtml.html `
     .variant=${"secondary" /* RecorderComponents.SelectButton.Variant.SECONDARY */}
     .items=${replayItems}
     .value=${replayItems[2].value}></${RecorderComponents.SelectButton.SelectButton.litTagName}>`);
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

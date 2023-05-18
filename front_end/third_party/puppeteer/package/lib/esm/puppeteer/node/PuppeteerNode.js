@@ -264,4 +264,4 @@ _PuppeteerNode__launcher = new WeakMap(), _PuppeteerNode_lastLaunchedProduct = n
     }
     return __classPrivateFieldGet(this, _PuppeteerNode__launcher, "f");
 };
-//# sourceMappingURL=PuppeteerNode.js.map
+//# map=PuppeteerNode.js.map

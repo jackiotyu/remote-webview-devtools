@@ -45,6 +45,6 @@ styles.replaceSync(
   text-decoration: none;
 }
 
-/*# sourceURL=surveyLink.css */
+
 `);
 export default styles;

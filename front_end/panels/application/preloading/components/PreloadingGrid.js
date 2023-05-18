@@ -82,4 +82,4 @@ class PreloadingGrid extends HTMLElement {
 }
 export { PreloadingGrid };
 ComponentHelpers.CustomElements.defineComponent('devtools-resources-preloading-grid', PreloadingGrid);
-//# sourceMappingURL=PreloadingGrid.js.map
+//# map=PreloadingGrid.js.map

@@ -26,7 +26,7 @@ export class Performance {
         const nodesToGo = [profile.profileHead];
         const sampleDuration = (profile.profileEndTime - profile.profileStartTime) / profile.totalHitCount;
         while (nodesToGo.length) {
-            const nodes = 
+            const nodes =
             // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             nodesToGo.pop().children; // Cast to any because runtime checks assert the props.
@@ -198,4 +198,4 @@ export class Helper {
         }
     }
 }
-//# sourceMappingURL=LineLevelProfile.js.map
+//# map=LineLevelProfile.js.map

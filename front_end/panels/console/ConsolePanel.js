@@ -92,4 +92,4 @@ export class ConsoleRevealer {
         await UI.ViewManager.ViewManager.instance().showView('console-view');
     }
 }
-//# sourceMappingURL=ConsolePanel.js.map
+//# map=ConsolePanel.js.map

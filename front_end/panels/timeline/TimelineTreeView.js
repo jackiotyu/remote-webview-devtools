@@ -931,4 +931,4 @@ export class TimelineStackView extends Common.ObjectWrapper.eventMixin(UI.Widget
         Events["SelectionChanged"] = "SelectionChanged";
     })(Events = TimelineStackView.Events || (TimelineStackView.Events = {}));
 })(TimelineStackView || (TimelineStackView = {}));
-//# sourceMappingURL=TimelineTreeView.js.map
+//# map=TimelineTreeView.js.map

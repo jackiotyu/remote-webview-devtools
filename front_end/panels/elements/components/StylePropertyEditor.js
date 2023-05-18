@@ -226,4 +226,4 @@ export const GridEditableProperties = [
         ],
     },
 ];
-//# sourceMappingURL=StylePropertyEditor.js.map
+//# map=StylePropertyEditor.js.map

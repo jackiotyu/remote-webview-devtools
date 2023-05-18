@@ -24,4 +24,4 @@ import * as LinkSwatch from './LinkSwatch.js';
 import * as Swatches from './Swatches.js';
 import * as SwatchPopoverHelper from './SwatchPopoverHelper.js';
 export { AnimationTimingModel, AnimationTimingUI, BezierEditor, BezierUI, ColorMixModel, ColorMixSwatch, ColorSwatch, CSSAngle, CSSAngleUtils, CSSAnimationModel, CSSLength, CSSLengthUtils, CSSLinearEasingModel, CSSShadowEditor, CSSShadowModel, FontEditor, FontEditorUnitConverter, FontEditorUtils, InlineEditorUtils, LinkSwatch, Swatches, SwatchPopoverHelper, };
-//# sourceMappingURL=inline_editor.js.map
+//# map=inline_editor.js.map

@@ -1853,4 +1853,4 @@ export var Events;
      */
     Events["EntryHighlighted"] = "EntryHighlighted";
 })(Events || (Events = {}));
-//# sourceMappingURL=FlameChart.js.map
+//# map=FlameChart.js.map

@@ -83,6 +83,6 @@ li {
   }
 }
 
-/*# sourceURL=consoleSidebar.css */
+
 `);
 export default styles;

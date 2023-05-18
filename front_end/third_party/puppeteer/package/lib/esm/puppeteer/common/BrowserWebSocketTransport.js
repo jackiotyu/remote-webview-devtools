@@ -47,4 +47,4 @@ export class BrowserWebSocketTransport {
     }
 }
 _BrowserWebSocketTransport_ws = new WeakMap();
-//# sourceMappingURL=BrowserWebSocketTransport.js.map
+//# map=BrowserWebSocketTransport.js.map

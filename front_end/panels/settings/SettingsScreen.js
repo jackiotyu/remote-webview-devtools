@@ -532,4 +532,4 @@ export class Revealer {
         return Promise.reject();
     }
 }
-//# sourceMappingURL=SettingsScreen.js.map
+//# map=SettingsScreen.js.map

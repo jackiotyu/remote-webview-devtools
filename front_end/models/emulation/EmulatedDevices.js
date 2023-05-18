@@ -1574,4 +1574,4 @@ const emulatedDevices = [
     },
     // DEVICE-LIST-END
 ];
-//# sourceMappingURL=EmulatedDevices.js.map
+//# map=EmulatedDevices.js.map

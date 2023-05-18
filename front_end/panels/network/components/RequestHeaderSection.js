@@ -104,4 +104,4 @@ class RequestHeaderSection extends HTMLElement {
 }
 export { RequestHeaderSection };
 ComponentHelpers.CustomElements.defineComponent('devtools-request-header-section', RequestHeaderSection);
-//# sourceMappingURL=RequestHeaderSection.js.map
+//# map=RequestHeaderSection.js.map

@@ -52,4 +52,4 @@ export class AnimationScreenshotPopover extends UI.Widget.VBox {
         this.#progressBar.style.width = (this.#currentFrame % numFrames + 1) / numFrames * 100 + '%';
     }
 }
-//# sourceMappingURL=AnimationScreenshotPopover.js.map
+//# map=AnimationScreenshotPopover.js.map

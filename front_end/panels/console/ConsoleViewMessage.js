@@ -1787,4 +1787,4 @@ export const getLongStringVisibleLength = () => {
 export const setLongStringVisibleLength = (length) => {
     longStringVisibleLength = length;
 };
-//# sourceMappingURL=ConsoleViewMessage.js.map
+//# map=ConsoleViewMessage.js.map

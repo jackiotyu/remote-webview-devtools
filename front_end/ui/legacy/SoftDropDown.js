@@ -272,4 +272,4 @@ export class SoftDropDown {
         this.list.refreshItem(item);
     }
 }
-//# sourceMappingURL=SoftDropDown.js.map
+//# map=SoftDropDown.js.map

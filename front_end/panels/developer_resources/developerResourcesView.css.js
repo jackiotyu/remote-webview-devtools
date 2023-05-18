@@ -49,6 +49,6 @@ styles.replaceSync(
   flex: auto;
 }
 
-/*# sourceURL=developerResourcesView.css */
+
 `);
 export default styles;

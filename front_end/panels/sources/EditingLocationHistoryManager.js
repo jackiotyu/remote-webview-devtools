@@ -122,4 +122,4 @@ class EditingLocationHistoryEntry {
         return this.url === uiSourceCode.url() && this.projectId === uiSourceCode.project().id();
     }
 }
-//# sourceMappingURL=EditingLocationHistoryManager.js.map
+//# map=EditingLocationHistoryManager.js.map

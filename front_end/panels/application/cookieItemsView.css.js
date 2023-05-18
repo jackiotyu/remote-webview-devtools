@@ -42,6 +42,6 @@ styles.replaceSync(
   font-weight: normal;
 }
 
-/*# sourceURL=cookieItemsView.css */
+
 `);
 export default styles;

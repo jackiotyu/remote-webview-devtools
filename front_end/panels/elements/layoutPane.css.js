@@ -172,6 +172,6 @@ that uses the dimensions to draw an outline around the element. */
   background-color: var(--item-hover-color);
 }
 
-/*# sourceURL=layoutPane.css */
+
 `);
 export default styles;

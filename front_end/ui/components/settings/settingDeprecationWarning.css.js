@@ -20,6 +20,6 @@ devtools-icon {
   padding-left: 2px;
 }
 
-/*# sourceURL=settingDeprecationWarning.css */
+
 `);
 export default styles;

@@ -50,4 +50,4 @@ Emulation.InspectedPagePlaceholder.instance =
  * @constructor
  */
 Emulation.MediaQueryInspector = EmulationModule.MediaQueryInspector.MediaQueryInspector;
-//# sourceMappingURL=emulation-legacy.js.map
+//# map=emulation-legacy.js.map

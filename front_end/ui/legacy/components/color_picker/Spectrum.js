@@ -1057,7 +1057,7 @@ export class Spectrum extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) {
             const colorValues = spec.toValues(this.color);
             this.textLabels.textContent = spec.label;
             for (let i = 0; i < this.textValues.length; ++i) {
-                UI.ARIAUtils.setAccessibleName(this.textValues[i], 
+                UI.ARIAUtils.setAccessibleName(this.textValues[i],
                 /** R in RGBA */ i18nString(UIStrings.sInS, {
                     PH1: this.textLabels.textContent.charAt(i),
                     PH2: this.textLabels.textContent,
@@ -1457,4 +1457,4 @@ export class Swatch {
         UI.ARIAUtils.setPressed(this.swatchOverlayElement, false);
     }
 }
-//# sourceMappingURL=Spectrum.js.map
+//# map=Spectrum.js.map

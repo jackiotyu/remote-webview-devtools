@@ -385,4 +385,4 @@ UI.ContextMenu.registerItem({
     actionId: 'timeline.save-to-file',
     order: 15,
 });
-//# sourceMappingURL=timeline-meta.js.map
+//# map=timeline-meta.js.map

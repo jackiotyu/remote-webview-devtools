@@ -16,4 +16,4 @@ picker?.addEventListener('input', e => {
     component.renderColor(e.target.value);
 });
 component.addEventListener(InlineEditor.ColorSwatch.ClickEvent.eventName, () => picker?.click());
-//# sourceMappingURL=change-color.js.map
+//# map=change-color.js.map

@@ -14,4 +14,4 @@ export function isErrnoException(obj) {
     return (isErrorLike(obj) &&
         ('errno' in obj || 'code' in obj || 'path' in obj || 'syscall' in obj));
 }
-//# sourceMappingURL=ErrorLike.js.map
+//# map=ErrorLike.js.map

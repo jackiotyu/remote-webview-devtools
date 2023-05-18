@@ -22,6 +22,6 @@ styles.replaceSync(
   margin: 0;
 }
 
-/*# sourceURL=requestPayloadView.css */
+
 `);
 export default styles;

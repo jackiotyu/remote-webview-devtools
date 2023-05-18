@@ -19,6 +19,6 @@ styles.replaceSync(
   color: var(--color-text-secondary);
 }
 
-/*# sourceURL=reportingApiReportsView.css */
+
 `);
 export default styles;

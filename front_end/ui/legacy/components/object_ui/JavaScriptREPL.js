@@ -104,4 +104,4 @@ export function setMaxLengthForEvaluation(value) {
 export function getMaxLengthForEvaluation() {
     return maxLengthForEvaluation;
 }
-//# sourceMappingURL=JavaScriptREPL.js.map
+//# map=JavaScriptREPL.js.map

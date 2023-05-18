@@ -88,4 +88,4 @@ class EndpointsGrid extends HTMLElement {
 }
 export { EndpointsGrid };
 ComponentHelpers.CustomElements.defineComponent('devtools-resources-endpoints-grid', EndpointsGrid);
-//# sourceMappingURL=EndpointsGrid.js.map
+//# map=EndpointsGrid.js.map

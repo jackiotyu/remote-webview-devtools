@@ -116,4 +116,4 @@ export class WebWorker extends EventEmitter {
     }
 }
 _WebWorker_executionContext = new WeakMap(), _WebWorker_client = new WeakMap(), _WebWorker_url = new WeakMap();
-//# sourceMappingURL=WebWorker.js.map
+//# map=WebWorker.js.map

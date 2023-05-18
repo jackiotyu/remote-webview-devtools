@@ -69,6 +69,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=threadsSidebarPane.css */
+
 `);
 export default styles;

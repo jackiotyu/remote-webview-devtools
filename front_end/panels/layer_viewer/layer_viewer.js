@@ -14,4 +14,4 @@ import * as LayerViewHost from './LayerViewHost.js';
 import * as PaintProfilerView from './PaintProfilerView.js';
 import * as TransformController from './TransformController.js';
 export { LayerDetailsView, Layers3DView, LayerTreeOutline, LayerViewHost, PaintProfilerView, TransformController, };
-//# sourceMappingURL=layer_viewer.js.map
+//# map=layer_viewer.js.map

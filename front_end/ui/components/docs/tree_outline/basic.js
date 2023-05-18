@@ -30,4 +30,4 @@ document.getElementById('recursively-expand')?.addEventListener('click', () => {
 document.getElementById('expand-to-belgrave-house')?.addEventListener('click', () => {
     void component.expandToAndSelectTreeNode(belgraveHouse);
 });
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

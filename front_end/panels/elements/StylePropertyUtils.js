@@ -7,4 +7,4 @@ export function getCssDeclarationAsJavascriptProperty(declaration) {
     const declarationAsJs = `'${value.replaceAll('\'', '\\\'')}'`;
     return `${declarationNameAsJs}: ${declarationAsJs}`;
 }
-//# sourceMappingURL=StylePropertyUtils.js.map
+//# map=StylePropertyUtils.js.map

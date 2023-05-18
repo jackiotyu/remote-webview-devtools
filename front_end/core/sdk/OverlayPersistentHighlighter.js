@@ -307,4 +307,4 @@ export class OverlayPersistentHighlighter {
         overlayModel.target().overlayAgent().invoke_setShowIsolatedElements({ isolatedElementHighlightConfigs });
     }
 }
-//# sourceMappingURL=OverlayPersistentHighlighter.js.map
+//# map=OverlayPersistentHighlighter.js.map

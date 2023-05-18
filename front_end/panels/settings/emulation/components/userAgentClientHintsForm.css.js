@@ -123,6 +123,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=userAgentClientHintsForm.css */
+
 `);
 export default styles;

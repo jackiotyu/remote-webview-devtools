@@ -239,4 +239,4 @@ export class ProtocolService {
         return messageResult;
     }
 }
-//# sourceMappingURL=LighthouseProtocolService.js.map
+//# map=LighthouseProtocolService.js.map

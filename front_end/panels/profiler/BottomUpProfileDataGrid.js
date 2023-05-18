@@ -228,4 +228,4 @@ export class BottomUpProfileDataGridTree extends ProfileDataGridTree {
         BottomUpProfileDataGridNode.sharedPopulate(this);
     }
 }
-//# sourceMappingURL=BottomUpProfileDataGrid.js.map
+//# map=BottomUpProfileDataGrid.js.map

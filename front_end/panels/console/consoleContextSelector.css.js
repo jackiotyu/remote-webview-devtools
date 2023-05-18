@@ -46,6 +46,6 @@ styles.replaceSync(
   color: inherit;
 }
 
-/*# sourceURL=consoleContextSelector.css */
+
 `);
 export default styles;

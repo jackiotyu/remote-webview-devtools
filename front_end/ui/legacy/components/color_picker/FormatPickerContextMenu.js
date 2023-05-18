@@ -99,4 +99,4 @@ export class FormatPickerContextMenu {
         await showPromise;
     }
 }
-//# sourceMappingURL=FormatPickerContextMenu.js.map
+//# map=FormatPickerContextMenu.js.map

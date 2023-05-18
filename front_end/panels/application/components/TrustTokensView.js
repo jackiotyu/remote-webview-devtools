@@ -166,4 +166,4 @@ function removeTrailingSlash(s) {
 }
 ComponentHelpers.CustomElements.defineComponent('devtools-trust-tokens-delete-button', TrustTokensDeleteButton);
 ComponentHelpers.CustomElements.defineComponent('devtools-trust-tokens-storage-view', TrustTokensView);
-//# sourceMappingURL=TrustTokensView.js.map
+//# map=TrustTokensView.js.map

@@ -89,6 +89,6 @@ devtools-tree-outline {
   border-radius: 3px;
 }
 
-/*# sourceURL=elementsPanel.css */
+
 `);
 export default styles;

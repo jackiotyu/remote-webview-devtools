@@ -589,4 +589,4 @@ export class UISourceCodeMetadata {
         this.contentSize = contentSize;
     }
 }
-//# sourceMappingURL=UISourceCode.js.map
+//# map=UISourceCode.js.map

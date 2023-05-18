@@ -443,4 +443,4 @@ export const stringifyWithPrecision = function stringifyWithPrecision(s, precisi
     const string = s.toFixed(precision).replace(/\.?0*$/, '');
     return string === '-0' ? '0' : string;
 };
-//# sourceMappingURL=string-utilities.js.map
+//# map=string-utilities.js.map

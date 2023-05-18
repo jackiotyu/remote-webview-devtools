@@ -40,4 +40,4 @@ export class IssuesModel extends SDKModel {
     }
 }
 SDKModel.register(IssuesModel, { capabilities: Capability.Audits, autostart: true });
-//# sourceMappingURL=IssuesModel.js.map
+//# map=IssuesModel.js.map

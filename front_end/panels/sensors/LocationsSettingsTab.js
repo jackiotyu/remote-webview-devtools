@@ -326,4 +326,4 @@ export class LocationsSettingsTab extends UI.Widget.VBox {
         }
     }
 }
-//# sourceMappingURL=LocationsSettingsTab.js.map
+//# map=LocationsSettingsTab.js.map

@@ -189,4 +189,4 @@ class LinearMemoryInspectorView extends UI.Widget.VBox {
         return highlightInfo;
     }
 }
-//# sourceMappingURL=LinearMemoryInspectorPane.js.map
+//# map=LinearMemoryInspectorPane.js.map

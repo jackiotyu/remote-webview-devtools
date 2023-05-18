@@ -98,4 +98,4 @@ export const Source = {
     MEDIA_RULE: 'mediaRule',
     IMPORT_RULE: 'importRule',
 };
-//# sourceMappingURL=CSSMedia.js.map
+//# map=CSSMedia.js.map

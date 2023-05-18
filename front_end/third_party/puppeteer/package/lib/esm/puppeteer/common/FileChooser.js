@@ -88,4 +88,4 @@ export class FileChooser {
     }
 }
 _FileChooser_element = new WeakMap(), _FileChooser_multiple = new WeakMap(), _FileChooser_handled = new WeakMap();
-//# sourceMappingURL=FileChooser.js.map
+//# map=FileChooser.js.map

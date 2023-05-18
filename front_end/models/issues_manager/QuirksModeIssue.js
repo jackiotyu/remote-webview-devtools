@@ -51,4 +51,4 @@ export class QuirksModeIssue extends Issue {
         return [new QuirksModeIssue(quirksModeIssueDetails, issuesModel)];
     }
 }
-//# sourceMappingURL=QuirksModeIssue.js.map
+//# map=QuirksModeIssue.js.map

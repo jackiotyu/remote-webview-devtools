@@ -65,6 +65,6 @@ li.storage-group-list-item::before {
   text-decoration: line-through;
 }
 
-/*# sourceURL=resourcesSidebar.css */
+
 `);
 export default styles;

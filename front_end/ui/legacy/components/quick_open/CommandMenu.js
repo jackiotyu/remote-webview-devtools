@@ -339,4 +339,4 @@ registerProvider({
     titlePrefix: () => i18nString(UIStrings.run),
     titleSuggestion: () => i18nString(UIStrings.command),
 });
-//# sourceMappingURL=CommandMenu.js.map
+//# map=CommandMenu.js.map

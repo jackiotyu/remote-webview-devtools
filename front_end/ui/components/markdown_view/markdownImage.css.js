@@ -15,6 +15,6 @@ styles.replaceSync(
   display: block;
 }
 
-/*# sourceURL=markdownImage.css */
+
 `);
 export default styles;

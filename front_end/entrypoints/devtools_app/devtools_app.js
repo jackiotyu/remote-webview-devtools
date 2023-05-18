@@ -30,4 +30,4 @@ import * as Main from '../main/main.js';
 // @ts-ignore Exposed for legacy layout tests
 self.runtime = Root.Runtime.Runtime.instance({ forceNew: true });
 new Main.MainImpl.MainImpl();
-//# sourceMappingURL=devtools_app.js.map
+//# map=devtools_app.js.map

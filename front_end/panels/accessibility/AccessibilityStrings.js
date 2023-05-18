@@ -673,4 +673,4 @@ export const AXNativeSourceTypes = {
         description: i18nLazyString(UIStrings.valueFromNativeHtmlUnknownSource),
     },
 };
-//# sourceMappingURL=AccessibilityStrings.js.map
+//# map=AccessibilityStrings.js.map

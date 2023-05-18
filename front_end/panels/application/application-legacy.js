@@ -78,4 +78,4 @@ Resources.ServiceWorkersView.setThrottleDisabledForDebugging =
 Object.defineProperty(Resources.ServiceWorkersView, '_noThrottle', {
     set: ResourcesModule.ServiceWorkersView.setThrottleDisabledForDebugging,
 });
-//# sourceMappingURL=application-legacy.js.map
+//# map=application-legacy.js.map

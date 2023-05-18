@@ -320,4 +320,4 @@ export class WebAudioView extends UI.ThrottledWidget.ThrottledWidget {
         }
     }
 }
-//# sourceMappingURL=WebAudioView.js.map
+//# map=WebAudioView.js.map

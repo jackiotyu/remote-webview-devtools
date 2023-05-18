@@ -142,6 +142,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=objectPropertiesSection.css */
+
 `);
 export default styles;

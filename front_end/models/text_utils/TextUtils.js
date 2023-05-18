@@ -279,4 +279,4 @@ export const performSearchInContent = function (content, query, caseSensitive, i
     }
     return result;
 };
-//# sourceMappingURL=TextUtils.js.map
+//# map=TextUtils.js.map

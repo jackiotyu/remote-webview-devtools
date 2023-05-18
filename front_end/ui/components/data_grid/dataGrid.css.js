@@ -168,6 +168,6 @@ th.firstVisibleColumn {
   }
 }
 
-/*# sourceURL=dataGrid.css */
+
 `);
 export default styles;

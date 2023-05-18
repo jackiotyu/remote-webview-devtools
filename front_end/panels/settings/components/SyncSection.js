@@ -100,4 +100,4 @@ function renderAccountInfoOrWarning(syncInfo) {
     </div>`;
 }
 ComponentHelpers.CustomElements.defineComponent('devtools-sync-section', SyncSection);
-//# sourceMappingURL=SyncSection.js.map
+//# map=SyncSection.js.map

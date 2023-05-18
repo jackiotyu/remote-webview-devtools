@@ -1486,4 +1486,4 @@ export class DOMModelUndoStack {
     }
 }
 SDKModel.register(DOMModel, { capabilities: Capability.DOM, autostart: true });
-//# sourceMappingURL=DOMModel.js.map
+//# map=DOMModel.js.map

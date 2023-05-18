@@ -677,4 +677,4 @@ export var Events;
     Events["PageWarningsChanged"] = "PageWarningsChanged";
     Events["AuditProgressChanged"] = "AuditProgressChanged";
 })(Events || (Events = {}));
-//# sourceMappingURL=LighthouseController.js.map
+//# map=LighthouseController.js.map

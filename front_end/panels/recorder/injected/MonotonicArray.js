@@ -14,4 +14,4 @@ export class MonotonicArray {
         return this.#nextId - 1;
     };
 }
-//# sourceMappingURL=MonotonicArray.js.map
+//# map=MonotonicArray.js.map

@@ -28,4 +28,4 @@ export const minTimeout = 1;
 export const maxTimeout = 30000;
 export const parse = PuppeteerReplay.parse;
 export const parseStep = PuppeteerReplay.parseStep;
-//# sourceMappingURL=SchemaUtils.js.map
+//# map=SchemaUtils.js.map

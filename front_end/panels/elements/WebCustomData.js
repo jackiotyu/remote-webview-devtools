@@ -47,4 +47,4 @@ export class WebCustomData {
         return this.#data.get(name);
     }
 }
-//# sourceMappingURL=WebCustomData.js.map
+//# map=WebCustomData.js.map

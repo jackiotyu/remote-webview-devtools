@@ -471,6 +471,6 @@ devtools-icon.network-panel {
    });
 */
 
-/*# sourceURL=issuesTree.css */
+
 `);
 export default styles;

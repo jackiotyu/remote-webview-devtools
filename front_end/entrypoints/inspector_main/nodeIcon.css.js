@@ -30,6 +30,6 @@ styles.replaceSync(
   filter: grayscale(100%);
 }
 
-/*# sourceURL=nodeIcon.css */
+
 `);
 export default styles;

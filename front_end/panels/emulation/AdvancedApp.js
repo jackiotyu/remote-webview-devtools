@@ -165,4 +165,4 @@ export class AdvancedAppProvider {
         return AdvancedApp.instance();
     }
 }
-//# sourceMappingURL=AdvancedApp.js.map
+//# map=AdvancedApp.js.map

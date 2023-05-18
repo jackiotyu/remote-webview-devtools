@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as WarningErrorCounter from './WarningErrorCounter.js';
 export { WarningErrorCounter, };
-//# sourceMappingURL=console_counters.js.map
+//# map=console_counters.js.map

@@ -66,6 +66,6 @@ styles.replaceSync(
   max-height: 100%;
 }
 
-/*# sourceURL=timelineHistoryManager.css */
+
 `);
 export default styles;

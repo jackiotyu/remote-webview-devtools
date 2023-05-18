@@ -338,4 +338,4 @@ export class ColorConverter {
         return ColorConverter.labToLch(l, a, b);
     }
 }
-//# sourceMappingURL=ColorConverter.js.map
+//# map=ColorConverter.js.map

@@ -83,4 +83,4 @@ async function getWSEndpoint(browserURL) {
         throw error;
     }
 }
-//# sourceMappingURL=BrowserConnector.js.map
+//# map=BrowserConnector.js.map

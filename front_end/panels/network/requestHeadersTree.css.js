@@ -238,6 +238,6 @@ styles.replaceSync(
   color: var(--color-text-primary);
 }
 
-/*# sourceURL=requestHeadersTree.css */
+
 `);
 export default styles;

@@ -59,4 +59,4 @@ export class TimeoutSettings {
     }
 }
 _TimeoutSettings_defaultTimeout = new WeakMap(), _TimeoutSettings_defaultNavigationTimeout = new WeakMap();
-//# sourceMappingURL=TimeoutSettings.js.map
+//# map=TimeoutSettings.js.map

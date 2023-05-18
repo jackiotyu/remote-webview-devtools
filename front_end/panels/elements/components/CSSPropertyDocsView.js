@@ -70,4 +70,4 @@ class CSSPropertyDocsView extends HTMLElement {
 }
 export { CSSPropertyDocsView };
 ComponentHelpers.CustomElements.defineComponent('devtools-css-property-docs-view', CSSPropertyDocsView);
-//# sourceMappingURL=CSSPropertyDocsView.js.map
+//# map=CSSPropertyDocsView.js.map

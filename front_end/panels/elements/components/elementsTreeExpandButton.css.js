@@ -48,6 +48,6 @@ styles.replaceSync(
   margin-left: 1px;
 }
 
-/*# sourceURL=elementsTreeExpandButton.css */
+
 `);
 export default styles;

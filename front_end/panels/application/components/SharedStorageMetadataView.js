@@ -185,4 +185,4 @@ class SharedStorageMetadataReportView extends HTMLElement {
 export { SharedStorageMetadataReportView };
 ComponentHelpers.CustomElements.defineComponent('devtools-shared-storage-reset-budget-button', SharedStorageResetBudgetButton);
 ComponentHelpers.CustomElements.defineComponent('devtools-shared-storage-metadata-view', SharedStorageMetadataReportView);
-//# sourceMappingURL=SharedStorageMetadataView.js.map
+//# map=SharedStorageMetadataView.js.map

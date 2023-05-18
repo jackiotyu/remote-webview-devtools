@@ -119,6 +119,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=cssShadowEditor.css */
+
 `);
 export default styles;

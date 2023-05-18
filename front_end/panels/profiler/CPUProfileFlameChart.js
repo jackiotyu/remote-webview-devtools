@@ -372,4 +372,4 @@ export class OverviewPane extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox
         this.overviewCanvas.style.height = height + 'px';
     }
 }
-//# sourceMappingURL=CPUProfileFlameChart.js.map
+//# map=CPUProfileFlameChart.js.map

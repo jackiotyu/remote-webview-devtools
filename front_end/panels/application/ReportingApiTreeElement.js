@@ -35,4 +35,4 @@ export class ReportingApiTreeElement extends ApplicationPanelTreeElement {
         return false;
     }
 }
-//# sourceMappingURL=ReportingApiTreeElement.js.map
+//# map=ReportingApiTreeElement.js.map

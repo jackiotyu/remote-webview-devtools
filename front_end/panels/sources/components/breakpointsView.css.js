@@ -277,6 +277,6 @@ details > summary:focus,
   outline-width: 0;
 }
 
-/*# sourceURL=breakpointsView.css */
+
 `);
 export default styles;

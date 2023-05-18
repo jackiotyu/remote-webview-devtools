@@ -29,7 +29,7 @@
  */
 import * as Common from '../../core/common/common.js';
 import * as WasmParser from '../../third_party/wasmparser/wasmparser.js';
-export function dissambleWASM(params, 
+export function dissambleWASM(params,
 // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 postMessage) {
@@ -101,4 +101,4 @@ postMessage) {
         postMessage({ method: 'disassemble', error });
     }
 }
-//# sourceMappingURL=WasmParserWorker.js.map
+//# map=WasmParserWorker.js.map

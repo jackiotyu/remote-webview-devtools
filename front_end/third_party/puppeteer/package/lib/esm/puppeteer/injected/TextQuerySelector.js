@@ -72,4 +72,4 @@ export const textQuerySelectorAll = (root, selector) => {
     }
     return [];
 };
-//# sourceMappingURL=TextQuerySelector.js.map
+//# map=TextQuerySelector.js.map

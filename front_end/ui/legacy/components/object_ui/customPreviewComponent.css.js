@@ -26,6 +26,6 @@ styles.replaceSync(
   display: inline-flex;
 }
 
-/*# sourceURL=customPreviewComponent.css */
+
 `);
 export default styles;

@@ -139,6 +139,6 @@ styles.replaceSync(
   display: inline-flex;
 }
 
-/*# sourceURL=originView.css */
+
 `);
 export default styles;

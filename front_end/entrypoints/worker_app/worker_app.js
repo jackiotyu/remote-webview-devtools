@@ -17,4 +17,4 @@ import * as Main from '../main/main.js';
 // @ts-ignore Exposed for legacy layout tests
 self.runtime = Root.Runtime.Runtime.instance({ forceNew: true });
 new Main.MainImpl.MainImpl();
-//# sourceMappingURL=worker_app.js.map
+//# map=worker_app.js.map

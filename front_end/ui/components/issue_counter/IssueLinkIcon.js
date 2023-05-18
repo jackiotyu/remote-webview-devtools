@@ -151,4 +151,4 @@ class IssueLinkIcon extends HTMLElement {
 }
 export { IssueLinkIcon };
 ComponentHelpers.CustomElements.defineComponent('devtools-issue-link-icon', IssueLinkIcon);
-//# sourceMappingURL=IssueLinkIcon.js.map
+//# map=IssueLinkIcon.js.map

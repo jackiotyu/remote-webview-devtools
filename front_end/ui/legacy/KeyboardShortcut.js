@@ -325,4 +325,4 @@ export const KeyBindings = {};
         }
     }
 })();
-//# sourceMappingURL=KeyboardShortcut.js.map
+//# map=KeyboardShortcut.js.map

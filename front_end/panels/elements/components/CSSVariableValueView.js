@@ -27,4 +27,4 @@ class CSSVariableValueView extends HTMLElement {
 }
 export { CSSVariableValueView };
 ComponentHelpers.CustomElements.defineComponent('devtools-css-variable-value-view', CSSVariableValueView);
-//# sourceMappingURL=CSSVariableValueView.js.map
+//# map=CSSVariableValueView.js.map

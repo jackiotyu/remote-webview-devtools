@@ -220,4 +220,4 @@ export class SearchResultsTreeElement extends UI.TreeOutline.TreeElement {
         return false;
     }
 }
-//# sourceMappingURL=SearchResultsPane.js.map
+//# map=SearchResultsPane.js.map

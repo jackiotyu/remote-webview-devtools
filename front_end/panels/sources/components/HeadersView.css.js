@@ -123,6 +123,6 @@ styles.replaceSync(
   line-height: 24px;
 }
 
-/*# sourceURL=HeadersView.css */
+
 `);
 export default styles;

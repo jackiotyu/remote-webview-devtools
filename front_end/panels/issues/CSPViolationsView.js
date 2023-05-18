@@ -80,4 +80,4 @@ export class CSPViolationsView extends UI.Widget.VBox {
         this.registerCSSFiles([cspViolationsViewStyles]);
     }
 }
-//# sourceMappingURL=CSPViolationsView.js.map
+//# map=CSPViolationsView.js.map

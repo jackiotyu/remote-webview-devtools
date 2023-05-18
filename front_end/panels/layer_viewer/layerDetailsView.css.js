@@ -42,6 +42,6 @@ ul {
   display: inline-block;
 }
 
-/*# sourceURL=layerDetailsView.css */
+
 `);
 export default styles;

@@ -315,4 +315,4 @@ export class ClassNamePrompt extends UI.TextPrompt.TextPrompt {
         });
     }
 }
-//# sourceMappingURL=ClassesPaneWidget.js.map
+//# map=ClassesPaneWidget.js.map

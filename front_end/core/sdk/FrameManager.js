@@ -209,4 +209,4 @@ export var Events;
     Events["ResourceAdded"] = "ResourceAdded";
     Events["OutermostFrameNavigated"] = "OutermostFrameNavigated";
 })(Events || (Events = {}));
-//# sourceMappingURL=FrameManager.js.map
+//# map=FrameManager.js.map

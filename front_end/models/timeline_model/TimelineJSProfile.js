@@ -284,4 +284,4 @@ export class TimelineJSProfileProcessor {
         NativeGroups["Parse"] = "Parse";
     })(NativeGroups = TimelineJSProfileProcessor.NativeGroups || (TimelineJSProfileProcessor.NativeGroups = {}));
 })(TimelineJSProfileProcessor || (TimelineJSProfileProcessor = {}));
-//# sourceMappingURL=TimelineJSProfile.js.map
+//# map=TimelineJSProfile.js.map

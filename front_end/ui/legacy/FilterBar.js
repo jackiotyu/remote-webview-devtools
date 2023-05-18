@@ -425,4 +425,4 @@ export class CheckboxFilterUI extends Common.ObjectWrapper.ObjectWrapper {
         this.dispatchEventToListeners("FilterChanged" /* FilterUIEvents.FilterChanged */);
     }
 }
-//# sourceMappingURL=FilterBar.js.map
+//# map=FilterBar.js.map

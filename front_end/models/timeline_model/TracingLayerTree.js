@@ -305,4 +305,4 @@ export class TracingLayer {
         return this.drawsContentInternal;
     }
 }
-//# sourceMappingURL=TracingLayerTree.js.map
+//# map=TracingLayerTree.js.map

@@ -91,4 +91,4 @@ WebAudio.GraphVisualizer.generateInputPortId = WebAudioModule.NodeView.generateI
 WebAudio.GraphVisualizer.generateOutputPortId = WebAudioModule.NodeView.generateOutputPortId;
 WebAudio.GraphVisualizer.generateParamPortId = WebAudioModule.NodeView.generateParamPortId;
 WebAudio.GraphVisualizer.measureTextWidth = WebAudioModule.NodeView.measureTextWidth;
-//# sourceMappingURL=web_audio-legacy.js.map
+//# map=web_audio-legacy.js.map

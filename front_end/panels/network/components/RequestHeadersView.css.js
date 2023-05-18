@@ -179,6 +179,6 @@ summary label:hover {
   color: var(--color-text-primary);
 }
 
-/*# sourceURL=RequestHeadersView.css */
+
 `);
 export default styles;

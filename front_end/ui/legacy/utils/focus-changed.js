@@ -49,4 +49,4 @@ export function focusChanged(event) {
     WidgetfocusWidgetForNode(element);
     XWidgetfocusWidgetForNode(element);
 }
-//# sourceMappingURL=focus-changed.js.map
+//# map=focus-changed.js.map

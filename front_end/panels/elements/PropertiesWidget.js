@@ -175,4 +175,4 @@ export class PropertiesWidget extends UI.ThrottledWidget.ThrottledWidget {
         this.registerCSSFiles([propertiesWidgetStyles]);
     }
 }
-//# sourceMappingURL=PropertiesWidget.js.map
+//# map=PropertiesWidget.js.map

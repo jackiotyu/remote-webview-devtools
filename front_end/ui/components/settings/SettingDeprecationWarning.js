@@ -30,4 +30,4 @@ class SettingDeprecationWarning extends HTMLElement {
 }
 export { SettingDeprecationWarning };
 ComponentHelpers.CustomElements.defineComponent('devtools-setting-deprecation-warning', SettingDeprecationWarning);
-//# sourceMappingURL=SettingDeprecationWarning.js.map
+//# map=SettingDeprecationWarning.js.map

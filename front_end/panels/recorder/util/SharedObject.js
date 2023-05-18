@@ -76,4 +76,4 @@ export class SharedObject {
         }
     }
 }
-//# sourceMappingURL=SharedObject.js.map
+//# map=SharedObject.js.map

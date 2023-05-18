@@ -215,4 +215,4 @@ _HTTPResponse_client = new WeakMap(), _HTTPResponse_request = new WeakMap(), _HT
     }
     return statusText;
 };
-//# sourceMappingURL=HTTPResponse.js.map
+//# map=HTTPResponse.js.map

@@ -266,4 +266,4 @@ export class IssueAggregator extends Common.ObjectWrapper.ObjectWrapper {
         return issue.code();
     }
 }
-//# sourceMappingURL=IssueAggregator.js.map
+//# map=IssueAggregator.js.map

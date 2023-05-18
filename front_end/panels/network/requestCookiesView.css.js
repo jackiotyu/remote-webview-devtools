@@ -43,6 +43,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=requestCookiesView.css */
+
 `);
 export default styles;

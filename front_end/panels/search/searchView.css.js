@@ -49,6 +49,6 @@ styles.replaceSync(
   flex: auto;
 }
 
-/*# sourceURL=searchView.css */
+
 `);
 export default styles;

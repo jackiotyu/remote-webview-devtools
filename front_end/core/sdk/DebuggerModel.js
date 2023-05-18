@@ -579,7 +579,7 @@ class DebuggerModel extends SDKModel {
         this.resetDebuggerPausedDetails();
         this.dispatchEventToListeners(Events.DebuggerResumed, this);
     }
-    parsedScriptSource(scriptId, sourceURL, startLine, startColumn, endLine, endColumn, 
+    parsedScriptSource(scriptId, sourceURL, startLine, startColumn, endLine, endColumn,
     // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     executionContextId, hash, executionContextAuxData, isLiveEdit, sourceMapURL, hasSourceURLComment, hasSyntaxError, length, isModule, originStackTrace, codeOffset, scriptLanguage, debugSymbols, embedderName) {
@@ -1191,4 +1191,4 @@ export class DebuggerPausedDetails {
 SDKModel.register(DebuggerModel, { capabilities: Capability.JS, autostart: true });
 export const LOGPOINT_SOURCE_URL = 'debugger://logpoint';
 export const COND_BREAKPOINT_SOURCE_URL = 'debugger://breakpoint';
-//# sourceMappingURL=DebuggerModel.js.map
+//# map=DebuggerModel.js.map

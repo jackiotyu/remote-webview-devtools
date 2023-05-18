@@ -76,4 +76,4 @@ export class ConsoleMessage {
     }
 }
 _ConsoleMessage_type = new WeakMap(), _ConsoleMessage_text = new WeakMap(), _ConsoleMessage_args = new WeakMap(), _ConsoleMessage_stackTraceLocations = new WeakMap();
-//# sourceMappingURL=ConsoleMessage.js.map
+//# map=ConsoleMessage.js.map

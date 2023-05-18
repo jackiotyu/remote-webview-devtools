@@ -136,4 +136,4 @@ export class NodeConnection {
     }
 }
 SDK.SDKModel.SDKModel.register(NodeChildTargetManager, { capabilities: SDK.Target.Capability.Target, autostart: true });
-//# sourceMappingURL=NodeMain.js.map
+//# map=NodeMain.js.map

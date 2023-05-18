@@ -35,6 +35,6 @@ styles.replaceSync(
   border-radius: 2px;
 }
 
-/*# sourceURL=EditableSpan.css */
+
 `);
 export default styles;

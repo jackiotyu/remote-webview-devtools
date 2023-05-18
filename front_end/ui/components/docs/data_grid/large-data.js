@@ -34,4 +34,4 @@ component.data = {
     activeSort: null,
 };
 document.getElementById('container')?.appendChild(component);
-//# sourceMappingURL=large-data.js.map
+//# map=large-data.js.map

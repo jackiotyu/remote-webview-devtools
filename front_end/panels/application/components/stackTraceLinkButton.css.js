@@ -22,6 +22,6 @@ button.link {
   font-size: inherit;
 }
 
-/*# sourceURL=stackTraceLinkButton.css */
+
 `);
 export default styles;

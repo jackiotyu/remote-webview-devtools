@@ -85,7 +85,7 @@ export class TimelinePaintProfilerView extends UI.SplitWidget.SplitWidget {
             const picture = TimelineModel.TimelineModel.EventOnTimelineData.forEvent(this.event).picture;
             snapshotPromise =
                 picture.objectPromise()
-                    .then(data => 
+                    .then(data =>
                 // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
                 // @ts-expect-error
                 this.paintProfilerModel.loadSnapshot(data['skp64']))
@@ -195,4 +195,4 @@ export class TimelinePaintImageView extends UI.Widget.Widget {
         this.registerCSSFiles([timelinePaintProfilerStyles]);
     }
 }
-//# sourceMappingURL=TimelinePaintProfilerView.js.map
+//# map=TimelinePaintProfilerView.js.map

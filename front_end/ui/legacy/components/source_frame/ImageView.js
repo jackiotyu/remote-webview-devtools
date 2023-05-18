@@ -237,4 +237,4 @@ export class ImageView extends UI.View.SimpleView {
         fileCallback(file);
     }
 }
-//# sourceMappingURL=ImageView.js.map
+//# map=ImageView.js.map

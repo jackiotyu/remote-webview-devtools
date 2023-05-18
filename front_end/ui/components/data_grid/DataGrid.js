@@ -775,4 +775,4 @@ class DataGrid extends HTMLElement {
 }
 export { DataGrid };
 ComponentHelpers.CustomElements.defineComponent('devtools-data-grid', DataGrid);
-//# sourceMappingURL=DataGrid.js.map
+//# map=DataGrid.js.map

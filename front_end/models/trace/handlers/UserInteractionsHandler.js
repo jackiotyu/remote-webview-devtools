@@ -192,4 +192,4 @@ export function data() {
         longestInteractionEvent,
     };
 }
-//# sourceMappingURL=UserInteractionsHandler.js.map
+//# map=UserInteractionsHandler.js.map

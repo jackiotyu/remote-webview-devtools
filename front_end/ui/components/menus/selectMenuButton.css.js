@@ -98,6 +98,6 @@ button[disabled] {
   color: var(--color-input-outline-disabled);
 }
 
-/*# sourceURL=selectMenuButton.css */
+
 `);
 export default styles;

@@ -22,4 +22,4 @@ export class SharedStorageTreeElement extends ApplicationPanelTreeElement {
         return false;
     }
 }
-//# sourceMappingURL=SharedStorageTreeElement.js.map
+//# map=SharedStorageTreeElement.js.map

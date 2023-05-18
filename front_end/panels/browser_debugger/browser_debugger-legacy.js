@@ -34,4 +34,4 @@ BrowserDebugger.ObjectEventListenersSidebarPane._objectGroupName =
  * @constructor
  */
 BrowserDebugger.XHRBreakpointsSidebarPane = BrowserDebuggerModule.XHRBreakpointsSidebarPane.XHRBreakpointsSidebarPane;
-//# sourceMappingURL=browser_debugger-legacy.js.map
+//# map=browser_debugger-legacy.js.map

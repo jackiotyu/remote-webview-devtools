@@ -139,4 +139,4 @@ export const computeXPath = (node, optimized, attributes) => {
     }
     return selectors;
 };
-//# sourceMappingURL=XPath.js.map
+//# map=XPath.js.map

@@ -64,4 +64,4 @@ TimelineModel.TimelineProfileTree.eventStackFrame = TimelineModelModule.Timeline
 TimelineModel.TracingLayerTree = TimelineModelModule.TracingLayerTree.TracingLayerTree;
 /** @constructor */
 TimelineModel.TracingLayer = TimelineModelModule.TracingLayerTree.TracingLayer;
-//# sourceMappingURL=timeline_model-legacy.js.map
+//# map=timeline_model-legacy.js.map

@@ -96,4 +96,4 @@ export class SourceOrderPane extends AccessibilitySubPane {
         }
     }
 }
-//# sourceMappingURL=SourceOrderView.js.map
+//# map=SourceOrderView.js.map

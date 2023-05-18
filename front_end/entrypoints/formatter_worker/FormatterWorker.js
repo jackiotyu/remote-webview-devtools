@@ -162,4 +162,4 @@ export function format(mimeType, text, indentString) {
     }
 })();
 export { substituteExpression };
-//# sourceMappingURL=FormatterWorker.js.map
+//# map=FormatterWorker.js.map

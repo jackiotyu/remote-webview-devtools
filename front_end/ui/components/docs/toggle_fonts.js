@@ -61,4 +61,4 @@ export function init() {
         document.body.appendChild(button);
     });
 }
-//# sourceMappingURL=toggle_fonts.js.map
+//# map=toggle_fonts.js.map

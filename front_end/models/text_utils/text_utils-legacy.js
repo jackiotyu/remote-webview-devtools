@@ -29,4 +29,4 @@ TextUtils.FilterParser = TextUtilsModule.TextUtils.FilterParser;
 /** @constructor */
 TextUtils.BalancedJSONTokenizer = TextUtilsModule.TextUtils.BalancedJSONTokenizer;
 TextUtils.isMinified = TextUtilsModule.TextUtils.isMinified;
-//# sourceMappingURL=text_utils-legacy.js.map
+//# map=text_utils-legacy.js.map

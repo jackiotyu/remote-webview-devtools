@@ -77,6 +77,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=iconButton.css */
+
 `);
 export default styles;

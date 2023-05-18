@@ -53,4 +53,4 @@ class WebAuthnDispatcher {
     }
 }
 SDKModel.register(WebAuthnModel, { capabilities: Capability.WebAuthn, autostart: false });
-//# sourceMappingURL=WebAuthnModel.js.map
+//# map=WebAuthnModel.js.map

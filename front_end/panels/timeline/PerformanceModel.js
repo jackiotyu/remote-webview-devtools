@@ -220,4 +220,4 @@ export var Events;
     Events["WindowChanged"] = "WindowChanged";
     Events["NamesResolved"] = "NamesResolved";
 })(Events || (Events = {}));
-//# sourceMappingURL=PerformanceModel.js.map
+//# map=PerformanceModel.js.map

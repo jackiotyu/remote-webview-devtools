@@ -86,4 +86,4 @@ function applySubstitution(expression, replacements) {
     accumulator.push(expression.slice(last));
     return accumulator.join('');
 }
-//# sourceMappingURL=Substitute.js.map
+//# map=Substitute.js.map

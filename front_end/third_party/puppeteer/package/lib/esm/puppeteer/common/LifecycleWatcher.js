@@ -212,4 +212,4 @@ _LifecycleWatcher_expectedLifecycle = new WeakMap(), _LifecycleWatcher_frameMana
         return true;
     }
 };
-//# sourceMappingURL=LifecycleWatcher.js.map
+//# map=LifecycleWatcher.js.map

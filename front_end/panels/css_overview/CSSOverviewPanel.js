@@ -165,4 +165,4 @@ export class CSSOverviewPanel extends UI.Panel.Panel {
         this.registerCSSFiles([cssOverviewStyles]);
     }
 }
-//# sourceMappingURL=CSSOverviewPanel.js.map
+//# map=CSSOverviewPanel.js.map

@@ -15,4 +15,4 @@ export function handleEvent(event) {
 export function data() {
     return { animations };
 }
-//# sourceMappingURL=AnimationHandler.js.map
+//# map=AnimationHandler.js.map

@@ -46,6 +46,6 @@ styles.replaceSync(
   outline-offset: 2px;
 }
 
-/*# sourceURL=stackTraceRow.css */
+
 `);
 export default styles;

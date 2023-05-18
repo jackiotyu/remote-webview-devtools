@@ -73,4 +73,4 @@ class RuleSetGrid extends HTMLElement {
 }
 export { RuleSetGrid };
 ComponentHelpers.CustomElements.defineComponent('devtools-resources-ruleset-grid', RuleSetGrid);
-//# sourceMappingURL=RuleSetGrid.js.map
+//# map=RuleSetGrid.js.map

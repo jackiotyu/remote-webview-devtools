@@ -326,6 +326,6 @@ styles.replaceSync(
   left: calc(50% - var(--dimension) / 2);
 }
 
-/*# sourceURL=stylesSidebarPane.css */
+
 `);
 export default styles;

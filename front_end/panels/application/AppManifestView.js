@@ -956,4 +956,4 @@ export class AppManifestView extends UI.Widget.VBox {
         this.registerCSSFiles([appManifestViewStyles]);
     }
 }
-//# sourceMappingURL=AppManifestView.js.map
+//# map=AppManifestView.js.map

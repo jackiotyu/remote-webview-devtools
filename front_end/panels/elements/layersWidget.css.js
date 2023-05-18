@@ -34,6 +34,6 @@ styles.replaceSync(
   padding: 0;
 }
 
-/*# sourceURL=layersWidget.css */
+
 `);
 export default styles;

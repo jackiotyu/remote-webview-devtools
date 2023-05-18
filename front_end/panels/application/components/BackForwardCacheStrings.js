@@ -603,4 +603,4 @@ export const NotRestoredReasonDescription = {
     'AuthorizationHeader': { name: i18nLazyString(UIStrings.authorizationHeader) },
     'IndexedDBEvent': { name: i18nLazyString(UIStrings.indexedDBEvent) },
 };
-//# sourceMappingURL=BackForwardCacheStrings.js.map
+//# map=BackForwardCacheStrings.js.map

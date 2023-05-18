@@ -1563,4 +1563,4 @@ export class StylePropertyTreeElement extends UI.TreeOutline.TreeElement {
         return event.target === this.expandElement;
     }
 }
-//# sourceMappingURL=StylePropertyTreeElement.js.map
+//# map=StylePropertyTreeElement.js.map

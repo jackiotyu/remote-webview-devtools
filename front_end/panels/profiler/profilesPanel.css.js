@@ -172,6 +172,6 @@ button {
   }
 }
 
-/*# sourceURL=profilesPanel.css */
+
 `);
 export default styles;

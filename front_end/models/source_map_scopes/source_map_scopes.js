@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as NamesResolver from './NamesResolver.js';
 export { NamesResolver };
-//# sourceMappingURL=source_map_scopes.js.map
+//# map=source_map_scopes.js.map

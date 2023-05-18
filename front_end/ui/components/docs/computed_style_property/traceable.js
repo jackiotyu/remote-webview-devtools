@@ -10,4 +10,4 @@ component.innerHTML = `
   `;
 component.traceable = true;
 component.inherited = false;
-//# sourceMappingURL=traceable.js.map
+//# map=traceable.js.map

@@ -1527,4 +1527,4 @@ export const config = {
         }
     ]
 };
-//# sourceMappingURL=ARIAProperties.js.map
+//# map=ARIAProperties.js.map

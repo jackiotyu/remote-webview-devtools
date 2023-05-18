@@ -100,4 +100,4 @@ export class DeveloperResourcesView extends UI.ThrottledWidget.ThrottledWidget {
         this.registerCSSFiles([developerResourcesViewStyles]);
     }
 }
-//# sourceMappingURL=DeveloperResourcesView.js.map
+//# map=DeveloperResourcesView.js.map

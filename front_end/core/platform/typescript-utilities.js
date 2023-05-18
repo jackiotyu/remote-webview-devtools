@@ -22,4 +22,4 @@ export function assertNever(type, message) {
 export function assertUnhandled(_caseVariable) {
     return _caseVariable;
 }
-//# sourceMappingURL=typescript-utilities.js.map
+//# map=typescript-utilities.js.map

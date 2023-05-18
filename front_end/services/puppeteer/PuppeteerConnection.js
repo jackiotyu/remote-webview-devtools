@@ -74,4 +74,4 @@ export class PuppeteerConnectionHelper {
         return { page, browser, puppeteerConnection };
     }
 }
-//# sourceMappingURL=PuppeteerConnection.js.map
+//# map=PuppeteerConnection.js.map

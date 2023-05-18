@@ -59,6 +59,6 @@ styles.replaceSync(
   white-space: pre-line;
 }
 
-/*# sourceURL=coverageView.css */
+
 `);
 export default styles;

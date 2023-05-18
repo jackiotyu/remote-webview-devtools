@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as ChromeLink from './ChromeLink.js';
 export { ChromeLink, };
-//# sourceMappingURL=chrome_link.js.map
+//# map=chrome_link.js.map

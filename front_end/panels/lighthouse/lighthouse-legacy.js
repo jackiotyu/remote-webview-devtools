@@ -19,4 +19,4 @@ Lighthouse.ReportSelector = LighthouseModule.LighthouseReportSelector.ReportSele
  * @constructor
  */
 Lighthouse.StatusView = LighthouseModule.LighthouseStatusView.StatusView;
-//# sourceMappingURL=lighthouse-legacy.js.map
+//# map=lighthouse-legacy.js.map

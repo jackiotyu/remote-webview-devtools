@@ -383,4 +383,4 @@ class LayerTreeDispatcher {
         this.layerTreeModel.layerPainted(layerId, clip);
     }
 }
-//# sourceMappingURL=LayerTreeModel.js.map
+//# map=LayerTreeModel.js.map

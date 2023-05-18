@@ -113,4 +113,4 @@ export class FrameTree {
     }
 }
 _FrameTree_frames = new WeakMap(), _FrameTree_parentIds = new WeakMap(), _FrameTree_childIds = new WeakMap(), _FrameTree_mainFrame = new WeakMap(), _FrameTree_waitRequests = new WeakMap();
-//# sourceMappingURL=FrameTree.js.map
+//# map=FrameTree.js.map

@@ -139,4 +139,4 @@ Common.Revealer.registerRevealer({
         return Resources.ResourcesPanel.FrameDetailsRevealer.instance();
     },
 });
-//# sourceMappingURL=application-meta.js.map
+//# map=application-meta.js.map

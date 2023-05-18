@@ -31,4 +31,4 @@ imageComponent.data = {
     key: 'test-image',
     title: 'Test image title',
 };
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

@@ -8,4 +8,4 @@ import * as ResourceLoader from './ResourceLoader.js';
 import * as UserMetrics from './UserMetrics.js';
 export { InspectorFrontendHost, InspectorFrontendHostAPI, Platform, ResourceLoader, UserMetrics, };
 export const userMetrics = new UserMetrics.UserMetrics();
-//# sourceMappingURL=host.js.map
+//# map=host.js.map

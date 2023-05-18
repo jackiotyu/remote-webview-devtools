@@ -74,4 +74,4 @@ QuickOpen.FilteredListWidget.registerProvider({
     titlePrefix: i18nLazyString(UIStrings.run),
     titleSuggestion: i18nLazyString(UIStrings.snippet),
 });
-//# sourceMappingURL=SnippetsQuickOpen.js.map
+//# map=SnippetsQuickOpen.js.map

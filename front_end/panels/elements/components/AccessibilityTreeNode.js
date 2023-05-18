@@ -69,4 +69,4 @@ class AccessibilityTreeNode extends HTMLElement {
 }
 export { AccessibilityTreeNode };
 ComponentHelpers.CustomElements.defineComponent('devtools-accessibility-tree-node', AccessibilityTreeNode);
-//# sourceMappingURL=AccessibilityTreeNode.js.map
+//# map=AccessibilityTreeNode.js.map

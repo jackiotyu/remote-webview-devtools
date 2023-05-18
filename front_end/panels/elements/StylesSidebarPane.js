@@ -2038,4 +2038,4 @@ export class ButtonProvider {
         return this.button;
     }
 }
-//# sourceMappingURL=StylesSidebarPane.js.map
+//# map=StylesSidebarPane.js.map

@@ -34,4 +34,4 @@ export const xpathQuerySelectorAll = (root, selector) => {
     }
     return array;
 };
-//# sourceMappingURL=XPathQuerySelector.js.map
+//# map=XPathQuerySelector.js.map

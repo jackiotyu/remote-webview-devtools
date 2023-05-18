@@ -41,6 +41,6 @@ span.ax-internal-role {
   margin: 5px;
 }
 
-/*# sourceURL=accessibilityProperties.css */
+
 `);
 export default styles;

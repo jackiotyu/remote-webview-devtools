@@ -347,4 +347,4 @@ export class ConsolePin {
         this.pinElement.classList.toggle('error-level', Boolean(isError));
     }
 }
-//# sourceMappingURL=ConsolePinPane.js.map
+//# map=ConsolePinPane.js.map

@@ -26,6 +26,6 @@ styles.replaceSync(
   overflow: hidden;
 }
 
-/*# sourceURL=reportSection.css */
+
 `);
 export default styles;

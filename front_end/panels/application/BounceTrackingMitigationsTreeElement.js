@@ -46,4 +46,4 @@ export class BounceTrackingMitigationsViewWidgetWrapper extends UI.ThrottledWidg
         this.update();
     }
 }
-//# sourceMappingURL=BounceTrackingMitigationsTreeElement.js.map
+//# map=BounceTrackingMitigationsTreeElement.js.map

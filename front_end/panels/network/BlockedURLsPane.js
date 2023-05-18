@@ -243,4 +243,4 @@ export class BlockedURLsPane extends UI.Widget.VBox {
         this.registerCSSFiles([blockedURLsPaneStyles]);
     }
 }
-//# sourceMappingURL=BlockedURLsPane.js.map
+//# map=BlockedURLsPane.js.map

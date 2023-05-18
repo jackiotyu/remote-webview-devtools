@@ -1762,19 +1762,19 @@ export class NetworkLogView extends Common.ObjectWrapper.eventMixin(UI.Widget.VB
         function escapeStringWin(str) {
             /* If there are no new line characters do not escape the " characters
                since it only uglifies the command.
-      
+
                Because cmd.exe parser and MS Crt arguments parsers use some of the
                same escape characters, they can interact with each other in
                horrible ways, the order of operations is critical.
-      
+
                Replace \ with \\ first because it is an escape character for certain
                conditions in both parsers.
-      
+
                Replace all " with \" to ensure the first parser does not remove it.
-      
+
                Then escape all characters we are not sure about with ^ to ensure it
                gets to MS Crt parser safely.
-      
+
                The % character is special because MS Crt parser will try and look for
                ENV variables and fill them in its place. We cannot escape them with %
                and cannot escape them with ^ (because it's cmd.exe's escape not MS Crt
@@ -1782,7 +1782,7 @@ export class NetworkLogView extends Common.ObjectWrapper.eventMixin(UI.Widget.VB
                if it is followed by a valid beginning character of an ENV variable.
                This ensures we do not try and double escape another ^ if it was placed
                by the previous replace.
-      
+
                Lastly we replace new lines with ^ and TWO new lines because the first
                new line is there to enact the escape command the second is the character
                to escape (in this case new line).
@@ -1983,4 +1983,4 @@ export const HTTPSchemas = {
     'wss': true,
 };
 const searchKeys = Object.values(NetworkForward.UIFilter.FilterType);
-//# sourceMappingURL=NetworkLogView.js.map
+//# map=NetworkLogView.js.map

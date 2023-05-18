@@ -11,4 +11,4 @@ export { InspectorBackend, NodeURL, };
 self.Protocol = self.Protocol || {};
 // FIXME: This instance of InspectorBackend should not be a side effect of importing this module.
 InspectorBackendCommands.registerCommands(InspectorBackend.inspectorBackend);
-//# sourceMappingURL=protocol_client.js.map
+//# map=protocol_client.js.map

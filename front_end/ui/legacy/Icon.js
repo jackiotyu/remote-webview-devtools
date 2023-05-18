@@ -298,4 +298,4 @@ const initialDescriptors = new Map([
     ['watch', { position: 'a1', spritesheet: 'watch', isMask: true }],
 ]);
 const descriptors = initialDescriptors;
-//# sourceMappingURL=Icon.js.map
+//# map=Icon.js.map

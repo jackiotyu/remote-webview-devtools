@@ -112,4 +112,4 @@ export function getSyncEventLevel(event, openEvents) {
     openEvents.push(event);
     return level;
 }
-//# sourceMappingURL=AppenderUtils.js.map
+//# map=AppenderUtils.js.map

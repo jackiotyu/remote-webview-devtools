@@ -16,4 +16,4 @@ Root.runtime;
 Root.Runtime.Extension = RootModule.Runtime.Extension;
 /** @constructor */
 Root.Runtime.Module = RootModule.Runtime.Module;
-//# sourceMappingURL=root-legacy.js.map
+//# map=root-legacy.js.map

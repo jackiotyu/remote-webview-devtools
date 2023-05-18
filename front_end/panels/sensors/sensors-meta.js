@@ -257,4 +257,4 @@ Common.Settings.registerSettingExtension({
         },
     ],
 });
-//# sourceMappingURL=sensors-meta.js.map
+//# map=sensors-meta.js.map

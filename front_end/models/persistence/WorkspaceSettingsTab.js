@@ -158,4 +158,4 @@ export class WorkspaceSettingsTab extends UI.Widget.VBox {
         }
     }
 }
-//# sourceMappingURL=WorkspaceSettingsTab.js.map
+//# map=WorkspaceSettingsTab.js.map

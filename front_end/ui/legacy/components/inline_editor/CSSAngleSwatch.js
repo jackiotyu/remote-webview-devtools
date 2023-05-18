@@ -41,4 +41,4 @@ class CSSAngleSwatch extends HTMLElement {
 }
 export { CSSAngleSwatch };
 ComponentHelpers.CustomElements.defineComponent('devtools-css-angle-swatch', CSSAngleSwatch);
-//# sourceMappingURL=CSSAngleSwatch.js.map
+//# map=CSSAngleSwatch.js.map

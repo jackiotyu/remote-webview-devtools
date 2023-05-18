@@ -7,4 +7,4 @@ import * as Input from '../../input/input.js';
 await ComponentHelpers.ComponentServerSetup.setup();
 await FrontendHelpers.initializeGlobalVars();
 document.adoptedStyleSheets = [Input.textInputStyles];
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

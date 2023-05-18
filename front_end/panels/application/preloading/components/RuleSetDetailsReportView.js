@@ -248,4 +248,4 @@ class RuleSetDetailsReportView extends HTMLElement {
 }
 export { RuleSetDetailsReportView };
 ComponentHelpers.CustomElements.defineComponent('devtools-resources-rulesets-details-report-view', RuleSetDetailsReportView);
-//# sourceMappingURL=RuleSetDetailsReportView.js.map
+//# map=RuleSetDetailsReportView.js.map

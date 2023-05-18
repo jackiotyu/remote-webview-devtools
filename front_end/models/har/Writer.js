@@ -117,4 +117,4 @@ export class Writer {
 }
 export const jsonIndent = 2;
 export const chunkSize = 100000;
-//# sourceMappingURL=Writer.js.map
+//# map=Writer.js.map

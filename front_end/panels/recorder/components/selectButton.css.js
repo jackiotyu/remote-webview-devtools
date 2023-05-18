@@ -112,6 +112,6 @@ devtools-select-menu[disabled].secondary:hover {
   --override-select-menu-background-color: var(--color-background);
 }
 
-/*# sourceURL=selectButton.css */
+
 `);
 export default styles;

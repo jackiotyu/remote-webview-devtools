@@ -79,4 +79,4 @@ export const withThousandsSeparator = function (num) {
     } // \xa0 is a non-breaking space
     return str;
 };
-//# sourceMappingURL=number-utilities.js.map
+//# map=number-utilities.js.map

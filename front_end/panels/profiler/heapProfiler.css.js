@@ -237,6 +237,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=heapProfiler.css */
+
 `);
 export default styles;

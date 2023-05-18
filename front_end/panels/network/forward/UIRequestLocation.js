@@ -59,4 +59,4 @@ export class UIRequestLocation {
         return new UIRequestLocation(request, null, null, false, tab, filterOptions);
     }
 }
-//# sourceMappingURL=UIRequestLocation.js.map
+//# map=UIRequestLocation.js.map

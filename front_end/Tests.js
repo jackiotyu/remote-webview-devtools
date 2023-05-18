@@ -1524,7 +1524,7 @@
         SDK.SourceMapManager.Events.SourceMapAttached, this.releaseControl.bind(this));
 
     this.evaluateInConsole_(
-        `console.log(1) //# sourceMappingURL=chrome-extension://${extensionId}/source.map`, () => {});
+        `console.log(1) //# map=chrome-extension://${extensionId}/source.map`, () => {});
   };
 
   TestSuite.prototype.testSourceMapsFromDevtools = function() {
@@ -1534,11 +1534,11 @@
         SDK.SourceMapManager.Events.SourceMapWillAttach, this.releaseControl.bind(this));
 
     this.evaluateInConsole_(
-        'console.log(1) //# sourceMappingURL=devtools://devtools/bundled/devtools_compatibility.js', () => {});
+        'console.log(1) //# map=devtools://devtools/bundled/devtools_compatibility.js', () => {});
   };
 
   TestSuite.prototype.testDoesNotCrashOnSourceMapsFromUnknownScheme = function() {
-    this.evaluateInConsole_('console.log(1) //# sourceMappingURL=invalid-scheme://source.map', () => {});
+    this.evaluateInConsole_('console.log(1) //# map=invalid-scheme://source.map', () => {});
   };
 
   /**

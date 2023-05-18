@@ -80,6 +80,6 @@ styles.replaceSync(
   margin-bottom: 6px;
 }
 
-/*# sourceURL=backgroundServiceView.css */
+
 `);
 export default styles;

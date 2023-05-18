@@ -340,4 +340,4 @@ export class XHRBreakpointsSidebarPane extends UI.Widget.VBox {
         this.registerCSSFiles([xhrBreakpointsSidebarPaneStyles]);
     }
 }
-//# sourceMappingURL=XHRBreakpointsSidebarPane.js.map
+//# map=XHRBreakpointsSidebarPane.js.map

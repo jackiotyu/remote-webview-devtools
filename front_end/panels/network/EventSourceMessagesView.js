@@ -120,4 +120,4 @@ export const Comparators = {
     'type': EventSourceMessageNodeComparator.bind(null, message => message.eventName),
     'time': EventSourceMessageNodeComparator.bind(null, message => message.time),
 };
-//# sourceMappingURL=EventSourceMessagesView.js.map
+//# map=EventSourceMessagesView.js.map

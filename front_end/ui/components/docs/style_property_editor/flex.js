@@ -40,4 +40,4 @@ component.addEventListener('propertydeselected', (event) => {
         authoredProperties,
     };
 });
-//# sourceMappingURL=flex.js.map
+//# map=flex.js.map

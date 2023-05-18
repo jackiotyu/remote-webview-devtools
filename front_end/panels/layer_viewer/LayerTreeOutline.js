@@ -241,4 +241,4 @@ export class LayerTreeElement extends UI.TreeOutline.TreeElement {
     }
 }
 export const layerToTreeElement = new WeakMap();
-//# sourceMappingURL=LayerTreeOutline.js.map
+//# map=LayerTreeOutline.js.map

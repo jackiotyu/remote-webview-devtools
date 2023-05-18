@@ -282,4 +282,4 @@ export class Dialog {
             .then(this.resize.bind(this));
     }
 }
-//# sourceMappingURL=FilmStripView.js.map
+//# map=FilmStripView.js.map

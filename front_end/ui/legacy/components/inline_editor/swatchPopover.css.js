@@ -21,6 +21,6 @@ styles.replaceSync(
   line-height: 11px;
 }
 
-/*# sourceURL=swatchPopover.css */
+
 `);
 export default styles;

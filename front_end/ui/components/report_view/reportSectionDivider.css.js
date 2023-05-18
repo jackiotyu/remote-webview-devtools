@@ -19,6 +19,6 @@ styles.replaceSync(
   border-bottom: 1px solid var(--color-details-hairline);
 }
 
-/*# sourceURL=reportSectionDivider.css */
+
 `);
 export default styles;

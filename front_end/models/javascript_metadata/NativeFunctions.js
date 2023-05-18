@@ -8446,4 +8446,4 @@ export const NativeFunctions = [
         signatures: [['session']]
     }
 ];
-//# sourceMappingURL=NativeFunctions.js.map
+//# map=NativeFunctions.js.map

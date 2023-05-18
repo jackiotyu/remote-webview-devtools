@@ -24,4 +24,4 @@ export class DataGridControllerIntegrator extends UI.Widget.VBox {
         this.dataGrid.data = data;
     }
 }
-//# sourceMappingURL=DataGridControllerIntegrator.js.map
+//# map=DataGridControllerIntegrator.js.map

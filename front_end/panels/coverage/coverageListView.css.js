@@ -105,6 +105,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=coverageListView.css */
+
 `);
 export default styles;

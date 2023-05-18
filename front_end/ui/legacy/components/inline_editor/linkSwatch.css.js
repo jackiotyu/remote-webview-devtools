@@ -31,6 +31,6 @@ styles.replaceSync(
   color: var(--override-link-swatch-link-undefined-color);
 }
 
-/*# sourceURL=linkSwatch.css */
+
 `);
 export default styles;

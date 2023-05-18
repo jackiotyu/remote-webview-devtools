@@ -9,4 +9,4 @@ CookieTable = CookieTable || {};
 CookieTable.CookiesTable = CookieTableModule.CookiesTable.CookiesTable;
 /** @constructor */
 CookieTable.DataGridNode = CookieTableModule.CookiesTable.DataGridNode;
-//# sourceMappingURL=cookie_table-legacy.js.map
+//# map=cookie_table-legacy.js.map

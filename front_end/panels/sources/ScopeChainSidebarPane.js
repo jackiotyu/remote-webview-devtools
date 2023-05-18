@@ -204,12 +204,12 @@ export class ScopeChainSidebarPane extends UI.Widget.VBox {
         if (isFirstScope) {
             const exception = details.exception();
             if (exception) {
-                extraProperties.push(new SDK.RemoteObject.RemoteObjectProperty(i18nString(UIStrings.exception), exception, undefined, undefined, undefined, undefined, undefined, 
+                extraProperties.push(new SDK.RemoteObject.RemoteObjectProperty(i18nString(UIStrings.exception), exception, undefined, undefined, undefined, undefined, undefined,
                 /* synthetic */ true));
             }
             const returnValue = callFrame.returnValue();
             if (returnValue) {
-                extraProperties.push(new SDK.RemoteObject.RemoteObjectProperty(i18nString(UIStrings.returnValue), returnValue, undefined, undefined, undefined, undefined, undefined, 
+                extraProperties.push(new SDK.RemoteObject.RemoteObjectProperty(i18nString(UIStrings.returnValue), returnValue, undefined, undefined, undefined, undefined, undefined,
                 /* synthetic */ true, callFrame.setReturnValue.bind(callFrame)));
             }
         }
@@ -247,4 +247,4 @@ export class OpenLinearMemoryInspector extends UI.Widget.VBox {
         void controller.openInspectorView(obj, /* address */ undefined, expression);
     }
 }
-//# sourceMappingURL=ScopeChainSidebarPane.js.map
+//# map=ScopeChainSidebarPane.js.map

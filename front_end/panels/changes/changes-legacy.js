@@ -19,4 +19,4 @@ Changes.ChangesView.RowType = ChangesModule.ChangesView.RowType;
  * @implements {Common.Revealer}
  */
 Changes.ChangesView.DiffUILocationRevealer = ChangesModule.ChangesView.DiffUILocationRevealer;
-//# sourceMappingURL=changes-legacy.js.map
+//# map=changes-legacy.js.map

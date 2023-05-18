@@ -28,6 +28,6 @@ styles.replaceSync(
   vertical-align: middle;
 }
 
-/*# sourceURL=RequestTrustTokensView.css */
+
 `);
 export default styles;

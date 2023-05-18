@@ -76,4 +76,4 @@ export function findFrameIdByExecutionContext(targets, executionContextId) {
 export const isFrameTargetInfo = (target) => {
     return target.type === 'page' || target.type === 'iframe';
 };
-//# sourceMappingURL=SDKUtils.js.map
+//# map=SDKUtils.js.map

@@ -531,4 +531,4 @@ export class SoftContextMenu {
         this.focusOnTheFirstItem = focusOnTheFirstItem;
     }
 }
-//# sourceMappingURL=SoftContextMenu.js.map
+//# map=SoftContextMenu.js.map

@@ -1241,4 +1241,4 @@ export class PseudoStateMarkerDecorator {
         return { color: 'orange', title: i18nString(UIStrings.elementStateS, { PH1: ':' + pseudoState.join(', :') }) };
     }
 }
-//# sourceMappingURL=ElementsPanel.js.map
+//# map=ElementsPanel.js.map

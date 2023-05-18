@@ -77,6 +77,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=xhrBreakpointsSidebarPane.css */
+
 `);
 export default styles;

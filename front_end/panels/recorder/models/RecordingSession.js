@@ -602,4 +602,4 @@ export class RecordingSession extends Common.ObjectWrapper.ObjectWrapper {
         ]);
     }
 }
-//# sourceMappingURL=RecordingSession.js.map
+//# map=RecordingSession.js.map

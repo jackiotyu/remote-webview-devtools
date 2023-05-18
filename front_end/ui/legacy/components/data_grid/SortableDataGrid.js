@@ -119,4 +119,4 @@ export class SortableDataGridNode extends ViewportDataGridNode {
         }
     }
 }
-//# sourceMappingURL=SortableDataGrid.js.map
+//# map=SortableDataGrid.js.map

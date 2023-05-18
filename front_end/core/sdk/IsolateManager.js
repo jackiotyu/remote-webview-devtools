@@ -224,4 +224,4 @@ export class MemoryTrend {
         return n < 2 ? 0 : (this.#sxy - this.#sx * this.#sy / n) / (this.#sxx - this.#sx * this.#sx / n);
     }
 }
-//# sourceMappingURL=IsolateManager.js.map
+//# map=IsolateManager.js.map

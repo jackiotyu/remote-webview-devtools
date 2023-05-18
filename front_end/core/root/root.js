@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as Runtime from './Runtime.js';
 export { Runtime };
-//# sourceMappingURL=root.js.map
+//# map=root.js.map

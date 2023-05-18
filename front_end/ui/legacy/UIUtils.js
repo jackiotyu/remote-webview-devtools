@@ -1342,7 +1342,7 @@ export class ConfirmDialog {
         const buttonsBar = content.createChild('div', 'button');
         const result = await new Promise(resolve => {
             const okButton = createTextButton(
-            /* text= */ i18nString(UIStrings.ok), /* clickHandler= */ () => resolve(true), /* className= */ '', 
+            /* text= */ i18nString(UIStrings.ok), /* clickHandler= */ () => resolve(true), /* className= */ '',
             /* primary= */ true);
             buttonsBar.appendChild(okButton);
             buttonsBar.appendChild(createTextButton(i18nString(UIStrings.cancel), () => resolve(false)));
@@ -1462,4 +1462,4 @@ export function getApplicableRegisteredRenderers(object) {
         return false;
     }
 }
-//# sourceMappingURL=UIUtils.js.map
+//# map=UIUtils.js.map

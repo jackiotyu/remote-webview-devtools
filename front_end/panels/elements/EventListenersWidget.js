@@ -182,8 +182,8 @@ export class EventListenersWidget extends UI.ThrottledWidget.ThrottledWidget {
             silent: true,
             returnByValue: false,
             generatePreview: false,
-        }, 
-        /* userGesture */ false, 
+        },
+        /* userGesture */ false,
         /* awaitPromise */ false)
             .then(result => {
             if ('object' in result) {
@@ -201,4 +201,4 @@ export const DispatchFilterBy = {
     Passive: 'Passive',
 };
 const objectGroupName = 'event-listeners-panel';
-//# sourceMappingURL=EventListenersWidget.js.map
+//# map=EventListenersWidget.js.map

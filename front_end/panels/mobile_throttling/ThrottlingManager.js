@@ -359,4 +359,4 @@ export class ActionDelegate {
 export function throttlingManager() {
     return ThrottlingManager.instance();
 }
-//# sourceMappingURL=ThrottlingManager.js.map
+//# map=ThrottlingManager.js.map

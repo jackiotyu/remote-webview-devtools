@@ -98,4 +98,4 @@ export class RequestPreviewView extends RequestResponseView {
         return new UI.EmptyWidget.EmptyWidget(i18nString(UIStrings.previewNotAvailable));
     }
 }
-//# sourceMappingURL=RequestPreviewView.js.map
+//# map=RequestPreviewView.js.map

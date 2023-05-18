@@ -54,7 +54,7 @@ export class ConsoleSidebar extends Common.ObjectWrapper.eventMixin(UI.Widget.VB
         this.contentElement.appendChild(this.tree.element);
         this.selectedTreeElement = null;
         this.treeElements = [];
-        const selectedFilterSetting = 
+        const selectedFilterSetting =
         // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
         // @ts-expect-error
         Common.Settings.Settings.instance().createSetting('console.sidebarSelectedFilter', null);
@@ -217,4 +217,4 @@ export class FilterTreeElement extends ConsoleSidebarTreeElement {
         return child;
     }
 }
-//# sourceMappingURL=ConsoleSidebar.js.map
+//# map=ConsoleSidebar.js.map

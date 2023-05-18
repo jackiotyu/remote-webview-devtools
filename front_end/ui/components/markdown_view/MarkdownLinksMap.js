@@ -58,4 +58,4 @@ export const getMarkdownLink = (key) => {
     }
     return link;
 };
-//# sourceMappingURL=MarkdownLinksMap.js.map
+//# map=MarkdownLinksMap.js.map

@@ -23,4 +23,4 @@ export function handleEvent(event) {
 export function data() {
     return new Map(textPaintByDOMNodeId);
 }
-//# sourceMappingURL=LargestTextPaintHandler.js.map
+//# map=LargestTextPaintHandler.js.map

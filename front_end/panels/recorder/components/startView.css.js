@@ -44,6 +44,6 @@ styles.replaceSync(
   justify-content: flex-end;
 }
 
-/*# sourceURL=startView.css */
+
 `);
 export default styles;

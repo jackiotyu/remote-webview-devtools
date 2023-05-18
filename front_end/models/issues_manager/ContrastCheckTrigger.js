@@ -57,4 +57,4 @@ export class ContrastCheckTrigger {
         }
     }
 }
-//# sourceMappingURL=ContrastCheckTrigger.js.map
+//# map=ContrastCheckTrigger.js.map

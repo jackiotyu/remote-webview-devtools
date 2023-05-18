@@ -89,4 +89,4 @@ export class ScreenshotStorage {
         return instance;
     }
 }
-//# sourceMappingURL=ScreenshotStorage.js.map
+//# map=ScreenshotStorage.js.map

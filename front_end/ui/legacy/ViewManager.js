@@ -743,4 +743,4 @@ class StackLocation extends Location {
     }
 }
 export { getRegisteredViewExtensions, maybeRemoveViewExtension, registerViewExtension, getRegisteredLocationResolvers, registerLocationResolver, ViewLocationCategory, getLocalizedViewLocationCategory, resetViewRegistration, };
-//# sourceMappingURL=ViewManager.js.map
+//# map=ViewManager.js.map

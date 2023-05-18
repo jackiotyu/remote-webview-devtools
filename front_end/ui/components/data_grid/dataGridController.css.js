@@ -17,6 +17,6 @@ styles.replaceSync(
   overflow: hidden;
 }
 
-/*# sourceURL=dataGridController.css */
+
 `);
 export default styles;

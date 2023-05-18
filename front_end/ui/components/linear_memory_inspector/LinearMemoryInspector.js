@@ -302,4 +302,4 @@ class LinearMemoryInspector extends HTMLElement {
 }
 export { LinearMemoryInspector };
 ComponentHelpers.CustomElements.defineComponent('devtools-linear-memory-inspector-inspector', LinearMemoryInspector);
-//# sourceMappingURL=LinearMemoryInspector.js.map
+//# map=LinearMemoryInspector.js.map

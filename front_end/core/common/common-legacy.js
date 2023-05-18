@@ -89,4 +89,4 @@ Common.Trie = CommonModule.Trie.Trie;
  * @type {!Common.Settings}
  */
 Common.settings;
-//# sourceMappingURL=common-legacy.js.map
+//# map=common-legacy.js.map

@@ -8,4 +8,4 @@ await ComponentHelpers.ComponentServerSetup.setup();
 await FrontendHelpers.initializeGlobalVars();
 const component = new CSSOverviewComponents.CSSOverviewStartView.CSSOverviewStartView();
 document.getElementById('container')?.appendChild(component);
-//# sourceMappingURL=start_view.js.map
+//# map=start_view.js.map

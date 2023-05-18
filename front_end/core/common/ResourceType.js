@@ -501,4 +501,4 @@ export const mimeTypeByExtension = new Map([
     // Vue
     ['vue', 'text/x.vue'],
 ]);
-//# sourceMappingURL=ResourceType.js.map
+//# map=ResourceType.js.map

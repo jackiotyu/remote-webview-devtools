@@ -89,4 +89,4 @@ class SrgbOverlay extends HTMLElement {
 }
 export { SrgbOverlay };
 ComponentHelpers.CustomElements.defineComponent('devtools-spectrum-srgb-overlay', SrgbOverlay);
-//# sourceMappingURL=SrgbOverlay.js.map
+//# map=SrgbOverlay.js.map

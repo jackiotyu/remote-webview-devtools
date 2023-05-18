@@ -996,4 +996,4 @@ export class BreakpointLocation {
 }
 const LOGPOINT_PREFIX = '/** DEVTOOLS_LOGPOINT */ console.log(';
 const LOGPOINT_SUFFIX = ')';
-//# sourceMappingURL=BreakpointManager.js.map
+//# map=BreakpointManager.js.map

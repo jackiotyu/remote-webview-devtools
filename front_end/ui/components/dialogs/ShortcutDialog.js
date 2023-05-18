@@ -136,4 +136,4 @@ class ShortcutDialog extends HTMLElement {
 }
 export { ShortcutDialog };
 ComponentHelpers.CustomElements.defineComponent('devtools-shortcut-dialog', ShortcutDialog);
-//# sourceMappingURL=ShortcutDialog.js.map
+//# map=ShortcutDialog.js.map

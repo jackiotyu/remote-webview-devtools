@@ -26,6 +26,6 @@ button.link devtools-icon {
   vertical-align: sub;
 }
 
-/*# sourceURL=preloadingDetailsReportView.css */
+
 `);
 export default styles;

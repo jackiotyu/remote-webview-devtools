@@ -85,4 +85,4 @@ for (const verticalPosition of verticalPositions) {
         i++;
     }
 }
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

@@ -92,6 +92,6 @@ styles.replaceSync(
   padding-left: 8px;
 }
 
-/*# sourceURL=sidebar.css */
+
 `);
 export default styles;

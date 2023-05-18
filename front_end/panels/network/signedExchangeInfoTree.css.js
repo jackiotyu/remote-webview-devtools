@@ -107,6 +107,6 @@ styles.replaceSync(
   margin-top: 2px;
 }
 
-/*# sourceURL=signedExchangeInfoTree.css */
+
 `);
 export default styles;

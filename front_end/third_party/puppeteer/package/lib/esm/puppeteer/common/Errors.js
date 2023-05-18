@@ -118,4 +118,4 @@ export const errors = Object.freeze({
     TimeoutError,
     ProtocolError,
 });
-//# sourceMappingURL=Errors.js.map
+//# map=Errors.js.map

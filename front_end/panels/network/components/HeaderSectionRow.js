@@ -409,4 +409,4 @@ class HeaderSectionRow extends HTMLElement {
 }
 export { HeaderSectionRow };
 ComponentHelpers.CustomElements.defineComponent('devtools-header-section-row', HeaderSectionRow);
-//# sourceMappingURL=HeaderSectionRow.js.map
+//# map=HeaderSectionRow.js.map

@@ -89,6 +89,6 @@ styles.replaceSync(
   display: flex;
 }
 
-/*# sourceURL=playerMessagesView.css */
+
 `);
 export default styles;

@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as SrgbOverlay from './SrgbOverlay.js';
 export { SrgbOverlay };
-//# sourceMappingURL=srgb_overlay.js.map
+//# map=srgb_overlay.js.map

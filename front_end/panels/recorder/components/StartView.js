@@ -92,4 +92,4 @@ class StartView extends HTMLElement {
 }
 export { StartView };
 ComponentHelpers.CustomElements.defineComponent('devtools-start-view', StartView);
-//# sourceMappingURL=StartView.js.map
+//# map=StartView.js.map

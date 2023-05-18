@@ -280,4 +280,4 @@ export class CSSProperty {
         return this.#longhandProperties;
     }
 }
-//# sourceMappingURL=CSSProperty.js.map
+//# map=CSSProperty.js.map

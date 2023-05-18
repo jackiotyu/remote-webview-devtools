@@ -160,4 +160,4 @@ class ReportsGrid extends HTMLElement {
 export { ReportsGrid };
 ComponentHelpers.CustomElements.defineComponent('devtools-resources-reports-grid-status-header', ReportsGridStatusHeader);
 ComponentHelpers.CustomElements.defineComponent('devtools-resources-reports-grid', ReportsGrid);
-//# sourceMappingURL=ReportsGrid.js.map
+//# map=ReportsGrid.js.map

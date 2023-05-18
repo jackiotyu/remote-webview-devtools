@@ -77,4 +77,4 @@ export class RecordingStorage {
         return instance;
     }
 }
-//# sourceMappingURL=RecordingStorage.js.map
+//# map=RecordingStorage.js.map

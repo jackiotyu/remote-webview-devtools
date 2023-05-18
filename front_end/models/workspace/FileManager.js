@@ -83,4 +83,4 @@ export var Events;
 (function (Events) {
     Events["AppendedToURL"] = "AppendedToURL";
 })(Events || (Events = {}));
-//# sourceMappingURL=FileManager.js.map
+//# map=FileManager.js.map

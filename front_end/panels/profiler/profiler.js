@@ -23,4 +23,4 @@ import * as ProfileTypeRegistry from './ProfileTypeRegistry.js';
 import * as ProfileView from './ProfileView.js';
 import * as TopDownProfileDataGrid from './TopDownProfileDataGrid.js';
 export { BottomUpProfileDataGrid, ChildrenProvider, CPUProfileFlameChart, CPUProfileView, HeapProfilerPanel, HeapProfileView, HeapSnapshotDataGrids, HeapSnapshotGridNodes, HeapSnapshotProxy, HeapSnapshotView, HeapTimelineOverview, IsolateSelector, LiveHeapProfileView, ProfileDataGrid, ProfileHeader, ProfileLauncherView, ProfileSidebarTreeElement, ProfilesPanel, ProfileTypeRegistry, ProfileView, TopDownProfileDataGrid, };
-//# sourceMappingURL=profiler.js.map
+//# map=profiler.js.map

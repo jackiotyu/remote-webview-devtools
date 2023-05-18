@@ -11,4 +11,4 @@ component.data = {
     feedbackUrl: 'https://www.example.com',
 };
 document.getElementById('container')?.appendChild(component);
-//# sourceMappingURL=button.js.map
+//# map=button.js.map

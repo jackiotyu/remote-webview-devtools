@@ -141,4 +141,4 @@ export class AccessibilityTreeView extends UI.Widget.VBox {
         model.removeEventListener(SDK.AccessibilityModel.Events.TreeUpdated, this.treeUpdated, this);
     }
 }
-//# sourceMappingURL=AccessibilityTreeView.js.map
+//# map=AccessibilityTreeView.js.map

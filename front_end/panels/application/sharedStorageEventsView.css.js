@@ -23,6 +23,6 @@ devtools-shared-storage-access-grid {
   color: var(--color-text-secondary);
 }
 
-/*# sourceURL=sharedStorageEventsView.css */
+
 `);
 export default styles;

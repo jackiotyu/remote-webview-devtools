@@ -24,4 +24,4 @@ export const DEFERRED_PROMISE_DEBUG_TIMEOUT = typeof process !== 'undefined' &&
     typeof process.env['PUPPETEER_DEFERRED_PROMISE_DEBUG_TIMEOUT'] !== 'undefined'
     ? Number(process.env['PUPPETEER_DEFERRED_PROMISE_DEBUG_TIMEOUT'])
     : -1;
-//# sourceMappingURL=environment.js.map
+//# map=environment.js.map

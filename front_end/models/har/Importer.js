@@ -192,4 +192,4 @@ export class Importer {
         request.endTime = issueTime + Math.max(entryTotalDuration, lastEntry) / 1000;
     }
 }
-//# sourceMappingURL=Importer.js.map
+//# map=Importer.js.map

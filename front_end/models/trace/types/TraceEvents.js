@@ -205,4 +205,4 @@ export function isSyntheticLayoutShift(traceEventData) {
     }
     return 'rawEvent' in traceEventData.args.data;
 }
-//# sourceMappingURL=TraceEvents.js.map
+//# map=TraceEvents.js.map

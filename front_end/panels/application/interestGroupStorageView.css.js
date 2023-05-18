@@ -23,6 +23,6 @@ devtools-interest-group-access-grid {
   color: var(--color-text-secondary);
 }
 
-/*# sourceURL=interestGroupStorageView.css */
+
 `);
 export default styles;

@@ -43,6 +43,6 @@ styles.replaceSync(
   padding-right: 6px;
 }
 
-/*# sourceURL=issuesPane.css */
+
 `);
 export default styles;

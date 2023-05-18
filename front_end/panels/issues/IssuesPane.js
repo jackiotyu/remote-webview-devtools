@@ -405,4 +405,4 @@ export class IssuesPane extends UI.Widget.VBox {
         this.registerCSSFiles([issuesPaneStyles]);
     }
 }
-//# sourceMappingURL=IssuesPane.js.map
+//# map=IssuesPane.js.map

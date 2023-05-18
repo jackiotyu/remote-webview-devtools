@@ -63,4 +63,4 @@ export const pierceQuerySelectorAll = (element, selector) => {
     collect(element);
     return result;
 };
-//# sourceMappingURL=PierceQuerySelector.js.map
+//# map=PierceQuerySelector.js.map

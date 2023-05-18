@@ -8,4 +8,4 @@ import * as GetRootNode from './get-root-node.js';
 import * as ScheduledRender from './scheduled-render.js';
 import * as SetCSSProperty from './set-css-property.js';
 export { ComponentServerSetup, CustomElements, Directives, GetRootNode, ScheduledRender, SetCSSProperty, };
-//# sourceMappingURL=helpers.js.map
+//# map=helpers.js.map

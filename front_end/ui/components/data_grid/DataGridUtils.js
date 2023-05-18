@@ -160,4 +160,4 @@ export const calculateFirstFocusableCell = (options) => {
     return [focusableColIndex, focusableRowIndex];
 };
 export const getCellTitleFromCellContent = (text) => text.length < 25 ? text : text.substr(0, 20) + '\u2026';
-//# sourceMappingURL=DataGridUtils.js.map
+//# map=DataGridUtils.js.map

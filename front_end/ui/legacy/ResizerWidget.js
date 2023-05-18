@@ -143,4 +143,4 @@ export class SimpleResizerWidget extends ResizerWidget {
         }
     }
 }
-//# sourceMappingURL=ResizerWidget.js.map
+//# map=ResizerWidget.js.map

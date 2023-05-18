@@ -538,4 +538,4 @@ function httpRequest(url, method, response, keepAlive = true) {
     request.end();
     return request;
 }
-//# sourceMappingURL=BrowserFetcher.js.map
+//# map=BrowserFetcher.js.map

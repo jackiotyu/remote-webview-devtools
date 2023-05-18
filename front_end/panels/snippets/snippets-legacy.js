@@ -14,4 +14,4 @@ Snippets.isSnippetsProject = SnippetsModule.ScriptSnippetFileSystem.isSnippetsPr
 Snippets.SnippetsQuickOpen = SnippetsModule.SnippetsQuickOpen.SnippetsQuickOpen;
 Snippets.ScriptSnippetFileSystem = {};
 Snippets.ScriptSnippetFileSystem.findSnippetsProject = SnippetsModule.ScriptSnippetFileSystem.findSnippetsProject;
-//# sourceMappingURL=snippets-legacy.js.map
+//# map=snippets-legacy.js.map

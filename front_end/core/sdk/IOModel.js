@@ -59,4 +59,4 @@ export class IOModel extends SDKModel {
     }
 }
 SDKModel.register(IOModel, { capabilities: Capability.IO, autostart: true });
-//# sourceMappingURL=IOModel.js.map
+//# map=IOModel.js.map

@@ -472,4 +472,4 @@ class Binding {
         return this.firstResource().searchInContent(query, caseSensitive, isRegex);
     }
 }
-//# sourceMappingURL=ResourceMapping.js.map
+//# map=ResourceMapping.js.map

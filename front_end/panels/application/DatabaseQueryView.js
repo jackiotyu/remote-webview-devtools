@@ -297,4 +297,4 @@ export const SQL_BUILT_INS = [
     'INSERT INTO ',
     'VALUES (',
 ];
-//# sourceMappingURL=DatabaseQueryView.js.map
+//# map=DatabaseQueryView.js.map

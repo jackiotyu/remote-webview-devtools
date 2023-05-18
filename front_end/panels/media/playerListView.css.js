@@ -88,6 +88,6 @@ li.storage-group-list-item::before {
   border-bottom: 1px solid var(--color-details-hairline);
 }
 
-/*# sourceURL=playerListView.css */
+
 `);
 export default styles;

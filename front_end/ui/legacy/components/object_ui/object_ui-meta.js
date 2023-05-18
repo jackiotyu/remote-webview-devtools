@@ -19,4 +19,4 @@ UI.UIUtils.registerRenderer({
         return ObjectUI.ObjectPropertiesSection.Renderer.instance();
     },
 });
-//# sourceMappingURL=object_ui-meta.js.map
+//# map=object_ui-meta.js.map

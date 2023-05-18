@@ -1629,4 +1629,4 @@ export class HeapAllocationStackView extends UI.Widget.Widget {
     }
 }
 const stackFrameToURLElement = new WeakMap();
-//# sourceMappingURL=HeapSnapshotView.js.map
+//# map=HeapSnapshotView.js.map

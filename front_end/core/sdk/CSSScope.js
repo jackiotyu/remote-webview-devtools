@@ -20,4 +20,4 @@ export class CSSScope extends CSSQuery {
         return true;
     }
 }
-//# sourceMappingURL=CSSScope.js.map
+//# map=CSSScope.js.map

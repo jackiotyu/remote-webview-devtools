@@ -113,6 +113,6 @@ styles.replaceSync(
   background-color: hsl(225deg 5% 27%);
 }
 
-/*# sourceURL=cssAngleEditor.css */
+
 `);
 export default styles;

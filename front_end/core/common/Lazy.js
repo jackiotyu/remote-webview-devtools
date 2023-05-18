@@ -24,4 +24,4 @@ export function lazy(producer) {
         }
     };
 }
-//# sourceMappingURL=Lazy.js.map
+//# map=Lazy.js.map

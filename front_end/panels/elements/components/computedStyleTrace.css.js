@@ -98,6 +98,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=computedStyleTrace.css */
+
 `);
 export default styles;

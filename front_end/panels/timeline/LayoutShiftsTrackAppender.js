@@ -57,7 +57,7 @@ export class LayoutShiftsTrackAppender {
      */
     #appendTrackHeaderAtLevel(currentLevel, expanded) {
         const style = buildGroupStyle({ collapsible: false });
-        const group = buildTrackHeader(currentLevel, i18nString(UIStrings.layoutShifts), style, 
+        const group = buildTrackHeader(currentLevel, i18nString(UIStrings.layoutShifts), style,
         /* selectable= */ true, expanded);
         this.#compatibilityBuilder.registerTrackForGroup(group, this);
     }
@@ -135,4 +135,4 @@ export class LayoutShiftsTrackAppender {
         return { title, formattedTime: getFormattedTime(event.dur) };
     }
 }
-//# sourceMappingURL=LayoutShiftsTrackAppender.js.map
+//# map=LayoutShiftsTrackAppender.js.map

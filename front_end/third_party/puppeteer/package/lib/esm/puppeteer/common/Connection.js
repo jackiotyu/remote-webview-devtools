@@ -395,4 +395,4 @@ export function isTargetClosedError(err) {
     return (err.message.includes('Target closed') ||
         err.message.includes('Session closed'));
 }
-//# sourceMappingURL=Connection.js.map
+//# map=Connection.js.map

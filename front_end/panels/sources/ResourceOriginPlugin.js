@@ -66,4 +66,4 @@ export class ResourceOriginPlugin extends Plugin {
     }
 }
 export const linkifier = new Components.Linkifier.Linkifier();
-//# sourceMappingURL=ResourceOriginPlugin.js.map
+//# map=ResourceOriginPlugin.js.map

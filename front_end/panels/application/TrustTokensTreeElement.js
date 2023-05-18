@@ -61,4 +61,4 @@ export class TrustTokensViewWidgetWrapper extends UI.ThrottledWidget.ThrottledWi
         this.update();
     }
 }
-//# sourceMappingURL=TrustTokensTreeElement.js.map
+//# map=TrustTokensTreeElement.js.map

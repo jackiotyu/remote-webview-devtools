@@ -454,4 +454,4 @@ class TreeOutline extends HTMLElement {
 }
 export { TreeOutline };
 ComponentHelpers.CustomElements.defineComponent('devtools-tree-outline', TreeOutline);
-//# sourceMappingURL=TreeOutline.js.map
+//# map=TreeOutline.js.map

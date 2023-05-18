@@ -112,6 +112,6 @@ styles.replaceSync(
   color: var(--color-accent-green);
 }
 
-/*# sourceURL=networkConfigView.css */
+
 `);
 export default styles;

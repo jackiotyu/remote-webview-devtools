@@ -1088,4 +1088,4 @@ export class AllocationGridNode extends HeapSnapshotGridNode {
         return this.allocationNode.id;
     }
 }
-//# sourceMappingURL=HeapSnapshotGridNodes.js.map
+//# map=HeapSnapshotGridNodes.js.map

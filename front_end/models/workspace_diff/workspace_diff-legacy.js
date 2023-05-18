@@ -15,4 +15,4 @@ WorkspaceDiff.Events = WorkspaceDiffModule.WorkspaceDiff.Events;
 WorkspaceDiff.workspaceDiff = WorkspaceDiffModule.WorkspaceDiff.workspaceDiff;
 /** @constructor */
 WorkspaceDiff.DiffUILocation = WorkspaceDiffModule.WorkspaceDiff.DiffUILocation;
-//# sourceMappingURL=workspace_diff-legacy.js.map
+//# map=workspace_diff-legacy.js.map

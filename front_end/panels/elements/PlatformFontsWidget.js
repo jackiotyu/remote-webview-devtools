@@ -107,4 +107,4 @@ export class PlatformFontsWidget extends UI.ThrottledWidget.ThrottledWidget {
         this.registerCSSFiles([platformFontsWidgetStyles]);
     }
 }
-//# sourceMappingURL=PlatformFontsWidget.js.map
+//# map=PlatformFontsWidget.js.map

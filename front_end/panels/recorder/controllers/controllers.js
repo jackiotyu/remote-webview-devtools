@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as SelectorPicker from './SelectorPicker.js';
 export { SelectorPicker };
-//# sourceMappingURL=controllers.js.map
+//# map=controllers.js.map

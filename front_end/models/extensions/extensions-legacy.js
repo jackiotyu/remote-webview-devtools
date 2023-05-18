@@ -13,4 +13,4 @@ Extensions.ExtensionServer = ExtensionsModule.ExtensionServer.ExtensionServer;
 Extensions.ExtensionServer.Events = ExtensionsModule.ExtensionServer.Events;
 /** @constructor */
 Extensions.ExtensionStatus = ExtensionsModule.ExtensionServer.ExtensionStatus;
-//# sourceMappingURL=extensions-legacy.js.map
+//# map=extensions-legacy.js.map

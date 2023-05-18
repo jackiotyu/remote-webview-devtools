@@ -236,6 +236,6 @@ devtools-text-prompt {
   }
 }
 
-/*# sourceURL=filteredListWidget.css */
+
 `);
 export default styles;

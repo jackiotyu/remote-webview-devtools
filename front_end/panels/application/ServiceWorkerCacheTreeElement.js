@@ -151,4 +151,4 @@ export class SWCacheTreeElement extends ApplicationPanelTreeElement {
         return this.cache.equals(cache) && this.model === model;
     }
 }
-//# sourceMappingURL=ServiceWorkerCacheTreeElement.js.map
+//# map=ServiceWorkerCacheTreeElement.js.map

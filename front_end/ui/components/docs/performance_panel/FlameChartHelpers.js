@@ -46,4 +46,4 @@ export class FakeProvider {
         return PerfUI.FlameChart.FlameChartTimelineData.createEmpty();
     }
 }
-//# sourceMappingURL=FlameChartHelpers.js.map
+//# map=FlameChartHelpers.js.map

@@ -51,4 +51,4 @@ export function data() {
 export function deps() {
     return ['Meta'];
 }
-//# sourceMappingURL=GPUHandler.js.map
+//# map=GPUHandler.js.map

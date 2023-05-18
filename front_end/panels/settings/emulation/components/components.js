@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as UserAgentClientHintsForm from './UserAgentClientHintsForm.js';
 export { UserAgentClientHintsForm, };
-//# sourceMappingURL=components.js.map
+//# map=components.js.map

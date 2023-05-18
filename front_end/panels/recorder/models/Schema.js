@@ -4,4 +4,4 @@
 /* eslint-disable rulesdir/es_modules_import */
 import { StepType, AssertedEventType, SelectorType, } from '../../../third_party/puppeteer-replay/puppeteer-replay.js';
 export { AssertedEventType, StepType, SelectorType };
-//# sourceMappingURL=Schema.js.map
+//# map=Schema.js.map

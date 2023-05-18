@@ -40,6 +40,6 @@ styles.replaceSync(
   z-index: 2000;
 }
 
-/*# sourceURL=paintProfiler.css */
+
 `);
 export default styles;

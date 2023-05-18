@@ -655,4 +655,4 @@ export class ConsoleViewport {
         return this.element.offsetHeight;
     }
 }
-//# sourceMappingURL=ConsoleViewport.js.map
+//# map=ConsoleViewport.js.map

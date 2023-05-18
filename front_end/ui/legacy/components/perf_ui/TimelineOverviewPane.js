@@ -367,4 +367,4 @@ export class OverviewInfo {
         this.glassPane.hide();
     }
 }
-//# sourceMappingURL=TimelineOverviewPane.js.map
+//# map=TimelineOverviewPane.js.map

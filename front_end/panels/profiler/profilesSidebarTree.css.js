@@ -223,6 +223,6 @@ li.wait .icon {
   }
 }
 
-/*# sourceURL=profilesSidebarTree.css */
+
 `);
 export default styles;

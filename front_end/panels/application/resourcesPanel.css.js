@@ -154,6 +154,6 @@ styles.replaceSync(
   background-color: var(--color-background);
 }
 
-/*# sourceURL=resourcesPanel.css */
+
 `);
 export default styles;

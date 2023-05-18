@@ -725,6 +725,6 @@ div.palette-preview {
   }
 }
 
-/*# sourceURL=spectrum.css */
+
 `);
 export default styles;

@@ -217,4 +217,4 @@ export class BreakpointEditDialog extends UI.Widget.Widget {
         return this.editor;
     }
 }
-//# sourceMappingURL=BreakpointEditDialog.js.map
+//# map=BreakpointEditDialog.js.map

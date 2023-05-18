@@ -48,4 +48,4 @@ SDK.ChildTargetManager.ChildTargetManager.install(async ({ target, waitingForDeb
     }
     debuggerModel.pause();
 });
-//# sourceMappingURL=WorkerMain.js.map
+//# map=WorkerMain.js.map

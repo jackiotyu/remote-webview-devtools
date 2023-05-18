@@ -202,4 +202,4 @@ UI.ContextMenu.registerItem({
     actionId: 'settings.documentation',
     order: undefined,
 });
-//# sourceMappingURL=settings-meta.js.map
+//# map=settings-meta.js.map

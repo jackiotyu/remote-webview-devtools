@@ -82,6 +82,6 @@ styles.replaceSync(
   margin-left: 16px;
 }
 
-/*# sourceURL=storageView.css */
+
 `);
 export default styles;

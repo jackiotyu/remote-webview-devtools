@@ -35,4 +35,4 @@ export function handleEvent(event) {
 export function data() {
     return new Map(imageByDOMNodeId);
 }
-//# sourceMappingURL=LargestImagePaintHandler.js.map
+//# map=LargestImagePaintHandler.js.map

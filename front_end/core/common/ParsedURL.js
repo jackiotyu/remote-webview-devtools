@@ -468,4 +468,4 @@ class ParsedURL {
     static urlRegexInstance = null;
 }
 export { ParsedURL };
-//# sourceMappingURL=ParsedURL.js.map
+//# map=ParsedURL.js.map

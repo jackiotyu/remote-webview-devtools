@@ -54,6 +54,6 @@ styles.replaceSync(
   margin: 0 1ex;
 }
 
-/*# sourceURL=platformFontsWidget.css */
+
 `);
 export default styles;

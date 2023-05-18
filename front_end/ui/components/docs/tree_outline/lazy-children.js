@@ -80,4 +80,4 @@ document.getElementById('container')?.appendChild(component);
 document.getElementById('recursively-expand')?.addEventListener('click', () => {
     void component.expandRecursively();
 });
-//# sourceMappingURL=lazy-children.js.map
+//# map=lazy-children.js.map

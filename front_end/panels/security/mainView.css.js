@@ -191,6 +191,6 @@ styles.replaceSync(
   margin-bottom: 4px;
 }
 
-/*# sourceURL=mainView.css */
+
 `);
 export default styles;

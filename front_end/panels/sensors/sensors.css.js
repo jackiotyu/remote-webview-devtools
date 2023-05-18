@@ -312,6 +312,6 @@ button.text-button {
   margin-bottom: 16px;
 }
 
-/*# sourceURL=sensors.css */
+
 `);
 export default styles;

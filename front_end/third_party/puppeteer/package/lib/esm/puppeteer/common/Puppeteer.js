@@ -76,4 +76,4 @@ export class Puppeteer {
         return _connectToCDPBrowser(options);
     }
 }
-//# sourceMappingURL=Puppeteer.js.map
+//# map=Puppeteer.js.map

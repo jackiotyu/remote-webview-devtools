@@ -7,4 +7,4 @@ import * as EventListenerBreakpointsSidebarPane from './EventListenerBreakpoints
 import * as ObjectEventListenersSidebarPane from './ObjectEventListenersSidebarPane.js';
 import * as XHRBreakpointsSidebarPane from './XHRBreakpointsSidebarPane.js';
 export { CSPViolationBreakpointsSidebarPane, DOMBreakpointsSidebarPane, EventListenerBreakpointsSidebarPane, ObjectEventListenersSidebarPane, XHRBreakpointsSidebarPane, };
-//# sourceMappingURL=browser_debugger.js.map
+//# map=browser_debugger.js.map

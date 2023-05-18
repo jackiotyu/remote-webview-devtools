@@ -222,4 +222,4 @@ class DataGridController extends HTMLElement {
 }
 export { DataGridController };
 ComponentHelpers.CustomElements.defineComponent('devtools-data-grid-controller', DataGridController);
-//# sourceMappingURL=DataGridController.js.map
+//# map=DataGridController.js.map

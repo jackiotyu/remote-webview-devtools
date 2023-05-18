@@ -73,4 +73,4 @@ class TwoStatesCounter extends HTMLElement {
 }
 export { TwoStatesCounter };
 ComponentHelpers.CustomElements.defineComponent('devtools-two-states-counter', TwoStatesCounter);
-//# sourceMappingURL=TwoStatesCounter.js.map
+//# map=TwoStatesCounter.js.map

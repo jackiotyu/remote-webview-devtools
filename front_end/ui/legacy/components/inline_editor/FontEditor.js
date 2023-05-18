@@ -138,13 +138,13 @@ export class FontEditor extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         const lineHeightPropertyInfo = this.getPropertyInfo('line-height', FontEditorUtils.LineHeightStaticParams.regex);
         const fontWeightPropertyInfo = this.getPropertyInfo('font-weight', FontEditorUtils.FontWeightStaticParams.regex);
         const letterSpacingPropertyInfo = this.getPropertyInfo('letter-spacing', FontEditorUtils.LetterSpacingStaticParams.regex);
-        new FontPropertyInputs('font-size', i18nString(UIStrings.fontSize), cssPropertySection, fontSizePropertyInfo, FontEditorUtils.FontSizeStaticParams, this.updatePropertyValue.bind(this), this.resizePopout.bind(this), 
+        new FontPropertyInputs('font-size', i18nString(UIStrings.fontSize), cssPropertySection, fontSizePropertyInfo, FontEditorUtils.FontSizeStaticParams, this.updatePropertyValue.bind(this), this.resizePopout.bind(this),
         /** hasUnits= */ true);
-        new FontPropertyInputs('line-height', i18nString(UIStrings.lineHeight), cssPropertySection, lineHeightPropertyInfo, FontEditorUtils.LineHeightStaticParams, this.updatePropertyValue.bind(this), this.resizePopout.bind(this), 
+        new FontPropertyInputs('line-height', i18nString(UIStrings.lineHeight), cssPropertySection, lineHeightPropertyInfo, FontEditorUtils.LineHeightStaticParams, this.updatePropertyValue.bind(this), this.resizePopout.bind(this),
         /** hasUnits= */ true);
-        new FontPropertyInputs('font-weight', i18nString(UIStrings.fontWeight), cssPropertySection, fontWeightPropertyInfo, FontEditorUtils.FontWeightStaticParams, this.updatePropertyValue.bind(this), this.resizePopout.bind(this), 
+        new FontPropertyInputs('font-weight', i18nString(UIStrings.fontWeight), cssPropertySection, fontWeightPropertyInfo, FontEditorUtils.FontWeightStaticParams, this.updatePropertyValue.bind(this), this.resizePopout.bind(this),
         /** hasUnits= */ false);
-        new FontPropertyInputs('letter-spacing', i18nString(UIStrings.spacing), cssPropertySection, letterSpacingPropertyInfo, FontEditorUtils.LetterSpacingStaticParams, this.updatePropertyValue.bind(this), this.resizePopout.bind(this), 
+        new FontPropertyInputs('letter-spacing', i18nString(UIStrings.spacing), cssPropertySection, letterSpacingPropertyInfo, FontEditorUtils.LetterSpacingStaticParams, this.updatePropertyValue.bind(this), this.resizePopout.bind(this),
         /** hasUnits= */ true);
     }
     wasShown() {
@@ -702,4 +702,4 @@ class FontPropertyInputs {
         this.sliderInput.value = newValue;
     }
 }
-//# sourceMappingURL=FontEditor.js.map
+//# map=FontEditor.js.map

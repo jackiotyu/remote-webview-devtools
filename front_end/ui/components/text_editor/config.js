@@ -413,4 +413,4 @@ export function contentIncludingHint(view) {
     }
     return content;
 }
-//# sourceMappingURL=config.js.map
+//# map=config.js.map

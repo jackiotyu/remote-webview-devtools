@@ -406,4 +406,4 @@ _a = IsolatedWorld, _IsolatedWorld_frame = new WeakMap(), _IsolatedWorld_documen
 _IsolatedWorld_bindingIdentifier = { value: (name, contextId) => {
         return `${name}_${contextId}`;
     } };
-//# sourceMappingURL=IsolatedWorld.js.map
+//# map=IsolatedWorld.js.map

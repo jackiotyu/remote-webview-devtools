@@ -89,6 +89,6 @@ span.ax-value-undefined {
   }
 }
 
-/*# sourceURL=accessibilityNode.css */
+
 `);
 export default styles;

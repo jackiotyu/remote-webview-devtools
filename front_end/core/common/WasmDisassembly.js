@@ -42,4 +42,4 @@ export class WasmDisassembly {
         }
     }
 }
-//# sourceMappingURL=WasmDisassembly.js.map
+//# map=WasmDisassembly.js.map

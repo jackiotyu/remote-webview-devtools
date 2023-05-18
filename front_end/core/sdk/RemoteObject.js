@@ -239,7 +239,7 @@ export class RemoteObjectImpl extends RemoteObject {
     #valueInternal;
     #customPreviewInternal;
     #classNameInternal;
-    constructor(runtimeModel, objectId, type, 
+    constructor(runtimeModel, objectId, type,
     // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     subtype, value, unserializableValue, description, preview, customPreview, className) {
@@ -494,7 +494,7 @@ export class RemoteObjectImpl extends RemoteObject {
 export class ScopeRemoteObject extends RemoteObjectImpl {
     #scopeRef;
     #savedScopeProperties;
-    constructor(runtimeModel, objectId, scopeRef, type, 
+    constructor(runtimeModel, objectId, scopeRef, type,
     // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     subtype, value, unserializableValue, description, preview) {
@@ -933,4 +933,4 @@ const _descriptionLengthParenRegex = /\(([0-9]+)\)/;
 // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const _descriptionLengthSquareRegex = /\[([0-9]+)\]/;
-//# sourceMappingURL=RemoteObject.js.map
+//# map=RemoteObject.js.map

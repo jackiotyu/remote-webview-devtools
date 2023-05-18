@@ -115,6 +115,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=computedStyleProperty.css */
+
 `);
 export default styles;

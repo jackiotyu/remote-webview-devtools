@@ -61,6 +61,6 @@ button.link {
   width: 215px;
 }
 
-/*# sourceURL=permissionsPolicySection.css */
+
 `);
 export default styles;

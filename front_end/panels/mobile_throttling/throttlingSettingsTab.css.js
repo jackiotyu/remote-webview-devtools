@@ -113,6 +113,6 @@ styles.replaceSync(
   margin-top: 10px;
 }
 
-/*# sourceURL=throttlingSettingsTab.css */
+
 `);
 export default styles;

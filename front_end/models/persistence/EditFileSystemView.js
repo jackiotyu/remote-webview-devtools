@@ -180,4 +180,4 @@ export class EditFileSystemView extends UI.Widget.VBox {
         this.registerCSSFiles([editFileSystemViewStyles]);
     }
 }
-//# sourceMappingURL=EditFileSystemView.js.map
+//# map=EditFileSystemView.js.map

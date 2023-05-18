@@ -403,4 +403,4 @@ export class MetricsSidebarPane extends ElementsSidebarPane {
         this.registerCSSFiles([metricsSidebarPaneStyles]);
     }
 }
-//# sourceMappingURL=MetricsSidebarPane.js.map
+//# map=MetricsSidebarPane.js.map

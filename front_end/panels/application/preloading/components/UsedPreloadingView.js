@@ -60,4 +60,4 @@ class UsedPreloadingView extends HTMLElement {
 }
 export { UsedPreloadingView };
 ComponentHelpers.CustomElements.defineComponent('devtools-resources-used-preloading-view', UsedPreloadingView);
-//# sourceMappingURL=UsedPreloadingView.js.map
+//# map=UsedPreloadingView.js.map

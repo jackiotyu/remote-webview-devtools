@@ -46,4 +46,4 @@ document.getElementById('container')?.appendChild(component);
 document.getElementById('recursively-expand')?.addEventListener('click', () => {
     void component.expandRecursively();
 });
-//# sourceMappingURL=custom-renderers.js.map
+//# map=custom-renderers.js.map

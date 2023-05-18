@@ -49,6 +49,6 @@ input {
   z-index: 1;
 }
 
-/*# sourceURL=textPrompt.css */
+
 `);
 export default styles;

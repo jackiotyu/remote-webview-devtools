@@ -71,4 +71,4 @@ export class GenericIssueDetailsView extends AffectedResourcesView {
         }
     }
 }
-//# sourceMappingURL=GenericIssueDetailsView.js.map
+//# map=GenericIssueDetailsView.js.map

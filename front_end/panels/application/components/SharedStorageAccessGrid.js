@@ -156,4 +156,4 @@ class SharedStorageAccessGrid extends HTMLElement {
 }
 export { SharedStorageAccessGrid };
 ComponentHelpers.CustomElements.defineComponent('devtools-shared-storage-access-grid', SharedStorageAccessGrid);
-//# sourceMappingURL=SharedStorageAccessGrid.js.map
+//# map=SharedStorageAccessGrid.js.map

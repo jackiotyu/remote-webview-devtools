@@ -87,4 +87,4 @@ class PreviewToggle extends HTMLElement {
 }
 export { PreviewToggle };
 ComponentHelpers.CustomElements.defineComponent('devtools-preview-toggle', PreviewToggle);
-//# sourceMappingURL=PreviewToggle.js.map
+//# map=PreviewToggle.js.map

@@ -17,6 +17,6 @@ input[type="checkbox"] {
   accent-color: var(--color-checkbox-accent-color);
 }
 
-/*# sourceURL=checkbox.css */
+
 `);
 export default styles;

@@ -216,4 +216,4 @@ export var ProfileEvents;
     ProfileEvents["RemoveProfileHeader"] = "remove-profile-header";
     ProfileEvents["ViewUpdated"] = "view-updated";
 })(ProfileEvents || (ProfileEvents = {}));
-//# sourceMappingURL=ProfileHeader.js.map
+//# map=ProfileHeader.js.map

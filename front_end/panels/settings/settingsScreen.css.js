@@ -242,6 +242,6 @@ label {
   }
 }
 
-/*# sourceURL=settingsScreen.css */
+
 `);
 export default styles;

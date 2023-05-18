@@ -73,4 +73,4 @@ export var Events;
 (function (Events) {
     Events["InterestGroupAccess"] = "InterestGroupAccess";
 })(Events || (Events = {}));
-//# sourceMappingURL=InterestGroupStorageModel.js.map
+//# map=InterestGroupStorageModel.js.map

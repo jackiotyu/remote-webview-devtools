@@ -47,4 +47,4 @@ export class ExtensionEndpoint {
         throw new Error('handleEvent is not implemented');
     }
 }
-//# sourceMappingURL=ExtensionEndpoint.js.map
+//# map=ExtensionEndpoint.js.map

@@ -66,4 +66,4 @@ export class NavigatorUserAgentIssue extends Issue {
         return [new NavigatorUserAgentIssue(details, issuesModel)];
     }
 }
-//# sourceMappingURL=NavigatorUserAgentIssue.js.map
+//# map=NavigatorUserAgentIssue.js.map

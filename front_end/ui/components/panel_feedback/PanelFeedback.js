@@ -77,4 +77,4 @@ class PanelFeedback extends HTMLElement {
 }
 export { PanelFeedback };
 ComponentHelpers.CustomElements.defineComponent('devtools-panel-feedback', PanelFeedback);
-//# sourceMappingURL=PanelFeedback.js.map
+//# map=PanelFeedback.js.map

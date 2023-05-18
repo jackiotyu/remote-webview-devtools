@@ -117,6 +117,6 @@ styles.replaceSync(
   margin-right: 6px;
 }
 
-/*# sourceURL=webAudio.css */
+
 `);
 export default styles;

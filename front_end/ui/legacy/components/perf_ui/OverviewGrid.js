@@ -480,4 +480,4 @@ export class WindowSelector {
         }
     }
 }
-//# sourceMappingURL=OverviewGrid.js.map
+//# map=OverviewGrid.js.map

@@ -29,4 +29,4 @@ content = document.createElement('span');
 content.textContent = 'custom content';
 component.appendChild(content);
 appendExample(component);
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

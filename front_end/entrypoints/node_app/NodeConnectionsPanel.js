@@ -163,4 +163,4 @@ export class NodeConnectionsView extends UI.Widget.VBox {
         this.#list.registerCSSFiles([nodeConnectionsPanelStyles]);
     }
 }
-//# sourceMappingURL=NodeConnectionsPanel.js.map
+//# map=NodeConnectionsPanel.js.map

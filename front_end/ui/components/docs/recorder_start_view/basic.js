@@ -8,4 +8,4 @@ await ComponentHelpers.ComponentServerSetup.setup();
 await FrontendHelpers.initializeGlobalVars();
 const startView = new RecorderComponents.StartView.StartView();
 document.getElementById('container')?.appendChild(startView);
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

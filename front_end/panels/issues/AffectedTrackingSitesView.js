@@ -33,4 +33,4 @@ export class AffectedTrackingSitesView extends AffectedResourcesView {
         this.updateAffectedResourceCount(count);
     }
 }
-//# sourceMappingURL=AffectedTrackingSitesView.js.map
+//# map=AffectedTrackingSitesView.js.map

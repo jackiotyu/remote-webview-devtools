@@ -93,6 +93,6 @@ styles.replaceSync(
   padding: 1px;
 }
 
-/*# sourceURL=locationsSettingsTab.css */
+
 `);
 export default styles;

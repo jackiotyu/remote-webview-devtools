@@ -223,4 +223,4 @@ export class Resource {
         return this.#requestInternal ? this.#requestInternal.statusCode : 0;
     }
 }
-//# sourceMappingURL=Resource.js.map
+//# map=Resource.js.map

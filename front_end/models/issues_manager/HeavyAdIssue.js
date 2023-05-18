@@ -55,4 +55,4 @@ export class HeavyAdIssue extends Issue {
         return [new HeavyAdIssue(heavyAdIssueDetails, issuesModel)];
     }
 }
-//# sourceMappingURL=HeavyAdIssue.js.map
+//# map=HeavyAdIssue.js.map

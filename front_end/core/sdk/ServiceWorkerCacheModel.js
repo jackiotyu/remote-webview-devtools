@@ -232,4 +232,4 @@ export class Cache {
     }
 }
 SDKModel.register(ServiceWorkerCacheModel, { capabilities: Capability.Storage, autostart: false });
-//# sourceMappingURL=ServiceWorkerCacheModel.js.map
+//# map=ServiceWorkerCacheModel.js.map

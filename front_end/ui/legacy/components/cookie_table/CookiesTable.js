@@ -703,4 +703,4 @@ export class DataGridNode extends DataGrid.DataGrid.DataGridNode {
         return cell;
     }
 }
-//# sourceMappingURL=CookiesTable.js.map
+//# map=CookiesTable.js.map

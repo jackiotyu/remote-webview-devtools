@@ -435,4 +435,4 @@ export class SearchView extends UI.Widget.VBox {
         void this.startSearch(searchConfig);
     }
 }
-//# sourceMappingURL=SearchView.js.map
+//# map=SearchView.js.map

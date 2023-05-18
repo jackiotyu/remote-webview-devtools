@@ -34,6 +34,6 @@ styles.replaceSync(
   text-align: center;
 }
 
-/*# sourceURL=trustTokensViewDeleteButton.css */
+
 `);
 export default styles;

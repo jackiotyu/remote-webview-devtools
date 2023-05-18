@@ -16,4 +16,4 @@ import * as SDKUtils from './SDKUtils.js';
 import * as Section from './Section.js';
 import * as Tooltip from './Tooltip.js';
 export { ConverterIds, RecorderSettings, RecorderShortcutHelper, RecordingPlayer, RecordingSession, RecordingSettings, RecordingStorage, Schema, SchemaUtils, ScreenshotStorage, ScreenshotUtils, SDKUtils, Section, Tooltip, };
-//# sourceMappingURL=models.js.map
+//# map=models.js.map

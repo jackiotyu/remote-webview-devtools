@@ -130,4 +130,4 @@ ComponentHelpers.CustomElements.defineComponent('devtools-report-section-header'
 ComponentHelpers.CustomElements.defineComponent('devtools-report-key', ReportKey);
 ComponentHelpers.CustomElements.defineComponent('devtools-report-value', ReportValue);
 ComponentHelpers.CustomElements.defineComponent('devtools-report-divider', ReportSectionDivider);
-//# sourceMappingURL=ReportView.js.map
+//# map=ReportView.js.map

@@ -572,9 +572,9 @@ export class CSSModel extends SDKModel {
             return 'Unknown stylesheet in CSS.setStyleSheetText';
         }
         newText = CSSModel.trimSourceURL(newText);
-        if (header.hasSourceURL) {
-            newText += '\n/*# sourceURL=' + header.sourceURL + ' */';
-        }
+        // if (header.hasSourceURL) {
+        //     newText += '\n';
+        // }
         await this.ensureOriginalStyleSheetText(styleSheetId);
         const response = await this.agent.invoke_setStyleSheetText({ styleSheetId: header.id, text: newText });
         const sourceMapURL = response.sourceMapURL;
@@ -835,4 +835,4 @@ export var CSSPropertyTrackerEvents;
     CSSPropertyTrackerEvents["TrackedCSSPropertiesUpdated"] = "TrackedCSSPropertiesUpdated";
 })(CSSPropertyTrackerEvents || (CSSPropertyTrackerEvents = {}));
 SDKModel.register(CSSModel, { capabilities: Capability.DOM, autostart: true });
-//# sourceMappingURL=CSSModel.js.map
+//# map=CSSModel.js.map

@@ -303,8 +303,8 @@ class WatchExpression extends Common.ObjectWrapper.ObjectWrapper {
             silent: true,
             returnByValue: false,
             generatePreview: false,
-        }, 
-        /* userGesture */ false, 
+        },
+        /* userGesture */ false,
         /* awaitPromise */ false);
     }
     update() {
@@ -507,4 +507,4 @@ class WatchExpression extends Common.ObjectWrapper.ObjectWrapper {
     static watchObjectGroupId = 'watch-group';
 }
 export { WatchExpression };
-//# sourceMappingURL=WatchExpressionsSidebarPane.js.map
+//# map=WatchExpressionsSidebarPane.js.map

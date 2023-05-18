@@ -417,4 +417,4 @@ export class GridNode extends DataGrid.SortableDataGrid.SortableDataGridNode {
         }
     }
 }
-//# sourceMappingURL=CoverageListView.js.map
+//# map=CoverageListView.js.map

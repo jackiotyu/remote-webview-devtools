@@ -77,6 +77,6 @@ styles.replaceSync(
   transform: rotate(-45deg);
 }
 
-/*# sourceURL=adornerSettingsPane.css */
+
 `);
 export default styles;

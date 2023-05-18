@@ -34,4 +34,4 @@ export class ThrottledWidget extends VBox {
         }
     }
 }
-//# sourceMappingURL=ThrottledWidget.js.map
+//# map=ThrottledWidget.js.map

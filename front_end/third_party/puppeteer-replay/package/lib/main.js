@@ -2392,4 +2392,4 @@ class LighthouseRunnerExtension extends PuppeteerRunnerExtension {
 _LighthouseRunnerExtension_isTimespanRunning = new WeakMap(), _LighthouseRunnerExtension_isNavigationRunning = new WeakMap(), _LighthouseRunnerExtension_lhFlow = new WeakMap();
 
 export { AssertedEventType, JSONStringifyExtension, LighthouseRunnerExtension, LighthouseStringifyExtension, PuppeteerReplayStringifyExtension, PuppeteerRunnerExtension, PuppeteerRunnerOwningBrowserExtension, PuppeteerStringifyExtension, Runner, RunnerExtension, Schema, SelectorType, StepType, StringifyExtension, assertAllStepTypesAreHandled, createRunner, formatAsJSLiteral, formatJSONAsJS, getSelectorType, maxTimeout, minTimeout, mouseButtonMap, parse, parseSourceMap, parseStep, pointerDeviceTypes, stringify, stringifyStep, stripSourceMap, typeableInputTypes, validTimeout };
-//# sourceMappingURL=main.js.map
+//# map=main.js.map

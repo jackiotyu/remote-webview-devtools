@@ -135,4 +135,4 @@ export class ContextMenuProvider {
 }
 ComponentHelpers.CustomElements.defineComponent('x-link', XLink);
 export const sample = LitHtml.html `<p>Hello, <x-link>world!</x-link></p>`;
-//# sourceMappingURL=XLink.js.map
+//# map=XLink.js.map

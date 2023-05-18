@@ -23,4 +23,4 @@ import * as ConsoleViewMessage from './ConsoleViewMessage.js';
 import * as ConsoleViewport from './ConsoleViewport.js';
 import * as ErrorStackParser from './ErrorStackParser.js';
 export { ConsoleContextSelector, ConsoleFilter, ConsoleFormat, ConsolePanel, ConsolePinPane, ConsolePrompt, ConsoleSidebar, ConsoleView, ConsoleViewMessage, ConsoleViewport, ErrorStackParser, };
-//# sourceMappingURL=console.js.map
+//# map=console.js.map

@@ -73,4 +73,4 @@ export class TopDownProfileDataGridTree extends ProfileDataGridTree {
         TopDownProfileDataGridNode.sharedPopulate(this);
     }
 }
-//# sourceMappingURL=TopDownProfileDataGrid.js.map
+//# map=TopDownProfileDataGrid.js.map

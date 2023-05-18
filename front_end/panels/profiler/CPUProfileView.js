@@ -388,4 +388,4 @@ export class CPUFlameChartDataProvider extends ProfileFlameChartDataProvider {
     }
     CPUFlameChartDataProvider.ChartEntry = ChartEntry;
 })(CPUFlameChartDataProvider || (CPUFlameChartDataProvider = {}));
-//# sourceMappingURL=CPUProfileView.js.map
+//# map=CPUProfileView.js.map

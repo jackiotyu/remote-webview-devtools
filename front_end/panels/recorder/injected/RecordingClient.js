@@ -219,4 +219,4 @@ class RecordingClient {
     };
 }
 export { RecordingClient };
-//# sourceMappingURL=RecordingClient.js.map
+//# map=RecordingClient.js.map

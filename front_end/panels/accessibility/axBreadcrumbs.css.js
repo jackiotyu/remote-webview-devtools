@@ -172,6 +172,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=axBreadcrumbs.css */
+
 `);
 export default styles;

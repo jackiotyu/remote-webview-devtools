@@ -93,4 +93,4 @@ export function timeStampForEventAdjustedByClosestNavigation(event, traceBounds,
     }
     return Types.Timing.MicroSeconds(eventTimeStamp);
 }
-//# sourceMappingURL=Timing.js.map
+//# map=Timing.js.map

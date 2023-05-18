@@ -79,6 +79,6 @@ styles.replaceSync(
   margin-left: -5px;
 }
 
-/*# sourceURL=backForwardCacheView.css */
+
 `);
 export default styles;

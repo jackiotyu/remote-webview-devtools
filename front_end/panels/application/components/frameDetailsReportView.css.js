@@ -89,6 +89,6 @@ button.text-link {
   min-width: auto;
 }
 
-/*# sourceURL=frameDetailsReportView.css */
+
 `);
 export default styles;

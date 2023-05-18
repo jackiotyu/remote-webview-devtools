@@ -17,4 +17,4 @@ export var FrontendMessageSource;
     FrontendMessageSource["CSS"] = "css";
     FrontendMessageSource["ConsoleAPI"] = "console-api";
 })(FrontendMessageSource || (FrontendMessageSource = {}));
-//# sourceMappingURL=ConsoleModelTypes.js.map
+//# map=ConsoleModelTypes.js.map

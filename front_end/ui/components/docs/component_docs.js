@@ -21,4 +21,4 @@ window.addEventListener('showcomponentdocsui', () => {
         node.style.display = '';
     }
 });
-//# sourceMappingURL=component_docs.js.map
+//# map=component_docs.js.map

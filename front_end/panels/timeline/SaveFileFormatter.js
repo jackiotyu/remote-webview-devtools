@@ -39,4 +39,4 @@ export function* traceJsonGenerator(traceEvents, metadata) {
     yield `,\n"metadata": ${JSON.stringify(metadata || {}, null, 2)}`;
     yield '}\n';
 }
-//# sourceMappingURL=SaveFileFormatter.js.map
+//# map=SaveFileFormatter.js.map

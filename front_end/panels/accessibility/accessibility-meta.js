@@ -34,4 +34,4 @@ UI.ViewManager.registerViewExtension({
         return Accessibility.AccessibilitySidebarView.AccessibilitySidebarView.instance();
     },
 });
-//# sourceMappingURL=accessibility-meta.js.map
+//# map=accessibility-meta.js.map

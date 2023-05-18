@@ -76,6 +76,6 @@ styles.replaceSync(
   background-color: var(--color-background-elevation-1);
 }
 
-/*# sourceURL=sourcesPanel.css */
+
 `);
 export default styles;

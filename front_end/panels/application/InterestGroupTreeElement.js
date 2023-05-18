@@ -50,4 +50,4 @@ export class InterestGroupTreeElement extends ApplicationPanelTreeElement {
         this.view.clearEvents();
     }
 }
-//# sourceMappingURL=InterestGroupTreeElement.js.map
+//# map=InterestGroupTreeElement.js.map

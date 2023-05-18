@@ -112,4 +112,4 @@ export { ThrottlingPresets };
 globalThis.MobileThrottling = globalThis.MobileThrottling || {};
 // @ts-ignore exported for Tests.js
 globalThis.MobileThrottling.networkPresets = ThrottlingPresets.networkPresets;
-//# sourceMappingURL=ThrottlingPresets.js.map
+//# map=ThrottlingPresets.js.map

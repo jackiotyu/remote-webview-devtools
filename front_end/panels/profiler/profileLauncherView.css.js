@@ -171,6 +171,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=profileLauncherView.css */
+
 `);
 export default styles;

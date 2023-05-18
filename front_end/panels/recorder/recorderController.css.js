@@ -162,6 +162,6 @@ devtools-shortcut-dialog {
   padding-right: 6px;
 }
 
-/*# sourceURL=recorderController.css */
+
 `);
 export default styles;

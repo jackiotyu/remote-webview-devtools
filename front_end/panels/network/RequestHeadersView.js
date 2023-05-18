@@ -418,7 +418,7 @@ export class RequestHeadersView extends UI.Widget.VBox {
                 }
             }
             const overrideable = Root.Runtime.experiments.isEnabled(Root.Runtime.ExperimentName.HEADER_OVERRIDES);
-            this.refreshHeaders(i18nString(UIStrings.responseHeaders), mergeHeadersWithIssues(headers, headersWithIssues), treeElement, overrideable, 
+            this.refreshHeaders(i18nString(UIStrings.responseHeaders), mergeHeadersWithIssues(headers, headersWithIssues), treeElement, overrideable,
             /* provisional */ false, this.request.blockedResponseCookies());
         }
         if (headersText) {
@@ -812,4 +812,4 @@ const BlockedReasonDetails = new Map([
         },
     ],
 ]);
-//# sourceMappingURL=RequestHeadersView.js.map
+//# map=RequestHeadersView.js.map

@@ -159,6 +159,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=navigatorTree.css */
+
 `);
 export default styles;

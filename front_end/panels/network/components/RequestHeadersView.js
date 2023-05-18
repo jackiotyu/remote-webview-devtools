@@ -501,4 +501,4 @@ class Category extends HTMLElement {
 export { Category };
 ComponentHelpers.CustomElements.defineComponent('devtools-request-headers', RequestHeadersComponent);
 ComponentHelpers.CustomElements.defineComponent('devtools-request-headers-category', Category);
-//# sourceMappingURL=RequestHeadersView.js.map
+//# map=RequestHeadersView.js.map

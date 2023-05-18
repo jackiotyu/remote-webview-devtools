@@ -174,7 +174,7 @@ export class ServerTiming {
     static getParserForParameter(paramName) {
         switch (paramName) {
             case 'dur': {
-                function durParser(entry, 
+                function durParser(entry,
                 // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 paramValue) {
@@ -205,4 +205,4 @@ export class ServerTiming {
         Common.Console.Console.instance().warn(`ServerTiming: ${msg}`);
     }
 }
-//# sourceMappingURL=ServerTiming.js.map
+//# map=ServerTiming.js.map

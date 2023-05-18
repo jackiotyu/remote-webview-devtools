@@ -75,4 +75,4 @@ export const queryPierceSelectorAll = (selectors) => {
     } while (selectors.length > 0 && lists.length > 0);
     return lists.flatMap(list => [...list]);
 };
-//# sourceMappingURL=PierceSelector.js.map
+//# map=PierceSelector.js.map

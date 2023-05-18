@@ -162,4 +162,4 @@ export class CoverageDecorationManager {
         uiSourceCode.setDecorationData(decoratorType, this);
     }
 }
-//# sourceMappingURL=CoverageDecorationManager.js.map
+//# map=CoverageDecorationManager.js.map

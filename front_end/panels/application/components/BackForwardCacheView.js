@@ -555,4 +555,4 @@ class BackForwardCacheView extends HTMLElement {
 }
 export { BackForwardCacheView };
 ComponentHelpers.CustomElements.defineComponent('devtools-resources-back-forward-cache-view', BackForwardCacheView);
-//# sourceMappingURL=BackForwardCacheView.js.map
+//# map=BackForwardCacheView.js.map

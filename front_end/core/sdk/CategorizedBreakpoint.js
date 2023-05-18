@@ -26,4 +26,4 @@ export class CategorizedBreakpoint {
         this.titleInternal = title;
     }
 }
-//# sourceMappingURL=CategorizedBreakpoint.js.map
+//# map=CategorizedBreakpoint.js.map

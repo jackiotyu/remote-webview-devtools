@@ -1482,4 +1482,4 @@ export function networkConditionsEqual(first, second) {
     return second.download === first.download && second.upload === first.upload && second.latency === first.latency &&
         secondTitle === firstTitle;
 }
-//# sourceMappingURL=NetworkManager.js.map
+//# map=NetworkManager.js.map

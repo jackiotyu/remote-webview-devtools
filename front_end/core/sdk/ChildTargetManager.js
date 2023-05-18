@@ -198,4 +198,4 @@ export var Events;
     Events["TargetDestroyed"] = "TargetDestroyed";
     Events["TargetInfoChanged"] = "TargetInfoChanged";
 })(Events || (Events = {}));
-//# sourceMappingURL=ChildTargetManager.js.map
+//# map=ChildTargetManager.js.map

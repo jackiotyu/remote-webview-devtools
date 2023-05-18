@@ -57,6 +57,6 @@ styles.replaceSync(
   font-style: italic;
 }
 
-/*# sourceURL=codeHighlighter.css */
+
 `);
 export default styles;

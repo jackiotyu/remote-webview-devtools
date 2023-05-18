@@ -52,4 +52,4 @@ class JavaScriptMetadataImpl {
     }
 }
 export { JavaScriptMetadataImpl };
-//# sourceMappingURL=JavaScriptMetadata.js.map
+//# map=JavaScriptMetadata.js.map

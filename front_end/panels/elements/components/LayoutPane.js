@@ -263,4 +263,4 @@ class LayoutPane extends HTMLElement {
 }
 export { LayoutPane };
 ComponentHelpers.CustomElements.defineComponent('devtools-layout-pane', LayoutPane);
-//# sourceMappingURL=LayoutPane.js.map
+//# map=LayoutPane.js.map

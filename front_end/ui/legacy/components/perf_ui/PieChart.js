@@ -196,4 +196,4 @@ class PieChart extends HTMLElement {
 }
 export { PieChart };
 ComponentHelpers.CustomElements.defineComponent('devtools-perf-piechart', PieChart);
-//# sourceMappingURL=PieChart.js.map
+//# map=PieChart.js.map

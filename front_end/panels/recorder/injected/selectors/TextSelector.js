@@ -64,4 +64,4 @@ export const computeTextSelector = (node) => {
     const remainder = content.slice(length, length + MAXIMUM_TEXT_LENGTH);
     return [content.slice(0, length + remainder.search(/ |$/))];
 };
-//# sourceMappingURL=TextSelector.js.map
+//# map=TextSelector.js.map

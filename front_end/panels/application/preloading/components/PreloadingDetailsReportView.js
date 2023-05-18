@@ -167,4 +167,4 @@ class PreloadingDetailsReportView extends HTMLElement {
 }
 export { PreloadingDetailsReportView };
 ComponentHelpers.CustomElements.defineComponent('devtools-resources-preloading-details-report-view', PreloadingDetailsReportView);
-//# sourceMappingURL=PreloadingDetailsReportView.js.map
+//# map=PreloadingDetailsReportView.js.map

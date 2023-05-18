@@ -34,6 +34,6 @@ styles.replaceSync(
   color: var(--color-syntax-4);
 }
 
-/*# sourceURL=domLinkifier.css */
+
 `);
 export default styles;

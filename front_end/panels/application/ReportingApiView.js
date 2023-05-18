@@ -29,4 +29,4 @@ export class ReportingApiView extends UI.SplitWidget.SplitWidget {
         this.endpointsGrid.data = { endpoints: this.endpoints };
     }
 }
-//# sourceMappingURL=ReportingApiView.js.map
+//# map=ReportingApiView.js.map

@@ -60,6 +60,6 @@ styles.replaceSync(
   opacity: 65%;
 }
 
-/*# sourceURL=consolePrompt.css */
+
 `);
 export default styles;

@@ -54,4 +54,4 @@ export class PanelWithSidebar extends Panel {
         return this.panelSplitWidget;
     }
 }
-//# sourceMappingURL=Panel.js.map
+//# map=Panel.js.map

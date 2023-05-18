@@ -324,4 +324,4 @@ resetButton.data = {
 };
 resetButton.innerText = 'Reset';
 document.querySelector('#form')?.append(resetButton);
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

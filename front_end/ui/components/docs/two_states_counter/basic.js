@@ -36,4 +36,4 @@ inactiveCountData.active = 0;
 const inactiveOnlyCounter = new TwoStatesCounter.TwoStatesCounter.TwoStatesCounter();
 inactiveOnlyCounter.data = inactiveCountData;
 appendCounter(inactiveOnlyCounter);
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

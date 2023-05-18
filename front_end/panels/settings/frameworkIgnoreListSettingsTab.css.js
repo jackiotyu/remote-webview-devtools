@@ -126,6 +126,6 @@ styles.replaceSync(
   margin-left: 6px;
 }
 
-/*# sourceURL=frameworkIgnoreListSettingsTab.css */
+
 `);
 export default styles;

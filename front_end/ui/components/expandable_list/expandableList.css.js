@@ -71,6 +71,6 @@ button.link {
   white-space: nowrap;
 }
 
-/*# sourceURL=expandableList.css */
+
 `);
 export default styles;

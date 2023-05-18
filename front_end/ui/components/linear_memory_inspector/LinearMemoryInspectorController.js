@@ -362,4 +362,4 @@ export class LinearMemoryInspectorController extends SDK.TargetManager.SDKModelO
         return highlightInfoA.type === highlightInfoB.type && highlightInfoA.startAddress === highlightInfoB.startAddress;
     }
 }
-//# sourceMappingURL=LinearMemoryInspectorController.js.map
+//# map=LinearMemoryInspectorController.js.map

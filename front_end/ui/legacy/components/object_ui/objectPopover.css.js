@@ -38,6 +38,6 @@ styles.replaceSync(
   display: inline-block;
 }
 
-/*# sourceURL=objectPopover.css */
+
 `);
 export default styles;

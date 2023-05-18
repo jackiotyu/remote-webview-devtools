@@ -99,6 +99,6 @@ input[type="checkbox"]:focus-visible {
   outline: var(--color-input-outline-active) auto 1px;
 }
 
-/*# sourceURL=createRecordingView.css */
+
 `);
 export default styles;

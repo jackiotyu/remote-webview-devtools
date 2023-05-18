@@ -29,6 +29,6 @@ canvas {
   outline: auto 5px -webkit-focus-ring-color;
 }
 
-/*# sourceURL=layers3DView.css */
+
 `);
 export default styles;

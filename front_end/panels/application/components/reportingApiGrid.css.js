@@ -45,6 +45,6 @@ devtools-data-grid-controller {
   vertical-align: text-bottom;
 }
 
-/*# sourceURL=reportingApiGrid.css */
+
 `);
 export default styles;

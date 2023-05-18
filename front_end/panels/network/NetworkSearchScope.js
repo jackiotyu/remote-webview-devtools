@@ -137,4 +137,4 @@ export class NetworkSearchResult {
         return location.searchMatch.lineNumber + 1;
     }
 }
-//# sourceMappingURL=NetworkSearchScope.js.map
+//# map=NetworkSearchScope.js.map

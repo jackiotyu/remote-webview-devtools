@@ -24,4 +24,4 @@ class PageLoad {
 }
 export { PageLoad };
 const pageLoadForRequest = new WeakMap();
-//# sourceMappingURL=PageLoad.js.map
+//# map=PageLoad.js.map

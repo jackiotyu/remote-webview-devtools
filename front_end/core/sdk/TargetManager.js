@@ -249,7 +249,7 @@ export class TargetManager extends Common.ObjectWrapper.ObjectWrapper {
             return false;
         }
         if (!this.#browserTargetInternal) {
-            this.#browserTargetInternal = new Target(this, /* #id*/ 'main', /* #name*/ 'browser', TargetType.Browser, /* #parentTarget*/ null, 
+            this.#browserTargetInternal = new Target(this, /* #id*/ 'main', /* #name*/ 'browser', TargetType.Browser, /* #parentTarget*/ null,
             /* #sessionId */ '', /* suspended*/ false, /* #connection*/ null, /* targetInfo*/ undefined);
             this.#browserTargetInternal.createModels(new Set(this.#modelObservers.keysArray()));
         }
@@ -366,4 +366,4 @@ export class SDKModelObserver {
 function isSDKModelEvent(arg) {
     return 'source' in arg && arg.source instanceof SDKModel;
 }
-//# sourceMappingURL=TargetManager.js.map
+//# map=TargetManager.js.map

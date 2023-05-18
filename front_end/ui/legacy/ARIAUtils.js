@@ -343,4 +343,4 @@ export function alert(message) {
     const element = alertElementInstance();
     element.textContent = Platform.StringUtilities.trimEndWithMaxLength(message, 10000);
 }
-//# sourceMappingURL=ARIAUtils.js.map
+//# map=ARIAUtils.js.map

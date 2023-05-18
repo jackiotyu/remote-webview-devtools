@@ -101,4 +101,4 @@ class WebBundleInfoElement extends HTMLElement {
 }
 export { WebBundleInfoElement };
 ComponentHelpers.CustomElements.defineComponent('devtools-web-bundle-info', WebBundleInfoElement);
-//# sourceMappingURL=WebBundleInfoView.js.map
+//# map=WebBundleInfoView.js.map

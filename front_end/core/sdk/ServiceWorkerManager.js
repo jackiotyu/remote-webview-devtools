@@ -548,4 +548,4 @@ class ServiceWorkerContextNamer {
     }
 }
 SDKModel.register(ServiceWorkerManager, { capabilities: Capability.ServiceWorker, autostart: true });
-//# sourceMappingURL=ServiceWorkerManager.js.map
+//# map=ServiceWorkerManager.js.map

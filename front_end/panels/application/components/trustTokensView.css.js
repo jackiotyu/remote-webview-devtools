@@ -32,6 +32,6 @@ devtools-data-grid-controller {
   margin-top: 20px;
 }
 
-/*# sourceURL=trustTokensView.css */
+
 `);
 export default styles;

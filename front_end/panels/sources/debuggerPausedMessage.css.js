@@ -68,6 +68,6 @@ devtools-icon {
   top: -1px;
 }
 
-/*# sourceURL=debuggerPausedMessage.css */
+
 `);
 export default styles;

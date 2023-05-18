@@ -16,6 +16,6 @@ styles.replaceSync(
   border: none;
 }
 
-/*# sourceURL=eventSourceMessagesView.css */
+
 `);
 export default styles;

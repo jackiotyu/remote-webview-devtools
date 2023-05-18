@@ -116,6 +116,6 @@ styles.replaceSync(
   box-shadow: var(--legacy-focus-ring-inactive-shadow);
 }
 
-/*# sourceURL=workspaceSettingsTab.css */
+
 `);
 export default styles;

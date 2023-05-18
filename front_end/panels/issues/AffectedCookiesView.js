@@ -120,4 +120,4 @@ export class AffectedRawCookieLinesView extends AffectedResourcesView {
         this.updateAffectedResourceCount(count);
     }
 }
-//# sourceMappingURL=AffectedCookiesView.js.map
+//# map=AffectedCookiesView.js.map

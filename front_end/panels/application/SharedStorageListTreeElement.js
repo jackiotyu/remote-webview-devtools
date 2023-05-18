@@ -49,4 +49,4 @@ export class SharedStorageListTreeElement extends ApplicationPanelTreeElement {
         this.view.addEvent(event);
     }
 }
-//# sourceMappingURL=SharedStorageListTreeElement.js.map
+//# map=SharedStorageListTreeElement.js.map

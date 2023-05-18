@@ -38,6 +38,6 @@ span {
   color: var(--color-syntax-3);
 }
 
-/*# sourceURL=accessibilityTreeNode.css */
+
 `);
 export default styles;

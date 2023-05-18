@@ -203,4 +203,4 @@ export class PlayerListView extends UI.Widget.VBox {
         this.registerCSSFiles([playerListViewStyles]);
     }
 }
-//# sourceMappingURL=PlayerListView.js.map
+//# map=PlayerListView.js.map

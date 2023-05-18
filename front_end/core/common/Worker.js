@@ -68,4 +68,4 @@ export class WorkerWrapper {
         });
     }
 }
-//# sourceMappingURL=Worker.js.map
+//# map=Worker.js.map

@@ -36,4 +36,4 @@ export class Plugin {
     dispose() {
     }
 }
-//# sourceMappingURL=Plugin.js.map
+//# map=Plugin.js.map

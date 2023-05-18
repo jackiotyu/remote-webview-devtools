@@ -65,6 +65,6 @@ devtools-header-section-row:first-of-type {
   vertical-align: middle;
 }
 
-/*# sourceURL=RequestHeaderSection.css */
+
 `);
 export default styles;

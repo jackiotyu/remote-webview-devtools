@@ -66,6 +66,6 @@ styles.replaceSync(
   --override-debugger-background-tint: rgb(61 61 0 / 50%);
 }
 
-/*# sourceURL=sourcesView.css */
+
 `);
 export default styles;

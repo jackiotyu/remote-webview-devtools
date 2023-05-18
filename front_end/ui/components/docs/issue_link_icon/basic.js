@@ -15,4 +15,4 @@ appendComponent({
     issueId: 'fakeid',
     issueResolver: { waitFor: () => new Promise(() => { }) },
 });
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

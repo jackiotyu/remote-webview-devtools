@@ -57,6 +57,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=historyToolbarButton.css */
+
 `);
 export default styles;

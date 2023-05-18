@@ -20,4 +20,4 @@ shortcutDialog.data = {
     ],
 };
 document.getElementById('container')?.appendChild(shortcutDialog);
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

@@ -23,4 +23,4 @@ class InjectedScript {
     }
 }
 export { isDebugBuild, InjectedScript, DEVTOOLS_RECORDER_WORLD_NAME, SharedObject };
-//# sourceMappingURL=util.js.map
+//# map=util.js.map

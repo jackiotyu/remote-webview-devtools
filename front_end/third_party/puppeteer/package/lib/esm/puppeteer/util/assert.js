@@ -25,4 +25,4 @@ export const assert = (value, message) => {
         throw new Error(message);
     }
 };
-//# sourceMappingURL=assert.js.map
+//# map=assert.js.map

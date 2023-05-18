@@ -46,6 +46,6 @@ styles.replaceSync(
   vertical-align: bottom;
 }
 
-/*# sourceURL=cssPropertyDocsView.css */
+
 `);
 export default styles;

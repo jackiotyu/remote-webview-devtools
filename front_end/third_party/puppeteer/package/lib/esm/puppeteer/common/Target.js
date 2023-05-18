@@ -199,4 +199,4 @@ export class Target {
     }
 }
 _Target_browserContext = new WeakMap(), _Target_session = new WeakMap(), _Target_targetInfo = new WeakMap(), _Target_sessionFactory = new WeakMap(), _Target_ignoreHTTPSErrors = new WeakMap(), _Target_defaultViewport = new WeakMap(), _Target_pagePromise = new WeakMap(), _Target_workerPromise = new WeakMap(), _Target_screenshotTaskQueue = new WeakMap(), _Target_targetManager = new WeakMap();
-//# sourceMappingURL=Target.js.map
+//# map=Target.js.map

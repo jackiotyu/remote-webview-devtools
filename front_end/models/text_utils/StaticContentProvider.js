@@ -29,4 +29,4 @@ export class StaticContentProvider {
         return content ? performSearchInContent(content, query, caseSensitive, isRegex) : [];
     }
 }
-//# sourceMappingURL=StaticContentProvider.js.map
+//# map=StaticContentProvider.js.map

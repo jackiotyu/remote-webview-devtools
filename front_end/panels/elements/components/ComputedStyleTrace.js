@@ -40,4 +40,4 @@ class ComputedStyleTrace extends HTMLElement {
 }
 export { ComputedStyleTrace };
 ComponentHelpers.CustomElements.defineComponent('devtools-computed-style-trace', ComputedStyleTrace);
-//# sourceMappingURL=ComputedStyleTrace.js.map
+//# map=ComputedStyleTrace.js.map

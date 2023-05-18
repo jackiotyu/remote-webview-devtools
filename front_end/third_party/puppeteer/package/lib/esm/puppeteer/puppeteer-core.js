@@ -29,7 +29,7 @@ import { PuppeteerNode } from './node/PuppeteerNode.js';
 const puppeteer = new PuppeteerNode({
     isPuppeteerCore: true,
 });
-export const { connect, 
+export const { connect,
 /**
  * @deprecated Construct {@link BrowserFetcher} manually.
  *
@@ -37,4 +37,4 @@ export const { connect,
  */
 createBrowserFetcher, defaultArgs, executablePath, launch, } = puppeteer;
 export default puppeteer;
-//# sourceMappingURL=puppeteer-core.js.map
+//# map=puppeteer-core.js.map

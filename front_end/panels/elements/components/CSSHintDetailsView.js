@@ -51,4 +51,4 @@ class CSSHintDetailsView extends HTMLElement {
 }
 export { CSSHintDetailsView };
 ComponentHelpers.CustomElements.defineComponent('devtools-css-hint-details-view', CSSHintDetailsView);
-//# sourceMappingURL=CSSHintDetailsView.js.map
+//# map=CSSHintDetailsView.js.map

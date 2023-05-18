@@ -6,4 +6,4 @@ import * as Importer from './Importer.js';
 import * as Log from './Log.js';
 import * as Writer from './Writer.js';
 export { HARFormat, Importer, Log, Writer, };
-//# sourceMappingURL=har.js.map
+//# map=har.js.map

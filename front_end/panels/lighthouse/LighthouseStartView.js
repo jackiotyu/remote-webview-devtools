@@ -205,8 +205,8 @@ export class StartView extends UI.Widget.Widget {
         const startButtonContainer = this.contentElement.querySelector('.lighthouse-start-button-container');
         if (startButtonContainer) {
             startButtonContainer.textContent = '';
-            this.startButton = UI.UIUtils.createTextButton(buttonLabel, callback, 
-            /* className */ '', 
+            this.startButton = UI.UIUtils.createTextButton(buttonLabel, callback,
+            /* className */ '',
             /* primary */ true);
             startButtonContainer.append(this.startButton);
         }
@@ -272,4 +272,4 @@ export class StartView extends UI.Widget.Widget {
         return this.settingsToolbarInternal;
     }
 }
-//# sourceMappingURL=LighthouseStartView.js.map
+//# map=LighthouseStartView.js.map

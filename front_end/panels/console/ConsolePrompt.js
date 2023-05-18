@@ -304,4 +304,4 @@ export class ConsolePrompt extends Common.ObjectWrapper.eventMixin(UI.Widget.Wid
     editorSetForTest() {
     }
 }
-//# sourceMappingURL=ConsolePrompt.js.map
+//# map=ConsolePrompt.js.map

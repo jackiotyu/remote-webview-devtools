@@ -138,4 +138,4 @@ export class NetworkProject {
         return frames.filter(frame => Boolean(frame));
     }
 }
-//# sourceMappingURL=NetworkProject.js.map
+//# map=NetworkProject.js.map

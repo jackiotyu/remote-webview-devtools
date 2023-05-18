@@ -183,7 +183,7 @@ let RecorderController = class RecorderController extends LitElement {
     }
     async #importFile(file) {
         const outputStream = new Common.StringOutputStream.StringOutputStream();
-        const reader = new Bindings.FileUtils.ChunkedFileReader(file, 
+        const reader = new Bindings.FileUtils.ChunkedFileReader(file,
         /* chunkSize */ 10000000);
         const success = await reader.read(outputStream);
         if (!success) {
@@ -1173,4 +1173,4 @@ RecorderController = __decorate([
     customElement('devtools-recorder-controller')
 ], RecorderController);
 export { RecorderController };
-//# sourceMappingURL=RecorderController.js.map
+//# map=RecorderController.js.map

@@ -38,4 +38,4 @@ export class SimpleView extends VBox {
         return false;
     }
 }
-//# sourceMappingURL=View.js.map
+//# map=View.js.map

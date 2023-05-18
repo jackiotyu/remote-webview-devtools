@@ -387,4 +387,4 @@ export class ViewportDataGridNode extends DataGridNode {
         super.recalculateSiblings(index);
     }
 }
-//# sourceMappingURL=ViewportDataGrid.js.map
+//# map=ViewportDataGrid.js.map

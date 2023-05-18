@@ -217,4 +217,4 @@ class CSSAngle extends HTMLElement {
 }
 export { CSSAngle };
 ComponentHelpers.CustomElements.defineComponent('devtools-css-angle', CSSAngle);
-//# sourceMappingURL=CSSAngle.js.map
+//# map=CSSAngle.js.map

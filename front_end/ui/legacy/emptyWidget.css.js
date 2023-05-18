@@ -37,6 +37,6 @@ styles.replaceSync(
   flex-shrink: 0;
 }
 
-/*# sourceURL=emptyWidget.css */
+
 `);
 export default styles;

@@ -127,4 +127,4 @@ export class ButtonProvider {
         return this.button;
     }
 }
-//# sourceMappingURL=LayersWidget.js.map
+//# map=LayersWidget.js.map

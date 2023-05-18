@@ -75,4 +75,4 @@ export function getNavigationForTraceEvent(event, eventFrameId, navigationsByFra
 export function extractId(event) {
     return event.id || event.id2?.global || event.id2?.local;
 }
-//# sourceMappingURL=Trace.js.map
+//# map=Trace.js.map

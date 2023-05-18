@@ -109,6 +109,6 @@ styles.replaceSync(
   }
 }
 
-/*# sourceURL=pieChart.css */
+
 `);
 export default styles;

@@ -8,4 +8,4 @@ import * as ExtensionView from './ExtensionView.js';
 import * as RecorderExtensionEndpoint from './RecorderExtensionEndpoint.js';
 import * as RecorderPluginManager from './RecorderPluginManager.js';
 export { ExtensionAPI, ExtensionPanel, ExtensionServer, ExtensionView, RecorderExtensionEndpoint, RecorderPluginManager, };
-//# sourceMappingURL=extensions.js.map
+//# map=extensions.js.map

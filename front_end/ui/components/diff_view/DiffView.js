@@ -225,4 +225,4 @@ class DiffView extends HTMLElement {
 }
 export { DiffView };
 ComponentHelpers.CustomElements.defineComponent('devtools-diff-view', DiffView);
-//# sourceMappingURL=DiffView.js.map
+//# map=DiffView.js.map

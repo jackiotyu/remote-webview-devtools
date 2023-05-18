@@ -743,4 +743,4 @@ export const userAgentGroups = [
         ],
     },
 ];
-//# sourceMappingURL=NetworkConfigView.js.map
+//# map=NetworkConfigView.js.map

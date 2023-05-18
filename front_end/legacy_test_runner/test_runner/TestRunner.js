@@ -557,7 +557,7 @@ export function evaluateFunctionInOverlay(func, callback) {
         silent: false,
         returnByValue: true,
         generatePreview: false
-    }, 
+    },
     /* userGesture */ false, /* awaitPromise*/ false)
         .then(result => void callback(result.object.value));
 }
@@ -1410,4 +1410,4 @@ TestRunner.waitForPendingLiveLocationUpdates = waitForPendingLiveLocationUpdates
 TestRunner.findLineEndingIndexes = findLineEndingIndexes;
 TestRunner.selectTextInTextNode = selectTextInTextNode;
 TestRunner.isScrolledToBottom = UI.UIUtils.isScrolledToBottom;
-//# sourceMappingURL=TestRunner.js.map
+//# map=TestRunner.js.map

@@ -50,4 +50,4 @@ function isBoundingBoxVisible(element) {
     const rect = element.getBoundingClientRect();
     return rect.width > 0 && rect.height > 0 && rect.right > 0 && rect.bottom > 0;
 }
-//# sourceMappingURL=util.js.map
+//# map=util.js.map

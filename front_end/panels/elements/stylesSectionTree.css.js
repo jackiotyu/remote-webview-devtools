@@ -288,6 +288,6 @@ devtools-css-length {
   display: inline-block;
 }
 
-/*# sourceURL=stylesSectionTree.css */
+
 `);
 export default styles;

@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as ExpandableList from './ExpandableList.js';
 export { ExpandableList };
-//# sourceMappingURL=expandable_list.js.map
+//# map=expandable_list.js.map

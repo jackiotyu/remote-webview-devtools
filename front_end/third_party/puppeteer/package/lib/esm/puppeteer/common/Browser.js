@@ -578,4 +578,4 @@ export class CDPBrowserContext extends BrowserContext {
     }
 }
 _CDPBrowserContext_connection = new WeakMap(), _CDPBrowserContext_browser = new WeakMap(), _CDPBrowserContext_id = new WeakMap();
-//# sourceMappingURL=Browser.js.map
+//# map=Browser.js.map

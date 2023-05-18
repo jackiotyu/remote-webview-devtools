@@ -307,6 +307,6 @@ button.secondary:disabled devtools-icon {
   }
 }
 
-/*# sourceURL=button.css */
+
 `);
 export default styles;

@@ -34,4 +34,4 @@ class SelectorPicker {
     };
 }
 export { SelectorPicker };
-//# sourceMappingURL=SelectorPicker.js.map
+//# map=SelectorPicker.js.map

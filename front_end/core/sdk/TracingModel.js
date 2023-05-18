@@ -841,4 +841,4 @@ export function threadIDForEvent(event) {
 export function eventIsFromNewEngine(event) {
     return event !== null && !(event instanceof Event);
 }
-//# sourceMappingURL=TracingModel.js.map
+//# map=TracingModel.js.map

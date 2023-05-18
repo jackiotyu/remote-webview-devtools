@@ -403,4 +403,4 @@ export function isUnderTest(prefs) {
     return Common.Settings.Settings.hasInstance() &&
         Common.Settings.Settings.instance().createSetting('isUnderTest', false).get();
 }
-//# sourceMappingURL=InspectorFrontendHost.js.map
+//# map=InspectorFrontendHost.js.map

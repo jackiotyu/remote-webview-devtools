@@ -4,4 +4,4 @@
 import * as Dialog from './Dialog.js';
 import * as ShortcutDialog from './ShortcutDialog.js';
 export { Dialog, ShortcutDialog, };
-//# sourceMappingURL=dialogs.js.map
+//# map=dialogs.js.map

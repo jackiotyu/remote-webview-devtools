@@ -101,4 +101,4 @@ iconInFlex.data = {
     height: '20px',
     color: 'var(--icon-error)',
 };
-//# sourceMappingURL=basic.js.map
+//# map=basic.js.map

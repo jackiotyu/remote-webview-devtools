@@ -46,6 +46,6 @@ slot {
   height: 10px;
 }
 
-/*# sourceURL=adorner.css */
+
 `);
 export default styles;

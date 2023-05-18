@@ -1472,4 +1472,4 @@ export class SecurityDetailsTable {
         }
     }
 }
-//# sourceMappingURL=SecurityPanel.js.map
+//# map=SecurityPanel.js.map

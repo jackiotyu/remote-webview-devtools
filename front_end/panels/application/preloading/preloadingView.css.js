@@ -16,6 +16,6 @@ styles.replaceSync(
   border-bottom: var(--legacy-divider-border);
 }
 
-/*# sourceURL=preloading/preloadingView.css */
+
 `);
 export default styles;

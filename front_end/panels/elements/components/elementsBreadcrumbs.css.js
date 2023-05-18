@@ -99,6 +99,6 @@ styles.replaceSync(
   outline: var(--color-primary-old) auto 1px;
 }
 
-/*# sourceURL=elementsBreadcrumbs.css */
+
 `);
 export default styles;

@@ -226,4 +226,4 @@ export class TimelineGrid {
         this.eventDividersElement.style.top = scrollTop + 'px';
     }
 }
-//# sourceMappingURL=TimelineGrid.js.map
+//# map=TimelineGrid.js.map

@@ -32,6 +32,6 @@ styles.replaceSync(
   border: solid 1px var(--color-background-inverted);
 }
 
-/*# sourceURL=timelinePaintProfiler.css */
+
 `);
 export default styles;

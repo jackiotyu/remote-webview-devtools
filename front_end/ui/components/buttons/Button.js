@@ -234,4 +234,4 @@ class Button extends HTMLElement {
 }
 export { Button };
 ComponentHelpers.CustomElements.defineComponent('devtools-button', Button);
-//# sourceMappingURL=Button.js.map
+//# map=Button.js.map

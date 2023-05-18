@@ -317,4 +317,4 @@ export function stateForLayoutShiftScore(score) {
     }
     return state;
 }
-//# sourceMappingURL=LayoutShiftsHandler.js.map
+//# map=LayoutShiftsHandler.js.map

@@ -1445,6 +1445,6 @@ iframe.panel.extension {
   }
 }
 
-/*# sourceURL=inspectorCommon.css */
+
 `);
 export default styles;

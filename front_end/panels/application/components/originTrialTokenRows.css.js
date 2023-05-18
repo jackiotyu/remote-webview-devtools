@@ -34,6 +34,6 @@ styles.replaceSync(
   font-weight: bold;
 }
 
-/*# sourceURL=originTrialTokenRows.css */
+
 `);
 export default styles;

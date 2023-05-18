@@ -35,6 +35,6 @@ styles.replaceSync(
   padding-top: 32px;
 }
 
-/*# sourceURL=cssOverviewProcessingView.css */
+
 `);
 export default styles;

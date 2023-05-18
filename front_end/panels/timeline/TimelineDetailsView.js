@@ -296,4 +296,4 @@ export var Tab;
     Tab["PaintProfiler"] = "PaintProfiler";
     Tab["LayerViewer"] = "LayerViewer";
 })(Tab || (Tab = {}));
-//# sourceMappingURL=TimelineDetailsView.js.map
+//# map=TimelineDetailsView.js.map

@@ -86,6 +86,6 @@ devtools-editable-content:focus ~ devtools-suggestion-box {
   color: var(--color-background);
 }
 
-/*# sourceURL=recorderInput.css */
+
 `);
 export default styles;

@@ -165,4 +165,4 @@ export class CodeHighlighter {
         flush(to, '');
     }
 }
-//# sourceMappingURL=CodeHighlighter.js.map
+//# map=CodeHighlighter.js.map

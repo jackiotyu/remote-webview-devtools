@@ -491,6 +491,6 @@ text.animation-timeline-grid-label {
   }
 }
 
-/*# sourceURL=animationTimeline.css */
+
 `);
 export default styles;

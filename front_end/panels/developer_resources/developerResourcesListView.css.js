@@ -38,6 +38,6 @@ styles.replaceSync(
   font-weight: bold;
 }
 
-/*# sourceURL=developerResourcesListView.css */
+
 `);
 export default styles;
