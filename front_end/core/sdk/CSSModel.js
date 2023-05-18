@@ -572,9 +572,9 @@ export class CSSModel extends SDKModel {
             return 'Unknown stylesheet in CSS.setStyleSheetText';
         }
         newText = CSSModel.trimSourceURL(newText);
-        // if (header.hasSourceURL) {
-        //     newText += '\n';
-        // }
+        if (header.hasSourceURL) {
+            newText += '\n/*# sourceURL=' + header.sourceURL + ' */';
+        }
         await this.ensureOriginalStyleSheetText(styleSheetId);
         const response = await this.agent.invoke_setStyleSheetText({ styleSheetId: header.id, text: newText });
         const sourceMapURL = response.sourceMapURL;
