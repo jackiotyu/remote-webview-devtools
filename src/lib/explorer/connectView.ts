@@ -39,7 +39,7 @@ export class ConnectViewProvider implements vscode.TreeDataProvider<ConnectItem>
     async startTracker() {
         if (!this.refreshing) return;
         while (this.refreshing) {
-            this.execRefresh();
+            await this.execRefresh();
             await new Promise((resolve) => (this.deviceTracker = setTimeout(resolve, this.refreshDelay)));
         }
     }
