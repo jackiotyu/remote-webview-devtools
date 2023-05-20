@@ -15,7 +15,8 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
     readonly onDidChangeTreeData: vscode.Event<TriggerType> = this._onDidChangeTreeData.event;
     private devices: AdbDevice[] = [];
     private adbMap: AdbMap = new AdbMap();
-    private deviceTracker?: { timer: NodeJS.Timeout, resolve: () => void };
+    private deviceTracker?: NodeJS.Timeout;
+    private refreshing: boolean = false;
     constructor(context: vscode.ExtensionContext) {
         adbEvent.event((devices) => {
             this.devices = devices;
@@ -23,14 +24,11 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
         });
         this.execRefreshAdbDevices();
         if(this.refreshDelay) {
-            this.startTracker();
+            this.forceStartTracker();
         }
         toggleRefreshEvent.event(() => {
             if(this.refreshDelay) {
-                if(this.deviceTracker?.timer){
-                    this.clearTracker();
-                }
-                this.startTracker();
+                this.forceStartTracker();
             } else{
                this.clearTracker();
             }
@@ -41,8 +39,9 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
         return ConfigAdaptor.get(Config.refresh);
     }
     clearTracker() {
-        clearTimeout(this.deviceTracker?.timer);
-        this.deviceTracker?.resolve();
+        clearTimeout(this.deviceTracker);
+        this.deviceTracker = undefined;
+        this.refreshing = false;
     }
     execRefreshAdbDevices() {
         vscode.commands.executeCommand(CommandName.refreshAdbDevices);
@@ -51,16 +50,17 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
         this.adbMap.clear();
         this._onDidChangeTreeData.fire();
     }
-    startTracker() {
-        clearTimeout(this.deviceTracker?.timer);
-        return new Promise<void>(resolve => {
-            let timer = setTimeout(() => {
-                this.execRefreshAdbDevices();
-                this.startTracker();
-                resolve();
-            }, this.refreshDelay);
-            this.deviceTracker = { timer, resolve };
-        });
+    forceStartTracker() {
+        this.clearTracker();
+        this.refreshing = true;
+        this.startTracker();
+    }
+    async startTracker() {
+        if (!this.refreshing) return;
+        while(this.refreshing) {
+            this.execRefreshAdbDevices();
+            await new Promise(resolve => this.deviceTracker = setTimeout(resolve, this.refreshDelay));
+        }
     }
     getTreeItem(element: AdbItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
         return element;
