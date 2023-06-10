@@ -104,7 +104,7 @@
         {
           "id": "WebviewDevtoolsExplorer",
           "title": "webview调试",
-          "icon": "images/icon.svg"
+          "icon": "images/chrome.svg"
         }
       ]
     },
