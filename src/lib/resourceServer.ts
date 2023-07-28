@@ -14,7 +14,7 @@ export function getServer(context: vscode.ExtensionContext): http.Server {
         const serve = serverStatic(resourcePath, {
             etag: false,
             cacheControl: false,
-            maxAge: 0//'1d',
+            maxAge: 0, //'1d',
         });
         server = http.createServer((req, res) => {
             serve(req, res, finalHandler(req, res));
@@ -25,9 +25,10 @@ export function getServer(context: vscode.ExtensionContext): http.Server {
     return server;
 }
 
-export function getPort(context: vscode.ExtensionContext) {
+export function getAddress(context: vscode.ExtensionContext) {
     const server = getServer(context);
-    return (server.address() as AddressInfo)?.port;
+    const addressInfo = server.address() as AddressInfo;
+    return `http://localhost:${addressInfo.port}`;
 }
 
 export function closeServer() {

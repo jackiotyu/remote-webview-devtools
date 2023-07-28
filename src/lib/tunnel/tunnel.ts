@@ -110,7 +110,7 @@ export class CDPTunnel {
         return `/${this._id}`;
     }
     get link() {
-        return `127.0.0.1:${this.port}${this.path}`;
+        return `localhost:${this.port}${this.path}`;
     }
 }
 

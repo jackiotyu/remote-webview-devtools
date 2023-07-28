@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { getPort } from './resourceServer';
+import { getAddress } from './resourceServer';
 import { CDPTunnel } from './tunnel/tunnel';
 import { isUndefined } from '../utils/index';
 
@@ -43,8 +43,8 @@ export class FrontEndWebviewProvider {
 
         this.scriptSrc = this.panel.webview.asWebviewUri(vscode.Uri.joinPath(resourceUri, 'index.js')).toString();
 
-        const port = getPort(context);
-        this.frontEndPath = `http://127.0.0.1:${port}/inspector.html`;
+        const address = getAddress(context);
+        this.frontEndPath = `${address}/inspector.html`;
         this.tunnel = new CDPTunnel(this.options.ws);
         this.panel.webview.html = this.getWebviewContent();
 
@@ -70,14 +70,7 @@ export class FrontEndWebviewProvider {
             <meta charset="UTF-8">
                 <meta http-equiv="content-type" content="text/html; charset=utf-8">
                 <meta name="referrer" content="no-referrer">
-                <meta http-equiv="Content-Security-Policy"
-                    content="default-src;
-                    img-src 'self' data: ${panel.webview.cspSource};
-                    style-src 'self' 'unsafe-inline' ${panel.webview.cspSource};
-                    script-src 'self' 'unsafe-eval' ${panel.webview.cspSource};
-                    frame-src 'self' ${panel.webview.cspSource} ${frontEndPath};
-                    connect-src 'self' data: ${panel.webview.cspSource};
-                ">
+                <meta http-equiv="Content-Security-Policy" content="default-src * self blob: data: gap:; style-src * self 'unsafe-inline' blob: data: gap:; script-src * 'self' 'unsafe-eval' 'unsafe-inline' blob: data: gap:; object-src * 'self' blob: data: gap:; img-src * self 'unsafe-inline' blob: data: gap:; connect-src self * 'unsafe-inline' blob: data: gap:; frame-src * self blob: data: gap:; connect-src * self data: gap:;">
                 <style>
                 .devtools-frame {
                     flex: 1;
