@@ -420,7 +420,7 @@ export class InspectorView extends VBox {
     }
 }
 function getDisableLocaleInfoBarSetting() {
-    return Common.Settings.Settings.instance().createSetting('disableLocaleInfoBar', false);
+    return Common.Settings.Settings.instance().createSetting('disableLocaleInfoBar', true);
 }
 function shouldShowLocaleInfobar() {
     if (getDisableLocaleInfoBarSetting().get()) {
