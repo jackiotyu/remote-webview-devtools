@@ -20,16 +20,19 @@ export class ConnectViewProvider implements vscode.TreeDataProvider<ConnectItem>
             this.execRefresh();
         });
         toggleRefreshEvent.event(() => {
-            if (this.refreshDelay) {
-                this.forceStartTracker();
-            } else {
-                this.clearTracker();
-            }
+            this.checkTracker();
         });
         context.subscriptions.push(this._onDidChangeTreeData);
     }
     get refreshDelay() {
         return ConfigAdaptor.get(Config.refresh);
+    }
+    checkTracker() {
+        if (this.refreshDelay) {
+            this.forceStartTracker();
+        } else {
+            this.clearTracker();
+        }
     }
     forceStartTracker() {
         this.clearTracker();

@@ -21,20 +21,23 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
             this.refresh();
         });
         this.execRefreshAdbDevices();
-        if(this.refreshDelay) {
+        if (this.refreshDelay) {
             this.forceStartTracker();
         }
         toggleRefreshEvent.event(() => {
-            if(this.refreshDelay) {
-                this.forceStartTracker();
-            } else{
-               this.clearTracker();
-            }
+            this.checkTracker();
         });
         context.subscriptions.push(this._onDidChangeTreeData);
     }
     get refreshDelay() {
         return ConfigAdaptor.get(Config.refresh);
+    }
+    checkTracker() {
+        if (this.refreshDelay) {
+            this.forceStartTracker();
+        } else {
+            this.clearTracker();
+        }
     }
     clearTracker() {
         clearTimeout(this.deviceTracker);
@@ -54,9 +57,9 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
     }
     async startTracker() {
         if (!this.refreshing) return;
-        while(this.refreshing) {
+        while (this.refreshing) {
             await this.execRefreshAdbDevices();
-            await new Promise(resolve => this.deviceTracker = setTimeout(resolve, this.refreshDelay));
+            await new Promise((resolve) => (this.deviceTracker = setTimeout(resolve, this.refreshDelay)));
         }
     }
     getTreeItem(element: AdbItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
@@ -71,31 +74,31 @@ export class AdbViewProvider implements vscode.TreeDataProvider<AdbItem> {
         }
 
         if (element.type === AdbTreeItemEnum.device) {
-            let getWebViews = findWebViews(element.device)
-            return getWebViews.then(webViews => {
-                return Promise.all(webViews.map(async (item) => {
-                    const port = await forwardDebugger(item);
-                    return new WebViewItem(
-                        item,
-                        port,
-                        vscode.TreeItemCollapsibleState.Expanded
+            let getWebViews = findWebViews(element.device);
+            return getWebViews
+                .then((webViews) => {
+                    return Promise.all(
+                        webViews.map(async (item) => {
+                            const port = await forwardDebugger(item);
+                            return new WebViewItem(item, port, vscode.TreeItemCollapsibleState.Expanded);
+                        }),
                     );
-                }));
-            }).catch(() => []);
+                })
+                .catch(() => []);
         }
 
         if (element.type === AdbTreeItemEnum.webView) {
-            return getWebViewPages(element.port).then(pages => {
+            return getWebViewPages(element.port).then((pages) => {
                 const collapsibleState = pages.length
                     ? vscode.TreeItemCollapsibleState.Collapsed
                     : vscode.TreeItemCollapsibleState.None;
                 return pages.map((item) => {
                     return new PageItem(item, collapsibleState);
                 });
-            })
+            });
         }
 
-        if(element.type === AdbTreeItemEnum.page) {
+        if (element.type === AdbTreeItemEnum.page) {
             const detail = element.page;
             type WebViewPageKey = keyof WebViewPage;
             return (Object.keys(detail) as WebViewPageKey[]).map((key: WebViewPageKey) => {
