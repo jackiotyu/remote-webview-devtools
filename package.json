@@ -125,6 +125,12 @@
           "name": "flow管理"
         },
         {
+          "id": "RWD.QRCodeView",
+          "name": "二维码工具",
+          "type": "webview",
+          "visibility": "collapsed"
+        },
+        {
           "id": "RWD.actions",
           "name": "快捷操作"
         }

@@ -1,0 +1,77 @@
+/* https://codepen.io/jgobeille/pen/ZwEbvy */
+
+@media all and (max-width: 30em) {
+    button {
+        display: block;
+        margin: 0.4em auto;
+    }
+}
+
+#border {
+    height: 100%;
+    width: 100%;
+    border-radius: 0;
+}
+
+img {
+    width: 220px;
+    height: 220px;
+    display: inline-block !important;
+}
+
+#content {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10px;
+}
+
+#QRInput {
+    height: 40px;
+    position: relative;
+    font-size: 14px;
+    border-radius: 0;
+}
+
+#border {
+    text-align: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    overflow-y: auto;
+}
+
+#QRInput {
+    height: 30px;
+    position: relative;
+    /* border: 2px solid #cdcdcd; */
+    /* border-color: rgba(0, 0, 0, 0.14); */
+    /* background-color: AliceBlue; */
+    font-size: 14px;
+}
+
+#submitButton {
+    margin-right: 25px;
+}
+
+.buttons {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+}
+
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#output {
+    width: 240px;
+    height: 240px;
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

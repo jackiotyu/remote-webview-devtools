@@ -8,6 +8,7 @@ import ChannelMap from './lib/event/tunnelEvent';
 import FlowDocRegister from './lib/editor/flowDocProvider';
 import OutputChannel from './lib/output/outputChannel';
 import GlobalStorage from './lib/adaptor/globalStorage';
+import QRCodeViewRegister from './lib/webviewQRCode';
 
 export function activate(context: vscode.ExtensionContext) {
     GlobalStorage.init(context);
@@ -19,6 +20,7 @@ export function activate(context: vscode.ExtensionContext) {
     new TreeDataManager(context);
     new EventDisposables(context);
     new FlowDocRegister(context);
+    new QRCodeViewRegister(context);
 }
 
 export function deactivate() {}
