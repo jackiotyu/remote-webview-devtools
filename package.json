@@ -1,14 +1,18 @@
 {
   "publisher": "jackiotyu",
   "name": "RemoteWebviewDevtools",
-  "displayName": "remote webview devtools",
-  "description": "",
-  "version": "0.2.13",
+  "displayName": "Remote Webview Devtools/移动端webview调试",
+  "description": "快速调试移动端webview",
+  "version": "0.2.14",
   "engines": {
     "vscode": "^1.63.0"
   },
   "categories": [
     "Other"
+  ],
+  "keywords": [
+    "webview调试",
+    "微信h5调试"
   ],
   "repository": {
     "type": "git",
