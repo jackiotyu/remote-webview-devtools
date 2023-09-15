@@ -11,18 +11,18 @@ styles.replaceSync(
  * found in the LICENSE file.
  */
 devtools-data-grid-controller {
-  border: 1px solid var(--color-details-hairline);
+  border: 1px solid var(--sys-color-divider);
   margin-top: 0;
 }
 
 .link,
 .devtools-link {
-  color: var(--color-link);
+  color: var(--sys-color-primary);
   text-decoration: underline;
   cursor: pointer;
   outline-offset: 2px;
 }
 
-
+/*# sourceURL=bounceTrackingMitigationsView.css */
 `);
 export default styles;

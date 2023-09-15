@@ -12,7 +12,7 @@ styles.replaceSync(
  */
 
 .ax-name {
-  color: var(--color-syntax-4);
+  color: var(--sys-color-token-attribute);
   flex-shrink: 0;
 }
 
@@ -25,7 +25,7 @@ styles.replaceSync(
 }
 
 .ax-value-string {
-  color: var(--color-syntax-1);
+  color: var(--sys-color-token-property-special);
 }
 
 span.ax-internal-role {
@@ -41,6 +41,6 @@ span.ax-internal-role {
   margin: 5px;
 }
 
-
+/*# sourceURL=accessibilityProperties.css */
 `);
 export default styles;

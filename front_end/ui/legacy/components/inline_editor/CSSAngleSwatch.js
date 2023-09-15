@@ -8,7 +8,7 @@ import { get2DTranslationsForAngle } from './CSSAngleUtils.js';
 const { render, html } = LitHtml;
 const styleMap = LitHtml.Directives.styleMap;
 const swatchWidth = 11;
-class CSSAngleSwatch extends HTMLElement {
+export class CSSAngleSwatch extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-css-angle-swatch`;
     shadow = this.attachShadow({ mode: 'open' });
     angle = {
@@ -39,6 +39,5 @@ class CSSAngleSwatch extends HTMLElement {
         // clang-format on
     }
 }
-export { CSSAngleSwatch };
 ComponentHelpers.CustomElements.defineComponent('devtools-css-angle-swatch', CSSAngleSwatch);
 //# map=CSSAngleSwatch.js.map

@@ -38,7 +38,7 @@ styles.replaceSync(
 h1 {
   font-size: 16px;
   line-height: 19px;
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
   font-weight: normal;
 }
 
@@ -54,7 +54,7 @@ h1 {
 
 .title {
   font-size: 13px;
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
   margin-left: 10px;
   flex: 1;
   overflow-x: hidden;
@@ -67,12 +67,12 @@ h1 {
   align-items: center;
   padding-right: 5px;
   height: 28px;
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .row:focus-within,
 .row:hover {
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-state-hover-on-subtle);
 }
 
 .row:last-child {
@@ -90,22 +90,15 @@ h1 {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-
-  --override-background-color: rgba(26 115 232 / 15%);
-}
-
-.actions button:hover,
-.actions button:focus-visible {
-  background-color: var(--override-background-color);
 }
 
 .actions .divider {
   width: 1px;
   height: 17px;
-  background-color: var(--color-details-hairline);
+  background-color: var(--sys-color-divider);
   margin: 0 6px;
 }
 
-
+/*# sourceURL=recordingListView.css */
 `);
 export default styles;

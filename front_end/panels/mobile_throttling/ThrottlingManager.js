@@ -64,13 +64,13 @@ const UIStrings = {
      */
     resetConcurrency: 'Reset to the default value',
     /**
-     *@description Screen reader label for an check box that neables overriding navigator.hardwareConcurrency
+     *@description Label for an check box that neables overriding navigator.hardwareConcurrency
      */
     hardwareConcurrency: 'Hardware concurrency',
     /**
-     *@description Screen reader label for an input box that overrides navigator.hardwareConcurrency
+     *@description Tooltip text for an input box that overrides navigator.hardwareConcurrency on the page
      */
-    hardwareConcurrencyValue: 'Value of navigator.hardwareConcurrency',
+    hardwareConcurrencySettingTooltip: 'Override the value reported by navigator.hardwareConcurrency on the page',
     /**
      *@description Icon title in Throttling Manager of the Performance panel
      */
@@ -128,13 +128,13 @@ export class ThrottlingManager {
                     // The title is usually an i18nLazyString except for custom values that are stored in the local storage in the form of a string.
                     const title = typeof conditions.title === 'function' ? conditions.title() : conditions.title;
                     const option = new Option(title, title);
-                    UI.ARIAUtils.setAccessibleName(option, i18nString(UIStrings.sS, { PH1: group.title, PH2: title }));
+                    UI.ARIAUtils.setLabel(option, i18nString(UIStrings.sS, { PH1: group.title, PH2: title }));
                     groupElement.appendChild(option);
                     options.push(conditions);
                 }
                 if (i === groups.length - 1) {
                     const option = new Option(i18nString(UIStrings.add), i18nString(UIStrings.add));
-                    UI.ARIAUtils.setAccessibleName(option, i18nString(UIStrings.addS, { PH1: group.title }));
+                    UI.ARIAUtils.setLabel(option, i18nString(UIStrings.addS, { PH1: group.title }));
                     groupElement.appendChild(option);
                     options.push(null);
                 }
@@ -267,11 +267,11 @@ export class ThrottlingManager {
     }
     createHardwareConcurrencySelector() {
         const input = new UI.Toolbar.ToolbarItem(UI.UIUtils.createInput('devtools-text-input', 'number'));
-        input.setTitle(i18nString(UIStrings.hardwareConcurrencyValue));
+        input.setTitle(i18nString(UIStrings.hardwareConcurrencySettingTooltip));
         const inputElement = input.element;
         inputElement.min = '1';
         input.setEnabled(false);
-        const toggle = new UI.Toolbar.ToolbarCheckbox(i18nString(UIStrings.hardwareConcurrency));
+        const toggle = new UI.Toolbar.ToolbarCheckbox(i18nString(UIStrings.hardwareConcurrency), i18nString(UIStrings.hardwareConcurrencySettingTooltip));
         const reset = new UI.Toolbar.ToolbarButton('Reset concurrency', 'undo');
         reset.setTitle(i18nString(UIStrings.resetConcurrency));
         const icon = new IconButton.Icon.Icon();

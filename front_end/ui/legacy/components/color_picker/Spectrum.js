@@ -259,7 +259,7 @@ export class Spectrum extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) {
         this.setDefaultFocusedElement(this.colorElement);
         this.colorElement.addEventListener('keydown', this.onSliderKeydown.bind(this, positionColor.bind(this)));
         const swatchAriaText = i18nString(UIStrings.pressArrowKeysMessage);
-        UI.ARIAUtils.setAccessibleName(this.colorElement, swatchAriaText);
+        UI.ARIAUtils.setLabel(this.colorElement, swatchAriaText);
         UI.ARIAUtils.markAsApplication(this.colorElement);
         this.colorDragElement = this.colorElement.createChild('div', 'spectrum-sat fill')
             .createChild('div', 'spectrum-val fill')
@@ -278,13 +278,13 @@ export class Spectrum extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) {
         this.hueElement = toolsContainer.createChild('div', 'spectrum-hue');
         this.hueElement.tabIndex = 0;
         this.hueElement.addEventListener('keydown', this.onSliderKeydown.bind(this, positionHue.bind(this)));
-        UI.ARIAUtils.setAccessibleName(this.hueElement, i18nString(UIStrings.changeHue));
+        UI.ARIAUtils.setLabel(this.hueElement, i18nString(UIStrings.changeHue));
         UI.ARIAUtils.markAsSlider(this.hueElement, 0, 360);
         this.hueSlider = this.hueElement.createChild('div', 'spectrum-slider');
         this.alphaElement = toolsContainer.createChild('div', 'spectrum-alpha');
         this.alphaElement.tabIndex = 0;
         this.alphaElement.addEventListener('keydown', this.onSliderKeydown.bind(this, positionAlpha.bind(this)));
-        UI.ARIAUtils.setAccessibleName(this.alphaElement, i18nString(UIStrings.changeAlpha));
+        UI.ARIAUtils.setLabel(this.alphaElement, i18nString(UIStrings.changeAlpha));
         UI.ARIAUtils.markAsSlider(this.alphaElement, 0, 1);
         this.alphaElementBackground = this.alphaElement.createChild('div', 'spectrum-alpha-background');
         this.alphaSlider = this.alphaElement.createChild('div', 'spectrum-slider');
@@ -315,7 +315,7 @@ export class Spectrum extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) {
         this.hexValue.addEventListener('paste', this.pasted.bind(this), false);
         const label = this.hexContainer.createChild('div', 'spectrum-text-label');
         label.textContent = i18nString(UIStrings.hex);
-        UI.ARIAUtils.setAccessibleName(this.hexValue, label.textContent);
+        UI.ARIAUtils.setLabel(this.hexValue, label.textContent);
         const displaySwitcher = toolsContainer.createChild('button', 'spectrum-display-switcher spectrum-switcher');
         appendSwitcherIcon(displaySwitcher);
         UI.UIUtils.setTitle(displaySwitcher, i18nString(UIStrings.changeColorFormat));
@@ -508,7 +508,7 @@ export class Spectrum extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) {
         for (const palette of this.palettes.values()) {
             this.palettePanel.appendChild(this.createPreviewPaletteElement(palette));
         }
-        this.contentElement.scrollIntoView({ block: 'end', behavior: 'smooth', inline: 'start' });
+        this.contentElement.scrollIntoView({ block: 'end' });
     }
     togglePalettePanel(show) {
         if (this.palettePanelShowing === show) {
@@ -570,7 +570,7 @@ export class Spectrum extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) {
             const animationDelay = animate ? i * 100 / palette.colors.length : 0;
             const colorElement = this.createPaletteColor(palette.colors[i], palette.colorNames[i], animationDelay);
             UI.ARIAUtils.markAsButton(colorElement);
-            UI.ARIAUtils.setAccessibleName(colorElement, i18nString(UIStrings.colorS, { PH1: palette.colors[i] }));
+            UI.ARIAUtils.setLabel(colorElement, i18nString(UIStrings.colorS, { PH1: palette.colors[i] }));
             colorElement.tabIndex = -1;
             colorElement.addEventListener('mousedown', this.paletteColorSelected.bind(this, palette.colors[i], palette.colorNames[i], Boolean(palette.matchUserFormat)));
             colorElement.addEventListener('focus', this.paletteColorSelected.bind(this, palette.colors[i], palette.colorNames[i], Boolean(palette.matchUserFormat)));
@@ -588,7 +588,7 @@ export class Spectrum extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) {
                 shadow.style.background = palette.colors[i];
                 const tooltipText = i18nString(UIStrings.longclickOrLongpressSpaceToShow, { PH1: palette.colors[i] });
                 UI.Tooltip.Tooltip.install(colorElement, tooltipText);
-                UI.ARIAUtils.setAccessibleName(colorElement, tooltipText);
+                UI.ARIAUtils.setLabel(colorElement, tooltipText);
                 new UI.UIUtils.LongClickController(colorElement, this.showLightnessShades.bind(this, colorElement, palette.colors[i]));
             }
             this.paletteContainer.appendChild(colorElement);
@@ -636,7 +636,7 @@ export class Spectrum extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) {
             for (let i = shades.length - 1; i >= 0; i--) {
                 const shadeElement = this.createPaletteColor(shades[i], undefined /* colorName */, i * 200 / shades.length + 100);
                 UI.ARIAUtils.markAsButton(shadeElement);
-                UI.ARIAUtils.setAccessibleName(shadeElement, i18nString(UIStrings.colorS, { PH1: shades[i] }));
+                UI.ARIAUtils.setLabel(shadeElement, i18nString(UIStrings.colorS, { PH1: shades[i] }));
                 shadeElement.tabIndex = -1;
                 shadeElement.addEventListener('mousedown', this.paletteColorSelected.bind(this, shades[i], shades[i], false));
                 shadeElement.addEventListener('focus', this.paletteColorSelected.bind(this, shades[i], shades[i], false));
@@ -1057,7 +1057,7 @@ export class Spectrum extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) {
             const colorValues = spec.toValues(this.color);
             this.textLabels.textContent = spec.label;
             for (let i = 0; i < this.textValues.length; ++i) {
-                UI.ARIAUtils.setAccessibleName(this.textValues[i],
+                UI.ARIAUtils.setLabel(this.textValues[i],
                 /** R in RGBA */ i18nString(UIStrings.sInS, {
                     PH1: this.textLabels.textContent.charAt(i),
                     PH2: this.textLabels.textContent,
@@ -1431,7 +1431,7 @@ export class Swatch {
         this.swatchCopyIcon = UI.Icon.Icon.create('copy', 'copy-color-icon');
         UI.Tooltip.Tooltip.install(this.swatchCopyIcon, i18nString(UIStrings.copyColorToClipboard));
         this.swatchOverlayElement.appendChild(this.swatchCopyIcon);
-        UI.ARIAUtils.setAccessibleName(this.swatchOverlayElement, this.swatchCopyIcon.title);
+        UI.ARIAUtils.setLabel(this.swatchOverlayElement, this.swatchCopyIcon.title);
     }
     setColor(color, colorString) {
         const lchColor = color.as("lch" /* Common.Color.Format.LCH */);

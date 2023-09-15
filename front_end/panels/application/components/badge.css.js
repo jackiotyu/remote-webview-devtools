@@ -12,18 +12,18 @@ styles.replaceSync(
  */
 
 :host .badge-error {
-  --override-adorner-text-color: var(--color-red);
-  --override-adorner-border-color: var(--color-red);
+  --override-adorner-text-color: var(--sys-color-error-bright);
+  --override-adorner-border-color: var(--sys-color-error-bright);
 }
 
 :host .badge-success {
-  --override-adorner-text-color: var(--color-accent-green);
-  --override-adorner-border-color: var(--color-accent-green);
+  --override-adorner-text-color: var(--sys-color-tertiary);
+  --override-adorner-border-color: var(--sys-color-tertiary);
 }
 
 :host .badge-secondary {
-  --override-adorner-text-color: var(--color-text-secondary);
-  --override-adorner-border-color: var(--color-text-secondary);
+  --override-adorner-text-color: var(--sys-color-token-subtle);
+  --override-adorner-border-color: var(--sys-color-token-subtle);
 }
 
 /* Use mono-space source code font to assist reading of adorner content */
@@ -31,6 +31,6 @@ styles.replaceSync(
   font-family: var(--source-code-font-family);
 }
 
-
+/*# sourceURL=badge.css */
 `);
 export default styles;

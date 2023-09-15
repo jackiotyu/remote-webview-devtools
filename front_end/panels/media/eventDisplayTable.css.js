@@ -28,6 +28,6 @@ styles.replaceSync(
   overflow: visible;
 }
 
-
+/*# sourceURL=eventDisplayTable.css */
 `);
 export default styles;

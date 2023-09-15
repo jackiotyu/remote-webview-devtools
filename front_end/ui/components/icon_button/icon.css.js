@@ -23,6 +23,6 @@ styles.replaceSync(
   }
 }
 
-
+/*# sourceURL=icon.css */
 `);
 export default styles;

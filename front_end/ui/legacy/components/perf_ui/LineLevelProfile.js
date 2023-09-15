@@ -21,8 +21,7 @@ export class Performance {
     reset() {
         this.helper.reset();
     }
-    appendLegacyCPUProfile(profile) {
-        const target = profile.target();
+    appendLegacyCPUProfile(profile, target) {
         const nodesToGo = [profile.profileHead];
         const sampleDuration = (profile.profileEndTime - profile.profileStartTime) / profile.totalHitCount;
         while (nodesToGo.length) {
@@ -45,13 +44,12 @@ export class Performance {
             }
         }
     }
-    appendCPUProfile(profile) {
+    appendCPUProfile(profile, target) {
         if (!profile.lines) {
-            this.appendLegacyCPUProfile(profile);
+            this.appendLegacyCPUProfile(profile, target);
             this.helper.scheduleUpdate();
             return;
         }
-        const target = profile.target();
         if (!profile.samples) {
             return;
         }

@@ -61,7 +61,7 @@ export function normalizePath(path) {
     }
     return normalizedPath;
 }
-class ParsedURL {
+export class ParsedURL {
     isValid;
     url;
     scheme;
@@ -122,13 +122,16 @@ class ParsedURL {
             }
             this.path = this.url;
         }
-        const lastSlashIndex = this.path.lastIndexOf('/');
-        if (lastSlashIndex !== -1) {
-            this.folderPathComponents = this.path.substring(0, lastSlashIndex);
-            this.lastPathComponent = this.path.substring(lastSlashIndex + 1);
+        const lastSlashExceptTrailingIndex = this.path.lastIndexOf('/', this.path.length - 2);
+        if (lastSlashExceptTrailingIndex !== -1) {
+            this.lastPathComponent = this.path.substring(lastSlashExceptTrailingIndex + 1);
         }
         else {
             this.lastPathComponent = this.path;
+        }
+        const lastSlashIndex = this.path.lastIndexOf('/');
+        if (lastSlashIndex !== -1) {
+            this.folderPathComponents = this.path.substring(0, lastSlashIndex);
         }
     }
     static fromString(string) {
@@ -467,5 +470,4 @@ class ParsedURL {
     }
     static urlRegexInstance = null;
 }
-export { ParsedURL };
 //# map=ParsedURL.js.map

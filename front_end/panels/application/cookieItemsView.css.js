@@ -16,7 +16,7 @@ styles.replaceSync(
 }
 
 .cookie-preview-widget-header {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
   font-weight: bold;
   user-select: none;
   white-space: nowrap;
@@ -42,6 +42,6 @@ styles.replaceSync(
   font-weight: normal;
 }
 
-
+/*# sourceURL=cookieItemsView.css */
 `);
 export default styles;

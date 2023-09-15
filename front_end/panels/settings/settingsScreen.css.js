@@ -13,7 +13,7 @@ styles.replaceSync(
 
 .settings-window-main {
   color: var(--color-text-primary);
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   padding: 11px 0 0;
 }
 
@@ -131,7 +131,7 @@ label {
   bottom: 0;
   overflow: auto;
   padding-top: 9px;
-  border-top: 1px solid var(--color-details-hairline);
+  border-top: 1px solid var(--sys-color-divider);
 }
 
 .settings-tab.settings-content {
@@ -242,6 +242,6 @@ label {
   }
 }
 
-
+/*# sourceURL=settingsScreen.css */
 `);
 export default styles;

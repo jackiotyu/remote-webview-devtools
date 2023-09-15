@@ -1,6 +1,7 @@
 // Copyright 2022 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+import * as Helpers from '../helpers/helpers.js';
 import * as Types from '../types/types.js';
 // This handler serves two purposes. It generates a list of events that are
 // used to show user clicks in the timeline. It is also used to gather
@@ -9,6 +10,7 @@ import * as Types from '../types/types.js';
 // We don't need to know which process / thread these events occurred in,
 // because they are effectively global, so we just track all that we find.
 const allEvents = [];
+export const LONG_INTERACTION_THRESHOLD = Helpers.Timing.millisecondsToMicroseconds(Types.Timing.MilliSeconds(200));
 let longestInteractionEvent = null;
 const interactionEvents = [];
 const interactionEventsWithNoNesting = [];
@@ -21,6 +23,7 @@ export function reset() {
     eventTimingStartEventsForInteractions.length = 0;
     eventTimingEndEventsById.clear();
     interactionEventsWithNoNesting.length = 0;
+    longestInteractionEvent = null;
     handlerState = 2 /* HandlerState.INITIALIZED */;
 }
 export function handleEvent(event) {
@@ -190,6 +193,9 @@ export function data() {
         interactionEvents: [...interactionEvents],
         interactionEventsWithNoNesting: [...interactionEventsWithNoNesting],
         longestInteractionEvent,
+        interactionsOverThreshold: new Set(interactionEvents.filter(event => {
+            return event.dur > LONG_INTERACTION_THRESHOLD;
+        })),
     };
 }
 //# map=UserInteractionsHandler.js.map

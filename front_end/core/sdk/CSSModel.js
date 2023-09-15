@@ -1,35 +1,6 @@
 // Copyright 2021 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-/*
- * Copyright (C) 2010 Google Inc. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- *
- *     * Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above
- * copyright notice, this list of conditions and the following disclaimer
- * in the documentation and/or other materials provided with the
- * distribution.
- *     * Neither the #name of Google Inc. nor the names of its
- * contributors may be used to endorse or promote products derived from
- * this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 import * as TextUtils from '../../models/text_utils/text_utils.js';
 import * as Common from '../common/common.js';
 import * as Host from '../host/host.js';
@@ -42,9 +13,9 @@ import { CSSStyleDeclaration, Type } from './CSSStyleDeclaration.js';
 import { CSSStyleSheetHeader } from './CSSStyleSheetHeader.js';
 import { DOMModel } from './DOMModel.js';
 import { Events as ResourceTreeModelEvents, ResourceTreeModel, } from './ResourceTreeModel.js';
-import { Capability } from './Target.js';
 import { SDKModel } from './SDKModel.js';
 import { SourceMapManager } from './SourceMapManager.js';
+import { Capability } from './Target.js';
 export class CSSModel extends SDKModel {
     agent;
     #domModel;
@@ -184,6 +155,23 @@ export class CSSModel extends SDKModel {
             return false;
         }
     }
+    async setPropertyRulePropertyName(styleSheetId, range, text) {
+        Host.userMetrics.actionTaken(Host.UserMetrics.Action.StyleRuleEdited);
+        try {
+            await this.ensureOriginalStyleSheetText(styleSheetId);
+            const { propertyName } = await this.agent.invoke_setPropertyRulePropertyName({ styleSheetId, range, propertyName: text });
+            if (!propertyName) {
+                return false;
+            }
+            this.#domModel.markUndoableState();
+            const edit = new Edit(styleSheetId, range, text, propertyName);
+            this.fireStyleSheetChanged(styleSheetId, edit);
+            return true;
+        }
+        catch (e) {
+            return false;
+        }
+    }
     async setKeyframeKey(styleSheetId, range, text) {
         Host.userMetrics.actionTaken(Host.UserMetrics.Action.StyleRuleEdited);
         try {
@@ -260,6 +248,8 @@ export class CSSModel extends SDKModel {
             animationsPayload: response.cssKeyframesRules || [],
             parentLayoutNodeId: response.parentLayoutNodeId,
             positionFallbackRules: response.cssPositionFallbackRules || [],
+            propertyRules: response.cssPropertyRules ?? [],
+            cssPropertyRegistrations: response.cssPropertyRegistrations ?? [],
         });
     }
     async getClassNames(styleSheetId) {

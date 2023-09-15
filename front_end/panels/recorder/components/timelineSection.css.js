@@ -47,16 +47,16 @@ styles.replaceSync(
 }
 
 :hover .overlay {
-  background: var(--color-background-elevation-1);
+  background: var(--sys-color-state-hover-on-subtle);
 }
 
 .is-selected .overlay {
-  background: var(--color-button-secondary-background-hovering);
+  background: var(--sys-color-tonal-container);
 }
 
 :host-context(.is-stopped) .overlay {
-  background: var(--color-execution-line-background);
-  outline: 1px solid var(--color-execution-line-outline);
+  background: var(--sys-color-state-ripple-primary);
+  outline: 1px solid var(--sys-color-state-focus-ring);
   z-index: 4;
 }
 
@@ -86,11 +86,11 @@ styles.replaceSync(
 }
 
 .bar .background {
-  fill: var(--color-background-elevation-1);
+  fill: var(--sys-color-state-hover-on-subtle);
 }
 
 .bar .line {
-  fill: var(--color-primary-old);
+  fill: var(--sys-color-primary);
 }
 
 .is-first-section .bar {
@@ -112,11 +112,11 @@ styles.replaceSync(
 }
 
 :host-context(.is-error) .bar .line {
-  fill: var(--color-error-text);
+  fill: var(--sys-color-error);
 }
 
 :host-context(.is-error) .bar .background {
-  fill: var(--color-error-background);
+  fill: var(--sys-color-error-container);
 }
 
 :host-context(.was-successful) .bar .background {
@@ -147,6 +147,6 @@ styles.replaceSync(
   }
 }
 
-
+/*# sourceURL=timelineSection.css */
 `);
 export default styles;

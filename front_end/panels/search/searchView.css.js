@@ -18,13 +18,13 @@ styles.replaceSync(
 }
 
 .search-toolbar {
-  background-color: var(--color-background-elevation-1);
-  border-bottom: 1px solid var(--color-details-hairline);
+  background-color: var(--sys-color-cdt-base-container);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .search-toolbar-summary {
-  background-color: var(--color-background-elevation-1);
-  border-top: 1px solid var(--color-details-hairline);
+  background-color: var(--sys-color-cdt-base-container);
+  border-top: 1px solid var(--sys-color-divider);
   padding-left: 5px;
   flex: 0 0 19px;
   display: flex;
@@ -49,6 +49,6 @@ styles.replaceSync(
   flex: auto;
 }
 
-
+/*# sourceURL=searchView.css */
 `);
 export default styles;

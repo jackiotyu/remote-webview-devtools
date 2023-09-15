@@ -35,18 +35,20 @@ function isPrintable(valueType) {
             return false;
     }
 }
-class AccessibilityTreeNode extends HTMLElement {
+export class AccessibilityTreeNode extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-accessibility-tree-node`;
     #shadow = this.attachShadow({ mode: 'open' });
     #ignored = true;
     #name = '';
     #role = '';
     #properties = [];
+    #id = '';
     set data(data) {
         this.#ignored = data.ignored;
         this.#name = data.name;
         this.#role = data.role;
         this.#properties = data.properties;
+        this.#id = data.id;
         void this.#render();
     }
     connectedCallback() {
@@ -60,13 +62,12 @@ class AccessibilityTreeNode extends HTMLElement {
             LitHtml.nothing);
         const content = this.#ignored ? LitHtml.html `<span>${i18nString(UIStrings.ignored)}</span>` :
             LitHtml.html `${role}&nbsp;${name}${properties}`;
-        await Coordinator.RenderCoordinator.RenderCoordinator.instance().write('Accessibility node render', () => {
+        await Coordinator.RenderCoordinator.RenderCoordinator.instance().write(`Accessibility node ${this.#id} render`, () => {
             // clang-format off
             LitHtml.render(LitHtml.html `<div class='container'>${content}</div>`, this.#shadow, { host: this });
             // clang-format on
         });
     }
 }
-export { AccessibilityTreeNode };
 ComponentHelpers.CustomElements.defineComponent('devtools-accessibility-tree-node', AccessibilityTreeNode);
 //# map=AccessibilityTreeNode.js.map

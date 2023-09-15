@@ -7,7 +7,7 @@ import * as SDK from '../../../core/sdk/sdk.js';
 import * as Models from '../models/models.js';
 import * as Util from '../util/util.js';
 const BINDING_NAME = 'captureSelectors';
-class SelectorPickedEvent extends Event {
+export class SelectorPickedEvent extends Event {
     static eventName = 'selectorpicked';
     data;
     constructor(data) {
@@ -15,8 +15,7 @@ class SelectorPickedEvent extends Event {
         this.data = data;
     }
 }
-export { SelectorPickedEvent };
-class RequestSelectorAttributeEvent extends Event {
+export class RequestSelectorAttributeEvent extends Event {
     static eventName = 'requestselectorattribute';
     send;
     constructor(send) {
@@ -27,7 +26,6 @@ class RequestSelectorAttributeEvent extends Event {
         this.send = send;
     }
 }
-export { RequestSelectorAttributeEvent };
 export class SelectorPicker {
     static get #targetManager() {
         return SDK.TargetManager.TargetManager.instance();

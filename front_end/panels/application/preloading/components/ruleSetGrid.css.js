@@ -23,13 +23,13 @@ styles.replaceSync(
 }
 
 devtools-data-grid-controller {
-  border: 1px solid var(--color-details-hairline);
+  border: 1px solid var(--sys-color-divider);
 }
 
 .inline-icon {
   vertical-align: text-bottom;
 }
 
-
+/*# sourceURL=ruleSetGrid.css */
 `);
 export default styles;

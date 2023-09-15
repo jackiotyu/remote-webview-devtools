@@ -39,7 +39,7 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/mobile_throttling/ThrottlingPresets.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class ThrottlingPresets {
+export class ThrottlingPresets {
     static getNoThrottlingConditions() {
         const title = typeof SDK.NetworkManager.NoThrottlingConditions.title === 'function' ?
             SDK.NetworkManager.NoThrottlingConditions.title() :
@@ -107,7 +107,6 @@ class ThrottlingPresets {
         SDK.CPUThrottlingManager.CPUThrottlingRates.LowEndMobile,
     ];
 }
-export { ThrottlingPresets };
 // @ts-ignore exported for Tests.js
 globalThis.MobileThrottling = globalThis.MobileThrottling || {};
 // @ts-ignore exported for Tests.js

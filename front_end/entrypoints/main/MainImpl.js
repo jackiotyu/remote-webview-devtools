@@ -38,6 +38,7 @@ import * as ProtocolClient from '../../core/protocol_client/protocol_client.js';
 import * as Root from '../../core/root/root.js';
 import * as SDK from '../../core/sdk/sdk.js';
 import * as Bindings from '../../models/bindings/bindings.js';
+import * as Breakpoints from '../../models/breakpoints/breakpoints.js';
 import * as Extensions from '../../models/extensions/extensions.js';
 import * as IssuesManager from '../../models/issues_manager/issues_manager.js';
 import * as Logs from '../../models/logs/logs.js';
@@ -84,7 +85,7 @@ const UIStrings = {
     /**
      *@description Text in Main
      */
-    focusDebuggee: 'Focus debuggee',
+    focusDebuggee: 'Focus page',
     /**
      *@description Text in Main
      */
@@ -108,7 +109,7 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('entrypoints/main/MainImpl.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class MainImpl {
+export class MainImpl {
     #lateInitDonePromise;
     #readyForTestPromise;
     #resolveReadyForTestPromise;
@@ -145,8 +146,6 @@ class MainImpl {
         void this.#createAppUI();
     }
     #initializeGlobalsForLayoutTests() {
-        // @ts-ignore layout test global
-        self.Common = self.Common || {};
         // @ts-ignore layout test global
         self.UI = self.UI || {};
         // @ts-ignore layout test global
@@ -241,8 +240,6 @@ class MainImpl {
         const syncedStorage = new Common.Settings.SettingsStorage(prefs, hostSyncedStorage, storagePrefix);
         const globalStorage = new Common.Settings.SettingsStorage(prefs, hostUnsyncedStorage, storagePrefix);
         Common.Settings.Settings.instance({ forceNew: true, syncedStorage, globalStorage, localStorage });
-        // @ts-ignore layout test global
-        self.Common.settings = Common.Settings.Settings.instance();
         if (!Host.InspectorFrontendHost.isUnderTest()) {
             new Common.Settings.VersionController().updateVersion();
         }
@@ -275,6 +272,8 @@ class MainImpl {
         Root.Runtime.experiments.register('wasmDWARFDebugging', 'WebAssembly Debugging: Enable DWARF support', undefined, 'https://developer.chrome.com/blog/wasm-debugging-2020/');
         Root.Runtime.experiments.register('evaluateExpressionsWithSourceMaps', 'Resolve variable names in expressions using source maps', undefined);
         Root.Runtime.experiments.register('instrumentationBreakpoints', 'Enable instrumentation breakpoints', true);
+        Root.Runtime.experiments.register('setAllBreakpointsEagerly', 'Set all breakpoints eagerly at startup');
+        Root.Runtime.experiments.register('useSourceMapScopes', 'Use scope information from source maps', true);
         // Dual-screen
         Root.Runtime.experiments.register('dualScreenSupport', 'Emulation: Support dual screen mode', undefined, 'https://developer.chrome.com/blog/new-in-devtools-89#dual-screen');
         Root.Runtime.experiments.setEnabled('dualScreenSupport', true);
@@ -297,8 +296,9 @@ class MainImpl {
         // Highlights a violating node or attribute by rendering a squiggly line under it and adding a tooltip linking to the issues panel.
         // Right now violating nodes are exclusively form fields that contain an HTML issue, for example, and <input /> whose id is duplicate inside the form.
         Root.Runtime.experiments.register(Root.Runtime.ExperimentName.HIGHLIGHT_ERRORS_ELEMENTS_PANEL, 'Highlights a violating node or attribute in the Elements panel DOM tree');
-        // Local overrides for response headers
+        // Local overrides
         Root.Runtime.experiments.register(Root.Runtime.ExperimentName.HEADER_OVERRIDES, 'Local overrides for response headers');
+        Root.Runtime.experiments.register(Root.Runtime.ExperimentName.DELETE_OVERRIDES_TEMP_ENABLE, 'Enable "Delete all overrides" temporarily', undefined, 'https://goo.gle/devtools-overrides', 'https://crbug.com/1473681');
         // Enable color picking outside the browser window (using Eyedropper API)
         Root.Runtime.experiments.register(Root.Runtime.ExperimentName.EYEDROPPER_COLOR_PICKER, 'Enable color picking outside the browser window');
         // Change grouping of sources panel to use Authored/Deployed trees
@@ -308,10 +308,13 @@ class MainImpl {
         // Highlight important DOM properties in the Object Properties viewer.
         Root.Runtime.experiments.register(Root.Runtime.ExperimentName.IMPORTANT_DOM_PROPERTIES, 'Highlight important DOM properties in the Object Properties viewer');
         Root.Runtime.experiments.register(Root.Runtime.ExperimentName.PRELOADING_STATUS_PANEL, 'Enable Preloading Status Panel in Application panel', true);
+        Root.Runtime.experiments.setEnabled(Root.Runtime.ExperimentName.PRELOADING_STATUS_PANEL, true);
         Root.Runtime.experiments.register(Root.Runtime.ExperimentName.DISABLE_COLOR_FORMAT_SETTING,
         // Adding the reload hint here because users getting here are likely coming from inside the settings UI, but the regular reminder bar is only shown after the UI is closed which they're not going to see.
         'Disable the deprecated `Color format` setting (requires reloading DevTools)', false);
         Root.Runtime.experiments.register(Root.Runtime.ExperimentName.OUTERMOST_TARGET_SELECTOR, 'Enable background page selector (e.g. for prerendering debugging)', false);
+        Root.Runtime.experiments.register(Root.Runtime.ExperimentName.SELF_XSS_WARNING, 'Show warning about Self-XSS when pasting code');
+        Root.Runtime.experiments.register(Root.Runtime.ExperimentName.STORAGE_BUCKETS_TREE, 'Enable Storage Buckets Tree in Application panel', true);
         Root.Runtime.experiments.enableExperimentsByDefault([
             'sourceOrderViewer',
             'cssTypeComponentLength',
@@ -319,10 +322,12 @@ class MainImpl {
             ...('EyeDropper' in window ? [Root.Runtime.ExperimentName.EYEDROPPER_COLOR_PICKER] : []),
             'keyboardShortcutEditor',
             'sourcesPrettyPrint',
+            'setAllBreakpointsEagerly',
             Root.Runtime.ExperimentName.DISABLE_COLOR_FORMAT_SETTING,
             Root.Runtime.ExperimentName.TIMELINE_AS_CONSOLE_PROFILE_RESULT_PANEL,
             Root.Runtime.ExperimentName.WASM_DWARF_DEBUGGING,
             Root.Runtime.ExperimentName.HEADER_OVERRIDES,
+            Root.Runtime.ExperimentName.OUTERMOST_TARGET_SELECTOR,
         ]);
         Root.Runtime.experiments.setNonConfigurableExperiments([
             ...(!('EyeDropper' in window) ? [Root.Runtime.ExperimentName.EYEDROPPER_COLOR_PICKER] : []),
@@ -343,8 +348,13 @@ class MainImpl {
                 Root.Runtime.experiments.enableForTest('liveHeapProfile');
             }
         }
-        for (const experiment of Root.Runtime.experiments.enabledExperiments()) {
-            Host.userMetrics.experimentEnabledAtLaunch(experiment.name);
+        for (const experiment of Root.Runtime.experiments.allConfigurableExperiments()) {
+            if (experiment.isEnabled()) {
+                Host.userMetrics.experimentEnabledAtLaunch(experiment.name);
+            }
+            else {
+                Host.userMetrics.experimentDisabledAtLaunch(experiment.name);
+            }
         }
     }
     async #createAppUI() {
@@ -429,7 +439,7 @@ class MainImpl {
             SDK.TargetManager.TargetManager.instance().setScopeTarget(outermostTarget);
         });
         // @ts-ignore layout test global
-        self.Bindings.breakpointManager = Bindings.BreakpointManager.BreakpointManager.instance({
+        self.Bindings.breakpointManager = Breakpoints.BreakpointManager.BreakpointManager.instance({
             forceNew: true,
             workspace: Workspace.Workspace.WorkspaceImpl.instance(),
             targetManager: SDK.TargetManager.TargetManager.instance(),
@@ -445,7 +455,7 @@ class MainImpl {
         self.Persistence.persistence = Persistence.Persistence.PersistenceImpl.instance({
             forceNew: true,
             workspace: Workspace.Workspace.WorkspaceImpl.instance(),
-            breakpointManager: Bindings.BreakpointManager.BreakpointManager.instance(),
+            breakpointManager: Breakpoints.BreakpointManager.BreakpointManager.instance(),
         });
         // @ts-ignore layout test global
         self.Persistence.networkPersistenceManager =
@@ -609,7 +619,6 @@ class MainImpl {
     }
     static instanceForTest = null;
 }
-export { MainImpl };
 // @ts-ignore Exported for Tests.js
 globalThis.Main = globalThis.Main || {};
 // @ts-ignore Exported for Tests.js
@@ -699,7 +708,7 @@ export class MainMenuItem {
             dockItemElement.classList.add('flex-auto');
             dockItemElement.classList.add('location-menu');
             dockItemElement.tabIndex = -1;
-            UI.ARIAUtils.setAccessibleName(dockItemElement, UIStrings.dockSide + UIStrings.dockSideNaviation);
+            UI.ARIAUtils.setLabel(dockItemElement, UIStrings.dockSide + UIStrings.dockSideNaviation);
             const titleElement = dockItemElement.createChild('span', 'dockside-title');
             titleElement.textContent = i18nString(UIStrings.dockSide);
             const toggleDockSideShorcuts = UI.ShortcutRegistry.ShortcutRegistry.instance().shortcutsForAction('main.toggle-dock');

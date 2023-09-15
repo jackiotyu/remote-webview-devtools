@@ -370,6 +370,15 @@ export class NetworkLog extends Common.ObjectWrapper.ObjectWrapper {
         this.tryResolvePreflightRequests(request);
         this.dispatchEventToListeners(Events.RequestAdded, request);
     }
+    removeRequest(request) {
+        const index = this.requestsInternal.indexOf(request);
+        if (index > -1) {
+            this.requestsInternal.splice(index, 1);
+        }
+        this.requestsSet.delete(request);
+        this.requestsMap.delete(request.requestId());
+        this.dispatchEventToListeners(Events.RequestRemoved, request);
+    }
     tryResolvePreflightRequests(request) {
         if (request.isPreflightRequest()) {
             const initiator = request.initiator();
@@ -431,6 +440,14 @@ export class NetworkLog extends Common.ObjectWrapper.ObjectWrapper {
     onRequestUpdated(event) {
         const request = event.data;
         if (!this.requestsSet.has(request)) {
+            return;
+        }
+        // This is only triggered in an edge case in which Chrome reports 2 preflight requests. The
+        // first preflight gets aborted and should not be shown in DevTools.
+        // (see https://crbug.com/1290390 for details)
+        if (request.isPreflightRequest() &&
+            request.corsErrorStatus()?.corsError === "UnexpectedPrivateNetworkAccess" /* Protocol.Network.CorsError.UnexpectedPrivateNetworkAccess */) {
+            this.removeRequest(request);
             return;
         }
         this.dispatchEventToListeners(Events.RequestUpdated, request);
@@ -508,5 +525,6 @@ export var Events;
     Events["Reset"] = "Reset";
     Events["RequestAdded"] = "RequestAdded";
     Events["RequestUpdated"] = "RequestUpdated";
+    Events["RequestRemoved"] = "RequestRemoved";
 })(Events || (Events = {}));
 //# map=NetworkLog.js.map

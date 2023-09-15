@@ -15,11 +15,11 @@ import * as InlineEditor from '../../ui/legacy/components/inline_editor/inline_e
 import * as UI from '../../ui/legacy/legacy.js';
 import { BezierPopoverIcon, ColorSwatchPopoverIcon, ShadowSwatchPopoverHelper, } from './ColorSwatchPopoverIcon.js';
 import * as ElementsComponents from './components/components.js';
+import { cssRuleValidatorsMap } from './CSSRuleValidator.js';
 import { ElementsPanel } from './ElementsPanel.js';
 import { StyleEditorWidget } from './StyleEditorWidget.js';
-import { CSSPropertyPrompt, StylesSidebarPane, StylesSidebarPropertyRenderer } from './StylesSidebarPane.js';
 import { getCssDeclarationAsJavascriptProperty } from './StylePropertyUtils.js';
-import { cssRuleValidatorsMap } from './CSSRuleValidator.js';
+import { CSSPropertyPrompt, REGISTERED_PROPERTY_SECTION_NAME, StylesSidebarPane, StylesSidebarPropertyRenderer, } from './StylesSidebarPane.js';
 const FlexboxEditor = ElementsComponents.StylePropertyEditor.FlexboxEditor;
 const GridEditor = ElementsComponents.StylePropertyEditor.GridEditor;
 export const activeHints = new WeakMap();
@@ -111,7 +111,7 @@ export class StylePropertyTreeElement extends UI.TreeOutline.TreeElement {
     parentsComputedStyles = null;
     contextForTest;
     #propertyTextFromSource;
-    constructor(stylesPane, matchedStyles, property, isShorthand, inherited, overloaded, newProperty) {
+    constructor({ stylesPane, matchedStyles, property, isShorthand, inherited, overloaded, newProperty }) {
         // Pass an empty title, the title gets made later in onattach.
         super('', isShorthand);
         this.style = property.ownerStyle;
@@ -141,7 +141,9 @@ export class StylePropertyTreeElement extends UI.TreeOutline.TreeElement {
         return this.matchedStylesInternal;
     }
     editable() {
-        return Boolean(this.style.styleSheetId && this.style.range);
+        const isLonghandInsideShorthand = this.parent instanceof StylePropertyTreeElement && this.parent.isShorthand;
+        const hasSourceData = Boolean(this.style.styleSheetId && this.style.range);
+        return !isLonghandInsideShorthand && hasSourceData;
     }
     inherited() {
         return this.inheritedInternal;
@@ -200,8 +202,9 @@ export class StylePropertyTreeElement extends UI.TreeOutline.TreeElement {
     renderColorSwatch(text, valueChild) {
         const useUserSettingFormat = this.editable();
         const shiftClickMessage = i18nString(UIStrings.shiftClickToChangeColorFormat);
-        const tooltip = this.editable() ? i18nString(UIStrings.openColorPickerS, { PH1: shiftClickMessage }) : shiftClickMessage;
+        const tooltip = this.editable() ? i18nString(UIStrings.openColorPickerS, { PH1: shiftClickMessage }) : '';
         const swatch = new InlineEditor.ColorSwatch.ColorSwatch();
+        swatch.setReadonly(!this.editable());
         swatch.renderColor(text, useUserSettingFormat, tooltip);
         if (!valueChild) {
             valueChild = swatch.createChild('span');
@@ -216,6 +219,9 @@ export class StylePropertyTreeElement extends UI.TreeOutline.TreeElement {
             swatch.createChild('span').textContent = data.text;
             void this.applyStyleText(this.renderedPropertyText(), false);
         };
+        swatch.addEventListener(InlineEditor.ColorSwatch.ClickEvent.eventName, () => {
+            Host.userMetrics.swatchActivated(2 /* Host.UserMetrics.SwatchType.Color */);
+        });
         swatch.addEventListener(InlineEditor.ColorSwatch.ColorChangedEvent.eventName, onColorChanged);
         if (this.editable()) {
             const swatchIcon = new ColorSwatchPopoverIcon(this, this.parentPaneInternal.swatchPopoverHelper(), swatch);
@@ -250,7 +256,10 @@ export class StylePropertyTreeElement extends UI.TreeOutline.TreeElement {
             swatch.data = {
                 text: animationName,
                 isDefined,
-                onLinkActivate: () => this.parentPaneInternal.jumpToSectionBlock(`@keyframes ${animationName}`),
+                onLinkActivate: () => {
+                    Host.userMetrics.swatchActivated(1 /* Host.UserMetrics.SwatchType.AnimationNameLink */);
+                    this.parentPaneInternal.jumpToSectionBlock(`@keyframes ${animationName}`);
+                },
             };
             contentChild.appendChild(swatch);
             if (i !== animationNames.length - 1) {
@@ -297,7 +306,10 @@ export class StylePropertyTreeElement extends UI.TreeOutline.TreeElement {
         swatch.data = {
             text: propertyText,
             isDefined,
-            onLinkActivate: () => this.parentPaneInternal.jumpToSectionBlock(`@position-fallback ${propertyText}`),
+            onLinkActivate: () => {
+                Host.userMetrics.swatchActivated(9 /* Host.UserMetrics.SwatchType.PositionFallbackLink */);
+                this.parentPaneInternal.jumpToSectionBlock(`@position-fallback ${propertyText}`);
+            },
         };
         contentChild.appendChild(swatch);
         return contentChild;
@@ -413,7 +425,16 @@ export class StylePropertyTreeElement extends UI.TreeOutline.TreeElement {
         const { computedValue, fromFallback } = computedSingleValue;
         const varSwatch = new InlineEditor.LinkSwatch.CSSVarSwatch();
         UI.UIUtils.createTextChild(varSwatch, text);
-        varSwatch.data = { text, computedValue, fromFallback, onLinkActivate: this.handleVarDefinitionActivate.bind(this) };
+        varSwatch.data = {
+            text,
+            computedValue,
+            fromFallback,
+            onLinkActivate: this.handleVarDefinitionActivate.bind(this),
+        };
+        if (varSwatch.link?.linkElement) {
+            const { textContent } = varSwatch.link.linkElement;
+            this.parentPaneInternal.addPopover(varSwatch.link, () => textContent ? this.#getVariablePopoverContents(textContent, computedValue) : undefined);
+        }
         if (!computedValue || !Common.Color.parse(computedValue)) {
             return varSwatch;
         }
@@ -421,7 +442,9 @@ export class StylePropertyTreeElement extends UI.TreeOutline.TreeElement {
     }
     handleVarDefinitionActivate(variableName) {
         Host.userMetrics.actionTaken(Host.UserMetrics.Action.CustomPropertyLinkClicked);
-        this.parentPaneInternal.jumpToProperty(variableName);
+        Host.userMetrics.swatchActivated(0 /* Host.UserMetrics.SwatchType.VarLink */);
+        this.parentPaneInternal.jumpToProperty(variableName) ||
+            this.parentPaneInternal.jumpToProperty('initial-value', variableName, REGISTERED_PROPERTY_SECTION_NAME);
     }
     async addColorContrastInfo(swatchIcon) {
         if (this.property.name !== 'color' || !this.parentPaneInternal.cssModel() || !this.node()) {
@@ -446,6 +469,9 @@ export class StylePropertyTreeElement extends UI.TreeOutline.TreeElement {
         }
         const swatchPopoverHelper = this.parentPaneInternal.swatchPopoverHelper();
         const swatch = InlineEditor.Swatches.BezierSwatch.create();
+        swatch.iconElement().addEventListener('click', () => {
+            Host.userMetrics.swatchActivated(3 /* Host.UserMetrics.SwatchType.AnimationTiming */);
+        });
         swatch.setBezierText(text);
         new BezierPopoverIcon({ treeElement: this, swatchPopoverHelper, swatch });
         return swatch;
@@ -480,9 +506,15 @@ export class StylePropertyTreeElement extends UI.TreeOutline.TreeElement {
             // TODO(flandy): editing the property value should use the original value with all spaces.
             const cssShadowSwatch = InlineEditor.Swatches.CSSShadowSwatch.create();
             cssShadowSwatch.setCSSShadow(shadows[i]);
+            cssShadowSwatch.iconElement().addEventListener('click', () => {
+                Host.userMetrics.swatchActivated(4 /* Host.UserMetrics.SwatchType.Shadow */);
+            });
             new ShadowSwatchPopoverHelper(this, swatchPopoverHelper, cssShadowSwatch);
             const colorSwatch = cssShadowSwatch.colorSwatch();
             if (colorSwatch) {
+                colorSwatch.addEventListener(InlineEditor.ColorSwatch.ClickEvent.eventName, () => {
+                    Host.userMetrics.swatchActivated(2 /* Host.UserMetrics.SwatchType.Color */);
+                });
                 const swatchIcon = new ColorSwatchPopoverIcon(this, swatchPopoverHelper, colorSwatch);
                 swatchIcon.addEventListener("colorchanged" /* ColorSwatchPopoverIconEvents.ColorChanged */, ev => {
                     // TODO(crbug.com/1402233): Is it really okay to dispatch an event from `Swatch` here?
@@ -536,6 +568,7 @@ export class StylePropertyTreeElement extends UI.TreeOutline.TreeElement {
             if (data.open) {
                 this.parentPaneInternal.hideAllPopovers();
                 this.parentPaneInternal.activeCSSAngle = cssAngle;
+                Host.userMetrics.swatchActivated(7 /* Host.UserMetrics.SwatchType.Angle */);
             }
             section.element.classList.toggle('has-open-popover', data.open);
             this.parentPaneInternal.setEditingStyle(data.open);
@@ -681,7 +714,15 @@ export class StylePropertyTreeElement extends UI.TreeOutline.TreeElement {
             if (leadingProperty) {
                 overloaded = true;
             }
-            const item = new StylePropertyTreeElement(this.parentPaneInternal, this.matchedStylesInternal, property, false, inherited, overloaded, false);
+            const item = new StylePropertyTreeElement({
+                stylesPane: this.parentPaneInternal,
+                matchedStyles: this.matchedStylesInternal,
+                property,
+                isShorthand: false,
+                inherited,
+                overloaded,
+                newProperty: false,
+            });
             item.setComputedStyles(this.computedStyles);
             item.setParentsComputedStyles(this.parentsComputedStyles);
             this.appendChild(item);
@@ -724,6 +765,18 @@ export class StylePropertyTreeElement extends UI.TreeOutline.TreeElement {
             this.expandElement.setIconType('triangle-right');
         }
     }
+    #getRegisteredPropertyDetails(variableName) {
+        const registration = this.matchedStyles().getRegisteredProperty(variableName);
+        const goToDefinition = () => this.parentPaneInternal.jumpToSection(variableName, REGISTERED_PROPERTY_SECTION_NAME);
+        return registration ? { registration, goToDefinition } : undefined;
+    }
+    #getVariablePopoverContents(variableName, computedValue) {
+        const registrationDetails = this.#getRegisteredPropertyDetails(variableName);
+        if (!registrationDetails && !computedValue) {
+            return undefined;
+        }
+        return new ElementsComponents.CSSVariableValueView.CSSVariableValueView(computedValue ?? '', registrationDetails);
+    }
     updateTitleIfComputedValueChanged() {
         const computedValue = this.matchedStylesInternal.computeValue(this.property.ownerStyle, this.property.value);
         if (computedValue === this.lastComputedValue) {
@@ -762,7 +815,7 @@ export class StylePropertyTreeElement extends UI.TreeOutline.TreeElement {
         this.listItemElement.removeChildren();
         this.nameElement = propertyRenderer.renderName();
         if (this.property.name.startsWith('--') && this.nameElement) {
-            UI.Tooltip.Tooltip.install(this.nameElement, this.matchedStylesInternal.computeCSSVariable(this.style, this.property.name) || '');
+            this.parentPaneInternal.addPopover(this.nameElement, () => this.#getVariablePopoverContents(this.property.name, this.matchedStylesInternal.computeCSSVariable(this.style, this.property.name)));
         }
         this.valueElement = propertyRenderer.renderValue();
         if (!this.treeOutline) {
@@ -797,6 +850,9 @@ export class StylePropertyTreeElement extends UI.TreeOutline.TreeElement {
                 const key = `${section.getSectionIdx()}_${section.nextEditorTriggerButtonIdx}`;
                 const button = StyleEditorWidget.createTriggerButton(this.parentPaneInternal, section, isFlex ? FlexboxEditor : GridEditor, isFlex ? i18nString(UIStrings.flexboxEditorButton) : i18nString(UIStrings.gridEditorButton), key);
                 section.nextEditorTriggerButtonIdx++;
+                button.addEventListener('click', () => {
+                    Host.userMetrics.swatchActivated(isFlex ? 6 /* Host.UserMetrics.SwatchType.Flex */ : 5 /* Host.UserMetrics.SwatchType.Grid */);
+                });
                 this.listItemElement.appendChild(button);
                 const helper = this.parentPaneInternal.swatchPopoverHelper();
                 if (helper.isShowing(StyleEditorWidget.instance()) && StyleEditorWidget.instance().getTriggerKey() === key) {
@@ -810,8 +866,12 @@ export class StylePropertyTreeElement extends UI.TreeOutline.TreeElement {
         else {
             // Avoid having longhands under an invalid shorthand.
             this.listItemElement.classList.add('not-parsed-ok');
+            const registrationDetails = this.#getRegisteredPropertyDetails(this.property.name);
+            const tooltip = registrationDetails ?
+                new ElementsComponents.CSSVariableValueView.CSSVariableParserError(registrationDetails) :
+                null;
             // Add a separate exclamation mark IMG element with a tooltip.
-            this.listItemElement.insertBefore(StylesSidebarPane.createExclamationMark(this.property, null), this.listItemElement.firstChild);
+            this.listItemElement.insertBefore(this.parentPaneInternal.createExclamationMark(this.property, tooltip), this.listItemElement.firstChild);
             // When the property is valid but the property value is invalid,
             // add line-through only to the property value.
             const invalidPropertyValue = SDK.CSSMetadata.cssMetadata().isCSSPropertyName(this.property.name);
@@ -834,7 +894,7 @@ export class StylePropertyTreeElement extends UI.TreeOutline.TreeElement {
                 event.consume();
             }, false);
             if (this.nameElement && this.valueElement) {
-                UI.ARIAUtils.setAccessibleName(enabledCheckboxElement, `${this.nameElement.textContent} ${this.valueElement.textContent}`);
+                UI.ARIAUtils.setLabel(enabledCheckboxElement, `${this.nameElement.textContent} ${this.valueElement.textContent}`);
             }
             const copyIcon = UI.Icon.Icon.create('copy', 'copy');
             UI.Tooltip.Tooltip.install(copyIcon, i18nString(UIStrings.copyDeclaration));
@@ -1130,7 +1190,7 @@ export class StylePropertyTreeElement extends UI.TreeOutline.TreeElement {
         this.originalPropertyText = this.property.propertyText || '';
         this.parentPaneInternal.setEditingStyle(true, this);
         if (selectElement && selectElement.parentElement) {
-            selectElement.parentElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+            selectElement.parentElement.scrollIntoViewIfNeeded(false);
         }
         this.prompt = new CSSPropertyPrompt(this, isEditingName);
         this.prompt.setAutocompletionTimeout(0);

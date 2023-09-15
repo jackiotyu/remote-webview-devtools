@@ -33,6 +33,6 @@ styles.replaceSync(
   color: rgb(255 255 255 / 50%); /* stylelint-disable-line plugin/use_theme_colors */
 }
 
-
+/*# sourceURL=srgbOverlay.css */
 `);
 export default styles;

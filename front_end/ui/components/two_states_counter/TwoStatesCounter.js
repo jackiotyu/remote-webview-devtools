@@ -5,7 +5,7 @@ import * as LitHtml from '../../lit-html/lit-html.js';
 import * as ComponentHelpers from '../helpers/helpers.js';
 import twoStatesCounterStyles from './twoStatesCounter.css.js';
 const isString = (value) => value !== undefined;
-class TwoStatesCounter extends HTMLElement {
+export class TwoStatesCounter extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-two-states-counter`;
     #boundRender = this.#render.bind(this);
     #shadow = this.attachShadow({ mode: 'open' });
@@ -71,6 +71,5 @@ class TwoStatesCounter extends HTMLElement {
         // clang-format on
     }
 }
-export { TwoStatesCounter };
 ComponentHelpers.CustomElements.defineComponent('devtools-two-states-counter', TwoStatesCounter);
 //# map=TwoStatesCounter.js.map

@@ -30,7 +30,7 @@ styles.replaceSync(
 
 .token-tag { color: var(--color-token-tag); }
 .token-attribute { color: var(--color-token-attribute); }
-.token-attribute-value { color: var(--color-token-attribute-value); }
+.token-attribute-value { color: var(--sys-color-token-attribute-value); }
 
 .token-inserted { color: var(--color-token-inserted); }
 .token-deleted { color: var(--color-token-deleted); }
@@ -57,6 +57,6 @@ styles.replaceSync(
   font-style: italic;
 }
 
-
+/*# sourceURL=codeHighlighter.css */
 `);
 export default styles;

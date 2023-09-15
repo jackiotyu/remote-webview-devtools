@@ -2,12 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as TraceEngine from '../../models/trace/trace.js';
-import { EntryType, } from './TimelineFlameChartDataProvider.js';
 import * as i18n from '../../core/i18n/i18n.js';
 import { TimelineFlameChartMarker } from './TimelineFlameChartView.js';
-import { TimelineUIUtils, } from './TimelineUIUtils.js';
-import * as Common from '../../core/common/common.js';
-import * as TimelineModel from '../../models/timeline_model/timeline_model.js';
 import { buildGroupStyle, buildTrackHeader, getFormattedTime } from './AppenderUtils.js';
 const UIStrings = {
     /**
@@ -23,39 +19,37 @@ export class TimingsTrackAppender {
     #compatibilityBuilder;
     #flameChartData;
     #traceParsedData;
-    // TODO(crbug.com/1416533)
-    // This is used only for compatibility with the legacy flame chart
-    // architecture of the panel. Once all tracks have been migrated to
-    // use the new engine and flame chart architecture, the reference can
-    // be removed.
-    #legacyEntryTypeByLevel;
-    constructor(compatibilityBuilder, flameChartData, traceParsedData, legacyEntryTypeByLevel) {
+    constructor(compatibilityBuilder, flameChartData, traceParsedData, colorGenerator) {
         this.#compatibilityBuilder = compatibilityBuilder;
-        this.#colorGenerator = new Common.Color.Generator({
-            min: 30,
-            max: 55,
-            count: undefined,
-        }, { min: 70, max: 100, count: 6 }, 50, 0.7);
+        this.#colorGenerator = colorGenerator;
         this.#flameChartData = flameChartData;
         this.#traceParsedData = traceParsedData;
-        this.#legacyEntryTypeByLevel = legacyEntryTypeByLevel;
     }
     /**
      * Appends into the flame chart data the data corresponding to the
      * timings track.
-     * @param level the horizontal level of the flame chart events where
+     * @param trackStartLevel the horizontal level of the flame chart events where
      * the track's events will start being appended.
      * @param expanded wether the track should be rendered expanded.
      * @returns the first available level to append more data after having
      * appended the track's events.
      */
-    appendTrackAtLevel(currentLevel, expanded) {
-        this.#appendTrackHeaderAtLevel(currentLevel, expanded);
-        let newLevel = this.#appendMarkersAtLevel(currentLevel);
-        // Add some vertical space between page load markers and user
-        // timings by appending timings 2 levels after the markers' level.
-        newLevel = this.#appendUserTimingsAtLevel(newLevel + 1);
-        return this.#appendConsoleTimings(newLevel);
+    appendTrackAtLevel(trackStartLevel, expanded) {
+        const allMarkerEvents = this.#traceParsedData.PageLoadMetrics.allMarkerEvents;
+        const performanceMarks = this.#traceParsedData.UserTimings.performanceMarks;
+        const performanceMeasures = this.#traceParsedData.UserTimings.performanceMeasures;
+        const timestampEvents = this.#traceParsedData.UserTimings.timestampEvents;
+        const consoleTimings = this.#traceParsedData.UserTimings.consoleTimings;
+        if (allMarkerEvents.length === 0 && performanceMarks.length === 0 && performanceMeasures.length === 0 &&
+            timestampEvents.length === 0 && consoleTimings.length === 0) {
+            return trackStartLevel;
+        }
+        this.#appendTrackHeaderAtLevel(trackStartLevel, expanded);
+        let newLevel = this.#appendMarkersAtLevel(trackStartLevel);
+        newLevel = this.#compatibilityBuilder.appendEventsAtLevel(performanceMarks, newLevel, this);
+        newLevel = this.#compatibilityBuilder.appendEventsAtLevel(performanceMeasures, newLevel, this);
+        newLevel = this.#compatibilityBuilder.appendEventsAtLevel(timestampEvents, newLevel, this);
+        return this.#compatibilityBuilder.appendEventsAtLevel(consoleTimings, newLevel, this);
     }
     /**
      * Adds into the flame chart data the header corresponding to the
@@ -82,11 +76,10 @@ export class TimingsTrackAppender {
      * page load markers (the first available level to append more data).
      */
     #appendMarkersAtLevel(currentLevel) {
-        const totalTimes = this.#flameChartData.entryTotalTimes;
         const markers = this.#traceParsedData.PageLoadMetrics.allMarkerEvents;
         markers.forEach(marker => {
-            const index = this.#appendEventAtLevel(marker, currentLevel);
-            totalTimes[index] = Number.NaN;
+            const index = this.#compatibilityBuilder.appendEventAtLevel(marker, currentLevel, this);
+            this.#flameChartData.entryTotalTimes[index] = Number.NaN;
         });
         const minTimeMs = TraceEngine.Helpers.Timing.microSecondsToMilliseconds(this.#traceParsedData.Meta.traceBounds.min);
         const flameChartMarkers = markers.map(marker => {
@@ -95,93 +88,6 @@ export class TimingsTrackAppender {
         });
         this.#flameChartData.markers.push(...flameChartMarkers);
         return ++currentLevel;
-    }
-    /**
-     * Adds into the flame chart data the trace events corresponding to
-     * user timings (performance.measure and performance.mark). These are
-     * taken straight from the UserTimings handler.
-     * @param currentLevel the flame chart level from which user timings will
-     * be appended.
-     * @returns the next level after the last occupied by the appended
-     * timings (the first available level to append more data).
-     */
-    #appendUserTimingsAtLevel(currentLevel) {
-        let newLevel = currentLevel;
-        for (const userMark of this.#traceParsedData.UserTimings.performanceMarks) {
-            this.#appendEventAtLevel(userMark, newLevel);
-        }
-        if (this.#traceParsedData.UserTimings.performanceMarks.length !== 0) {
-            // Add performance.measure events on the next level, but only if the
-            // current level was used by performance.marks events.
-            newLevel++;
-        }
-        return this.#appendTimingsAtLevel(newLevel, this.#traceParsedData.UserTimings.performanceMeasures);
-    }
-    /**
-     * Adds into the flame chart data the trace events corresponding to
-     * console timings (console.time and console.timeEnd/timeLog). These are
-     * taken straight from the UserTimings handler.
-     * @param currentLevel the flame chart level from which user timings will
-     * be appended.
-     * @returns the next level after the last occupied by the appended
-     * timings (the first available level to append more data).
-     */
-    #appendConsoleTimings(currentLevel) {
-        let newLevel = currentLevel;
-        for (const timestampEvent of this.#traceParsedData.UserTimings.timestampEvents) {
-            this.#appendEventAtLevel(timestampEvent, newLevel);
-        }
-        if (this.#traceParsedData.UserTimings.timestampEvents.length !== 0) {
-            // Add console.time events on the next level, but only if the
-            // current level was used by timestamp events.
-            newLevel++;
-        }
-        return this.#appendTimingsAtLevel(newLevel, this.#traceParsedData.UserTimings.consoleTimings);
-    }
-    /**
-     * Adds into the flame chart data the syntetic nestable async events
-     * These events are taken from the UserTimings handler from console
-     * and performance timings.
-     * @param currentLevel the flame chart level from which timings will
-     * be appended.
-     * @returns the next level after the last occupied by the appended
-     * timings (the first available level to append more data).
-     */
-    #appendTimingsAtLevel(currentLevel, timings) {
-        const lastUsedTimeByLevel = [];
-        for (let i = 0; i < timings.length; ++i) {
-            const event = timings[i];
-            const eventAsLegacy = this.#compatibilityBuilder.getLegacyEvent(event);
-            // Default styles are globally defined for each event name. Some
-            // events are hidden by default.
-            const visibleNames = new Set(TimelineUIUtils.visibleTypes());
-            const eventIsVisible = eventAsLegacy &&
-                visibleNames.has(TimelineModel.TimelineModelFilter.TimelineVisibleEventsFilter.eventType(eventAsLegacy));
-            if (!eventIsVisible) {
-                continue;
-            }
-            const startTime = event.ts;
-            let level;
-            // look vertically for the first level where this event fits,
-            // that is, where it wouldn't overlap with other events.
-            for (level = 0; level < lastUsedTimeByLevel.length && lastUsedTimeByLevel[level] > startTime; ++level) {
-            }
-            this.#appendEventAtLevel(event, currentLevel + level);
-            const endTime = event.ts + (event.dur || 0);
-            lastUsedTimeByLevel[level] = endTime;
-        }
-        this.#legacyEntryTypeByLevel.length = currentLevel + lastUsedTimeByLevel.length;
-        // Set the entry type to TrackAppender for all the levels occupied by the appended timings.
-        this.#legacyEntryTypeByLevel.fill(EntryType.TrackAppender, currentLevel);
-        return currentLevel + lastUsedTimeByLevel.length;
-    }
-    /**
-     * Adds an event to the flame chart data at a defined level.
-     * @returns the position occupied by the new event in the entryData
-     * array, which contains all the events in the timeline.
-     */
-    #appendEventAtLevel(event, level) {
-        return this.#compatibilityBuilder.appendEventAtLevel(event, level, this);
     }
     /*
       ------------------------------------------------------------------------------------
@@ -215,6 +121,10 @@ export class TimingsTrackAppender {
         if (TraceEngine.Types.TraceEvents.isTraceEventLargestContentfulPaintCandidate(markerEvent)) {
             color = '#1A3422';
             title = "LCP" /* TraceEngine.Handlers.ModelHandlers.PageLoadMetrics.MetricName.LCP */;
+        }
+        if (TraceEngine.Types.TraceEvents.isTraceEventNavigationStart(markerEvent)) {
+            color = '#FF9800';
+            title = '';
         }
         return {
             title: title,
@@ -252,6 +162,8 @@ export class TimingsTrackAppender {
                     return "FP" /* metricsHandler.MetricName.FP */;
                 case 'largestContentfulPaint::Candidate':
                     return "LCP" /* metricsHandler.MetricName.LCP */;
+                case 'navigationStart':
+                    return '';
                 default:
                     return event.name;
             }

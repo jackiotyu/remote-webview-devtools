@@ -46,7 +46,7 @@ export default {
   width: 1px;
   top: 0;
   bottom: 0;
-  background-color: var(--divider-line);
+  background-color: var(--sys-color-divider);
 }
 
 .resources-event-divider {

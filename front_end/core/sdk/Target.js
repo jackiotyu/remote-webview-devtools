@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as Common from '../common/common.js';
-import * as Host from '../host/host.js';
 import * as Platform from '../platform/platform.js';
 import * as ProtocolClient from '../protocol_client/protocol_client.js';
 import { SDKModel } from './SDKModel.js';
@@ -37,6 +36,9 @@ export class Target extends ProtocolClient.InspectorBackend.TargetBase {
                     // This matches backend exposing certain capabilities only for the main frame.
                     this.#capabilitiesMask |=
                         Capability.DeviceEmulation | Capability.ScreenCapture | Capability.Security | Capability.ServiceWorker;
+                    if (targetInfo?.url.startsWith('chrome-extension://')) {
+                        this.#capabilitiesMask &= ~Capability.Security;
+                    }
                     // TODO(dgozman): we report service workers for the whole frame tree on the main frame,
                     // while we should be able to only cover the subtree corresponding to the target.
                 }
@@ -52,6 +54,9 @@ export class Target extends ProtocolClient.InspectorBackend.TargetBase {
                 this.#capabilitiesMask = Capability.JS | Capability.Log | Capability.Network | Capability.Target |
                     Capability.IO | Capability.Media | Capability.Inspector;
                 break;
+            case Type.SharedStorageWorklet:
+                this.#capabilitiesMask = Capability.JS | Capability.Log | Capability.Inspector;
+                break;
             case Type.Worker:
                 this.#capabilitiesMask = Capability.JS | Capability.Log | Capability.Network | Capability.Target |
                     Capability.IO | Capability.Media | Capability.Emulation;
@@ -66,7 +71,7 @@ export class Target extends ProtocolClient.InspectorBackend.TargetBase {
                 this.#capabilitiesMask = Capability.Target | Capability.IO;
                 break;
             case Type.Tab:
-                this.#capabilitiesMask = Capability.Target;
+                this.#capabilitiesMask = Capability.Target | Capability.Tracing;
                 break;
         }
         this.#typeInternal = type;
@@ -173,9 +178,6 @@ export class Target extends ProtocolClient.InspectorBackend.TargetBase {
         this.#inspectedURLInternal = inspectedURL;
         const parsedURL = Common.ParsedURL.ParsedURL.fromString(inspectedURL);
         this.#inspectedURLName = parsedURL ? parsedURL.lastPathComponentWithFragment() : '#' + this.#idInternal;
-        if (this.parentTarget()?.type() !== Type.Frame) {
-            Host.InspectorFrontendHost.InspectorFrontendHostInstance.inspectedURLChanged(inspectedURL || Platform.DevToolsPath.EmptyUrlString);
-        }
         this.#targetManagerInternal.onInspectedURLChange(this);
         if (!this.#nameInternal) {
             this.#targetManagerInternal.onNameChange(this);
@@ -215,6 +217,7 @@ export var Type;
     Type["ServiceWorker"] = "service-worker";
     Type["Worker"] = "worker";
     Type["SharedWorker"] = "shared-worker";
+    Type["SharedStorageWorklet"] = "shared-storage-worklet";
     Type["Node"] = "node";
     Type["Browser"] = "browser";
     Type["AuctionWorklet"] = "auction-worklet";

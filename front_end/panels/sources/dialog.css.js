@@ -29,6 +29,6 @@ input[type="text"].add-source-map {
   margin: 0 8px 0 5px;
 }
 
-
+/*# sourceURL=dialog.css */
 `);
 export default styles;

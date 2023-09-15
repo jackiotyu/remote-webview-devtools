@@ -21,6 +21,10 @@ const UIStrings = {
      *@description Text to delete something
      */
     delete: 'Delete',
+    /**
+     *@description Text for screen reader to announce when focusing on save element.
+     */
+    enterToSave: 'Save. Press enter to save file',
 };
 const str_ = i18n.i18n.registerUIStrings('panels/profiler/ProfileSidebarTreeElement.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
@@ -69,7 +73,10 @@ export class ProfileSidebarTreeElement extends UI.TreeOutline.TreeElement {
     createSaveLink() {
         this.saveLinkElement = this.titleContainer.createChild('span', 'save-link');
         this.saveLinkElement.textContent = i18nString(UIStrings.save);
+        this.saveLinkElement.tabIndex = 0;
+        UI.ARIAUtils.setLabel(this.saveLinkElement, i18nString(UIStrings.enterToSave));
         this.saveLinkElement.addEventListener('click', this.saveProfile.bind(this), false);
+        this.saveLinkElement.addEventListener('keydown', this.saveProfileKeyDown.bind(this), true);
     }
     onProfileReceived() {
         this.createSaveLink();
@@ -79,6 +86,7 @@ export class ProfileSidebarTreeElement extends UI.TreeOutline.TreeElement {
         if (statusUpdate.subtitle !== null) {
             this.subtitleElement.textContent = statusUpdate.subtitle || '';
             this.titlesElement.classList.toggle('no-subtitle', !statusUpdate.subtitle);
+            UI.ARIAUtils.setLabel(this.listItemElement, `${this.profile.title}, ${statusUpdate.subtitle}`);
         }
         if (typeof statusUpdate.wait === 'boolean' && this.listItemElement) {
             this.iconElement.classList.toggle('spinner', statusUpdate.wait);
@@ -146,6 +154,11 @@ export class ProfileSidebarTreeElement extends UI.TreeOutline.TreeElement {
     }
     saveProfile(_event) {
         this.profile.saveToFile();
+    }
+    saveProfileKeyDown(event) {
+        if (event.key === 'Enter') {
+            this.profile.saveToFile();
+        }
     }
     setSmall(small) {
         this.small = small;

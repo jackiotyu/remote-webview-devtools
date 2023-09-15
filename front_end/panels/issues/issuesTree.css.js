@@ -51,19 +51,19 @@ styles.replaceSync(
   overflow: hidden;
   flex: none;
   transition: background-color 200ms;
-  border: 1px solid var(--color-details-hairline-light);
+  border: 1px solid var(--sys-color-divider);
   border-width: 0 0 1px;
 }
 
 .issue-category.hidden-issues.parent.expanded,
 .issue-kind.parent.expanded {
   border-width: 0 0 1px;
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-surface2);
 }
 
 .issue-category + .children .issue,
 .issue.expanded {
-  background: var(--color-background);
+  background: var(--sys-color-cdt-base-container);
 }
 
 .issue.expanded {
@@ -72,7 +72,11 @@ styles.replaceSync(
 
 .issue.selected,
 .issue.expanded.selected {
-  background-color: var(--legacy-focus-bg-color);
+  background-color: var(--sys-color-neutral-container);
+
+  &:focus {
+    background-color: var(--sys-color-tonal-container);
+  }
 }
 
 .unhide-all-issues-button {
@@ -117,7 +121,7 @@ p {
 .title {
   flex: 1;
   font-size: 14px;
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
   font-weight: normal;
   user-select: text;
   padding-top: 2px;
@@ -128,7 +132,7 @@ p {
 }
 
 .body.children {
-  border-bottom: 1px solid var(--color-details-hairline-light);
+  border-bottom: 1px solid var(--sys-color-divider);
   padding: 6px 0;
   position: relative;
   padding-left: calc(var(--issue-indent) + 43px);
@@ -173,7 +177,7 @@ devtools-icon.leading-issue-icon {
 .message {
   line-height: 20px;
   font-size: 14px;
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
   margin-bottom: 4px;
   user-select: text;
 }
@@ -187,11 +191,12 @@ devtools-icon.leading-issue-icon {
 }
 
 .message code {
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
+  padding: 0 2px;
   font-size: 12px;
   user-select: text;
   cursor: text;
-  background: var(--color-background-elevation-1);
+  background: var(--sys-color-surface2);
 }
 
 .separator::before {
@@ -202,7 +207,7 @@ devtools-icon.leading-issue-icon {
 
 .link {
   font-size: 14px;
-  color: var(--color-link);
+  color: var(--sys-color-primary);
 }
 
 .link-wrapper {
@@ -217,7 +222,7 @@ devtools-icon.leading-issue-icon {
   font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
   display: inline-block;
 }
 
@@ -273,7 +278,7 @@ ul > li.plain-enum::before {
 .affected-resource-label {
   font-size: 14px;
   line-height: 20px;
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
   position: relative;
   cursor: pointer;
 }
@@ -288,7 +293,7 @@ ul > li.plain-enum::before {
 .affected-resource-element {
   font-size: 14px;
   line-height: 20px;
-  color: var(--color-link);
+  color: var(--sys-color-primary);
   border: 0;
   border-collapse: collapse;
 }
@@ -325,7 +330,7 @@ ul > li.plain-enum::before {
 .affected-resource-source {
   font-size: 14px;
   line-height: 20px;
-  color: var(--color-link);
+  color: var(--sys-color-primary);
   border: 0;
   border-collapse: collapse;
 }
@@ -337,7 +342,7 @@ ul > li.plain-enum::before {
 
 .affected-resource-header {
   font-size: 12px;
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
   padding-left: 2px;
 }
 
@@ -355,7 +360,7 @@ ul > li.plain-enum::before {
 }
 
 .affected-resource-cookie-info {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
   padding: 2px;
   text-align: right;
 }
@@ -365,29 +370,29 @@ ul > li.plain-enum::before {
 }
 
 .affected-resource-mixed-content-info {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
   padding: 2px;
 }
 
 .affected-resource-heavy-ad-info {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
   padding: 2px;
 }
 
 .affected-resource-heavy-ad-info-frame {
   display: flex;
   align-items: center;
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
   padding: 2px;
 }
 
 .affected-resource-cell {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
   padding: 2px;
 }
 
 .affected-resource-cell.link {
-  color: var(--color-link);
+  color: var(--sys-color-primary);
 }
 
 .affected-resource-cell span.icon {
@@ -401,11 +406,11 @@ ul > li.plain-enum::before {
 }
 
 .affected-resources > .parent.expanded {
-  background: var(--color-background-elevation-0);
+  background: var(--sys-color-cdt-base-container);
 }
 
 .affected-resources > .children.expanded {
-  background: var(--color-background-elevation-0);
+  background: var(--sys-color-cdt-base-container);
   padding: 6px 0 9px 5px;
   margin-bottom: 10px;
 }
@@ -426,7 +431,7 @@ ul > li.plain-enum::before {
 }
 
 .affected-resource-directive-info {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
   padding: 2px;
   text-align: left;
 }
@@ -457,20 +462,7 @@ devtools-icon.network-panel {
     color: HighlightText;
   }
 }
-/*
-    const popup = await treeOutline.evaluate((node: Element) => {
-      if (!node.shadowRoot) {
-        throw new Error("Node shadow root not found.");
-      }
-      return node.shadowRoot.querySelector('div.widget.has-padding');
-    });
-    if (!popup) {
-      throw new Error("Popup not found.");
-    }
-    assert.strictEqual(popup.textContent, 'A form field element should have an id or name attribute');
-   });
-*/
 
-
+/*# sourceURL=issuesTree.css */
 `);
 export default styles;

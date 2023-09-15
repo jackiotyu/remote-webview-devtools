@@ -10,7 +10,7 @@ import * as CodeHighlighter from '../code_highlighter/code_highlighter.js';
 import * as ComponentHelpers from '../helpers/helpers.js';
 import { baseConfiguration, dummyDarkTheme, dynamicSetting, DynamicSetting, themeSelection } from './config.js';
 import { toLineColumn, toOffset } from './position.js';
-class TextEditor extends HTMLElement {
+export class TextEditor extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-text-editor`;
     #shadow = this.attachShadow({ mode: 'open' });
     #activeEditor = undefined;
@@ -40,8 +40,8 @@ class TextEditor extends HTMLElement {
             state: this.state,
             parent: this.#shadow,
             root: this.#shadow,
-            dispatch: (tr) => {
-                this.editor.update([tr]);
+            dispatch: (tr, view) => {
+                view.update([tr]);
                 if (tr.reconfigured) {
                     this.#ensureSettingListeners();
                 }
@@ -221,8 +221,16 @@ class TextEditor extends HTMLElement {
         }
         const editorRect = view.scrollDOM.getBoundingClientRect();
         const targetPos = view.coordsAtPos(selection.main.head);
-        if (!targetPos || targetPos.top < editorRect.top || targetPos.bottom > editorRect.bottom) {
+        if (!selection.main.empty) {
+            // If the caller provided an actual range, we use the default 'nearest' on both axis.
+            // Otherwise we 'center' on an axis to provide more context around the single point.
+            effects.push(CodeMirror.EditorView.scrollIntoView(selection.main));
+        }
+        else if (!targetPos || targetPos.top < editorRect.top || targetPos.bottom > editorRect.bottom) {
             effects.push(CodeMirror.EditorView.scrollIntoView(selection.main, { y: 'center' }));
+        }
+        else if (targetPos.left < editorRect.left || targetPos.right > editorRect.right) {
+            effects.push(CodeMirror.EditorView.scrollIntoView(selection.main, { x: 'center' }));
         }
         view.dispatch({
             selection,
@@ -242,7 +250,6 @@ class TextEditor extends HTMLElement {
         return toOffset(this.state.doc, pos);
     }
 }
-export { TextEditor };
 ComponentHelpers.CustomElements.defineComponent('devtools-text-editor', TextEditor);
 // Line highlighting
 const clearHighlightedLine = CodeMirror.StateEffect.define();

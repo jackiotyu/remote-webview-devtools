@@ -226,6 +226,6 @@ svg.bezier-preset-modify:active {
   stroke: var(--color-background);
 }
 
-
+/*# sourceURL=bezierEditor.css */
 `);
 export default styles;

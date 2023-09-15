@@ -13,8 +13,8 @@ styles.replaceSync(
 
 .service-worker-cache-data-view .data-view-toolbar {
   position: relative;
-  background-color: var(--color-background-elevation-1);
-  border-bottom: 1px solid var(--color-details-hairline);
+  background-color: var(--sys-color-cdt-base-container);
+  border-bottom: 1px solid var(--sys-color-divider);
   padding-right: 10px;
 }
 
@@ -27,17 +27,17 @@ styles.replaceSync(
 }
 
 .service-worker-cache-data-view .data-grid .data-container tr:nth-last-child(2) td {
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .service-worker-cache-data-view .data-grid .data-container tr.selected {
-  background-color: var(--color-background-highlight);
+  background-color: var(--sys-color-neutral-container);
   color: inherit;
 }
 
 .service-worker-cache-data-view .data-grid:focus .data-container tr.selected {
-  background-color: var(--color-primary-old);
-  color: var(--color-background);
+  background-color: var(--sys-color-tonal-container);
+  color: var(--sys-color-on-tonal-container);
 }
 
 .service-worker-cache-data-view .section,
@@ -55,22 +55,22 @@ styles.replaceSync(
 }
 
 .cache-preview-panel-resizer {
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-surface1);
   height: 4px;
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .cache-storage-summary-bar {
   flex: 0 0 27px;
   line-height: 27px;
   padding-left: 5px;
-  background-color: var(--color-background-elevation-1);
-  border-top: 1px solid var(--color-details-hairline);
+  background-color: var(--sys-color-cdt-base-container);
+  border-top: 1px solid var(--sys-color-divider);
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
 }
 
-
+/*# sourceURL=serviceWorkerCacheViews.css */
 `);
 export default styles;

@@ -4,7 +4,7 @@
 import * as ComponentHelpers from '../../components/helpers/helpers.js';
 import * as LitHtml from '../../lit-html/lit-html.js';
 import expandableListStyles from './expandableList.css.js';
-class ExpandableList extends HTMLElement {
+export class ExpandableList extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-expandable-list`;
     #shadow = this.attachShadow({ mode: 'open' });
     #expanded = false;
@@ -47,6 +47,5 @@ class ExpandableList extends HTMLElement {
         // clang-format on
     }
 }
-export { ExpandableList };
 ComponentHelpers.CustomElements.defineComponent('devtools-expandable-list', ExpandableList);
 //# map=ExpandableList.js.map

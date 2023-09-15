@@ -4,7 +4,7 @@
 import * as ComponentHelpers from '../../components/helpers/helpers.js';
 import * as LitHtml from '../../lit-html/lit-html.js';
 import panelIntroductionStepsStyles from './panelIntroductionSteps.css.js';
-class PanelIntroductionSteps extends HTMLElement {
+export class PanelIntroductionSteps extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-panel-introduction-steps`;
     #shadow = this.attachShadow({ mode: 'open' });
     #boundRender = this.#render.bind(this);
@@ -29,6 +29,5 @@ class PanelIntroductionSteps extends HTMLElement {
         // clang-format on
     }
 }
-export { PanelIntroductionSteps };
 ComponentHelpers.CustomElements.defineComponent('devtools-panel-introduction-steps', PanelIntroductionSteps);
 //# map=PanelIntroductionSteps.js.map

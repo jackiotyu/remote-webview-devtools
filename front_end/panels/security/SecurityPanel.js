@@ -483,10 +483,11 @@ export class SecurityPanel extends UI.Panel.PanelWithSidebar {
         this.lastResponseReceivedForLoaderId = new Map();
         this.origins = new Map();
         this.filterRequestCounts = new Map();
-        SDK.TargetManager.TargetManager.instance().observeModels(SecurityModel, this);
         this.visibleView = null;
         this.eventListeners = [];
         this.securityModel = null;
+        SDK.TargetManager.TargetManager.instance().observeModels(SecurityModel, this, { scoped: true });
+        SDK.TargetManager.TargetManager.instance().addModelListener(SDK.ResourceTreeModel.ResourceTreeModel, SDK.ResourceTreeModel.Events.PrimaryPageChanged, this.onPrimaryPageChanged, this);
     }
     static instance(opts = { forceNew: null }) {
         const { forceNew } = opts;
@@ -655,15 +656,17 @@ export class SecurityPanel extends UI.Panel.PanelWithSidebar {
         return SecurityModel.SecurityStateComparator(stateA, stateB) < 0 ? stateA : stateB;
     }
     modelAdded(securityModel) {
-        if (securityModel.target() !== SDK.TargetManager.TargetManager.instance().primaryPageTarget()) {
+        if (securityModel.target() !== securityModel.target().outermostTarget()) {
             return;
         }
         this.securityModel = securityModel;
         const resourceTreeModel = securityModel.resourceTreeModel();
         const networkManager = securityModel.networkManager();
+        if (this.eventListeners.length) {
+            Common.EventTarget.removeEventListeners(this.eventListeners);
+        }
         this.eventListeners = [
             securityModel.addEventListener(Events.VisibleSecurityStateChanged, this.onVisibleSecurityStateChanged, this),
-            resourceTreeModel.addEventListener(SDK.ResourceTreeModel.Events.PrimaryPageChanged, this.onPrimaryPageChanged, this),
             resourceTreeModel.addEventListener(SDK.ResourceTreeModel.Events.InterstitialShown, this.onInterstitialShown, this),
             resourceTreeModel.addEventListener(SDK.ResourceTreeModel.Events.InterstitialHidden, this.onInterstitialHidden, this),
             networkManager.addEventListener(SDK.NetworkManager.Events.ResponseReceived, this.onResponseReceived, this),
@@ -717,6 +720,7 @@ export class SecurityPanelSidebarTree extends UI.TreeOutline.TreeOutlineInShadow
     originGroupTitles;
     originGroups;
     elementsByOrigin;
+    mainViewReloadMessage;
     constructor(mainViewElement, showOriginInPanel) {
         super();
         this.appendChild(mainViewElement);
@@ -735,13 +739,12 @@ export class SecurityPanelSidebarTree extends UI.TreeOutline.TreeOutlineInShadow
             this.originGroups.set(group, element);
             this.appendChild(element);
         }
-        this.clearOriginGroups();
-        // This message will be removed by clearOrigins() during the first new page load after the panel was opened.
-        const mainViewReloadMessage = new UI.TreeOutline.TreeElement(i18nString(UIStrings.reloadToViewDetails));
-        mainViewReloadMessage.selectable = false;
-        mainViewReloadMessage.listItemElement.classList.add('security-main-view-reload-message');
+        this.mainViewReloadMessage = new UI.TreeOutline.TreeElement(i18nString(UIStrings.reloadToViewDetails));
+        this.mainViewReloadMessage.selectable = false;
+        this.mainViewReloadMessage.listItemElement.classList.add('security-main-view-reload-message');
         const treeElement = this.originGroups.get(OriginGroup.MainOrigin);
-        treeElement.appendChild(mainViewReloadMessage);
+        treeElement.appendChild(this.mainViewReloadMessage);
+        this.clearOriginGroups();
         this.elementsByOrigin = new Map();
     }
     originGroupTitle(originGroup) {
@@ -756,7 +759,7 @@ export class SecurityPanelSidebarTree extends UI.TreeOutline.TreeOutlineInShadow
         originGroup.setCollapsible(false);
         originGroup.expand();
         originGroup.listItemElement.classList.add('security-sidebar-origins');
-        UI.ARIAUtils.setAccessibleName(originGroup.childrenListElement, originGroupTitle);
+        UI.ARIAUtils.setLabel(originGroup.childrenListElement, originGroupTitle);
         return originGroup;
     }
     toggleOriginsList(hidden) {
@@ -765,6 +768,7 @@ export class SecurityPanelSidebarTree extends UI.TreeOutline.TreeOutlineInShadow
         }
     }
     addOrigin(origin, securityState) {
+        this.mainViewReloadMessage.hidden = true;
         const originElement = new SecurityPanelSidebarTreeElement(SecurityPanel.createHighlightedUrl(origin, securityState), this.showOriginInPanel.bind(this, origin), 'security-sidebar-tree-item', 'security-property');
         originElement.tooltip = origin;
         this.elementsByOrigin.set(origin, originElement);
@@ -785,7 +789,7 @@ export class SecurityPanelSidebarTree extends UI.TreeOutline.TreeOutlineInShadow
             else {
                 newParent.title = i18nString(UIStrings.mainOriginNonsecure);
             }
-            UI.ARIAUtils.setAccessibleName(newParent.childrenListElement, newParent.title);
+            UI.ARIAUtils.setLabel(newParent.childrenListElement, newParent.title);
         }
         else {
             switch (securityState) {
@@ -813,13 +817,20 @@ export class SecurityPanelSidebarTree extends UI.TreeOutline.TreeOutlineInShadow
         }
     }
     clearOriginGroups() {
-        for (const originGroup of this.originGroups.values()) {
-            originGroup.removeChildren();
-            originGroup.hidden = true;
+        for (const [originGroup, originGroupElement] of this.originGroups) {
+            if (originGroup === OriginGroup.MainOrigin) {
+                for (let i = originGroupElement.childCount() - 1; i > 0; i--) {
+                    originGroupElement.removeChildAtIndex(i);
+                }
+                originGroupElement.title = this.originGroupTitle(OriginGroup.MainOrigin);
+                originGroupElement.hidden = false;
+                this.mainViewReloadMessage.hidden = false;
+            }
+            else {
+                originGroupElement.removeChildren();
+                originGroupElement.hidden = true;
+            }
         }
-        const mainOrigin = this.originGroupElement(OriginGroup.MainOrigin);
-        mainOrigin.title = this.originGroupTitle(OriginGroup.MainOrigin);
-        mainOrigin.hidden = false;
     }
     clearOrigins() {
         this.clearOriginGroups();
@@ -1348,7 +1359,7 @@ export class SecurityOriginView extends UI.Widget.VBox {
                         buttonText = i18nString(UIStrings.hideFullDetails);
                     }
                     toggleSctsDetailsLink.textContent = buttonText;
-                    UI.ARIAUtils.setAccessibleName(toggleSctsDetailsLink, buttonText);
+                    UI.ARIAUtils.setLabel(toggleSctsDetailsLink, buttonText);
                     UI.ARIAUtils.setExpanded(toggleSctsDetailsLink, !isDetailsShown);
                     sctSummaryTable.element().classList.toggle('hidden');
                     sctTableWrapper.classList.toggle('hidden');
@@ -1428,7 +1439,7 @@ export class SecurityOriginView extends UI.Widget.VBox {
                         buttonText = i18nString(UIStrings.showMoreSTotal, { PH1: sanList.length });
                     }
                     truncatedSANToggle.textContent = buttonText;
-                    UI.ARIAUtils.setAccessibleName(truncatedSANToggle, buttonText);
+                    UI.ARIAUtils.setLabel(truncatedSANToggle, buttonText);
                     UI.ARIAUtils.setExpanded(truncatedSANToggle, isTruncated);
                 }
                 const truncatedSANToggle = UI.UIUtils.createTextButton(i18nString(UIStrings.showMoreSTotal, { PH1: sanList.length }), toggleSANTruncation);

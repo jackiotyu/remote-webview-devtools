@@ -17,8 +17,8 @@ styles.replaceSync(
 }
 
 .header {
-  background-color: var(--color-background-elevation-1);
-  border-bottom: var(--legacy-divider-border);
+  background-color: var(--sys-color-surface2);
+  border-bottom: 1px solid var(--sys-color-divider);
   line-height: 1.6;
   overflow: hidden;
   padding: 0 5px;
@@ -26,19 +26,18 @@ styles.replaceSync(
 }
 
 .header::marker {
-  color: rgb(110 110 110); /* stylelint-disable-line plugin/use_theme_colors */
-  /* See: crbug.com/1152736 for color variable migration. */
+  color: var(--sys-color-on-surface-subtle);
   font-size: 11px;
   line-height: 1;
 }
 
 .header:focus {
-  background-color: var(--legacy-focus-bg-color);
+  background-color: var(--sys-color-tonal-container);
 }
 
 .content-section {
   padding: 16px;
-  border-bottom: var(--legacy-divider-border);
+  border-bottom: 1px solid var(--sys-color-divider);
   overflow-x: hidden;
 }
 
@@ -103,7 +102,7 @@ styles.replaceSync(
 
 .elements {
   margin-top: 12px;
-  color: var(--color-token-tag);
+  color: var(--sys-color-token-tag);
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr));
   gap: 8px;
@@ -138,8 +137,7 @@ styles.replaceSync(
 }
 
 .color-picker-label {
-  border: 1px solid rgb(128 128 128 / 60%); /* stylelint-disable-line plugin/use_theme_colors */
-  /* See: crbug.com/1152736 for color variable migration. */
+  border: 1px solid var(--sys-color-neutral-outline);
   cursor: default;
   display: inline-block;
   flex: none;
@@ -158,7 +156,7 @@ that uses the dimensions to draw an outline around the element. */
 
 .color-picker-label:hover,
 .color-picker-label:focus {
-  border: 1px solid var(--legacy-accent-color-hover);
+  border: 1px solid var(--sys-color-outline);
   transform: scale(1.2);
 }
 
@@ -169,9 +167,9 @@ that uses the dimensions to draw an outline around the element. */
 }
 
 .node-text-container:hover {
-  background-color: var(--item-hover-color);
+  background-color: var(--sys-color-state-hover-on-subtle);
 }
 
-
+/*# sourceURL=layoutPane.css */
 `);
 export default styles;

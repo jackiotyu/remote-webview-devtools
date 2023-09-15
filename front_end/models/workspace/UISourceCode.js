@@ -360,6 +360,9 @@ export class UISourceCode extends Common.ObjectWrapper.ObjectWrapper {
     isUnconditionallyIgnoreListed() {
         return this.isUnconditionallyIgnoreListedInternal;
     }
+    isFetchXHR() {
+        return [Common.ResourceType.resourceTypes.XHR, Common.ResourceType.resourceTypes.Fetch].includes(this.contentType());
+    }
     /**
      * Unconditionally ignore list this UISourcecode, ignoring any user
      * setting. We use this to mark breakpoint/logpoint condition scripts for now.
@@ -512,6 +515,19 @@ export class UILocation {
             return 1;
         }
         return this.columnNumber - other.columnNumber;
+    }
+}
+/**
+ * A text range inside a specific {@link UISourceCode}.
+ *
+ * We use a class instead of an interface so we can implement a revealer for it.
+ */
+export class UILocationRange {
+    uiSourceCode;
+    range;
+    constructor(uiSourceCode, range) {
+        this.uiSourceCode = uiSourceCode;
+        this.range = range;
     }
 }
 /**

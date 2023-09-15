@@ -186,7 +186,7 @@ export class ServiceWorkersView extends UI.Widget.VBox {
     constructor() {
         super(true);
         // TODO(crbug.com/1156978): Replace UI.ReportView.ReportView with ReportView.ts web component.
-        this.currentWorkersView = new UI.ReportView.ReportView(i18n.i18n.lockedString('Service Workers'));
+        this.currentWorkersView = new UI.ReportView.ReportView(i18n.i18n.lockedString('Service workers'));
         this.currentWorkersView.setBodyScrollable(false);
         this.contentElement.classList.add('service-worker-list');
         this.currentWorkersView.show(this.contentElement);
@@ -208,7 +208,8 @@ export class ServiceWorkersView extends UI.Widget.VBox {
             .html `<a class="devtools-link" role="link" tabindex="0" href="chrome://serviceworker-internals" target="_blank" style="display: inline; cursor: pointer;">${i18nString(UIStrings.seeAllRegistrations)}</a>`;
         self.onInvokeElement(seeOthers, event => {
             const rootTarget = SDK.TargetManager.TargetManager.instance().rootTarget();
-            rootTarget && rootTarget.targetAgent().invoke_createTarget({ url: 'chrome://serviceworker-internals?devtools' });
+            rootTarget &&
+                void rootTarget.targetAgent().invoke_createTarget({ url: 'chrome://serviceworker-internals?devtools' });
             event.consume(true);
         });
         othersSectionRow.appendChild(seeOthers);
@@ -477,7 +478,7 @@ export class Section {
         form.appendChild(button);
         editor.value = initialValue;
         editor.placeholder = placeholder;
-        UI.ARIAUtils.setAccessibleName(editor, label);
+        UI.ARIAUtils.setLabel(editor, label);
         form.addEventListener('submit', (e) => {
             callback(editor.value || '');
             e.consume(true);
@@ -535,7 +536,7 @@ export class Section {
             });
             errorsLabel.classList.add('devtools-link', 'link');
             errorsLabel.tabIndex = 0;
-            UI.ARIAUtils.setAccessibleName(errorsLabel, i18nString(UIStrings.sRegistrationErrors, { PH1: this.registration.errors.length }));
+            UI.ARIAUtils.setLabel(errorsLabel, i18nString(UIStrings.sRegistrationErrors, { PH1: this.registration.errors.length }));
             self.onInvokeElement(errorsLabel, () => Common.Console.Console.instance().show());
             name.appendChild(errorsLabel);
         }

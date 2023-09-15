@@ -51,6 +51,10 @@ const UIStrings = {
      */
     clearSiteData: 'Clear site data',
     /**
+     * @description Annouce message when the "clear site data" task is complete
+     */
+    SiteDataCleared: 'Site data cleared',
+    /**
      * @description Category description in the Clear Storage section of the Storage View of the Application panel
      */
     application: 'Application',
@@ -74,10 +78,6 @@ const UIStrings = {
      * @description Checkbox label in the Clear Storage section of the Storage View of the Application panel
      */
     cookies: 'Cookies',
-    /**
-     * @description Category description in the Clear Storage section of the Storage View of the Application panel
-     */
-    cache: 'Cache',
     /**
      * @description Checkbox label in the Clear Storage section of the Storage View of the Application panel
      */
@@ -104,6 +104,11 @@ const UIStrings = {
      */
     numberMustBeNonNegative: 'Number must be non-negative',
     /**
+     * @description Text for error message in Application Quota Override
+     * @example {9000000000000} PH1
+     */
+    numberMustBeSmaller: 'Number must be smaller than {PH1}',
+    /**
      * @description Button text for the "Clear site data" button in the Storage View of the Application panel while the clearing action is pending
      */
     clearing: 'Clearing...',
@@ -126,7 +131,7 @@ const UIStrings = {
     /**
      * @description Text in Application Panel Sidebar of the Application panel
      */
-    serviceWorkers: 'Service Workers',
+    serviceWorkers: 'Service workers',
     /**
      * @description Checkbox label in Application Panel Sidebar of the Application panel.
      * Storage quota refers to the amount of disk available for the website or app.
@@ -194,6 +199,7 @@ export class StorageView extends UI.ThrottledWidget.ThrottledWidget {
         usageBreakdownRow.appendChild(this.pieChart);
         this.previousOverrideFieldValue = '';
         const quotaOverrideCheckboxRow = quota.appendRow();
+        quotaOverrideCheckboxRow.classList.add('quota-override-row');
         this.quotaOverrideCheckbox =
             UI.UIUtils.CheckboxLabel.create(i18nString(UIStrings.simulateCustomStorage), false, '');
         quotaOverrideCheckboxRow.appendChild(this.quotaOverrideCheckbox);
@@ -230,10 +236,8 @@ export class StorageView extends UI.ThrottledWidget.ThrottledWidget {
         this.appendItem(storage, i18nString(UIStrings.indexDB), "indexeddb" /* Protocol.Storage.StorageType.Indexeddb */);
         this.appendItem(storage, i18nString(UIStrings.webSql), "websql" /* Protocol.Storage.StorageType.Websql */);
         this.appendItem(storage, i18nString(UIStrings.cookies), "cookies" /* Protocol.Storage.StorageType.Cookies */);
+        this.appendItem(storage, i18nString(UIStrings.cacheStorage), "cache_storage" /* Protocol.Storage.StorageType.Cache_storage */);
         storage.markFieldListAsGroup();
-        const caches = this.reportView.appendSection(i18nString(UIStrings.cache));
-        this.appendItem(caches, i18nString(UIStrings.cacheStorage), "cache_storage" /* Protocol.Storage.StorageType.Cache_storage */);
-        caches.markFieldListAsGroup();
         SDK.TargetManager.TargetManager.instance().observeTargets(this);
     }
     appendItem(section, title, settingName) {
@@ -321,6 +325,12 @@ export class StorageView extends UI.ThrottledWidget.ThrottledWidget {
             this.quotaOverrideErrorMessage.textContent = i18nString(UIStrings.numberMustBeNonNegative);
             return;
         }
+        const cutoff = 9_000_000_000_000;
+        if (quota >= cutoff) {
+            this.quotaOverrideErrorMessage.textContent =
+                i18nString(UIStrings.numberMustBeSmaller, { PH1: cutoff.toLocaleString() });
+            return;
+        }
         const bytesPerMB = 1000 * 1000;
         const quotaInBytes = Math.round(quota * bytesPerMB);
         const quotaFieldValue = `${quotaInBytes / bytesPerMB}`;
@@ -368,6 +378,7 @@ export class StorageView extends UI.ThrottledWidget.ThrottledWidget {
             this.clearButton.textContent = label;
             this.clearButton.focus();
         }, 500);
+        UI.ARIAUtils.alert(i18nString(UIStrings.SiteDataCleared));
     }
     static clear(target, storageKey, originForCookies, selectedStorageTypes, includeThirdPartyCookies) {
         console.assert(Boolean(storageKey));

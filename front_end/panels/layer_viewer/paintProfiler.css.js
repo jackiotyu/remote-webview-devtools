@@ -12,7 +12,7 @@ styles.replaceSync(
  */
 
 .paint-profiler-overview {
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
 }
 
 .paint-profiler-canvas-container {
@@ -30,7 +30,7 @@ styles.replaceSync(
 
 .paint-profiler-canvas-container canvas {
   z-index: 200;
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   opacity: 95%;
   height: 100%;
   width: 100%;
@@ -40,6 +40,6 @@ styles.replaceSync(
   z-index: 2000;
 }
 
-
+/*# sourceURL=paintProfiler.css */
 `);
 export default styles;

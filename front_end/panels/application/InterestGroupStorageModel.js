@@ -66,6 +66,8 @@ export class InterestGroupStorageModel extends SDK.SDKModel.SDKModel {
     }
     storageBucketDeleted(_event) {
     }
+    attributionReportingSourceRegistered(_event) {
+    }
 }
 SDK.SDKModel.SDKModel.register(InterestGroupStorageModel, { capabilities: SDK.Target.Capability.Storage, autostart: false });
 // eslint-disable-next-line rulesdir/const_enum

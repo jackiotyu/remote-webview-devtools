@@ -5,7 +5,7 @@ import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
 import editableSpanStyles from './EditableSpan.css.js';
 const { render, html } = LitHtml;
-class EditableSpan extends HTMLElement {
+export class EditableSpan extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-editable-span`;
     #shadow = this.attachShadow({ mode: 'open' });
     #boundRender = this.#render.bind(this);
@@ -83,6 +83,5 @@ class EditableSpan extends HTMLElement {
         });
     }
 }
-export { EditableSpan };
 ComponentHelpers.CustomElements.defineComponent('devtools-editable-span', EditableSpan);
 //# map=EditableSpan.js.map

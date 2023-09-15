@@ -27,26 +27,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+import { HeapSnapshotLoader } from './HeapSnapshotLoader.js';
 export class HeapSnapshotWorkerDispatcher {
     // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     #objects;
-    #global;
     #postMessage;
     constructor(globalObject, postMessage) {
         this.#objects = [];
-        this.#global = globalObject;
         this.#postMessage = postMessage;
-    }
-    #findFunction(name) {
-        const path = name.split('.');
-        // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let result = this.#global;
-        for (let i = 0; i < path.length; ++i) {
-            result = result[path[i]];
-        }
-        return result;
     }
     // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -57,12 +46,9 @@ export class HeapSnapshotWorkerDispatcher {
         const response = { callId: data.callId, result: null, error: undefined, errorCallStack: undefined, errorMethodName: undefined };
         try {
             switch (data.disposition) {
-                case 'create': {
-                    const constructorFunction = this.#findFunction(data.methodName);
-                    // @ts-ignore
-                    this.#objects[data.objectId] = new constructorFunction(this);
+                case 'createLoader':
+                    this.#objects[data.objectId] = new HeapSnapshotLoader(this);
                     break;
-                }
                 case 'dispose': {
                     delete this.#objects[data.objectId];
                     break;

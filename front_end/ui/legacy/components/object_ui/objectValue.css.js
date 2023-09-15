@@ -110,6 +110,6 @@ styles.replaceSync(
   }
 }
 
-
+/*# sourceURL=objectValue.css */
 `);
 export default styles;

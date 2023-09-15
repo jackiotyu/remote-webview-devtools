@@ -1,7 +1,7 @@
 // Copyright (c) 2015 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import { highlightElement } from '../utils/utils.js';
+import { PanelUtils } from '../utils/utils.js';
 import { StylePropertyTreeElement } from './StylePropertyTreeElement.js';
 export class StylePropertyHighlighter {
     styleSidebarPane;
@@ -34,26 +34,44 @@ export class StylePropertyHighlighter {
         }
         const [section] = block.sections;
         section.showAllItems();
-        highlightElement(block.titleElement());
+        PanelUtils.highlightElement(block.titleElement());
+    }
+    findAndHighlightSection(sectionName, blockName) {
+        const block = this.styleSidebarPane.getSectionBlockByName(blockName);
+        const section = block?.sections.find(section => section.headerText() === sectionName);
+        if (!section || !block) {
+            return;
+        }
+        block.expand(true);
+        section.showAllItems();
+        PanelUtils.highlightElement(section.element);
     }
     /**
      * Find the first non-overridden property that matches the provided name, scroll to it and highlight it.
      */
-    findAndHighlightPropertyName(propertyName) {
-        for (const section of this.styleSidebarPane.allSections()) {
+    findAndHighlightPropertyName(propertyName, sectionName, blockName) {
+        const block = blockName ? this.styleSidebarPane.getSectionBlockByName(blockName) : undefined;
+        const sections = block?.sections ?? this.styleSidebarPane.allSections();
+        if (!sections) {
+            return false;
+        }
+        for (const section of sections) {
+            if (sectionName && section.headerText() !== sectionName) {
+                continue;
+            }
             if (!section.style().hasActiveProperty(propertyName)) {
                 continue;
             }
+            block?.expand(true);
             section.showAllItems();
             const treeElement = this.findTreeElementFromSection(treeElement => treeElement.property.name === propertyName && !treeElement.overloaded(), section);
             if (treeElement) {
                 this.scrollAndHighlightTreeElement(treeElement);
-                if (section) {
-                    section.element.focus();
-                }
-                return;
+                section.element.focus();
+                return true;
             }
         }
+        return false;
     }
     /**
      * Traverse the styles pane tree, execute the provided callback for every tree element found, and
@@ -79,7 +97,7 @@ export class StylePropertyHighlighter {
         return null;
     }
     scrollAndHighlightTreeElement(treeElement) {
-        highlightElement(treeElement.listItemElement);
+        PanelUtils.highlightElement(treeElement.listItemElement);
     }
 }
 //# map=StylePropertyHighlighter.js.map

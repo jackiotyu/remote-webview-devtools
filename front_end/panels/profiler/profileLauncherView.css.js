@@ -72,7 +72,6 @@ styles.replaceSync(
   width: max-content;
   padding: 4px;
   line-height: 16px;
-  border-left: 3px solid transparent;
 }
 
 .profile-isolate-selector-block > .profile-memory-usage-item {
@@ -81,12 +80,16 @@ styles.replaceSync(
   font-weight: bolder;
 }
 
-.profile-launcher-target-list .profile-memory-usage-item:hover:not(.selected) {
-  background-color: var(--item-hover-color);
+.profile-memory-usage-item.selected {
+  background-color: var(--sys-color-neutral-container);
 }
 
-.profile-memory-usage-item.selected {
-  background-color: var(--legacy-item-selection-inactive-bg-color);
+.profile-memory-usage-item:focus {
+  background-color: var(--sys-color-tonal-container);
+}
+
+.profile-launcher-target-list .profile-memory-usage-item:hover:not(.selected) {
+  background-color: var(--sys-color-state-hover-on-subtle);
 }
 
 .javascript-vm-instances-list {
@@ -95,8 +98,7 @@ styles.replaceSync(
 }
 
 .javascript-vm-instances-list:focus .profile-memory-usage-item.selected {
-  border-color: var(--legacy-selection-bg-color);
-  background-color: var(--legacy-item-selection-bg-color);
+  background-color: var(--sys-color-tonal-container);
 }
 
 .profile-memory-usage-item > div {
@@ -171,6 +173,6 @@ styles.replaceSync(
   }
 }
 
-
+/*# sourceURL=profileLauncherView.css */
 `);
 export default styles;

@@ -25,9 +25,9 @@ styles.replaceSync(
   flex-grow: 1;
   overflow-y: auto;
   margin: 0;
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
 }
 
-
+/*# sourceURL=requestHeadersView.css */
 `);
 export default styles;

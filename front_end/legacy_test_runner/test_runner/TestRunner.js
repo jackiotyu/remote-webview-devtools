@@ -4,7 +4,7 @@
 // @ts-nocheck This file is not checked by TypeScript as it has a lot of legacy code.
 import * as Common from '../../core/common/common.js'; // eslint-disable-line no-unused-vars
 import * as Platform from '../../core/platform/platform.js';
-import * as ProtocolClientModule from '../../core/protocol_client/protocol_client.js';
+import * as ProtocolClient from '../../core/protocol_client/protocol_client.js';
 import * as Root from '../../core/root/root.js';
 import * as Bindings from '../../models/bindings/bindings.js';
 import * as Workspace from '../../models/workspace/workspace.js';
@@ -275,13 +275,6 @@ export async function loadLegacyModule(module) {
     await import(`../../${containingFolder}/${containingFolder.split('/').reverse()[0]}-legacy.js`);
 }
 /**
- * @param {string} module
- * @return {!Promise<void>}
- */
-export async function loadTestModule(module) {
-    await import(`../${module}/${module}.js`);
-}
-/**
  * @param {string} panel
  * @return {!Promise.<?UI.Panel.Panel>}
  */
@@ -471,7 +464,7 @@ export async function _evaluateInPage(code) {
         code += `//# sourceURL=${sourceURL}`;
     }
     const response = await TestRunner.RuntimeAgent.invoke_evaluate({ expression: code, objectGroup: 'console' });
-    const error = response[ProtocolClientModule.InspectorBackend.ProtocolError];
+    const error = response[ProtocolClient.InspectorBackend.ProtocolError];
     if (error) {
         addResult('Error: ' + error);
         completeTest();
@@ -488,7 +481,7 @@ export async function _evaluateInPage(code) {
  */
 export async function evaluateInPageAnonymously(code, userGesture) {
     const response = await TestRunner.RuntimeAgent.invoke_evaluate({ expression: code, objectGroup: 'console', userGesture });
-    if (!response[ProtocolClientModule.InspectorBackend.ProtocolError]) {
+    if (!response[ProtocolClient.InspectorBackend.ProtocolError]) {
         return response.result.value;
     }
     addResult('Error: ' +
@@ -508,7 +501,7 @@ export function evaluateInPagePromise(code) {
  */
 export async function evaluateInPageAsync(code) {
     const response = await TestRunner.RuntimeAgent.invoke_evaluate({ expression: code, objectGroup: 'console', includeCommandLineAPI: false, awaitPromise: true });
-    const error = response[ProtocolClientModule.InspectorBackend.ProtocolError];
+    const error = response[ProtocolClient.InspectorBackend.ProtocolError];
     if (!error && !response.exceptionDetails) {
         return response.result.value;
     }
@@ -574,7 +567,7 @@ export function check(passCondition, failureText) {
  * @param {!Function} callback
  */
 export function deprecatedRunAfterPendingDispatches(callback) {
-    ProtocolClient.test.deprecatedRunAfterPendingDispatches(callback);
+    ProtocolClient.InspectorBackend.test.deprecatedRunAfterPendingDispatches(callback);
 }
 /**
  * This ensures a base tag is set so all DOM references
@@ -682,7 +675,7 @@ export function markStep(title) {
     addResult('\nRunning: ' + title);
 }
 export function startDumpingProtocolMessages() {
-    ProtocolClient.test.dumpProtocol = self.testRunner.logToStderr.bind(self.testRunner);
+    ProtocolClient.InspectorBackend.test.dumpProtocol = self.testRunner.logToStderr.bind(self.testRunner);
 }
 /**
  * @param {string} url
@@ -1259,7 +1252,7 @@ export function waitForUISourceCodeRemoved(callback) {
  * @return {string}
  */
 export function url(url = '') {
-    const testScriptURL = /** @type {string} */ (Root.Runtime.Runtime.queryParam('test'));
+    const testScriptURL = /** @type {string} */ (Root.Runtime.Runtime.queryParam('inspected_test') || Root.Runtime.Runtime.queryParam('test'));
     // This handles relative (e.g. "../file"), root (e.g. "/resource"),
     // absolute (e.g. "http://", "data:") and empty (e.g. "") paths
     return new URL(url, testScriptURL + '/../').href;
@@ -1398,7 +1391,6 @@ TestRunner.waitForUISourceCodeRemoved = waitForUISourceCodeRemoved;
 TestRunner.url = url;
 TestRunner.dumpSyntaxHighlight = dumpSyntaxHighlight;
 TestRunner.loadLegacyModule = loadLegacyModule;
-TestRunner.loadTestModule = loadTestModule;
 TestRunner.evaluateInPageRemoteObject = evaluateInPageRemoteObject;
 TestRunner.evaluateInPage = evaluateInPage;
 TestRunner.evaluateInPageAnonymously = evaluateInPageAnonymously;

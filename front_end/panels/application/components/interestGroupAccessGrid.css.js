@@ -19,7 +19,7 @@ styles.replaceSync(
 }
 
 devtools-data-grid-controller {
-  border: 1px solid var(--color-details-hairline);
+  border: 1px solid var(--sys-color-divider);
   margin-top: 20px;
 }
 
@@ -32,6 +32,6 @@ devtools-data-grid-controller {
   margin-top: 20px;
 }
 
-
+/*# sourceURL=interestGroupAccessGrid.css */
 `);
 export default styles;

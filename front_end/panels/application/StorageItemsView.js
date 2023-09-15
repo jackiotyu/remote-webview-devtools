@@ -4,6 +4,7 @@
 import * as i18n from '../../core/i18n/i18n.js';
 import * as Platform from '../../core/platform/platform.js';
 import * as UI from '../../ui/legacy/legacy.js';
+import * as ApplicationComponents from './components/components.js';
 const UIStrings = {
     /**
      *@description Text to refresh the page
@@ -35,6 +36,7 @@ export class StorageItemsView extends UI.Widget.VBox {
     filterItem;
     deleteAllButton;
     deleteSelectedButton;
+    metadataView = new ApplicationComponents.StorageMetadataView.StorageMetadataView();
     constructor(_title, _filterName) {
         super(false);
         this.filterRegex = null;
@@ -53,6 +55,7 @@ export class StorageItemsView extends UI.Widget.VBox {
         for (const item of toolbarItems) {
             this.mainToolbar.appendToolbarItem(item);
         }
+        this.contentElement.appendChild(this.metadataView);
     }
     setDeleteAllTitle(title) {
         this.deleteAllButton.setTitle(title);
@@ -62,6 +65,9 @@ export class StorageItemsView extends UI.Widget.VBox {
     }
     appendToolbarItem(item) {
         this.mainToolbar.appendToolbarItem(item);
+    }
+    setStorageKey(storageKey) {
+        this.metadataView.setStorageKey(storageKey);
     }
     addButton(label, glyph, callback) {
         const button = new UI.Toolbar.ToolbarButton(label, glyph);

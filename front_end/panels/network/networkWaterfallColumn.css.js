@@ -40,6 +40,6 @@ styles.replaceSync(
   pointer-events: none;
 }
 
-
+/*# sourceURL=networkWaterfallColumn.css */
 `);
 export default styles;

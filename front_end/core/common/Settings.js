@@ -484,7 +484,7 @@ export class RegExpSetting extends Setting {
         return this.#regex;
     }
 }
-class VersionController {
+export class VersionController {
     static GLOBAL_VERSION_SETTING_NAME = 'inspectorVersion';
     static SYNCED_VERSION_SETTING_NAME = 'syncedInspectorVersion';
     static LOCAL_VERSION_SETTING_NAME = 'localInspectorVersion';
@@ -1057,7 +1057,6 @@ class VersionController {
         }
     }
 }
-export { VersionController };
 // TODO(crbug.com/1167717): Make this a const enum again
 // eslint-disable-next-line rulesdir/const_enum
 export var SettingStorageType;

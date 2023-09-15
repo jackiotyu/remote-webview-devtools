@@ -75,7 +75,7 @@ export class Point {
         return Math.round(this.x * 100) / 100 + ', ' + Math.round(this.y * 100) / 100;
     }
 }
-class CubicBezier {
+export class CubicBezier {
     controlPoints;
     constructor(point1, point2) {
         this.controlPoints = [point1, point2];
@@ -107,7 +107,12 @@ class CubicBezier {
         const raw = 'cubic-bezier(' + this.controlPoints.join(', ') + ')';
         const keywordValues = CubicBezier.KeywordValues;
         for (const [keyword, value] of keywordValues) {
-            if (raw === value) {
+            // We special case `linear` in here as we
+            // treat `linear` keyword as a CSSLinearEasingModel.
+            // We return its full value instead of the keyword
+            // since otherwise it will be parsed as a CSSLinearEasingModel
+            // instead of a cubic bezier.
+            if (raw === value && keyword !== 'linear') {
                 return keyword;
             }
         }
@@ -126,7 +131,6 @@ class CubicBezier {
         ['ease-out', 'cubic-bezier(0, 0, 0.58, 1)'],
     ]);
 }
-export { CubicBezier };
 export const LINEAR_BEZIER = new CubicBezier(new Point(0, 0), new Point(1, 1));
 export class EulerAngles {
     alpha;

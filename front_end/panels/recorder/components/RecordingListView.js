@@ -32,14 +32,13 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/recorder/components/RecordingListView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class CreateRecordingEvent extends Event {
+export class CreateRecordingEvent extends Event {
     static eventName = 'createrecording';
     constructor() {
         super(CreateRecordingEvent.eventName);
     }
 }
-export { CreateRecordingEvent };
-class DeleteRecordingEvent extends Event {
+export class DeleteRecordingEvent extends Event {
     storageName;
     static eventName = 'deleterecording';
     constructor(storageName) {
@@ -47,8 +46,7 @@ class DeleteRecordingEvent extends Event {
         this.storageName = storageName;
     }
 }
-export { DeleteRecordingEvent };
-class OpenRecordingEvent extends Event {
+export class OpenRecordingEvent extends Event {
     storageName;
     static eventName = 'openrecording';
     constructor(storageName) {
@@ -56,8 +54,7 @@ class OpenRecordingEvent extends Event {
         this.storageName = storageName;
     }
 }
-export { OpenRecordingEvent };
-class PlayRecordingEvent extends Event {
+export class PlayRecordingEvent extends Event {
     storageName;
     static eventName = 'playrecording';
     constructor(storageName) {
@@ -65,8 +62,7 @@ class PlayRecordingEvent extends Event {
         this.storageName = storageName;
     }
 }
-export { PlayRecordingEvent };
-class RecordingListView extends HTMLElement {
+export class RecordingListView extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-recording-list-view`;
     #shadow = this.attachShadow({ mode: 'open' });
     #props = {
@@ -130,7 +126,7 @@ class RecordingListView extends HTMLElement {
                     <div class="icon">
                       <${IconButton.Icon.Icon.litTagName} .data=${{
                 iconName: 'flow',
-                color: 'var(--color-primary-old)',
+                color: 'var( --sys-color-primary)',
             }}>
                       </${IconButton.Icon.Icon.litTagName}>
                     </div>
@@ -169,6 +165,5 @@ class RecordingListView extends HTMLElement {
         // clang-format on
     };
 }
-export { RecordingListView };
 ComponentHelpers.CustomElements.defineComponent('devtools-recording-list-view', RecordingListView);
 //# map=RecordingListView.js.map

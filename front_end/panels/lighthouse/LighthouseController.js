@@ -34,7 +34,7 @@ const UIStrings = {
     /**
      *@description Text in Application Panel Sidebar of the Application panel
      */
-    localStorage: 'Local Storage',
+    localStorage: 'Local storage',
     /**
      *@description Text in Application Panel Sidebar of the Application panel
      */
@@ -159,14 +159,6 @@ const UIStrings = {
      *@description Text of checkbox to reset storage features prior to running audits in Lighthouse
      */
     clearStorage: 'Clear storage',
-    /**
-     * @description Text of checkbox to use the legacy Lighthouse navigation mode
-     */
-    legacyNavigation: 'Legacy navigation',
-    /**
-     * @description Tooltip text that appears when hovering over the 'Legacy navigation' checkbox in the settings pane opened by clicking the setting cog in the start view of the audits panel. "Navigation mode" is a Lighthouse mode that analyzes a page navigation.
-     */
-    useLegacyNavigation: 'Analyze the page using classic Lighthouse when in navigation mode.',
     /**
      * @description Tooltip text of checkbox to reset storage features prior to running audits in
      * Lighthouse. Resetting the storage clears/empties it to a neutral state.
@@ -387,16 +379,17 @@ export class LighthouseController extends Common.ObjectWrapper.ObjectWrapper {
             this.dispatchEventToListeners(Events.PageWarningsChanged, { warning });
         });
     }
-    recordMetrics(flags) {
+    recordMetrics(flags, categoryIds) {
         Host.userMetrics.actionTaken(Host.UserMetrics.Action.LighthouseStarted);
+        for (const preset of Presets) {
+            if (!categoryIds.includes(preset.configID)) {
+                continue;
+            }
+            Host.userMetrics.lighthouseCategoryUsed(preset.userMetric);
+        }
         switch (flags.mode) {
             case 'navigation':
-                if (flags.legacyNavigation) {
-                    Host.userMetrics.lighthouseModeRun(Host.UserMetrics.LighthouseModeRun.LegacyNavigation);
-                }
-                else {
-                    Host.userMetrics.lighthouseModeRun(Host.UserMetrics.LighthouseModeRun.Navigation);
-                }
+                Host.userMetrics.lighthouseModeRun(Host.UserMetrics.LighthouseModeRun.Navigation);
                 break;
             case 'timespan':
                 Host.userMetrics.lighthouseModeRun(Host.UserMetrics.LighthouseModeRun.Timespan);
@@ -411,7 +404,7 @@ export class LighthouseController extends Common.ObjectWrapper.ObjectWrapper {
             const inspectedURL = await this.getInspectedURL({ force: true });
             const categoryIDs = this.getCategoryIDs();
             const flags = this.getFlags();
-            this.recordMetrics(flags);
+            this.recordMetrics(flags, categoryIDs);
             this.currentLighthouseRun = { inspectedURL, categoryIDs, flags };
             await this.setupEmulationAndProtocolConnection();
             if (flags.mode === 'timespan') {
@@ -545,6 +538,7 @@ export const Presets = [
         description: i18nLazyString(UIStrings.howLongDoesThisAppTakeToShow),
         plugin: false,
         supportedModes: ['navigation', 'timespan', 'snapshot'],
+        userMetric: Host.UserMetrics.LighthouseCategoryUsed.Performance,
     },
     {
         setting: Common.Settings.Settings.instance().createSetting('lighthouse.cat_a11y', true, Common.Settings.SettingStorageType.Synced),
@@ -553,6 +547,7 @@ export const Presets = [
         description: i18nLazyString(UIStrings.isThisPageUsableByPeopleWith),
         plugin: false,
         supportedModes: ['navigation', 'snapshot'],
+        userMetric: Host.UserMetrics.LighthouseCategoryUsed.Accessibility,
     },
     {
         setting: Common.Settings.Settings.instance().createSetting('lighthouse.cat_best_practices', true, Common.Settings.SettingStorageType.Synced),
@@ -561,6 +556,7 @@ export const Presets = [
         description: i18nLazyString(UIStrings.doesThisPageFollowBestPractices),
         plugin: false,
         supportedModes: ['navigation', 'timespan', 'snapshot'],
+        userMetric: Host.UserMetrics.LighthouseCategoryUsed.BestPractices,
     },
     {
         setting: Common.Settings.Settings.instance().createSetting('lighthouse.cat_seo', true, Common.Settings.SettingStorageType.Synced),
@@ -569,6 +565,7 @@ export const Presets = [
         description: i18nLazyString(UIStrings.isThisPageOptimizedForSearch),
         plugin: false,
         supportedModes: ['navigation', 'snapshot'],
+        userMetric: Host.UserMetrics.LighthouseCategoryUsed.SEO,
     },
     {
         setting: Common.Settings.Settings.instance().createSetting('lighthouse.cat_pwa', true, Common.Settings.SettingStorageType.Synced),
@@ -577,6 +574,7 @@ export const Presets = [
         description: i18nLazyString(UIStrings.doesThisPageMeetTheStandardOfA),
         plugin: false,
         supportedModes: ['navigation'],
+        userMetric: Host.UserMetrics.LighthouseCategoryUsed.PWA,
     },
     {
         setting: Common.Settings.Settings.instance().createSetting('lighthouse.cat_pubads', false, Common.Settings.SettingStorageType.Synced),
@@ -585,6 +583,7 @@ export const Presets = [
         title: i18nLazyString(UIStrings.publisherAds),
         description: i18nLazyString(UIStrings.isThisPageOptimizedForAdSpeedAnd),
         supportedModes: ['navigation'],
+        userMetric: Host.UserMetrics.LighthouseCategoryUsed.PubAds,
     },
 ];
 export const RuntimeSettings = [
@@ -654,16 +653,6 @@ export const RuntimeSettings = [
         description: i18nLazyString(UIStrings.resetStorageLocalstorage),
         setFlags: (flags, value) => {
             flags.disableStorageReset = !value;
-        },
-        options: undefined,
-        learnMore: undefined,
-    },
-    {
-        setting: Common.Settings.Settings.instance().createSetting('lighthouse.legacy_navigation', false, Common.Settings.SettingStorageType.Synced),
-        title: i18nLazyString(UIStrings.legacyNavigation),
-        description: i18nLazyString(UIStrings.useLegacyNavigation),
-        setFlags: (flags, value) => {
-            flags.legacyNavigation = value;
         },
         options: undefined,
         learnMore: undefined,

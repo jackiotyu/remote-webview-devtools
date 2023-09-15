@@ -12,8 +12,8 @@ styles.replaceSync(
  */
 
 .background-service-toolbar {
-  background-color: var(--color-background-elevation-1);
-  border-bottom: var(--legacy-divider-border);
+  background-color: var(--sys-color-cdt-base-container);
+  border-bottom: var(--sys-color-divider);
 }
 
 .data-grid {
@@ -23,12 +23,12 @@ styles.replaceSync(
 
 .background-service-preview {
   position: absolute;
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   justify-content: center;
   align-items: center;
   overflow: auto;
   font-size: 13px;
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
 }
 
 .background-service-preview > div {
@@ -43,7 +43,7 @@ styles.replaceSync(
 }
 
 .background-service-shortcut {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
 }
 
 .background-service-metadata {
@@ -57,7 +57,7 @@ styles.replaceSync(
 }
 
 .background-service-metadata-name {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
   display: inline-block;
   margin-right: 0.25em;
   font-weight: bold;
@@ -72,7 +72,7 @@ styles.replaceSync(
 }
 
 .background-service-empty-value {
-  color: var(--color-text-disabled);
+  color: var(--sys-color-state-disabled);
   font-style: italic;
 }
 
@@ -80,6 +80,6 @@ styles.replaceSync(
   margin-bottom: 6px;
 }
 
-
+/*# sourceURL=backgroundServiceView.css */
 `);
 export default styles;

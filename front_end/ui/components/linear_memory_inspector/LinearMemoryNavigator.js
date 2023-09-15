@@ -35,7 +35,7 @@ const UIStrings = {
 const str_ = i18n.i18n.registerUIStrings('ui/components/linear_memory_inspector/LinearMemoryNavigator.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const { render, html } = LitHtml;
-class AddressInputChangedEvent extends Event {
+export class AddressInputChangedEvent extends Event {
     static eventName = 'addressinputchanged';
     data;
     constructor(address, mode) {
@@ -43,8 +43,7 @@ class AddressInputChangedEvent extends Event {
         this.data = { address, mode };
     }
 }
-export { AddressInputChangedEvent };
-class PageNavigationEvent extends Event {
+export class PageNavigationEvent extends Event {
     static eventName = 'pagenavigation';
     data;
     constructor(navigation) {
@@ -52,8 +51,7 @@ class PageNavigationEvent extends Event {
         this.data = navigation;
     }
 }
-export { PageNavigationEvent };
-class HistoryNavigationEvent extends Event {
+export class HistoryNavigationEvent extends Event {
     static eventName = 'historynavigation';
     data;
     constructor(navigation) {
@@ -61,15 +59,13 @@ class HistoryNavigationEvent extends Event {
         this.data = navigation;
     }
 }
-export { HistoryNavigationEvent };
-class RefreshRequestedEvent extends Event {
+export class RefreshRequestedEvent extends Event {
     static eventName = 'refreshrequested';
     constructor() {
         super(RefreshRequestedEvent.eventName, {});
     }
 }
-export { RefreshRequestedEvent };
-class LinearMemoryNavigator extends HTMLElement {
+export class LinearMemoryNavigator extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-linear-memory-inspector-navigator`;
     #shadow = this.attachShadow({ mode: 'open' });
     #address = '0';
@@ -145,6 +141,5 @@ class LinearMemoryNavigator extends HTMLElement {
       </button>`;
     }
 }
-export { LinearMemoryNavigator };
 ComponentHelpers.CustomElements.defineComponent('devtools-linear-memory-inspector-navigator', LinearMemoryNavigator);
 //# map=LinearMemoryNavigator.js.map

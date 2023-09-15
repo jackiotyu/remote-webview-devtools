@@ -11,7 +11,7 @@ import { getMarkdownImage } from './MarkdownImagesMap.js';
  * Parsed images from markdown are not directly rendered, instead they have to be added to the MarkdownImagesMap.ts.
  * This makes sure that all icons/images are accounted for in markdown.
  */
-class MarkdownImage extends HTMLElement {
+export class MarkdownImage extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-markdown-image`;
     #shadow = this.attachShadow({ mode: 'open' });
     #imageData;
@@ -53,6 +53,5 @@ class MarkdownImage extends HTMLElement {
         LitHtml.render(imageComponent, this.#shadow, { host: this });
     }
 }
-export { MarkdownImage };
 ComponentHelpers.CustomElements.defineComponent('devtools-markdown-image', MarkdownImage);
 //# map=MarkdownImage.js.map

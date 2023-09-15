@@ -191,7 +191,7 @@ export class Toolbar {
     static createActionButton(action, options = TOOLBAR_BUTTON_DEFAULT_OPTIONS) {
         const button = action.toggleable() ? makeToggle() : makeButton();
         if (options.showLabel) {
-            button.setText(action.title());
+            button.setText(options.label?.() || action.title());
         }
         let handler = (_event) => {
             void action.execute();
@@ -350,12 +350,12 @@ export class Toolbar {
         });
         const filtered = extensions.filter(e => e.location === location);
         const items = await Promise.all(filtered.map(extension => {
-            const { separator, actionId, showLabel, loadItem } = extension;
+            const { separator, actionId, showLabel, label, loadItem } = extension;
             if (separator) {
                 return new ToolbarSeparator();
             }
             if (actionId) {
-                return Toolbar.createActionButtonForId(actionId, { showLabel: Boolean(showLabel), userActionCode: undefined });
+                return Toolbar.createActionButtonForId(actionId, { label, showLabel: Boolean(showLabel), userActionCode: undefined });
             }
             // TODO(crbug.com/1134103) constratint the case checked with this if using TS type definitions once UI is TS-authored.
             if (!loadItem) {
@@ -398,7 +398,7 @@ export class ToolbarItem extends Common.ObjectWrapper.ObjectWrapper {
             return;
         }
         this.title = title;
-        ARIAUtils.setAccessibleName(this.element, title);
+        ARIAUtils.setLabel(this.element, title);
         if (actionId === undefined) {
             Tooltip.install(this.element, title);
         }
@@ -568,7 +568,7 @@ export class ToolbarInput extends ToolbarItem {
         element.classList.add('toolbar-input');
         super(element);
         const internalPromptElement = this.element.createChild('div', 'toolbar-input-prompt');
-        ARIAUtils.setAccessibleName(internalPromptElement, placeholder);
+        ARIAUtils.setLabel(internalPromptElement, placeholder);
         internalPromptElement.addEventListener('focus', () => this.element.classList.add('focused'));
         internalPromptElement.addEventListener('blur', () => this.element.classList.remove('focused'));
         this.prompt = new TextPrompt();
@@ -611,6 +611,9 @@ export class ToolbarInput extends ToolbarItem {
     }
     value() {
         return this.prompt.textWithCurrentSuggestion();
+    }
+    valueWithoutSuggestion() {
+        return this.prompt.text();
     }
     onKeydownCallback(event) {
         if (event.key === 'Enter' && this.prompt.text()) {
@@ -767,7 +770,7 @@ export class ToolbarComboBox extends ToolbarItem {
         if (changeHandler) {
             this.selectElementInternal.addEventListener('change', changeHandler, false);
         }
-        ARIAUtils.setAccessibleName(this.selectElementInternal, title);
+        ARIAUtils.setLabel(this.selectElementInternal, title);
         super.setTitle(title);
         if (className) {
             this.selectElementInternal.classList.add(className);

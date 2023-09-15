@@ -11,6 +11,6 @@ styles.replaceSync(
  * found in the LICENSE file.
  */
 
-
+/*# sourceURL=cspViolationsListView.css */
 `);
 export default styles;

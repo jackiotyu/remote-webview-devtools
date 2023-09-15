@@ -29,7 +29,7 @@ styles.replaceSync(
 
 .tree-outline > ol {
   padding-bottom: 5px;
-  border-bottom: solid 1px var(--color-details-hairline);
+  border-bottom: solid 1px var(--sys-color-divider);
 }
 
 .tree-outline > .parent {
@@ -183,14 +183,18 @@ styles.replaceSync(
 .request-headers-caution {
   display: flex;
   gap: 6px;
+  margin-right: 20px;
+  padding: 8px;
+  background-color: var(--sys-color-neutral-container);
+  border-radius: 5px;
 }
 
 .header-highlight {
-  background-color: var(--override-header-highlight-background-color);
+  background-color: var(--sys-color-state-focus-highlight);
 }
 
 .header-highlight:focus {
-  background-color: var(--legacy-selection-bg-color);
+  background-color: var(--sys-color-state-ripple-primary);
 }
 
 .x-client-data-details {
@@ -238,6 +242,6 @@ styles.replaceSync(
   color: var(--color-text-primary);
 }
 
-
+/*# sourceURL=requestHeadersTree.css */
 `);
 export default styles;

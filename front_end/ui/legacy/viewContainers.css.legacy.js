@@ -36,10 +36,9 @@ export default {
 .expandable-view-title {
   display: flex;
   align-items: center;
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-surface2);
   height: 22px;
   padding: 0 5px;
-  border-top: 1px solid var(--color-details-hairline);
   white-space: nowrap;
   overflow: hidden;
   position: relative;
@@ -48,7 +47,7 @@ export default {
 
 .expandable-view-title.expanded,
 .expandable-view-title:last-child {
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .expandable-view-title .toolbar {

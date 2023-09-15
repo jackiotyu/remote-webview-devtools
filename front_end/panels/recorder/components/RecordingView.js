@@ -19,7 +19,7 @@ import * as Models from '../models/models.js';
 import recordingViewStyles from './recordingView.css.js';
 import { StepView, } from './StepView.js';
 import { ReplayButton, } from './ReplayButton.js';
-import { SplitView } from './SplitView.js';
+import * as SplitView from '../../../ui/components/split_view/split_view.js';
 import { ExtensionView } from './ExtensionView.js';
 const UIStrings = {
     /**
@@ -125,14 +125,13 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/recorder/components/RecordingView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class RecordingFinishedEvent extends Event {
+export class RecordingFinishedEvent extends Event {
     static eventName = 'recordingfinished';
     constructor() {
         super(RecordingFinishedEvent.eventName);
     }
 }
-export { RecordingFinishedEvent };
-class PlayRecordingEvent extends Event {
+export class PlayRecordingEvent extends Event {
     static eventName = 'playrecording';
     data;
     constructor(data = {
@@ -143,15 +142,13 @@ class PlayRecordingEvent extends Event {
         this.data = data;
     }
 }
-export { PlayRecordingEvent };
-class AbortReplayEvent extends Event {
+export class AbortReplayEvent extends Event {
     static eventName = 'abortreplay';
     constructor() {
         super(AbortReplayEvent.eventName);
     }
 }
-export { AbortReplayEvent };
-class RecordingChangedEvent extends Event {
+export class RecordingChangedEvent extends Event {
     static eventName = 'recordingchanged';
     data;
     constructor(currentStep, newStep) {
@@ -159,15 +156,13 @@ class RecordingChangedEvent extends Event {
         this.data = { currentStep, newStep };
     }
 }
-export { RecordingChangedEvent };
-class AddAssertionEvent extends Event {
+export class AddAssertionEvent extends Event {
     static eventName = 'addassertion';
     constructor() {
         super(AddAssertionEvent.eventName);
     }
 }
-export { AddAssertionEvent };
-class RecordingTitleChangedEvent extends Event {
+export class RecordingTitleChangedEvent extends Event {
     static eventName = 'recordingtitlechanged';
     title;
     constructor(title) {
@@ -175,8 +170,7 @@ class RecordingTitleChangedEvent extends Event {
         this.title = title;
     }
 }
-export { RecordingTitleChangedEvent };
-class NetworkConditionsChanged extends Event {
+export class NetworkConditionsChanged extends Event {
     static eventName = 'networkconditionschanged';
     data;
     constructor(data) {
@@ -187,8 +181,7 @@ class NetworkConditionsChanged extends Event {
         this.data = data;
     }
 }
-export { NetworkConditionsChanged };
-class TimeoutChanged extends Event {
+export class TimeoutChanged extends Event {
     static eventName = 'timeoutchanged';
     data;
     constructor(data) {
@@ -196,7 +189,6 @@ class TimeoutChanged extends Event {
         this.data = data;
     }
 }
-export { TimeoutChanged };
 const networkConditionPresets = [
     SDK.NetworkManager.NoThrottlingConditions,
     SDK.NetworkManager.OfflineConditions,
@@ -227,7 +219,7 @@ function converterIdToStepMetric(converterId) {
             return Host.UserMetrics.RecordingCopiedToClipboard.CopiedStepWithExtension;
     }
 }
-class RecordingView extends HTMLElement {
+export class RecordingView extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-recording-view`;
     #shadow = this.attachShadow({ mode: 'open' });
     #replayState = { isPlaying: false, isPausedOnBreakpoint: false };
@@ -639,7 +631,7 @@ class RecordingView extends HTMLElement {
                     class="chevron"
                     .data=${{
                 iconName: 'triangle-down',
-                color: 'var(--color-text-primary)',
+                color: 'var(--sys-color-on-surface)',
             }}>
                   </${IconButton.Icon.Icon.litTagName}>`
             : ''}
@@ -687,7 +679,7 @@ class RecordingView extends HTMLElement {
         return !this.#showCodeView
             ? this.#renderSections()
             : LitHtml.html `
-        <${SplitView.litTagName}>
+        <${SplitView.SplitView.SplitView.litTagName}>
           <div slot="main">
             ${this.#renderSections()}
           </div>
@@ -734,7 +726,7 @@ class RecordingView extends HTMLElement {
               <${TextEditor.TextEditor.TextEditor.litTagName} .state=${this.#editorState}></${TextEditor.TextEditor.TextEditor.litTagName}>
             </div>
           </div>
-        </${SplitView.litTagName}>
+        </${SplitView.SplitView.SplitView.litTagName}>
       `;
         // clang-format on
     }
@@ -1023,6 +1015,5 @@ class RecordingView extends HTMLElement {
         // clang-format on
     }
 }
-export { RecordingView };
 ComponentHelpers.CustomElements.defineComponent('devtools-recording-view', RecordingView);
 //# map=RecordingView.js.map

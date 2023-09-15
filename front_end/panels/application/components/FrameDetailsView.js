@@ -15,13 +15,12 @@ import * as ExpandableList from '../../../ui/components/expandable_list/expandab
 import * as ReportView from '../../../ui/components/report_view/report_view.js';
 import * as IconButton from '../../../ui/components/icon_button/icon_button.js';
 import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
-import * as UI from '../../../ui/legacy/legacy.js';
+import * as LegacyWrapper from '../../../ui/components/legacy_wrapper/legacy_wrapper.js';
 import * as Workspace from '../../../models/workspace/workspace.js';
 import * as Components from '../../../ui/legacy/components/utils/utils.js';
 import { OriginTrialTreeView } from './OriginTrialTreeView.js';
 import * as Coordinator from '../../../ui/components/render_coordinator/render_coordinator.js';
 import frameDetailsReportViewStyles from './frameDetailsReportView.css.js';
-import { Prerender2ReasonDescription } from './Prerender2.js';
 const UIStrings = {
     /**
      *@description Section header in the Frame Details view
@@ -227,79 +226,43 @@ const UIStrings = {
      */
     refresh: 'Refresh',
     /**
-     *@description Label for section of frame details view
-     */
-    prerendering: 'Prerendering',
-    /**
-     *@description Label for subtitle of frame details view
-     */
-    prerenderingStatus: 'Prerendering Status',
-    /**
      *@description Label for a link to an ad script, which created the current iframe.
      */
     creatorAdScript: 'Creator Ad Script',
 };
 const str_ = i18n.i18n.registerUIStrings('panels/application/components/FrameDetailsView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-export class FrameDetailsView extends UI.ThrottledWidget.ThrottledWidget {
-    #reportView = new FrameDetailsReportView();
-    #frame;
-    #prerenderedUrl;
-    constructor(frame) {
-        super();
-        this.#frame = frame;
-        this.#prerenderedUrl = '';
-        this.contentElement.classList.add('overflow-auto');
-        this.contentElement.appendChild(this.#reportView);
-        this.update();
-        SDK.TargetManager.TargetManager.instance().addModelListener(SDK.ChildTargetManager.ChildTargetManager, SDK.ChildTargetManager.Events.TargetInfoChanged, this.targetChanged, this);
-        frame.resourceTreeModel().addEventListener(SDK.ResourceTreeModel.Events.PrerenderingStatusUpdated, this.update, this);
-    }
-    targetChanged(event) {
-        const targetInfo = event.data;
-        if (targetInfo.subtype === 'prerender') {
-            this.#prerenderedUrl = targetInfo.url;
-            this.update();
-        }
-    }
-    async doUpdate() {
-        const adScriptId = await this.#frame?.parentFrame()?.getAdScriptId(this.#frame?.id);
-        const debuggerModel = adScriptId?.debuggerId ?
-            await SDK.DebuggerModel.DebuggerModel.modelForDebuggerId(adScriptId?.debuggerId) :
-            null;
-        const target = debuggerModel?.target();
-        this.#reportView
-            .data = { frame: this.#frame, target, prerenderedUrl: this.#prerenderedUrl, adScriptId: adScriptId || null };
-    }
-}
 const coordinator = Coordinator.RenderCoordinator.RenderCoordinator.instance();
-class FrameDetailsReportView extends HTMLElement {
+export class FrameDetailsReportView extends LegacyWrapper.LegacyWrapper.WrappableComponent {
     static litTagName = LitHtml.literal `devtools-resources-frame-details-view`;
     #shadow = this.attachShadow({ mode: 'open' });
     #frame;
     #target;
-    #prerenderedUrl;
     #protocolMonitorExperimentEnabled = false;
     #permissionsPolicies = null;
     #permissionsPolicySectionData = { policies: [], showDetails: false };
     #originTrialTreeView = new OriginTrialTreeView();
     #linkifier = new Components.Linkifier.Linkifier();
     #adScriptId = null;
+    constructor(frame) {
+        super();
+        this.#frame = frame;
+        void this.render();
+    }
     connectedCallback() {
+        this.parentElement?.classList.add('overflow-auto');
         this.#protocolMonitorExperimentEnabled = Root.Runtime.experiments.isEnabled('protocolMonitor');
         this.#shadow.adoptedStyleSheets = [frameDetailsReportViewStyles];
     }
-    set data(data) {
-        this.#frame = data.frame;
-        this.#adScriptId = data.adScriptId;
-        this.#target = data.target;
-        this.#prerenderedUrl = data.prerenderedUrl;
+    async render() {
+        this.#adScriptId = (await this.#frame?.parentFrame()?.getAdScriptId(this.#frame?.id)) || null;
+        const debuggerModel = this.#adScriptId?.debuggerId ?
+            await SDK.DebuggerModel.DebuggerModel.modelForDebuggerId(this.#adScriptId?.debuggerId) :
+            null;
+        this.#target = debuggerModel?.target();
         if (!this.#permissionsPolicies && this.#frame) {
             this.#permissionsPolicies = this.#frame.getPermissionsPolicyState();
         }
-        void this.#render();
-    }
-    async #render() {
         await coordinator.write('FrameDetailsView render', () => {
             if (!this.#frame) {
                 return;
@@ -321,7 +284,6 @@ class FrameDetailsReportView extends HTMLElement {
               </${PermissionsPolicySection.litTagName}>
             `;
             }), LitHtml.nothing)}
-          ${this.#renderPrerenderingSection()}
           ${this.#protocolMonitorExperimentEnabled ? this.#renderAdditionalInfoSection() : LitHtml.nothing}
         </${ReportView.ReportView.Report.litTagName}>
       `, this.#shadow, { host: this });
@@ -706,48 +668,6 @@ class FrameDetailsReportView extends HTMLElement {
         }
         return LitHtml.nothing;
     }
-    #renderPrerenderingSection() {
-        if (this.#prerenderedUrl && this.#prerenderedUrl !== '') {
-            const status = Prerender2ReasonDescription['PrerenderingOngoing'].name() + ' ' + this.#prerenderedUrl;
-            return LitHtml.html `
-      <${ReportView.ReportView.ReportSectionHeader.litTagName}>
-      ${i18nString(UIStrings.prerendering)}</${ReportView.ReportView.ReportSectionHeader.litTagName}>
-      <${ReportView.ReportView.ReportKey.litTagName}>${i18nString(UIStrings.prerenderingStatus)}</${ReportView.ReportView.ReportKey.litTagName}>
-      <${ReportView.ReportView.ReportValue.litTagName}>
-      <div class="text-ellipsis" title=${status}>${status}</div>
-      </${ReportView.ReportView.ReportValue.litTagName}>
-      <${ReportView.ReportView.ReportSectionDivider.litTagName}></${ReportView.ReportView.ReportSectionDivider.litTagName}>`;
-        }
-        if (!this.#frame || !this.#frame.prerenderFinalStatus) {
-            return LitHtml.nothing;
-        }
-        const finalStatus = Prerender2ReasonDescription[this.#frame.prerenderFinalStatus].name();
-        if (this.#frame.prerenderDisallowedApiMethod) {
-            const detailSection = Prerender2ReasonDescription['DisallowedApiMethod'].name();
-            return LitHtml.html `
-      <${ReportView.ReportView.ReportSectionHeader.litTagName}>
-      ${i18nString(UIStrings.prerendering)}</${ReportView.ReportView.ReportSectionHeader.litTagName}>
-      <${ReportView.ReportView.ReportKey.litTagName}>${i18nString(UIStrings.prerenderingStatus)}</${ReportView.ReportView.ReportKey.litTagName}>
-      <${ReportView.ReportView.ReportValue.litTagName}>
-      <div class="text-ellipsis" title=${finalStatus}>${finalStatus}</div>
-      </${ReportView.ReportView.ReportValue.litTagName}>
-      <${ReportView.ReportView.ReportKey.litTagName}>${detailSection}</${ReportView.ReportView.ReportKey.litTagName}>
-      <${ReportView.ReportView.ReportValue.litTagName}>
-      <div class="text-ellipsis" title=${this.#frame.prerenderDisallowedApiMethod}>
-        ${this.#frame.prerenderDisallowedApiMethod}
-      </div>
-      </${ReportView.ReportView.ReportValue.litTagName}>
-      <${ReportView.ReportView.ReportSectionDivider.litTagName}></${ReportView.ReportView.ReportSectionDivider.litTagName}>`;
-        }
-        return LitHtml.html `
-      <${ReportView.ReportView.ReportSectionHeader.litTagName}>
-      ${i18nString(UIStrings.prerendering)}</${ReportView.ReportView.ReportSectionHeader.litTagName}>
-      <${ReportView.ReportView.ReportKey.litTagName}>${i18nString(UIStrings.prerenderingStatus)}</${ReportView.ReportView.ReportKey.litTagName}>
-      <${ReportView.ReportView.ReportValue.litTagName}>
-      <div class="text-ellipsis" title=${finalStatus}>${finalStatus}</div>
-      </${ReportView.ReportView.ReportValue.litTagName}>
-      <${ReportView.ReportView.ReportSectionDivider.litTagName}></${ReportView.ReportView.ReportSectionDivider.litTagName}>`;
-    }
     #renderAdditionalInfoSection() {
         if (!this.#frame) {
             return LitHtml.nothing;
@@ -764,6 +684,5 @@ class FrameDetailsReportView extends HTMLElement {
     `;
     }
 }
-export { FrameDetailsReportView };
 ComponentHelpers.CustomElements.defineComponent('devtools-resources-frame-details-view', FrameDetailsReportView);
 //# map=FrameDetailsView.js.map

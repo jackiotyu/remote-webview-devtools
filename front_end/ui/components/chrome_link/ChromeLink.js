@@ -8,7 +8,7 @@ import * as ComponentHelpers from '../helpers/helpers.js';
 import chromeLinkStyles from './chromeLink.css.js';
 // Use this component to render links to 'chrome://...'-URLs
 // (for which regular <x-link>s do not work).
-class ChromeLink extends HTMLElement {
+export class ChromeLink extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-chrome-link`;
     #shadow = this.attachShadow({ mode: 'open' });
     #boundRender = this.#render.bind(this);
@@ -29,7 +29,7 @@ class ChromeLink extends HTMLElement {
     openSettingsTab(event) {
         if (event.type === 'click' || (event.type === 'keydown' && Platform.KeyboardUtilities.isEnterOrSpaceKey(event))) {
             const rootTarget = SDK.TargetManager.TargetManager.instance().rootTarget();
-            rootTarget && rootTarget.targetAgent().invoke_createTarget({ url: this.#href });
+            rootTarget && void rootTarget.targetAgent().invoke_createTarget({ url: this.#href });
             event.consume(true);
         }
     }
@@ -46,6 +46,5 @@ class ChromeLink extends HTMLElement {
         // clang-format on
     }
 }
-export { ChromeLink };
 ComponentHelpers.CustomElements.defineComponent('devtools-chrome-link', ChromeLink);
 //# map=ChromeLink.js.map

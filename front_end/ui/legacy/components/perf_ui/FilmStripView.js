@@ -4,7 +4,7 @@
 import * as Common from '../../../../core/common/common.js';
 import * as Host from '../../../../core/host/host.js';
 import * as i18n from '../../../../core/i18n/i18n.js';
-import * as Platform from '../../../../core/platform/platform.js';
+import * as TraceEngine from '../../../../models/trace/trace.js';
 import * as UI from '../../legacy.js';
 import filmStripViewStyles from './filmStripView.css.legacy.js';
 const UIStrings = {
@@ -34,41 +34,31 @@ const str_ = i18n.i18n.registerUIStrings('ui/legacy/components/perf_ui/FilmStrip
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 export class FilmStripView extends Common.ObjectWrapper.eventMixin(UI.Widget.HBox) {
     statusLabel;
-    zeroTime;
-    spanTime;
-    model;
-    mode;
+    zeroTime = TraceEngine.Types.Timing.MilliSeconds(0);
+    #filmStrip = null;
     constructor() {
         super(true);
         this.registerRequiredCSS(filmStripViewStyles);
         this.contentElement.classList.add('film-strip-view');
         this.statusLabel = this.contentElement.createChild('div', 'label');
         this.reset();
-        this.setMode(Modes.TimeBased);
     }
     static setImageData(imageElement, data) {
         if (data) {
             imageElement.src = 'data:image/jpg;base64,' + data;
         }
     }
-    setMode(mode) {
-        this.mode = mode;
-        this.contentElement.classList.toggle('time-based', mode === Modes.TimeBased);
-        this.update();
-    }
-    setModel(filmStripModel, zeroTime, spanTime) {
-        this.model = filmStripModel;
-        this.zeroTime = zeroTime;
-        this.spanTime = spanTime;
-        const frames = filmStripModel.frames();
-        if (!frames.length) {
+    setModel(filmStrip) {
+        this.#filmStrip = filmStrip;
+        this.zeroTime = TraceEngine.Helpers.Timing.microSecondsToMilliseconds(filmStrip.zeroTime);
+        if (!this.#filmStrip.frames.length) {
             this.reset();
             return;
         }
         this.update();
     }
     createFrameElement(frame) {
-        const time = frame.timestamp;
+        const time = TraceEngine.Helpers.Timing.microSecondsToMilliseconds(frame.screenshotEvent.ts);
         const frameTime = i18n.TimeUtilities.millisToString(time - this.zeroTime);
         const element = document.createElement('div');
         element.classList.add('frame');
@@ -90,64 +80,19 @@ export class FilmStripView extends Common.ObjectWrapper.eventMixin(UI.Widget.HBo
                 this.onMouseEvent(Events.FrameSelected, time);
             }
         });
-        return frame.imageDataPromise().then(FilmStripView.setImageData.bind(null, imageElement)).then(returnElement);
-        function returnElement() {
-            return element;
-        }
-    }
-    frameByTime(time) {
-        function comparator(time, frame) {
-            return time - frame.timestamp;
-        }
-        // Using the first frame to fill the interval between recording start
-        // and a moment the frame is taken.
-        const frames = this.model.frames();
-        const index = Math.max(Platform.ArrayUtilities.upperBound(frames, time, comparator) - 1, 0);
-        return frames[index];
+        FilmStripView.setImageData(imageElement, frame.screenshotAsString);
+        return element;
     }
     update() {
-        if (!this.model) {
+        const frames = this.#filmStrip?.frames;
+        if (!frames || frames.length < 1) {
             return;
         }
-        const frames = this.model.frames();
-        if (!frames.length) {
-            return;
+        const frameElements = frames.map(frame => this.createFrameElement(frame));
+        this.contentElement.removeChildren();
+        for (const element of frameElements) {
+            this.contentElement.appendChild(element);
         }
-        if (this.mode === Modes.FrameBased) {
-            void Promise.all(frames.map(this.createFrameElement.bind(this))).then(appendElements.bind(this));
-            return;
-        }
-        const width = this.contentElement.clientWidth;
-        const scale = this.spanTime / width;
-        void this.createFrameElement(frames[0]).then(continueWhenFrameImageLoaded.bind(this)); // Calculate frame width basing on the first frame.
-        function continueWhenFrameImageLoaded(element0) {
-            const frameWidth = Math.ceil(UI.UIUtils.measurePreferredSize(element0, this.contentElement).width);
-            if (!frameWidth) {
-                return;
-            }
-            const promises = [];
-            for (let pos = frameWidth; pos < width; pos += frameWidth) {
-                const time = pos * scale + this.zeroTime;
-                promises.push(this.createFrameElement(this.frameByTime(time)).then(fixWidth));
-            }
-            void Promise.all(promises).then(appendElements.bind(this));
-            function fixWidth(element) {
-                element.style.width = frameWidth + 'px';
-                return element;
-            }
-        }
-        function appendElements(elements) {
-            this.contentElement.removeChildren();
-            for (let i = 0; i < elements.length; ++i) {
-                this.contentElement.appendChild(elements[i]);
-            }
-        }
-    }
-    onResize() {
-        if (this.mode === Modes.FrameBased) {
-            return;
-        }
-        this.update();
     }
     onMouseEvent(eventName, timestamp) {
         // TODO(crbug.com/1228674): Use type-safe event dispatch and remove <any>.
@@ -155,10 +100,13 @@ export class FilmStripView extends Common.ObjectWrapper.eventMixin(UI.Widget.HBo
         this.dispatchEventToListeners(eventName, timestamp);
     }
     onDoubleClick(filmStripFrame) {
-        new Dialog(filmStripFrame, this.zeroTime);
+        if (!this.#filmStrip) {
+            return;
+        }
+        Dialog.fromFilmStrip(this.#filmStrip, filmStripFrame.index);
     }
     reset() {
-        this.zeroTime = 0;
+        this.zeroTime = TraceEngine.Types.Timing.MilliSeconds(0);
         this.contentElement.removeChildren();
         this.contentElement.appendChild(this.statusLabel);
     }
@@ -174,18 +122,24 @@ export var Events;
     Events["FrameEnter"] = "FrameEnter";
     Events["FrameExit"] = "FrameExit";
 })(Events || (Events = {}));
-export const Modes = {
-    TimeBased: 'TimeBased',
-    FrameBased: 'FrameBased',
-};
 export class Dialog {
     fragment;
     widget;
-    frames;
     index;
-    zeroTime;
-    dialog;
-    constructor(filmStripFrame, zeroTime) {
+    dialog = null;
+    #data;
+    static fromFilmStrip(filmStrip, selectedFrameIndex) {
+        const data = {
+            source: 'TraceEngine',
+            frames: filmStrip.frames,
+            index: selectedFrameIndex,
+            zeroTime: TraceEngine.Helpers.Timing.microSecondsToMilliseconds(filmStrip.zeroTime),
+        };
+        return new Dialog(data);
+    }
+    constructor(data) {
+        this.#data = data;
+        this.index = data.index;
         const prevButton = UI.UIUtils.createTextButton('\u25C0', this.onPrevFrame.bind(this));
         UI.Tooltip.Tooltip.install(prevButton, i18nString(UIStrings.previousFrame));
         const nextButton = UI.UIUtils.createTextButton('\u25B6', this.onNextFrame.bind(this));
@@ -193,7 +147,7 @@ export class Dialog {
         this.fragment = UI.Fragment.Fragment.build `
       <x-widget flex=none margin=12px>
         <x-hbox overflow=auto border='1px solid #ddd'>
-          <img $='image' style="max-height: 80vh; max-width: 80vw;"></img>
+          <img $='image' data-film-strip-dialog-img style="max-height: 80vh; max-width: 80vw;"></img>
         </x-hbox>
         <x-hbox x-center justify-content=center margin-top=10px>
           ${prevButton}
@@ -205,21 +159,25 @@ export class Dialog {
         this.widget = this.fragment.element();
         this.widget.tabIndex = 0;
         this.widget.addEventListener('keydown', this.keyDown.bind(this), false);
-        this.frames = filmStripFrame.model().frames();
-        this.index = filmStripFrame.index;
-        this.zeroTime = zeroTime || filmStripFrame.model().zeroTime();
         this.dialog = null;
         void this.render();
+    }
+    hide() {
+        if (this.dialog) {
+            this.dialog.hide();
+        }
+    }
+    #framesCount() {
+        return this.#data.frames.length;
+    }
+    #zeroTime() {
+        return this.#data.zeroTime;
     }
     resize() {
         if (!this.dialog) {
             this.dialog = new UI.Dialog.Dialog();
             this.dialog.contentElement.appendChild(this.widget);
             this.dialog.setDefaultFocusedElement(this.widget);
-            // Dialog can take an undefined `where` param for show(), however its superclass (GlassPane)
-            // requires a Document. TypeScript is unhappy that show() is not given a parameter here,
-            // however, so marking it as an ignore.
-            // @ts-ignore See above.
             this.dialog.show();
         }
         this.dialog.setSizeBehavior("MeasureContent" /* UI.GlassPane.SizeBehavior.MeasureContent */);
@@ -258,7 +216,7 @@ export class Dialog {
         void this.render();
     }
     onNextFrame() {
-        if (this.index < this.frames.length - 1) {
+        if (this.index < this.#framesCount() - 1) {
             ++this.index;
         }
         void this.render();
@@ -268,18 +226,24 @@ export class Dialog {
         void this.render();
     }
     onLastFrame() {
-        this.index = this.frames.length - 1;
+        this.index = this.#framesCount() - 1;
         void this.render();
     }
+    #currentFrameData() {
+        const frame = this.#data.frames[this.index];
+        return {
+            snapshot: frame.screenshotAsString,
+            timestamp: TraceEngine.Helpers.Timing.microSecondsToMilliseconds(frame.screenshotEvent.ts),
+        };
+    }
     render() {
-        const frame = this.frames[this.index];
-        this.fragment.$('time').textContent = i18n.TimeUtilities.millisToString(frame.timestamp - this.zeroTime);
-        return frame.imageDataPromise()
-            .then(imageData => {
-            const image = this.fragment.$('image');
-            return FilmStripView.setImageData(image, imageData);
-        })
-            .then(this.resize.bind(this));
+        const currentFrameData = this.#currentFrameData();
+        this.fragment.$('time').textContent =
+            i18n.TimeUtilities.millisToString(currentFrameData.timestamp - this.#zeroTime());
+        const image = this.fragment.$('image');
+        image.setAttribute('data-frame-index', this.index.toString());
+        FilmStripView.setImageData(image, currentFrameData.snapshot);
+        this.resize();
     }
 }
 //# map=FilmStripView.js.map

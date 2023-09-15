@@ -549,7 +549,7 @@ function equals(a, b, accuracy = EPSILON) {
 function lessOrEquals(a, b, accuracy = EPSILON) {
     return a - b <= accuracy;
 }
-class Lab {
+export class Lab {
     l;
     a;
     b;
@@ -664,8 +664,7 @@ class Lab {
         return new Lab(L, a, b, alpha, text);
     }
 }
-export { Lab };
-class LCH {
+export class LCH {
     #rawParams;
     l;
     c;
@@ -784,8 +783,7 @@ class LCH {
         return new LCH(L, c, h, alpha, text);
     }
 }
-export { LCH };
-class Oklab {
+export class Oklab {
     #rawParams;
     l;
     a;
@@ -900,8 +898,7 @@ class Oklab {
         return new Oklab(L, a, b, alpha, text);
     }
 }
-export { Oklab };
-class Oklch {
+export class Oklch {
     #rawParams;
     l;
     c;
@@ -1015,8 +1012,7 @@ class Oklch {
         return new Oklch(L, c, h, alpha, text);
     }
 }
-export { Oklch };
-class ColorFunction {
+export class ColorFunction {
     #rawParams;
     p0;
     p1;
@@ -1204,8 +1200,7 @@ class ColorFunction {
         return new ColorFunction(colorSpace, ...rgbOrXyza, authoredText);
     }
 }
-export { ColorFunction };
-class HSL {
+export class HSL {
     h;
     s;
     l;
@@ -1332,8 +1327,7 @@ class HSL {
         return [Math.round(this.h * 360), Math.round(this.s * 100), Math.round(this.l * 100), this.alpha ?? 1];
     }
 }
-export { HSL };
-class HWB {
+export class HWB {
     h;
     w;
     b;
@@ -1467,11 +1461,10 @@ class HWB {
         return new HWB(h, w, b, alpha, text);
     }
 }
-export { HWB };
 function toRgbValue(value) {
     return Math.round(value * 255);
 }
-class Legacy {
+export class Legacy {
     #rawParams;
     #rgbaInternal;
     #authoredText;
@@ -1748,7 +1741,6 @@ class Legacy {
             equals(this.#rgbaInternal[3], legacy.#rgbaInternal[3]);
     }
 }
-export { Legacy };
 export const Regex = /((?:rgba?|hsla?|hwba?|lab|lch|oklab|oklch|color)\([^)]+\)|#[0-9a-fA-F]{8}|#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3,4}|\b[a-zA-Z]+\b(?!-))/g;
 export const ColorMixRegex = /color-mix\(.*,\s*(?<firstColor>.+)\s*,\s*(?<secondColor>.+)\s*\)/g;
 const COLOR_TO_RGBA_ENTRIES = [

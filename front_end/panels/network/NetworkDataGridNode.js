@@ -47,7 +47,7 @@ import * as DataGrid from '../../ui/legacy/components/data_grid/data_grid.js';
 import * as PerfUI from '../../ui/legacy/components/perf_ui/perf_ui.js';
 import * as Components from '../../ui/legacy/components/utils/utils.js';
 import * as UI from '../../ui/legacy/legacy.js';
-import { iconDataForResourceType } from '../utils/utils.js';
+import { PanelUtils } from '../utils/utils.js';
 const UIStrings = {
     /**
      *@description Text in Network Data Grid Node of the Network panel
@@ -260,9 +260,17 @@ const UIStrings = {
      */
     dnsAlpnH3JobWonRace: '`Chrome` used a `HTTP/3` connection due to the `DNS record` indicating `HTTP/3` support, which won a race against establishing a connection using a different `HTTP` version.',
     /**
-     *@description Tooltip text for a small circular icon which signifies that (some) response headers of this request have been overridden
+     *@description Tooltip to explain the resource's overridden status
      */
-    hasOverriddenHeaders: 'Request has overridden headers',
+    requestContentHeadersOverridden: 'Both request content and headers are overridden',
+    /**
+     *@description Tooltip to explain the resource's overridden status
+     */
+    requestContentOverridden: 'Request content is overridden',
+    /**
+     *@description Tooltip to explain the resource's overridden status
+     */
+    requestHeadersOverridden: 'Request headers are overridden',
 };
 const str_ = i18n.i18n.registerUIStrings('panels/network/NetworkDataGridNode.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
@@ -305,8 +313,7 @@ export class NetworkNode extends DataGrid.SortableDataGrid.SortableDataGridNode 
     backgroundColor() {
         const bgColors = _backgroundColors;
         const hasFocus = document.hasFocus();
-        const isSelected = this.dataGrid &&
-            (this.dataGrid.element === document.activeElement || this.dataGrid.element.contains(document.activeElement));
+        const isSelected = this.dataGrid && this.dataGrid.element === document.activeElement;
         const isFailed = this.isFailed();
         if (this.selected && hasFocus && isSelected && isFailed) {
             return bgColors.FocusSelectedHasError;
@@ -422,14 +429,14 @@ export class NetworkNode extends DataGrid.SortableDataGrid.SortableDataGridNode 
     }
 }
 export const _backgroundColors = {
-    Default: '--network-grid-default-color',
-    Stripe: '--network-grid-stripe-color',
+    Default: '--color-grid-default',
+    Stripe: '--color-grid-stripe',
     Navigation: '--network-grid-navigation-color',
-    Hovered: '--network-grid-hovered-color',
+    Hovered: '--color-grid-hovered',
     InitiatorPath: '--network-grid-initiator-path-color',
     InitiatedPath: '--network-grid-initiated-path-color',
-    Selected: '--network-grid-selected-color',
-    FocusSelected: '--network-grid-focus-selected-color',
+    Selected: '--color-grid-selected',
+    FocusSelected: '--color-grid-focus-selected',
     FocusSelectedHasError: '--network-grid-focus-selected-color-has-error',
     FromFrame: '--network-grid-from-frame-color',
 };
@@ -821,6 +828,8 @@ export class NetworkRequestNode extends NetworkNode {
             case 'priority': {
                 const priority = this.requestInternal.priority();
                 this.setTextAndTitle(cell, priority ? PerfUI.NetworkPriorities.uiLabelForNetworkPriority(priority) : '');
+                const initialPriority = this.requestInternal.initialPriority();
+                this.appendSubtitle(cell, initialPriority ? PerfUI.NetworkPriorities.uiLabelForNetworkPriority(initialPriority) : '');
                 break;
             }
             case 'connectionid': {
@@ -853,6 +862,10 @@ export class NetworkRequestNode extends NetworkNode {
                 this.setTextAndTitle(cell, '');
                 break;
             }
+            case 'has-overrides': {
+                this.setTextAndTitle(cell, this.requestInternal.overrideTypes.join(', '));
+                break;
+            }
             default: {
                 this.setTextAndTitle(cell, this.requestInternal.responseHeaderValue(columnId) || '');
                 break;
@@ -865,17 +878,6 @@ export class NetworkRequestNode extends NetworkNode {
     select(supressSelectedEvent) {
         super.select(supressSelectedEvent);
         this.parentView().dispatchEventToListeners(Events.RequestSelected, this.requestInternal);
-        const selectedElement = this.dataGrid?.selectedNode?.elementInternal?.firstElementChild;
-        if (selectedElement) {
-            selectedElement.tabIndex = 0;
-        }
-    }
-    deselect(suppressSelectedEvent) {
-        super.deselect(suppressSelectedEvent);
-        const deselectedElement = this.elementInternal?.firstElementChild;
-        if (deselectedElement) {
-            deselectedElement.tabIndex = -1;
-        }
     }
     highlightMatchedSubstring(regexp) {
         if (!regexp || !this.nameCell || this.nameCell.textContent === null) {
@@ -914,11 +916,12 @@ export class NetworkRequestNode extends NetworkNode {
         return false;
     }
     renderPrimaryCell(cell, columnId, text) {
-        const columnIndex = this.dataGrid.indexOfVisibleColumn(columnId);
+        const columnIndex = this.dataGrid?.indexOfVisibleColumn(columnId) | 0;
         const isFirstCell = (columnIndex === 0);
         if (isFirstCell) {
             const leftPadding = this.leftPadding ? this.leftPadding + 'px' : '';
             cell.style.setProperty('padding-left', leftPadding);
+            cell.tabIndex = -1;
             this.nameCell = cell;
             cell.addEventListener('dblclick', this.openInNewTab.bind(this), false);
             cell.addEventListener('mousedown', () => {
@@ -927,36 +930,20 @@ export class NetworkRequestNode extends NetworkNode {
                 this.select();
                 this.parentView().dispatchEventToListeners(Events.RequestActivated, { showPanel: true });
             });
-            let iconElement;
-            if (this.requestInternal.resourceType() === Common.ResourceType.resourceTypes.Image) {
-                const previewImage = document.createElement('img');
-                previewImage.classList.add('image-network-icon-preview');
-                previewImage.alt = this.requestInternal.resourceType().title();
-                void this.requestInternal.populateImageSource(previewImage);
-                iconElement = document.createElement('div');
-                iconElement.classList.add('image');
-                iconElement.appendChild(previewImage);
-            }
-            else {
-                const iconData = iconDataForResourceType(this.requestInternal.resourceType());
-                iconElement = document.createElement('div');
-                iconElement.title = this.requestInternal.resourceType().title();
-                iconElement.style.setProperty('-webkit-mask', `url('${new URL(`../../Images/${iconData.iconName}.svg`, import.meta.url)
-                    .toString()}')  no-repeat center /99%`);
-                iconElement.style.setProperty('background-color', iconData.color);
-            }
-            iconElement.classList.add('icon');
+            cell.addEventListener('focus', () => this.parentView().resetFocus());
+            // render icons
+            const iconElement = this.getIcon(this.requestInternal);
             cell.appendChild(iconElement);
-            cell.tabIndex = this.selected ? 0 : -1;
         }
         if (columnId === 'name') {
             const webBundleInnerRequestInfo = this.requestInternal.webBundleInnerRequestInfo();
             if (webBundleInnerRequestInfo) {
-                const secondIconElement = document.createElement('div');
+                const iconData = {
+                    iconName: 'bundle',
+                    color: 'var(--icon-info)',
+                };
+                const secondIconElement = this.createIconElement(iconData, i18nString(UIStrings.webBundleInnerRequest));
                 secondIconElement.classList.add('icon');
-                secondIconElement.title = i18nString(UIStrings.webBundleInnerRequest);
-                secondIconElement.style.setProperty('-webkit-mask', `url('${new URL('../../Images/bundle.svg', import.meta.url).toString()}')  no-repeat center /99%`);
-                secondIconElement.style.setProperty('background-color', 'var(--icon-info)');
                 const networkManager = SDK.NetworkManager.NetworkManager.forRequest(this.requestInternal);
                 if (webBundleInnerRequestInfo.bundleRequestId && networkManager) {
                     cell.appendChild(Components.Linkifier.Linkifier.linkifyRevealable(new NetworkForward.NetworkRequestId.NetworkRequestId(webBundleInnerRequestInfo.bundleRequestId, networkManager), secondIconElement));
@@ -977,6 +964,93 @@ export class NetworkRequestNode extends NetworkNode {
         else if (text) {
             UI.UIUtils.createTextChild(cell, text);
         }
+    }
+    createIconElement(iconData, title) {
+        const iconElement = document.createElement('div');
+        iconElement.title = title;
+        iconElement.style.setProperty('-webkit-mask', `url('${new URL(`../../Images/${iconData.iconName}.svg`, import.meta.url).toString()}')  no-repeat center /99%`);
+        iconElement.style.setProperty('background-color', iconData.color);
+        return iconElement;
+    }
+    getIcon(request) {
+        let type = request.resourceType();
+        let iconElement;
+        if (this.isFailed()) {
+            const iconData = {
+                iconName: 'cross-circle-filled',
+                color: 'var(--icon-error)',
+            };
+            iconElement = this.createIconElement(iconData, type.title());
+            iconElement.classList.add('icon');
+            return iconElement;
+        }
+        if (request.wasIntercepted()) {
+            const iconData = {
+                iconName: 'document',
+                color: 'var(--icon-default)',
+            };
+            let title;
+            const isHeaderOverriden = request.hasOverriddenHeaders();
+            const isContentOverriden = request.hasOverriddenContent;
+            if (isHeaderOverriden && isContentOverriden) {
+                title = i18nString(UIStrings.requestContentHeadersOverridden);
+            }
+            else if (isContentOverriden) {
+                title = i18nString(UIStrings.requestContentOverridden);
+            }
+            else {
+                title = i18nString(UIStrings.requestHeadersOverridden);
+            }
+            const iconChildElement = this.createIconElement(iconData, title);
+            iconChildElement.classList.add('icon');
+            iconElement = document.createElement('div');
+            iconElement.classList.add('network-override-marker');
+            iconElement.appendChild(iconChildElement);
+            return iconElement;
+        }
+        // Pick icon based on MIME type in the following cases:
+        // - If the MIME type is 'image': some images have request type of 'fetch' or etc.
+        // - If the request type is 'fetch': everything fetched by service worker has request type 'fetch'.
+        // - If the request type is 'other' and MIME type is 'script', e.g. for wasm files
+        const typeFromMime = Common.ResourceType.ResourceType.fromMimeType(request.mimeType);
+        if (typeFromMime !== type && typeFromMime !== Common.ResourceType.resourceTypes.Other) {
+            if (type === Common.ResourceType.resourceTypes.Fetch) {
+                type = typeFromMime;
+            }
+            else if (typeFromMime === Common.ResourceType.resourceTypes.Image) {
+                type = typeFromMime;
+            }
+            else if (type === Common.ResourceType.resourceTypes.Other &&
+                typeFromMime === Common.ResourceType.resourceTypes.Script) {
+                type = typeFromMime;
+            }
+        }
+        if (type === Common.ResourceType.resourceTypes.Image) {
+            const previewImage = document.createElement('img');
+            previewImage.classList.add('image-network-icon-preview');
+            previewImage.alt = request.resourceType().title();
+            void request.populateImageSource(previewImage);
+            iconElement = document.createElement('div');
+            iconElement.classList.add('image', 'icon');
+            iconElement.appendChild(previewImage);
+            return iconElement;
+        }
+        // Exclude Manifest here because it has mimeType:application/json but it has its own icon
+        if (type !== Common.ResourceType.resourceTypes.Manifest &&
+            Common.ResourceType.ResourceType.simplifyContentType(request.mimeType) === 'application/json') {
+            const iconData = {
+                iconName: 'file-json',
+                color: 'var(--icon-file-script)',
+            };
+            iconElement = this.createIconElement(iconData, request.resourceType().title());
+            iconElement.classList.add('icon');
+            return iconElement;
+        }
+        // Others
+        const iconData = PanelUtils.iconDataForResourceType(type);
+        iconElement = this.createIconElement(iconData, request.resourceType().title());
+        iconElement.classList.add('icon');
+        return iconElement;
     }
     renderStatusCell(cell) {
         cell.classList.toggle('network-dim-cell', !this.isFailed() && (this.requestInternal.cached() || !this.requestInternal.statusCode));
@@ -999,9 +1073,10 @@ export class NetworkRequestNode extends NetworkNode {
             }
         }
         else if (this.requestInternal.statusCode && this.requestInternal.statusCode >= 400) {
+            const statusText = this.requestInternal.getInferredStatusText();
             UI.UIUtils.createTextChild(cell, String(this.requestInternal.statusCode));
-            this.appendSubtitle(cell, this.requestInternal.statusText);
-            UI.Tooltip.Tooltip.install(cell, this.requestInternal.statusCode + ' ' + this.requestInternal.statusText);
+            this.appendSubtitle(cell, statusText);
+            UI.Tooltip.Tooltip.install(cell, this.requestInternal.statusCode + ' ' + statusText);
         }
         else if (!this.requestInternal.statusCode && this.requestInternal.parsedURL.isDataURL()) {
             this.setTextAndTitle(cell, i18nString(UIStrings.data));
@@ -1074,15 +1149,10 @@ export class NetworkRequestNode extends NetworkNode {
             this.setTextAndTitle(cell, i18nString(UIStrings.corsError), i18nString(UIStrings.crossoriginResourceSharingErrorS, { PH1: corsErrorStatus.corsError }));
         }
         else if (this.requestInternal.statusCode) {
-            if (this.requestInternal.hasOverriddenHeaders()) {
-                const markerDiv = document.createElement('div');
-                markerDiv.classList.add('network-override-marker');
-                markerDiv.title = i18nString(UIStrings.hasOverriddenHeaders);
-                cell.appendChild(markerDiv);
-            }
             UI.UIUtils.createTextChild(cell, String(this.requestInternal.statusCode));
-            this.appendSubtitle(cell, this.requestInternal.statusText);
-            UI.Tooltip.Tooltip.install(cell, this.requestInternal.statusCode + ' ' + this.requestInternal.statusText);
+            const statusText = this.requestInternal.getInferredStatusText();
+            this.appendSubtitle(cell, statusText);
+            UI.Tooltip.Tooltip.install(cell, this.requestInternal.statusCode + ' ' + statusText);
         }
         else if (this.requestInternal.finished) {
             this.setTextAndTitle(cell, i18nString(UIStrings.finished));
@@ -1131,6 +1201,12 @@ export class NetworkRequestNode extends NetworkNode {
             }
         }
     }
+    #getLinkifierMetric() {
+        if (this.requestInternal.resourceType().isStyleSheet()) {
+            return Host.UserMetrics.Action.StyleSheetInitiatorLinkClicked;
+        }
+        return undefined;
+    }
     renderInitiatorCell(cell) {
         this.initiatorCell = cell;
         const request = this.requestInternal;
@@ -1142,10 +1218,15 @@ export class NetworkRequestNode extends NetworkNode {
         switch (initiator.type) {
             case SDK.NetworkRequest.InitiatorType.Parser: {
                 const uiSourceCode = Workspace.Workspace.WorkspaceImpl.instance().uiSourceCodeForURL(initiator.url);
+                const displayName = uiSourceCode?.displayName();
+                const text = displayName !== undefined && initiator.lineNumber !== undefined ?
+                    `${displayName}:${initiator.lineNumber}` :
+                    undefined;
                 cell.appendChild(Components.Linkifier.Linkifier.linkifyURL(initiator.url, {
-                    text: uiSourceCode ? uiSourceCode.displayName() : undefined,
+                    text,
                     lineNumber: initiator.lineNumber,
                     columnNumber: initiator.columnNumber,
+                    userMetric: this.#getLinkifierMetric(),
                 }));
                 this.appendSubtitle(cell, i18nString(UIStrings.parser));
                 break;
@@ -1194,7 +1275,7 @@ export class NetworkRequestNode extends NetworkNode {
                 if (initiator.initiatorRequest) {
                     const icon = UI.Icon.Icon.create('arrow-up-down-circle');
                     const link = Components.Linkifier.Linkifier.linkifyRevealable(initiator.initiatorRequest, icon, undefined, i18nString(UIStrings.selectTheRequestThatTriggered), 'trailing-link-icon');
-                    UI.ARIAUtils.setAccessibleName(link, i18nString(UIStrings.selectTheRequestThatTriggered));
+                    UI.ARIAUtils.setLabel(link, i18nString(UIStrings.selectTheRequestThatTriggered));
                     cell.appendChild(link);
                 }
                 break;

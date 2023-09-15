@@ -11,7 +11,7 @@ export default {
  */
 
 :host {
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
 }
 `
 };

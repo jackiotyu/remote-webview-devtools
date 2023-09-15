@@ -47,7 +47,6 @@ import { ComputedStyleWidget } from './ComputedStyleWidget.js';
 import { ElementsTreeElementHighlighter } from './ElementsTreeElementHighlighter.js';
 import { ElementsTreeOutline } from './ElementsTreeOutline.js';
 import { MetricsSidebarPane } from './MetricsSidebarPane.js';
-import { LayoutSidebarPane } from './LayoutSidebarPane.js';
 import { StylesSidebarPane, } from './StylesSidebarPane.js';
 import { ColorSwatchPopoverIcon } from './ColorSwatchPopoverIcon.js';
 const UIStrings = {
@@ -153,7 +152,7 @@ const createAccessibilityTreeToggleButton = (isActive) => {
     return button;
 };
 let elementsPanelInstance;
-class ElementsPanel extends UI.Panel.Panel {
+export class ElementsPanel extends UI.Panel.Panel {
     splitWidget;
     searchableViewInternal;
     mainContainer;
@@ -200,7 +199,7 @@ class ElementsPanel extends UI.Panel.Panel {
         stackElement.appendChild(this.mainContainer);
         stackElement.appendChild(crumbsContainer);
         UI.ARIAUtils.markAsMain(this.domTreeContainer);
-        UI.ARIAUtils.setAccessibleName(this.domTreeContainer, i18nString(UIStrings.domTreeExplorer));
+        UI.ARIAUtils.setLabel(this.domTreeContainer, i18nString(UIStrings.domTreeExplorer));
         this.splitWidget.setMainWidget(this.searchableViewInternal);
         this.splitMode = null;
         this.mainContainer.id = 'main-content';
@@ -629,13 +628,13 @@ class ElementsPanel extends UI.Panel.Panel {
             return;
         }
         const treeElement = this.treeElementForNode(searchResult.node);
-        void searchResult.node.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+        void searchResult.node.scrollIntoView();
         if (treeElement) {
             this.searchConfig && treeElement.highlightSearchResults(this.searchConfig.query);
             treeElement.reveal();
             const matches = treeElement.listItemElement.getElementsByClassName(UI.UIUtils.highlightedSearchResultClassName);
             if (matches.length) {
-                matches[0].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+                matches[0].scrollIntoViewIfNeeded(false);
             }
             treeElement.select(/* omitFocus */ true);
         }
@@ -865,7 +864,7 @@ class ElementsPanel extends UI.Panel.Panel {
             if (skippedInitialTabSelectedEvent) {
                 // We don't log the initially selected sidebar pane to UMA because
                 // it will skew the histogram heavily toward the Styles pane
-                Host.userMetrics.sidebarPaneShown(tabId);
+                Host.userMetrics.elementsSidebarTabShown(tabId);
             }
             else {
                 skippedInitialTabSelectedEvent = true;
@@ -878,10 +877,10 @@ class ElementsPanel extends UI.Panel.Panel {
         }
         const headerElement = tabbedPane.headerElement();
         UI.ARIAUtils.markAsNavigation(headerElement);
-        UI.ARIAUtils.setAccessibleName(headerElement, i18nString(UIStrings.sidePanelToolbar));
+        UI.ARIAUtils.setLabel(headerElement, i18nString(UIStrings.sidePanelToolbar));
         const contentElement = tabbedPane.tabbedPaneContentElement();
         UI.ARIAUtils.markAsComplementary(contentElement);
-        UI.ARIAUtils.setAccessibleName(contentElement, i18nString(UIStrings.sidePanelContent));
+        UI.ARIAUtils.setLabel(contentElement, i18nString(UIStrings.sidePanelContent));
         const stylesView = new UI.View.SimpleView(i18nString(UIStrings.styles), /* isWebComponent */ undefined, "Styles" /* SidebarPaneTabId.Styles */);
         this.sidebarPaneView.appendView(stylesView);
         stylesView.element.classList.add('flex-auto');
@@ -959,7 +958,7 @@ class ElementsPanel extends UI.Panel.Panel {
             if (treeElement) {
                 void treeElement.updateStyleAdorners();
             }
-            LayoutSidebarPane.instance().update();
+            void ElementsComponents.LayoutPane.LayoutPane.instance().render();
         }
     }
     showAdornerSettingsPane() {
@@ -1009,7 +1008,6 @@ class ElementsPanel extends UI.Panel.Panel {
     static firstInspectElementCompletedForTest = function () { };
     static firstInspectElementNodeNameForTest = '';
 }
-export { ElementsPanel };
 // @ts-ignore exported for Tests.js
 globalThis.Elements = globalThis.Elements || {};
 // @ts-ignore exported for Tests.js
@@ -1054,8 +1052,7 @@ export class ContextMenuProvider {
         if (ElementsPanel.instance().element.isAncestor(event.target)) {
             return;
         }
-        const commandCallback = Common.Revealer.reveal.bind(Common.Revealer.Revealer, object);
-        contextMenu.revealSection().appendItem(i18nString(UIStrings.revealInElementsPanel), commandCallback);
+        contextMenu.revealSection().appendItem(i18nString(UIStrings.revealInElementsPanel), () => Common.Revealer.reveal(object));
     }
     static instance() {
         if (!contextMenuProviderInstance) {
@@ -1238,7 +1235,10 @@ export class PseudoStateMarkerDecorator {
         if (!pseudoState) {
             return null;
         }
-        return { color: 'orange', title: i18nString(UIStrings.elementStateS, { PH1: ':' + pseudoState.join(', :') }) };
+        return {
+            color: '--sys-color-orange-bright',
+            title: i18nString(UIStrings.elementStateS, { PH1: ':' + pseudoState.join(', :') }),
+        };
     }
 }
 //# map=ElementsPanel.js.map

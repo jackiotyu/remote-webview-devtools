@@ -91,7 +91,7 @@ export class PropertiesWidget extends UI.ThrottledWidget.ThrottledWidget {
         const hbox = this.contentElement.createChild('div', 'hbox properties-widget-toolbar');
         const filterContainerElement = hbox.createChild('div', 'properties-widget-filter-box');
         const filterInput = StylesSidebarPane.createPropertyFilterElement(i18nString(UIStrings.filter), hbox, this.filterProperties.bind(this));
-        UI.ARIAUtils.setAccessibleName(filterInput, i18nString(UIStrings.filterProperties));
+        UI.ARIAUtils.setLabel(filterInput, i18nString(UIStrings.filterProperties));
         filterContainerElement.appendChild(filterInput);
         const toolbar = new UI.Toolbar.Toolbar('styles-pane-toolbar', hbox);
         toolbar.appendToolbarItem(new UI.Toolbar.ToolbarSettingCheckbox(this.showAllPropertiesSetting, i18nString(UIStrings.showAllTooltip), i18nString(UIStrings.showAll)));

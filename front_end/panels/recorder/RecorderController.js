@@ -103,7 +103,7 @@ const CONVERTER_ID_TO_METRIC = {
     ["puppeteer" /* Models.ConverterIds.ConverterIds.Puppeteer */]: Host.UserMetrics.RecordingExported.ToPuppeteer,
     ["lighthouse" /* Models.ConverterIds.ConverterIds.Lighthouse */]: Host.UserMetrics.RecordingExported.ToLighthouse,
 };
-let RecorderController = class RecorderController extends LitElement {
+export let RecorderController = class RecorderController extends LitElement {
     static styles = [recorderControllerStyles];
     #storage = Models.RecordingStorage.RecordingStorage.instance();
     #screenshotStorage = Models.ScreenshotStorage.ScreenshotStorage.instance();
@@ -1172,5 +1172,4 @@ __decorate([
 RecorderController = __decorate([
     customElement('devtools-recorder-controller')
 ], RecorderController);
-export { RecorderController };
 //# map=RecorderController.js.map

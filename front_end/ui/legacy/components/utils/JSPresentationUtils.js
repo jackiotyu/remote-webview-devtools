@@ -231,6 +231,8 @@ function renderStackTraceTable(container, stackTraceRows) {
         showAllLink.textContent = i18nString(UIStrings.showSMoreFrames, { n: hiddenCallFramesCount });
         showAllLink.addEventListener('click', () => {
             container.classList.add('show-hidden-rows');
+            // If we are in a popup, this will trigger a re-layout
+            UI.GlassPane.GlassPane.containerMoved(container);
         }, false);
         const showLessRow = container.createChild('tr', 'show-less-link');
         showLessRow.createChild('td').textContent = '\n';
@@ -240,6 +242,8 @@ function renderStackTraceTable(container, stackTraceRows) {
         showLessLink.textContent = i18nString(UIStrings.showLess);
         showLessLink.addEventListener('click', () => {
             container.classList.remove('show-hidden-rows');
+            // If we are in a popup, this will trigger a re-layout
+            UI.GlassPane.GlassPane.containerMoved(container);
         }, false);
     }
     return links;

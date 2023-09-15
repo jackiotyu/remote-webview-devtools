@@ -311,11 +311,6 @@ export const config = {
             "type": "token"
         },
         {
-            "name": "aria-touchpassthrough",
-            "runtimeEnabled": "AriaTouchPassthrough",
-            "type": "boolean"
-        },
-        {
             "name": "aria-valuemax",
             "type": "decimal"
         },

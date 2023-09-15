@@ -12,7 +12,7 @@ styles.replaceSync(
  */
 
 .media-attributes-view {
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .media-property-renderer {
@@ -21,6 +21,22 @@ styles.replaceSync(
   padding: 4px 10px;
   display: block;
   overflow: hidden;
+
+  &:hover {
+    background: var(--sys-color-state-hover-on-subtle);
+  }
+}
+
+.media-property-renderer:nth-child(even):not(:hover) {
+  background: var(--sys-color-surface1);
+}
+
+.media-property-renderer:has(.json-view) {
+  padding-bottom: 0;
+}
+
+.media-property-renderer:has(.json-view > .expanded) {
+  padding-bottom: 4px;
 }
 
 .media-property-renderer-hidden {
@@ -47,31 +63,11 @@ styles.replaceSync(
   padding: 0;
 }
 
-.media-property-renderer:nth-child(even) {
-  background: var(--color-background-elevation-0);
-}
-
-.media-property-renderer:hover {
-  background: var(--color-background-hover-overlay);
-}
-
-.media-property-renderer:has(.json-view) {
-  padding-bottom: 0;
-}
-
-.-theme-with-dark-background .media-property-renderer:nth-child(even) {
-  background: rgb(41 41 41);
-}
-
-.media-property-renderer:has(.json-view > .expanded) {
-  padding-bottom: 4px;
-}
-
 .media-properties-frame {
   display: block;
   overflow-x: hidden;
 }
 
-
+/*# sourceURL=playerPropertiesView.css */
 `);
 export default styles;

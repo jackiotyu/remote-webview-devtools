@@ -39,14 +39,13 @@ const str_ = i18n.i18n.registerUIStrings('panels/recorder/components/StartView.t
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 export const FEEDBACK_URL = 'https://goo.gle/recorder-feedback';
 const DOC_URL = 'https://developer.chrome.com/docs/devtools/recorder';
-class CreateRecordingEvent extends Event {
+export class CreateRecordingEvent extends Event {
     static eventName = 'createrecording';
     constructor() {
         super(CreateRecordingEvent.eventName);
     }
 }
-export { CreateRecordingEvent };
-class StartView extends HTMLElement {
+export class StartView extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-start-view`;
     #shadow = this.attachShadow({ mode: 'open' });
     connectedCallback() {
@@ -90,6 +89,5 @@ class StartView extends HTMLElement {
         // clang-format on
     };
 }
-export { StartView };
 ComponentHelpers.CustomElements.defineComponent('devtools-start-view', StartView);
 //# map=StartView.js.map

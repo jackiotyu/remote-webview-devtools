@@ -9,7 +9,7 @@ import * as ThemeSupport from '../../ui/legacy/theme_support/theme_support.js';
 import { Bounds, formatMillisecondsToSeconds } from './TickingFlameChartHelpers.js';
 const defaultFont = '11px ' + Host.Platform.fontFamily();
 function getGroupDefaultTextColor() {
-    return ThemeSupport.ThemeSupport.instance().getComputedValue('--color-text-primary');
+    return ThemeSupport.ThemeSupport.instance().getComputedValue('--sys-color-on-surface');
 }
 const DefaultStyle = () => ({
     height: 20,
@@ -416,9 +416,6 @@ class TickingFlameChartDataProvider {
     }
     canJumpToEntry(_entryIndex) {
         return false;
-    }
-    navStartTimes() {
-        return new Map();
     }
 }
 //# map=TickingFlameChart.js.map

@@ -133,6 +133,7 @@ const _walkOrder = {
     'ReturnStatement': ['argument'],
     'SequenceExpression': ['expressions'],
     'SpreadElement': ['argument'],
+    'StaticBlock': ['body'],
     'Super': [],
     'SwitchCase': ['test', 'consequent'],
     'SwitchStatement': ['discriminant', 'cases'],
@@ -150,4 +151,4 @@ const _walkOrder = {
     'WithStatement': ['object', 'body'],
     'YieldExpression': ['argument'],
 };
-//# map=ESTreeWalker.js.map
+//# sourceMappingURL=ESTreeWalker.js.map

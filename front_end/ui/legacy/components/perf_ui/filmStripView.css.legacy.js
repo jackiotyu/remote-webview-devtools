@@ -22,10 +22,6 @@ export default {
   margin-top: 2px;
 }
 
-.film-strip-view.time-based .frame .time {
-  display: none;
-}
-
 .film-strip-view .label {
   margin: auto;
   font-size: 18px;

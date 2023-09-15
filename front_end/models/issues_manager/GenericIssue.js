@@ -25,6 +25,10 @@ const UIStrings = {
      *@description title for autocomplete attribute documentation page.
      */
     autocompleteAttributePageTitle: 'HTML attribute: autocomplete',
+    /**
+     * @description title for CORB explainer.
+     */
+    corbExplainerPageTitle: 'CORB explainer',
 };
 const str_ = i18n.i18n.registerUIStrings('models/issues_manager/GenericIssue.ts', UIStrings);
 const i18nLazyString = i18n.i18n.getLazilyComputedLocalizedString.bind(undefined, str_);
@@ -38,11 +42,18 @@ export class GenericIssue extends Issue {
         super(issueCode, issuesModel, issueId);
         this.#issueDetails = issueDetails;
     }
+    requests() {
+        if (this.#issueDetails.request) {
+            return [this.#issueDetails.request];
+        }
+        return [];
+    }
     getCategory() {
         return IssueCategory.Generic;
     }
     primaryKey() {
-        return `${this.code()}-(${this.#issueDetails.frameId})-(${this.#issueDetails.violatingNodeId})-(${this.#issueDetails.violatingNodeAttribute})`;
+        const requestId = this.#issueDetails.request ? this.#issueDetails.request.requestId : 'no-request';
+        return `${this.code()}-(${this.#issueDetails.frameId})-(${this.#issueDetails.violatingNodeId})-(${this.#issueDetails.violatingNodeAttribute})-(${requestId})`;
     }
     getDescription() {
         const description = issueDescriptions.get(this.#issueDetails.errorType);
@@ -139,6 +150,13 @@ export const genericFormLabelHasNeitherForNorNestedInput = {
             linkTitle: i18nLazyString(UIStrings.labelFormlementsPageTitle),
         }],
 };
+export const genericResponseWasBlockedbyORB = {
+    file: 'genericResponseWasBlockedByORB.md',
+    links: [{
+            link: 'https://www.chromium.org/Home/chromium-security/corb-for-developers/',
+            linkTitle: i18nLazyString(UIStrings.corbExplainerPageTitle),
+        }],
+};
 const issueDescriptions = new Map([
     ["CrossOriginPortalPostMessageError" /* Protocol.Audits.GenericIssueErrorType.CrossOriginPortalPostMessageError */, genericCrossOriginPortalPostMessageError],
     ["FormLabelForNameError" /* Protocol.Audits.GenericIssueErrorType.FormLabelForNameError */, genericFormLabelForNameError],
@@ -168,6 +186,10 @@ const issueDescriptions = new Map([
     [
         "FormInputHasWrongButWellIntendedAutocompleteValueError" /* Protocol.Audits.GenericIssueErrorType.FormInputHasWrongButWellIntendedAutocompleteValueError */,
         genericFormInputHasWrongButWellIntendedAutocompleteValue,
+    ],
+    [
+        "ResponseWasBlockedByORB" /* Protocol.Audits.GenericIssueErrorType.ResponseWasBlockedByORB */,
+        genericResponseWasBlockedbyORB,
     ],
 ]);
 const issueTypes = new Map([

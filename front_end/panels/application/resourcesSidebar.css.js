@@ -13,7 +13,7 @@ styles.replaceSync(
 
 .tree-outline {
   padding-left: 0;
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
 }
 
 .tree-outline > ol {
@@ -24,12 +24,17 @@ styles.replaceSync(
   min-height: 20px;
 }
 
+.tree-outline li[role="heading"] {
+  color: var(--sys-color-on-surface-subtle);
+  font-weight: 500;
+}
+
 li.storage-group-list-item {
   padding: 10px 8px 6px;
 }
 
 li.storage-group-list-item:not(:first-child) {
-  border-top: 1px solid var(--color-details-hairline);
+  border-top: 1px solid var(--sys-color-divider);
 }
 
 li.storage-group-list-item::before {
@@ -65,6 +70,6 @@ li.storage-group-list-item::before {
   text-decoration: line-through;
 }
 
-
+/*# sourceURL=resourcesSidebar.css */
 `);
 export default styles;

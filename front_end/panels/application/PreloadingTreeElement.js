@@ -4,28 +4,49 @@
 import * as i18n from '../../core/i18n/i18n.js';
 import * as UI from '../../ui/legacy/legacy.js';
 import { ApplicationPanelTreeElement } from './ApplicationPanelTreeElement.js';
-import { PreloadingView } from './preloading/PreloadingView.js';
+import { PreloadingRuleSetView, PreloadingAttemptView, PreloadingResultView } from './preloading/PreloadingView.js';
 const UIStrings = {
     /**
      *@description Text in Application Panel Sidebar of the Application panel
      */
-    prefetchingAndPrerendering: 'Prefetching & Prerendering',
+    speculationRules: 'Speculation rules',
+    /**
+     *@description Text in Application Panel Sidebar of the Application panel
+     */
+    preloads: 'Preloads',
+    /**
+     *@description Text in Application Panel Sidebar of the Application panel
+     */
+    thisPage: 'This page',
 };
 const str_ = i18n.i18n.registerUIStrings('panels/application/PreloadingTreeElement.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 export class PreloadingTreeElement extends ApplicationPanelTreeElement {
     model;
+    ctorV;
     view;
+    path;
     #selectedInternal;
-    constructor(resourcesPanel) {
-        super(resourcesPanel, i18nString(UIStrings.prefetchingAndPrerendering), false);
+    static newForPreloadingRuleSetView(resourcesPanel) {
+        return new PreloadingTreeElement(resourcesPanel, PreloadingRuleSetView, 'rule-set', i18nString(UIStrings.speculationRules));
+    }
+    static newForPreloadingAttemptView(resourcesPanel) {
+        return new PreloadingTreeElement(resourcesPanel, PreloadingAttemptView, 'attempt', i18nString(UIStrings.preloads));
+    }
+    static newForPreloadingResultView(resourcesPanel) {
+        return new PreloadingTreeElement(resourcesPanel, PreloadingResultView, 'result', i18nString(UIStrings.thisPage));
+    }
+    constructor(resourcesPanel, ctorV, path, title) {
+        super(resourcesPanel, title, false);
+        this.ctorV = ctorV;
+        this.path = 'preloading://{path}';
         const icon = UI.Icon.Icon.create('arrow-up-down', 'resource-tree-item');
         this.setLeadingIcons([icon]);
         this.#selectedInternal = false;
         // TODO(https://crbug.com/1384419): Set link
     }
     get itemURL() {
-        return 'preloading://';
+        return this.path;
     }
     initialize(model) {
         this.model = model;
@@ -41,11 +62,23 @@ export class PreloadingTreeElement extends ApplicationPanelTreeElement {
             return false;
         }
         if (!this.view) {
-            this.view = new PreloadingView(this.model);
+            this.view = new this.ctorV(this.model);
         }
         this.showView(this.view);
         // TODO(https://crbug.com/1384419): Report metrics when the panel shown.
         return false;
+    }
+    revealRuleSet(revealInfo) {
+        if (!this.view || !(this.view instanceof PreloadingRuleSetView)) {
+            throw new Error('unreachable');
+        }
+        this.view.revealRuleSet(revealInfo);
+    }
+    setFilter(filter) {
+        if (!this.view || !(this.view instanceof PreloadingAttemptView)) {
+            throw new Error('unreachable');
+        }
+        this.view.setFilter(filter);
     }
 }
 //# map=PreloadingTreeElement.js.map

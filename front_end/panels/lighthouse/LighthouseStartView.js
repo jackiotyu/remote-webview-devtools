@@ -77,7 +77,7 @@ export class StartView extends UI.Widget.Widget {
         parentElement.appendChild(labelEl);
         const control = new RadioSetting(runtimeSetting.options, runtimeSetting.setting, runtimeSetting.description());
         parentElement.appendChild(control.element);
-        UI.ARIAUtils.setAccessibleName(control.element, label);
+        UI.ARIAUtils.setLabel(control.element, label);
     }
     populateRuntimeSettingAsToolbarCheckbox(settingName, toolbar) {
         const runtimeSetting = RuntimeSettings.find(item => item.setting.name === settingName);
@@ -131,12 +131,11 @@ export class StartView extends UI.Widget.Widget {
             }
         }
         UI.ARIAUtils.markAsGroup(categoryFormElements);
-        UI.ARIAUtils.setAccessibleName(categoryFormElements, i18nString(UIStrings.categories));
+        UI.ARIAUtils.setLabel(categoryFormElements, i18nString(UIStrings.categories));
         UI.ARIAUtils.markAsGroup(pluginFormElements);
-        UI.ARIAUtils.setAccessibleName(pluginFormElements, i18nString(UIStrings.plugins));
+        UI.ARIAUtils.setLabel(pluginFormElements, i18nString(UIStrings.plugins));
     }
     render() {
-        this.populateRuntimeSettingAsToolbarCheckbox('lighthouse.legacy_navigation', this.settingsToolbarInternal);
         this.populateRuntimeSettingAsToolbarCheckbox('lighthouse.clear_storage', this.settingsToolbarInternal);
         this.populateRuntimeSettingAsToolbarDropdown('lighthouse.throttling', this.settingsToolbarInternal);
         const { mode } = this.controller.getFlags();

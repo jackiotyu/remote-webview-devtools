@@ -5,8 +5,8 @@ import * as i18n from '../../../core/i18n/i18n.js';
 import * as SDK from '../../../core/sdk/sdk.js';
 import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
 import * as IconButton from '../../../ui/components/icon_button/icon_button.js';
+import * as LegacyWrapper from '../../../ui/components/legacy_wrapper/legacy_wrapper.js';
 import * as ReportView from '../../../ui/components/report_view/report_view.js';
-import * as UI from '../../../ui/legacy/legacy.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
 import requestTrustTokensViewStyles from './RequestTrustTokensView.css.js';
 const UIStrings = {
@@ -66,6 +66,10 @@ const UIStrings = {
     /**
      *@description Text for an error status in the Network panel
      */
+    theKeysForThisPSTIssuerAreUnavailable: 'The keys for this PST issuer are unavailable. The issuer may need to be registered via the Chrome registration process.',
+    /**
+     *@description Text for an error status in the Network panel
+     */
     aClientprovidedArgumentWas: 'A client-provided argument was malformed or otherwise invalid.',
     /**
      *@description Text for an error status in the Network panel
@@ -82,41 +86,26 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/network/components/RequestTrustTokensView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-export class RequestTrustTokensView extends UI.Widget.VBox {
-    #reportView = new RequestTrustTokensReport();
+export class RequestTrustTokensView extends LegacyWrapper.LegacyWrapper.WrappableComponent {
+    static litTagName = LitHtml.literal `devtools-trust-token-report`;
+    #shadow = this.attachShadow({ mode: 'open' });
     #request;
     constructor(request) {
         super();
         this.#request = request;
-        this.contentElement.appendChild(this.#reportView);
     }
     wasShown() {
-        this.#request.addEventListener(SDK.NetworkRequest.Events.TrustTokenResultAdded, this.#refreshReportView, this);
-        this.#refreshReportView();
+        this.#request.addEventListener(SDK.NetworkRequest.Events.TrustTokenResultAdded, this.render, this);
+        void this.render();
     }
     willHide() {
-        this.#request.removeEventListener(SDK.NetworkRequest.Events.TrustTokenResultAdded, this.#refreshReportView, this);
-    }
-    #refreshReportView() {
-        this.#reportView.data = {
-            params: this.#request.trustTokenParams(),
-            result: this.#request.trustTokenOperationDoneEvent(),
-        };
-    }
-}
-class RequestTrustTokensReport extends HTMLElement {
-    static litTagName = LitHtml.literal `devtools-trust-token-report`;
-    #shadow = this.attachShadow({ mode: 'open' });
-    #trustTokenData;
-    set data(data) {
-        this.#trustTokenData = data;
-        this.#render();
+        this.#request.removeEventListener(SDK.NetworkRequest.Events.TrustTokenResultAdded, this.render, this);
     }
     connectedCallback() {
         this.#shadow.adoptedStyleSheets = [requestTrustTokensViewStyles];
     }
-    #render() {
-        if (!this.#trustTokenData) {
+    async render() {
+        if (!this.#request) {
             throw new Error('Trying to render a Trust Token report without providing data');
         }
         // Disabled until https://crbug.com/1079231 is fixed.
@@ -129,14 +118,15 @@ class RequestTrustTokensReport extends HTMLElement {
         // clang-format on
     }
     #renderParameterSection() {
-        if (!this.#trustTokenData || !this.#trustTokenData.params) {
+        const trustTokenParams = this.#request.trustTokenParams();
+        if (!trustTokenParams) {
             return LitHtml.nothing;
         }
         return LitHtml.html `
       <${ReportView.ReportView.ReportSectionHeader.litTagName}>${i18nString(UIStrings.parameters)}</${ReportView.ReportView.ReportSectionHeader.litTagName}>
-      ${renderRowWithCodeValue(i18nString(UIStrings.type), this.#trustTokenData.params.operation.toString())}
-      ${this.#renderRefreshPolicy(this.#trustTokenData.params)}
-      ${this.#renderIssuers(this.#trustTokenData.params)}
+      ${renderRowWithCodeValue(i18nString(UIStrings.type), trustTokenParams.operation.toString())}
+      ${this.#renderRefreshPolicy(trustTokenParams)}
+      ${this.#renderIssuers(trustTokenParams)}
       ${this.#renderIssuerAndTopLevelOriginFromResult()}
       <${ReportView.ReportView.ReportSectionDivider.litTagName}></${ReportView.ReportView.ReportSectionDivider.litTagName}>
     `;
@@ -164,15 +154,17 @@ class RequestTrustTokensReport extends HTMLElement {
     // result structure due to the timing when they are calculated in the backend.
     // Nonetheless, we show them as part of the parameter section.
     #renderIssuerAndTopLevelOriginFromResult() {
-        if (!this.#trustTokenData || !this.#trustTokenData.result) {
+        const trustTokenResult = this.#request.trustTokenOperationDoneEvent();
+        if (!trustTokenResult) {
             return LitHtml.nothing;
         }
         return LitHtml.html `
-      ${renderSimpleRowIfValuePresent(i18nString(UIStrings.topLevelOrigin), this.#trustTokenData.result.topLevelOrigin)}
-      ${renderSimpleRowIfValuePresent(i18nString(UIStrings.issuer), this.#trustTokenData.result.issuerOrigin)}`;
+      ${renderSimpleRowIfValuePresent(i18nString(UIStrings.topLevelOrigin), trustTokenResult.topLevelOrigin)}
+      ${renderSimpleRowIfValuePresent(i18nString(UIStrings.issuer), trustTokenResult.issuerOrigin)}`;
     }
     #renderResultSection() {
-        if (!this.#trustTokenData || !this.#trustTokenData.result) {
+        const trustTokenResult = this.#request.trustTokenOperationDoneEvent();
+        if (!trustTokenResult) {
             return LitHtml.nothing;
         }
         return LitHtml.html `
@@ -181,13 +173,13 @@ class RequestTrustTokensReport extends HTMLElement {
       <${ReportView.ReportView.ReportValue.litTagName}>
         <span>
           <${IconButton.Icon.Icon.litTagName} class="status-icon"
-            .data=${getIconForStatusCode(this.#trustTokenData.result.status)}>
+            .data=${getIconForStatusCode(trustTokenResult.status)}>
           </${IconButton.Icon.Icon.litTagName}>
-          <strong>${getSimplifiedStatusTextForStatusCode(this.#trustTokenData.result.status)}</strong>
-          ${getDetailedTextForStatusCode(this.#trustTokenData.result.status)}
+          <strong>${getSimplifiedStatusTextForStatusCode(trustTokenResult.status)}</strong>
+          ${getDetailedTextForStatusCode(trustTokenResult.status)}
         </span>
       </${ReportView.ReportView.ReportValue.litTagName}>
-      ${this.#renderIssuedTokenCount(this.#trustTokenData.result)}
+      ${this.#renderIssuedTokenCount(trustTokenResult)}
       <${ReportView.ReportView.ReportSectionDivider.litTagName}></${ReportView.ReportView.ReportSectionDivider.litTagName}>
       `;
     }
@@ -198,7 +190,6 @@ class RequestTrustTokensReport extends HTMLElement {
         return renderSimpleRowIfValuePresent(i18nString(UIStrings.numberOfIssuedTokens), result.issuedTokenCount);
     }
 }
-export { RequestTrustTokensReport };
 const SUCCESS_ICON_DATA = {
     color: 'var(--icon-checkmark-green)',
     iconName: 'check-circle',
@@ -236,6 +227,8 @@ function getDetailedTextForStatusCode(status) {
             return i18nString(UIStrings.eitherNoInputsForThisOperation);
         case "BadResponse" /* Protocol.Network.TrustTokenOperationDoneEventStatus.BadResponse */:
             return i18nString(UIStrings.theServersResponseWasMalformedOr);
+        case "MissingIssuerKeys" /* Protocol.Network.TrustTokenOperationDoneEventStatus.MissingIssuerKeys */:
+            return i18nString(UIStrings.theKeysForThisPSTIssuerAreUnavailable);
         case "FailedPrecondition" /* Protocol.Network.TrustTokenOperationDoneEventStatus.FailedPrecondition */:
         case "Unavailable" /* Protocol.Network.TrustTokenOperationDoneEventStatus.Unavailable */:
         case "InternalError" /* Protocol.Network.TrustTokenOperationDoneEventStatus.InternalError */:
@@ -259,5 +252,5 @@ function renderRowWithCodeValue(key, value) {
     <${ReportView.ReportView.ReportValue.litTagName} class="code">${value}</${ReportView.ReportView.ReportValue.litTagName}>
   `;
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-trust-token-report', RequestTrustTokensReport);
+ComponentHelpers.CustomElements.defineComponent('devtools-trust-token-report', RequestTrustTokensView);
 //# map=RequestTrustTokensView.js.map

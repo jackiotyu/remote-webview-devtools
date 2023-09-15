@@ -131,7 +131,7 @@ export class Section extends VBox {
      */
     setUiGroupTitle(groupTitle) {
         ARIAUtils.markAsGroup(this.element);
-        ARIAUtils.setAccessibleName(this.element, groupTitle);
+        ARIAUtils.setLabel(this.element, groupTitle);
     }
     createToolbar() {
         const toolbar = new Toolbar('');
@@ -185,7 +185,7 @@ export class Section extends VBox {
     }
     markFieldListAsGroup() {
         ARIAUtils.markAsGroup(this.fieldList);
-        ARIAUtils.setAccessibleName(this.fieldList, this.title());
+        ARIAUtils.setLabel(this.fieldList, this.title());
     }
     setIconMasked(masked) {
         this.element.classList.toggle('show-mask', masked);

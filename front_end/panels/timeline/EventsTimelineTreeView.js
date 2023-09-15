@@ -73,7 +73,7 @@ export class EventsTimelineTreeView extends TimelineTreeView {
         }
     }
     findNodeWithEvent(event) {
-        if (event.name === "RunTask" /* TraceEngine.Handlers.Types.KnownEventName.RunTask */) {
+        if (event.name === "RunTask" /* TraceEngine.Types.TraceEvents.KnownEventName.RunTask */) {
             // No node is ever created for the top level RunTask event, so
             // bail out preemptively
             return null;
@@ -140,7 +140,7 @@ export class EventsTimelineTreeView extends TimelineTreeView {
         this.delegate.highlightEvent(node && node.event);
     }
 }
-class Filters extends Common.ObjectWrapper.ObjectWrapper {
+export class Filters extends Common.ObjectWrapper.ObjectWrapper {
     categoryFilter;
     durationFilter;
     filtersInternal;
@@ -192,5 +192,4 @@ class Filters extends Common.ObjectWrapper.ObjectWrapper {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     static durationFilterPresetsMs = [0, 1, 15];
 }
-export { Filters };
 //# map=EventsTimelineTreeView.js.map

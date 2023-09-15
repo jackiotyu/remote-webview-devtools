@@ -414,10 +414,9 @@ export class ShortcutTreeNode {
         this.chordsInternal = new Map();
     }
 }
-class ForwardedShortcut {
+export class ForwardedShortcut {
     static instance = new ForwardedShortcut();
 }
-export { ForwardedShortcut };
 export const ForwardedActions = new Set([
     'main.toggle-dock',
     'debugger.toggle-breakpoints-active',

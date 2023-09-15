@@ -43,11 +43,11 @@ devtools-create-recording-view {
 }
 
 .header {
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   display: flex;
   flex-direction: row;
   align-items: center;
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
   padding: 0 5px;
   min-height: 29px;
   max-height: 29px;
@@ -55,7 +55,7 @@ devtools-create-recording-view {
 }
 
 .separator {
-  background-color: var(--color-details-hairline);
+  background-color: var(--sys-color-divider);
   width: 1px;
   height: 17px;
   margin: 0;
@@ -69,28 +69,28 @@ select {
   min-width: 140px;
   padding: 0 5px;
   position: relative;
-  color: var(--color-text-primary);
-  background-color: var(--color-background);
+  color: var(--sys-color-on-surface);
+  background-color: var(--sys-color-cdt-base-container);
   text-overflow: ellipsis;
 }
 
 select:disabled {
-  color: var(--color-input-text-disabled);
+  color: var(--sys-color-state-disabled);
 }
 
 select:not([disabled]):hover,
 select:not([disabled]):focus-visible,
 select:not([disabled]):active {
-  background-color: var(--color-iconbutton-hover);
+  background-color: var(--sys-color-state-hover-on-subtle);
 }
 
 select:not([disabled]):focus-visible {
-  box-shadow: 0 0 0 2px var(--color-button-outline-focus);
+  box-shadow: 0 0 0 2px var(--sys-color-state-focus-ring);
 }
 
 select option {
-  background-color: var(--color-background-elevation-1);
-  color: var(--color-text-primary);
+  background-color: var(--sys-color-cdt-base-container);
+  color: var(--sys-color-on-surface);
 }
 
 devtools-menu {
@@ -104,9 +104,9 @@ devtools-recording-list-view {
 }
 
 .error {
-  color: var(--color-error-text);
-  border: 1px solid var(--color-error-border);
-  background-color: var(--color-error-background);
+  color: var(--sys-color-error);
+  border: 1px solid var(--sys-color-error);
+  background-color: var(--sys-color-error-container);
   padding: 4px;
 }
 
@@ -120,7 +120,7 @@ devtools-recording-list-view {
   text-decoration-line: underline;
   font-size: 9px;
   line-height: 16px;
-  color: var(--color-text-secondary);
+  color: var(--sys-color-on-surface-subtle);
   outline-offset: 3px;
 }
 
@@ -140,17 +140,17 @@ devtools-recording-list-view {
   width: 24px;
   height: 24px;
 
-  --icon-color: var(--color-primary-old);
+  --icon-color: var(--sys-color-primary);
 }
 
 .continue-button:hover,
 .continue-button:focus-visible {
-  background-color: var(--color-iconbutton-hover);
+  background-color: var(--sys-color-state-hover-on-subtle);
 }
 
 .continue-button:disabled {
-  background: var(--color-background);
-  color: var(--color-text-disabled);
+  background: var(--sys-color-cdt-base-container);
+  color: var(--sys-color-state-disabled);
   cursor: not-allowed;
 }
 
@@ -162,6 +162,6 @@ devtools-shortcut-dialog {
   padding-right: 6px;
 }
 
-
+/*# sourceURL=recorderController.css */
 `);
 export default styles;

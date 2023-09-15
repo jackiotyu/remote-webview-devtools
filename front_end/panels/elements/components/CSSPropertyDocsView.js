@@ -20,7 +20,7 @@ const UIStrings = {
 const str_ = i18n.i18n.registerUIStrings('panels/elements/components/CSSPropertyDocsView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const { render, html } = LitHtml;
-class CSSPropertyDocsView extends HTMLElement {
+export class CSSPropertyDocsView extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-css-property-docs-view`;
     #shadow = this.attachShadow({ mode: 'open' });
     #cssProperty;
@@ -68,6 +68,5 @@ class CSSPropertyDocsView extends HTMLElement {
         // clang-format on
     }
 }
-export { CSSPropertyDocsView };
 ComponentHelpers.CustomElements.defineComponent('devtools-css-property-docs-view', CSSPropertyDocsView);
 //# map=CSSPropertyDocsView.js.map

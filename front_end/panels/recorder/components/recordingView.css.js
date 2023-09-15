@@ -36,7 +36,7 @@ styles.replaceSync(
   flex: 1;
   min-height: 0;
   overflow: hidden auto;
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   z-index: 0;
   position: relative;
   container: sections / inline-size; /* stylelint-disable-line property-no-unknown */
@@ -51,7 +51,7 @@ styles.replaceSync(
 
 .section::after {
   content: "";
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
   position: absolute;
   left: 0;
   right: 0;
@@ -87,7 +87,7 @@ styles.replaceSync(
   max-width: 100%;
   width: 200px;
   height: auto;
-  border: 1px solid var(--color-details-hairline);
+  border: 1px solid var(--sys-color-divider);
   border-radius: 1px;
 }
 
@@ -116,7 +116,7 @@ styles.replaceSync(
 }
 
 .recording {
-  color: var(--color-primary-old);
+  color: var(--sys-color-primary);
   font-style: italic;
   margin-top: 8px;
   margin-bottom: 0;
@@ -140,14 +140,14 @@ styles.replaceSync(
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: var(--color-text-secondary);
+  color: var(--sys-color-secondary);
   max-width: 100%;
   margin-bottom: 16px;
 }
 
 .header {
   align-items: center;
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -171,7 +171,7 @@ styles.replaceSync(
   min-width: 12px;
   height: 12px;
   display: inline-block;
-  background: var(--color-primary-old);
+  background: var(--sys-color-primary);
   border-radius: 50%;
   margin-right: 7px;
 }
@@ -193,17 +193,17 @@ styles.replaceSync(
 }
 
 #title-input.has-error {
-  border-color: var(--color-input-outline-error);
+  border-color: var(--sys-color-error);
 }
 
 #title-input.disabled {
-  color: var(--color-input-text-disabled);
+  color: var(--sys-color-state-disabled);
 }
 
 .title-input-error-text {
   margin-top: 4px;
   margin-left: 19px;
-  color: var(--color-error-text);
+  color: var(--sys-color-error);
 }
 
 .title-button-bar {
@@ -217,7 +217,7 @@ styles.replaceSync(
 
 .settings-row {
   padding: 16px 28px;
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
@@ -227,7 +227,7 @@ styles.replaceSync(
   font-size: 14px;
   line-height: 24px;
   letter-spacing: 0.03em;
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
   display: flex;
   align-items: center;
   align-content: center;
@@ -240,7 +240,7 @@ styles.replaceSync(
   font-size: 12px;
   line-height: 20px;
   letter-spacing: 0.03em;
-  color: var(--color-text-secondary);
+  color: var(--sys-color-on-surface-subtle);
 }
 
 .settings.expanded {
@@ -250,7 +250,7 @@ styles.replaceSync(
 .settings .separator {
   width: 1px;
   height: 20px;
-  background-color: var(--color-details-hairline);
+  background-color: var(--sys-color-divider);
   margin: 0 5px;
 }
 
@@ -262,15 +262,15 @@ styles.replaceSync(
 }
 
 .is-recording .header-title::before {
-  background: var(--color-red);
+  background: var(--sys-color-error);
 }
 
 .footer {
   display: flex;
   justify-content: center;
-  border-top: 1px solid var(--color-details-hairline);
+  border-top: 1px solid var(--sys-color-divider);
   padding: 12px;
-  background: var(--color-background);
+  background: var(--sys-color-cdt-base-container);
   z-index: 1;
 }
 
@@ -351,7 +351,7 @@ devtools-split-view {
 }
 
 [slot="sidebar"] .section-toolbar {
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .show-code {
@@ -363,6 +363,6 @@ devtools-recorder-extension-view {
   flex: 1;
 }
 
-
+/*# sourceURL=recordingView.css */
 `);
 export default styles;

@@ -62,6 +62,6 @@ h1 {
   justify-content: center;
 }
 
-
+/*# sourceURL=panelIntroductionSteps.css */
 `);
 export default styles;

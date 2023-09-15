@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 import * as Common from '../../core/common/common.js';
 import * as Host from '../../core/host/host.js';
+import { PanelUtils } from '../../panels/utils/utils.js';
 import * as IconButton from '../../ui/components/icon_button/icon_button.js';
-import { iconDataForResourceType } from '../../panels/utils/utils.js';
 import { FilteredUISourceCodeListProvider } from './FilteredUISourceCodeListProvider.js';
 import { SourcesView } from './SourcesView.js';
 export class OpenFileQuickOpen extends FilteredUISourceCodeListProvider {
@@ -30,7 +30,7 @@ export class OpenFileQuickOpen extends FilteredUISourceCodeListProvider {
     renderItem(itemIndex, query, titleElement, subtitleElement) {
         super.renderItem(itemIndex, query, titleElement, subtitleElement);
         const iconElement = new IconButton.Icon.Icon();
-        const iconData = iconDataForResourceType(this.itemContentTypeAt(itemIndex));
+        const iconData = PanelUtils.iconDataForResourceType(this.itemContentTypeAt(itemIndex));
         iconElement.data = {
             ...iconData,
             width: '20px',

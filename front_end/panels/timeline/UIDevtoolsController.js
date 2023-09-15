@@ -31,8 +31,8 @@ import { TimelineController } from './TimelineController.js';
 import { TimelineUIUtils } from './TimelineUIUtils.js';
 import { UIDevtoolsUtils } from './UIDevtoolsUtils.js';
 export class UIDevtoolsController extends TimelineController {
-    constructor(target, client) {
-        super(target, client);
+    constructor(rootTarget, primaryPageTarget, client) {
+        super(rootTarget, primaryPageTarget, client);
         TimelineUIUtils.setEventStylesMap(UIDevtoolsUtils.categorizeEvents());
         TimelineUIUtils.setCategories(UIDevtoolsUtils.categories());
         TimelineUIUtils.setTimelineMainEventCategories(UIDevtoolsUtils.getMainCategoriesList());

@@ -265,7 +265,9 @@ class ModelInfo {
         if (resourceType !== Common.ResourceType.resourceTypes.Image &&
             resourceType !== Common.ResourceType.resourceTypes.Font &&
             resourceType !== Common.ResourceType.resourceTypes.Document &&
-            resourceType !== Common.ResourceType.resourceTypes.Manifest) {
+            resourceType !== Common.ResourceType.resourceTypes.Manifest &&
+            resourceType !== Common.ResourceType.resourceTypes.Fetch &&
+            resourceType !== Common.ResourceType.resourceTypes.XHR) {
             return false;
         }
         // Ignore non-images and non-fonts.

@@ -74,7 +74,7 @@ styles.replaceSync(
 .perfmon-chart-container {
   display: flex;
   flex: 1 1;
-  border-left: 1px solid var(--color-details-hairline);
+  border-left: 1px solid var(--sys-color-divider);
   overflow-y: auto;
 }
 
@@ -117,6 +117,6 @@ styles.replaceSync(
   opacity: 0%;
 }
 
-
+/*# sourceURL=performanceMonitor.css */
 `);
 export default styles;

@@ -50,6 +50,6 @@ styles.replaceSync(
   }
 }
 
-
+/*# sourceURL=colorSwatch.css */
 `);
 export default styles;

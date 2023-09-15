@@ -92,6 +92,6 @@ styles.replaceSync(
   border-color: var(--color-button-outline-focus);
 }
 
-
+/*# sourceURL=linearMemoryViewer.css */
 `);
 export default styles;

@@ -7,8 +7,8 @@ import { CSSContainerQuery } from './CSSContainerQuery.js';
 import { CSSLayer } from './CSSLayer.js';
 import { CSSMedia } from './CSSMedia.js';
 import { CSSScope } from './CSSScope.js';
-import { CSSSupports } from './CSSSupports.js';
 import { CSSStyleDeclaration, Type } from './CSSStyleDeclaration.js';
+import { CSSSupports } from './CSSSupports.js';
 export class CSSRule {
     cssModelInternal;
     styleSheetId;
@@ -50,6 +50,9 @@ export class CSSRule {
     isRegular() {
         return this.origin === "regular" /* Protocol.CSS.StyleSheetOrigin.Regular */;
     }
+    isKeyframeRule() {
+        return false;
+    }
     cssModel() {
         return this.cssModelInternal;
     }
@@ -62,10 +65,14 @@ export class CSSRule {
 class CSSValue {
     text;
     range;
+    specificity;
     constructor(payload) {
         this.text = payload.text;
         if (payload.range) {
             this.range = TextUtils.TextRange.TextRange.fromObject(payload.range);
+        }
+        if (payload.specificity) {
+            this.specificity = payload.specificity;
         }
     }
     rebase(edit) {
@@ -83,6 +90,7 @@ export class CSSStyleRule extends CSSRule {
     supports;
     scopes;
     layers;
+    ruleTypes;
     wasUsed;
     constructor(cssModel, payload, wasUsed) {
         super(cssModel, { origin: payload.origin, style: payload.style, styleSheetId: payload.styleSheetId });
@@ -95,6 +103,7 @@ export class CSSStyleRule extends CSSRule {
         this.scopes = payload.scopes ? CSSScope.parseScopesPayload(cssModel, payload.scopes) : [];
         this.supports = payload.supports ? CSSSupports.parseSupportsPayload(cssModel, payload.supports) : [];
         this.layers = payload.layers ? CSSLayer.parseLayerPayload(cssModel, payload.layers) : [];
+        this.ruleTypes = payload.ruleTypes || [];
         this.wasUsed = wasUsed || false;
     }
     static createDummyRule(cssModel, selectorText) {
@@ -177,6 +186,36 @@ export class CSSStyleRule extends CSSRule {
         super.rebase(edit);
     }
 }
+export class CSSPropertyRule extends CSSRule {
+    #name;
+    constructor(cssModel, payload) {
+        super(cssModel, { origin: payload.origin, style: payload.style, styleSheetId: payload.styleSheetId });
+        this.#name = new CSSValue(payload.propertyName);
+    }
+    propertyName() {
+        return this.#name;
+    }
+    initialValue() {
+        return this.style.hasActiveProperty('initial-value') ? this.style.getPropertyValue('initial-value') : null;
+    }
+    syntax() {
+        return this.style.getPropertyValue('syntax');
+    }
+    inherits() {
+        return this.style.getPropertyValue('inherits') === 'true';
+    }
+    setPropertyName(newPropertyName) {
+        const styleSheetId = this.styleSheetId;
+        if (!styleSheetId) {
+            throw new Error('No rule stylesheet id');
+        }
+        const range = this.#name.range;
+        if (!range) {
+            throw new Error('Property name is not editable');
+        }
+        return this.cssModelInternal.setPropertyRulePropertyName(styleSheetId, range, newPropertyName);
+    }
+}
 export class CSSKeyframesRule {
     #animationName;
     #keyframesInternal;
@@ -214,6 +253,9 @@ export class CSSKeyframeRule extends CSSRule {
             this.#keyText.rebase(edit);
         }
         super.rebase(edit);
+    }
+    isKeyframeRule() {
+        return true;
     }
     setKeyText(newKeyText) {
         const styleSheetId = this.styleSheetId;

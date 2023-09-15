@@ -13,7 +13,7 @@ styles.replaceSync(
 
 .editing {
   box-shadow: var(--drop-shadow);
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   text-overflow: clip !important; /* stylelint-disable-line declaration-no-important */
   padding-left: 2px;
   margin-left: -2px;
@@ -26,7 +26,7 @@ styles.replaceSync(
 
 .editing,
 .editing * {
-  color: var(--color-text-primary) !important; /* stylelint-disable-line declaration-no-important */
+  color: var(--sys-color-on-surface) !important; /* stylelint-disable-line declaration-no-important */
   text-decoration: none !important; /* stylelint-disable-line declaration-no-important */
 }
 
@@ -124,18 +124,18 @@ styles.replaceSync(
 .elements-disclosure li.elements-drag-over .selection {
   display: block;
   margin-top: -2px;
-  border-top: 2px solid var(--legacy-selection-bg-color);
+  border-top: 2px solid var(--sys-color-primary);
 }
 
 .elements-disclosure .elements-tree-outline:not(.hide-selection-when-blurred) .selection {
-  background-color: var(--legacy-item-selection-inactive-bg-color);
+  background-color: var(--sys-color-neutral-container);
 }
 
 .elements-disclosure li.hovered:not(.selected) .selection {
   display: block;
   left: 3px;
   right: 3px;
-  background-color: var(--item-hover-color);
+  background-color: var(--sys-color-state-hover-on-subtle);
   border-radius: 5px;
 }
 
@@ -144,13 +144,13 @@ styles.replaceSync(
 }
 
 .elements-disclosure .elements-tree-outline.hide-selection-when-blurred .selected:focus-visible .highlight > * {
-  background: var(--legacy-focus-bg-color);
+  background: var(--sys-color-state-focus-highlight);
   border-radius: 2px;
-  box-shadow: 0 0 0 2px var(--legacy-focus-bg-color);
+  outline: 2px solid var(--sys-color-state-focus-ring);
 }
 
 .elements-disclosure .elements-tree-outline:not(.hide-selection-when-blurred) li.selected:focus .selection {
-  background-color: var(--legacy-item-selection-bg-color);
+  background-color: var(--sys-color-tonal-container);
 }
 
 .elements-disclosure ol {
@@ -178,31 +178,7 @@ styles.replaceSync(
 }
 
 .elements-disclosure li.in-clipboard .highlight {
-  outline: 1px dotted var(--color-details-hairline);
-}
-
-.elements-tree-outline ol.shadow-root-depth-4 {
-  --override-shadow-root-background-color: rgb(0 0 0 / 4%);
-
-  background-color: var(--override-shadow-root-background-color);
-}
-
-.elements-tree-outline ol.shadow-root-depth-3 {
-  --override-shadow-root-background-color: rgb(0 0 0 / 3%);
-
-  background-color: var(--override-shadow-root-background-color);
-}
-
-.elements-tree-outline ol.shadow-root-depth-2 {
-  --override-shadow-root-background-color: rgb(0 0 0 / 2%);
-
-  background-color: var(--override-shadow-root-background-color);
-}
-
-.elements-tree-outline ol.shadow-root-depth-1 {
-  --override-shadow-root-background-color: rgb(0 0 0 / 1%);
-
-  background-color: var(--override-shadow-root-background-color);
+  outline: 1px dotted var(--sys-color-divider);
 }
 
 .elements-tree-outline ol.shadow-root-deep {
@@ -228,8 +204,8 @@ select {
   height: 9px;
   width: 9px;
   border-radius: 5px;
-  border: 1px solid var(--issue-color-yellow);
-  background-color: var(--issue-color-yellow);
+  border: 1px solid var(--sys-color-orange-bright);
+  background-color: var(--sys-color-orange-bright);
 }
 
 .elements-gutter-decoration.elements-has-decorated-children {
@@ -253,12 +229,12 @@ select {
 /* DOM update highlight */
 @keyframes dom-update-highlight-animation {
   from {
-    background-color: var(--color-syntax-2);
-    color: var(--color-background);
+    background-color: var(--sys-color-token-tag);
+    color: var(--sys-color-cdt-base-container);
   }
 
   80% {
-    background-color: var(--color-syntax-8);
+    background-color: var(--sys-color-token-meta);
   }
 
   to {
@@ -268,12 +244,12 @@ select {
 
 @keyframes dom-update-highlight-animation-dark {
   from {
-    background-color: var(--color-syntax-2);
-    color: var(--color-background);
+    background-color: var(--sys-color-token-tag);
+    color: var(--sys-color-cdt-base-container);
   }
 
   80% {
-    background-color: var(--color-background);
+    background-color: var(--sys-color-cdt-base-container);
     color: inherit;
   }
 
@@ -297,7 +273,7 @@ select {
 
 .elements-tree-shortcut-title,
 .elements-tree-shortcut-link {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
 }
 
 .elements-disclosure .gutter-container {
@@ -335,15 +311,15 @@ li.selected:not(.always-parent) + ol.children {
 }
 
 li.selected:not(.always-parent) + ol.children {
-  --override-indentation-level-border-color: hsl(216deg 68% 80% / 100%) !important; /* stylelint-disable-line declaration-no-important */
+  --override-indentation-level-border-color: var(--sys-color-divider) !important; /* stylelint-disable-line declaration-no-important */
 }
 
 li.hovered:not(.always-parent) + ol.children:not(.shadow-root) {
-  --override-indentation-level-border-color: hsl(0deg 0% 0% / 10%);
+  --override-indentation-level-border-color: color-mix(in sRGB, var(--ref-palette-neutral0) 10%, transparent);
 }
 
 .elements-tree-outline ol.shadow-root {
-  --override-indentation-level-border-color: hsl(0deg 0% 80% / 100%);
+  --override-indentation-level-border-color: var(--ref-palette-orange95);
 }
 
 @media (forced-colors: active) {
@@ -376,6 +352,6 @@ li.hovered:not(.always-parent) + ol.children:not(.shadow-root) {
   padding-bottom: 1px;
 }
 
-
+/*# sourceURL=elementsTreeOutline.css */
 `);
 export default styles;

@@ -244,14 +244,11 @@ const UIStrings = {
      *@example {5} PH1
      */
     filteredMessagesInConsole: '{PH1} messages in console',
-    /**
-     *@description An error message showed when console paste is blocked.
-     */
-    consolePasteBlocked: 'Pasting code is blocked on this page. Pasting code into devtools can allow attackers to take over your account.',
 };
 const str_ = i18n.i18n.registerUIStrings('panels/console/ConsoleView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 let consoleViewInstance;
+const MIN_HISTORY_LENGTH_FOR_DISABLING_SELF_XSS_WARNING = 5;
 export class ConsoleView extends UI.Widget.VBox {
     searchableViewInternal;
     sidebar;
@@ -279,6 +276,7 @@ export class ConsoleView extends UI.Widget.VBox {
     showCorsErrorsSetting;
     timestampsSetting;
     consoleHistoryAutocompleteSetting;
+    selfXssWarningDisabledSetting;
     pinPane;
     viewport;
     messagesElement;
@@ -307,6 +305,8 @@ export class ConsoleView extends UI.Widget.VBox {
     issueToolbarThrottle;
     requestResolver = new Logs.RequestResolver.RequestResolver();
     issueResolver = new IssuesManager.IssueResolver.IssueResolver();
+    #isDetached = false;
+    #onIssuesCountUpdateBound = this.#onIssuesCountUpdate.bind(this);
     constructor(viewportThrottlerTimeout) {
         super();
         this.setMinimumSize(0, 35);
@@ -404,10 +404,11 @@ export class ConsoleView extends UI.Widget.VBox {
         this.timestampsSetting = Common.Settings.Settings.instance().moduleSetting('consoleTimestampsEnabled');
         this.consoleHistoryAutocompleteSetting =
             Common.Settings.Settings.instance().moduleSetting('consoleHistoryAutocomplete');
+        this.selfXssWarningDisabledSetting = Common.Settings.Settings.instance().createSetting('disableSelfXssWarning', false, Common.Settings.SettingStorageType.Synced);
         const settingsPane = new UI.Widget.HBox();
         settingsPane.show(this.contentsElement);
         settingsPane.element.classList.add('console-settings-pane');
-        UI.ARIAUtils.setAccessibleName(settingsPane.element, i18nString(UIStrings.consoleSettings));
+        UI.ARIAUtils.setLabel(settingsPane.element, i18nString(UIStrings.consoleSettings));
         UI.ARIAUtils.markAsGroup(settingsPane.element);
         const settingsToolbarLeft = new UI.Toolbar.Toolbar('', settingsPane.element);
         settingsToolbarLeft.makeVertical();
@@ -494,7 +495,7 @@ export class ConsoleView extends UI.Widget.VBox {
         SDK.TargetManager.TargetManager.instance().observeModels(SDK.ConsoleModel.ConsoleModel, this, { scoped: true });
         const issuesManager = IssuesManager.IssuesManager.IssuesManager.instance();
         this.issueToolbarThrottle = new Common.Throttler.Throttler(100);
-        issuesManager.addEventListener("IssuesCountUpdated" /* IssuesManager.IssuesManager.Events.IssuesCountUpdated */, () => this.issueToolbarThrottle.schedule(async () => this.updateIssuesToolbarItem()), this);
+        issuesManager.addEventListener("IssuesCountUpdated" /* IssuesManager.IssuesManager.Events.IssuesCountUpdated */, this.#onIssuesCountUpdateBound);
     }
     static appendSettingsCheckboxToToolbar(toolbar, settingOrSetingName, title, alternateTitle) {
         let setting;
@@ -516,6 +517,9 @@ export class ConsoleView extends UI.Widget.VBox {
     }
     static clearConsole() {
         SDK.ConsoleModel.ConsoleModel.requestClearMessages();
+    }
+    #onIssuesCountUpdate() {
+        void this.issueToolbarThrottle.schedule(async () => this.updateIssuesToolbarItem());
     }
     modelAdded(model) {
         model.messages().forEach(this.addConsoleMessage, this);
@@ -655,7 +659,15 @@ export class ConsoleView extends UI.Widget.VBox {
         }
         return;
     }
+    onDetach() {
+        this.#isDetached = true;
+        const issuesManager = IssuesManager.IssuesManager.IssuesManager.instance();
+        issuesManager.removeEventListener("IssuesCountUpdated" /* IssuesManager.IssuesManager.Events.IssuesCountUpdated */, this.#onIssuesCountUpdateBound);
+    }
     updateIssuesToolbarItem() {
+        if (this.#isDetached) {
+            return;
+        }
         const manager = IssuesManager.IssuesManager.IssuesManager.instance();
         const issueEnumeration = IssueCounter.IssueCounter.getIssueCountsEnumeration(manager);
         const issuesTitleGotoIssues = manager.numberOfIssues() === 0 ?
@@ -683,7 +695,6 @@ export class ConsoleView extends UI.Widget.VBox {
     immediatelyScrollToBottom() {
         // This will scroll viewport and trigger its refresh.
         this.viewport.setStickToBottom(true);
-        // 这里直接对齐会导致向上多了4px
         this.promptElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
     }
     updateFilterStatus() {
@@ -895,7 +906,7 @@ export class ConsoleView extends UI.Widget.VBox {
         this.viewport.setStickToBottom(this.isScrolledToBottom());
         // Scroll, in case mutations moved the element below the visible area.
         if (treeOutlineElement.offsetHeight <= this.messagesElement.offsetHeight) {
-            treeOutlineElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'start' });
+            treeOutlineElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });;
         }
         this.pendingBatchResize = false;
     }
@@ -945,6 +956,10 @@ export class ConsoleView extends UI.Widget.VBox {
             if (request && SDK.NetworkManager.NetworkManager.canReplayRequest(request)) {
                 contextMenu.debugSection().appendItem(i18nString(UIStrings.replayXhr), SDK.NetworkManager.NetworkManager.replayRequest.bind(null, request));
             }
+        }
+        if (consoleViewMessage) {
+            UI.Context.Context.instance().setFlavor(ConsoleViewMessage, consoleViewMessage);
+            contextMenu.appendApplicableItems(consoleViewMessage);
         }
         void contextMenu.show();
     }
@@ -1113,10 +1128,10 @@ export class ConsoleView extends UI.Widget.VBox {
         this.focusPrompt();
     }
     messagesPasted(event) {
-        const url = SDK.TargetManager.TargetManager.instance().inspectedURL();
-        if (Root.Runtime.Runtime.queryParam('consolePaste') === 'blockwebui' && url.startsWith('chrome://')) {
+        if (Root.Runtime.experiments.isEnabled(Root.Runtime.ExperimentName.SELF_XSS_WARNING) &&
+            !this.selfXssWarningDisabledSetting.get()) {
             event.preventDefault();
-            Common.Console.Console.instance().error(i18nString(UIStrings.consolePasteBlocked));
+            this.prompt.showSelfXssWarning();
         }
         if (UI.UIUtils.isEditing()) {
             return;
@@ -1160,6 +1175,10 @@ export class ConsoleView extends UI.Widget.VBox {
     commandEvaluated(event) {
         const { data } = event;
         this.prompt.history().pushHistoryItem(data.commandMessage.messageText);
+        if (this.prompt.history().length() >= MIN_HISTORY_LENGTH_FOR_DISABLING_SELF_XSS_WARNING &&
+            !this.selfXssWarningDisabledSetting.get()) {
+            this.selfXssWarningDisabledSetting.set(true);
+        }
         this.printResult(data.result, data.commandMessage, data.exceptionDetails);
     }
     elementsToRestoreScrollPositionsFor() {
@@ -1267,7 +1286,7 @@ export class ConsoleView extends UI.Widget.VBox {
         const highlightNode = message.searchHighlightNode(matchRange.matchIndex);
         highlightNode.classList.add(UI.UIUtils.highlightedCurrentSearchResultClassName);
         this.viewport.scrollItemIntoView(matchRange.messageIndex);
-        highlightNode.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'start' });
+        highlightNode.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });;
     }
     updateStickToBottomOnPointerDown(isRightClick) {
         this.muteViewportUpdates = !isRightClick;

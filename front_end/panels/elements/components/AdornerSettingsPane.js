@@ -19,7 +19,7 @@ const UIStrings = {
 const str_ = i18n.i18n.registerUIStrings('panels/elements/components/AdornerSettingsPane.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const { render, html } = LitHtml;
-class AdornerSettingUpdatedEvent extends Event {
+export class AdornerSettingUpdatedEvent extends Event {
     static eventName = 'adornersettingupdated';
     data;
     constructor(adornerName, isEnabledNow, newSettings) {
@@ -27,8 +27,7 @@ class AdornerSettingUpdatedEvent extends Event {
         this.data = { adornerName, isEnabledNow, newSettings };
     }
 }
-export { AdornerSettingUpdatedEvent };
-class AdornerSettingsPane extends HTMLElement {
+export class AdornerSettingsPane extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-adorner-settings-pane`;
     #shadow = this.attachShadow({ mode: 'open' });
     #settings = new Map();
@@ -93,6 +92,5 @@ class AdornerSettingsPane extends HTMLElement {
         // clang-format on
     }
 }
-export { AdornerSettingsPane };
 ComponentHelpers.CustomElements.defineComponent('devtools-adorner-settings-pane', AdornerSettingsPane);
 //# map=AdornerSettingsPane.js.map

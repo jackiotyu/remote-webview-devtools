@@ -40,25 +40,12 @@ styles.replaceSync(
   border: 1px solid transparent;
 }
 
-.data-grid .selected td .bar {
-  border-top: 1px var(--color-background) solid;
-  border-bottom: 1px var(--color-background) solid;
-}
-
-.data-grid .selected td .bar:last-child {
-  border-right: 1px var(--color-background) solid;
-}
-
-.data-grid .selected td .bar:first-child {
-  border-left: 1px var(--color-background) solid;
-}
-
 .data-grid td .bar-unused-size {
-  background-color: var(--color-red);
+  background-color: var(--sys-color-error-bright);
 }
 
 .data-grid td .bar-used-size {
-  background-color: var(--color-green);
+  background-color: var(--sys-color-green-bright);
 }
 
 .data-grid td .percent-value {
@@ -67,7 +54,7 @@ styles.replaceSync(
 }
 
 .data-grid tr:not(.selected) td .percent-value {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
 }
 
 @media (forced-colors: active) {
@@ -105,6 +92,6 @@ styles.replaceSync(
   }
 }
 
-
+/*# sourceURL=coverageListView.css */
 `);
 export default styles;

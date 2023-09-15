@@ -28,6 +28,6 @@ styles.replaceSync(
   border-top: 1px solid var(--color-details-hairline);
 }
 
-
+/*# sourceURL=protocolMonitor.css */
 `);
 export default styles;

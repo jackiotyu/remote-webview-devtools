@@ -121,6 +121,6 @@ ol.children.expanded {
   margin: 0 4px;
 }
 
-
+/*# sourceURL=searchResultsPane.css */
 `);
 export default styles;

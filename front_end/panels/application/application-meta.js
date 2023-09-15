@@ -2,9 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as Common from '../../core/common/common.js';
+import * as i18n from '../../core/i18n/i18n.js';
 import * as SDK from '../../core/sdk/sdk.js';
 import * as UI from '../../ui/legacy/legacy.js';
-import * as i18n from '../../core/i18n/i18n.js';
+import * as PreloadingHelper from './preloading/helper/helper.js';
 const UIStrings = {
     /**
      *@description Text in Application Panel Sidebar of the Application panel
@@ -137,6 +138,26 @@ Common.Revealer.registerRevealer({
     async loadRevealer() {
         const Resources = await loadResourcesModule();
         return Resources.ResourcesPanel.FrameDetailsRevealer.instance();
+    },
+});
+Common.Revealer.registerRevealer({
+    contextTypes() {
+        return [PreloadingHelper.PreloadingForward.RuleSetView];
+    },
+    destination: Common.Revealer.RevealerDestination.APPLICATION_PANEL,
+    async loadRevealer() {
+        const Resources = await loadResourcesModule();
+        return Resources.ResourcesPanel.RuleSetViewRevealer.instance();
+    },
+});
+Common.Revealer.registerRevealer({
+    contextTypes() {
+        return [PreloadingHelper.PreloadingForward.AttemptViewWithFilter];
+    },
+    destination: Common.Revealer.RevealerDestination.APPLICATION_PANEL,
+    async loadRevealer() {
+        const Resources = await loadResourcesModule();
+        return Resources.ResourcesPanel.AttemptViewWithFilterRevealer.instance();
     },
 });
 //# map=application-meta.js.map

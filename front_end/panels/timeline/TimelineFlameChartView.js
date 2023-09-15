@@ -17,6 +17,7 @@ import { TimelineDetailsView } from './TimelineDetailsView.js';
 import { TimelineRegExp } from './TimelineFilters.js';
 import { Events as TimelineFlameChartDataProviderEvents, TimelineFlameChartDataProvider, } from './TimelineFlameChartDataProvider.js';
 import { TimelineFlameChartNetworkDataProvider } from './TimelineFlameChartNetworkDataProvider.js';
+import { ThreadTracksSource } from './TimelinePanel.js';
 import { TimelineSelection } from './TimelineSelection.js';
 import { AggregatedTimelineTreeView } from './TimelineTreeView.js';
 import { TimelineUIUtils } from './TimelineUIUtils.js';
@@ -64,7 +65,7 @@ export class TimelineFlameChartView extends UI.Widget.VBox {
     selectedSearchResult;
     searchRegex;
     #traceEngineData;
-    constructor(delegate) {
+    constructor(delegate, threadTracksSource = ThreadTracksSource.BOTH_ENGINES) {
         super();
         this.element.classList.add('timeline-flamechart');
         this.delegate = delegate;
@@ -77,7 +78,7 @@ export class TimelineFlameChartView extends UI.Widget.VBox {
         // Ensure that the network panel & resizer appears above the main thread.
         this.networkSplitWidget.sidebarElement().style.zIndex = '120';
         const mainViewGroupExpansionSetting = Common.Settings.Settings.instance().createSetting('timelineFlamechartMainViewGroupExpansion', {});
-        this.mainDataProvider = new TimelineFlameChartDataProvider();
+        this.mainDataProvider = new TimelineFlameChartDataProvider(threadTracksSource);
         this.mainDataProvider.addEventListener(TimelineFlameChartDataProviderEvents.DataChanged, () => this.mainFlameChart.scheduleUpdate());
         this.mainFlameChart = new PerfUI.FlameChart.FlameChart(this.mainDataProvider, this, mainViewGroupExpansionSetting);
         this.mainFlameChart.alwaysShowVerticalScroll();
@@ -126,6 +127,9 @@ export class TimelineFlameChartView extends UI.Widget.VBox {
         this.groupBySetting.addChangeListener(this.updateColorMapper, this);
         this.updateColorMapper();
     }
+    isNetworkTrackShownForTests() {
+        return this.networkSplitWidget.showMode() !== UI.SplitWidget.ShowMode.OnlyMain;
+    }
     updateColorMapper() {
         if (!this.model) {
             return;
@@ -164,7 +168,7 @@ export class TimelineFlameChartView extends UI.Widget.VBox {
         this.model = model;
         this.#selectedEvents = null;
         this.mainDataProvider.setModel(this.model, newTraceEngineData);
-        this.networkDataProvider.setModel(this.model);
+        this.networkDataProvider.setModel(newTraceEngineData);
         if (this.model) {
             this.eventListeners = [
                 this.model.addEventListener(PerformanceModelEvents.WindowChanged, this.onWindowChanged, this),
@@ -181,7 +185,8 @@ export class TimelineFlameChartView extends UI.Widget.VBox {
     }
     updateTrack() {
         this.countersView.setModel(this.model, this.#selectedEvents);
-        this.detailsView.setModel(this.model, this.#traceEngineData, this.#selectedEvents);
+        // TODO(crbug.com/1459265):  Change to await after migration work.
+        void this.detailsView.setModel(this.model, this.#traceEngineData, this.#selectedEvents);
     }
     refresh() {
         if (this.networkDataProvider.isEmpty()) {
@@ -215,7 +220,7 @@ export class TimelineFlameChartView extends UI.Widget.VBox {
         let backendNodeIds;
         // Events for tracks that are migrated to the new engine won't use
         // TimelineModel.TimelineData.
-        if (event instanceof SDK.TracingModel.Event) {
+        if (event instanceof TraceEngine.Legacy.Event) {
             const timelineData = TimelineModel.TimelineModel.EventOnTimelineData.forEvent(event);
             backendNodeIds = timelineData.backendNodeIds;
         }
@@ -268,7 +273,8 @@ export class TimelineFlameChartView extends UI.Widget.VBox {
         index = this.networkDataProvider.entryIndexForSelection(selection);
         this.networkFlameChart.setSelectedEntry(index);
         if (this.detailsView) {
-            this.detailsView.setSelection(selection);
+            // TODO(crbug.com/1459265):  Change to await after migration work.
+            void this.detailsView.setSelection(selection);
         }
     }
     onEntrySelected(dataProvider, event) {
@@ -288,7 +294,7 @@ export class TimelineFlameChartView extends UI.Widget.VBox {
         }
         this.needsResizeToPreferredHeights = false;
         this.networkPane.element.classList.toggle('timeline-network-resizer-disabled', !this.networkDataProvider.isExpanded());
-        this.networkSplitWidget.setSidebarSize(this.networkDataProvider.preferredHeight() + this.splitResizer.clientHeight + PerfUI.FlameChart.HeaderHeight +
+        this.networkSplitWidget.setSidebarSize(this.networkDataProvider.preferredHeight() + this.splitResizer.clientHeight + PerfUI.FlameChart.RulerHeight +
             2);
     }
     setSearchableView(searchableView) {

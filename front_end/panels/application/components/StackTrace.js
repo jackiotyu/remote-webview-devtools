@@ -24,7 +24,7 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/application/components/StackTrace.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class StackTraceRow extends HTMLElement {
+export class StackTraceRow extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-stack-trace-row`;
     #shadow = this.attachShadow({ mode: 'open' });
     #stackTraceRowItem = null;
@@ -53,8 +53,7 @@ class StackTraceRow extends HTMLElement {
     `, this.#shadow, { host: this });
     }
 }
-export { StackTraceRow };
-class StackTraceLinkButton extends HTMLElement {
+export class StackTraceLinkButton extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-stack-trace-link-button`;
     #shadow = this.attachShadow({ mode: 'open' });
     #onShowAllClick = () => { };
@@ -84,8 +83,7 @@ class StackTraceLinkButton extends HTMLElement {
     `, this.#shadow, { host: this });
     }
 }
-export { StackTraceLinkButton };
-class StackTrace extends HTMLElement {
+export class StackTrace extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-resources-stack-trace`;
     #shadow = this.attachShadow({ mode: 'open' });
     #linkifier = new Components.Linkifier.Linkifier();
@@ -157,7 +155,6 @@ class StackTrace extends HTMLElement {
         // clang-format on
     }
 }
-export { StackTrace };
 ComponentHelpers.CustomElements.defineComponent('devtools-stack-trace-row', StackTraceRow);
 ComponentHelpers.CustomElements.defineComponent('devtools-stack-trace-link-button', StackTraceLinkButton);
 ComponentHelpers.CustomElements.defineComponent('devtools-resources-stack-trace', StackTrace);

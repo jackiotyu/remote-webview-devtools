@@ -12,11 +12,11 @@ styles.replaceSync(
  */
 
 :host {
-  --override-node-text-label-color: var(--color-syntax-2);
-  --override-node-text-class-color: var(--color-syntax-4);
-  --override-node-text-id-color: var(--color-syntax-4);
-  --override-node-text-multiple-descriptors-id: var(--color-syntax-7);
-  --override-node-text-multiple-descriptors-class: var(--color-syntax-4);
+  --override-node-text-label-color: var(--sys-color-token-tag);
+  --override-node-text-class-color: var(--sys-color-token-attribute);
+  --override-node-text-id-color: var(--sys-color-token-attribute);
+  --override-node-text-multiple-descriptors-id: var(--sys-color-on-surface);
+  --override-node-text-multiple-descriptors-class: var(--sys-color-token-property);
 }
 
 .crumbs {
@@ -28,7 +28,7 @@ styles.replaceSync(
   cursor: default;
   white-space: nowrap;
   position: relative;
-  background: var(--color-background);
+  background: var(--sys-color-cdt-base-container);
   font-size: inherit;
   font-family: inherit;
 }
@@ -59,10 +59,10 @@ styles.replaceSync(
   flex-grow: 0;
   flex-shrink: 0;
   text-align: center;
-  background-color: var(--color-background-elevation-1);
-  color: var(--color-text-secondary);
+  background-color: var(--sys-color-cdt-base-container);
+  color: var(--sys-color-token-subtle);
   margin: 1px;
-  outline: var(--color-background-elevation-1) solid 1px;
+  outline: 1px solid var(--sys-color-neutral-outline);
 }
 
 .overflow.hidden {
@@ -74,12 +74,12 @@ styles.replaceSync(
 }
 
 .overflow:focus {
-  outline-color: var(--color-primary-old);
+  outline-color: var(--sys-color-primary);
 }
 
 .overflow:not(:disabled):hover {
-  background-color: var(--color-background-elevation-2);
-  color: var(--color-text-primary);
+  background-color: var(--sys-color-state-hover-on-subtle);
+  color: var(--sys-color-on-surface);
 }
 
 .crumb-link {
@@ -88,17 +88,17 @@ styles.replaceSync(
 }
 
 .crumb:hover {
-  background: var(--color-background-elevation-2);
+  background: var(--sys-color-state-hover-on-subtle);
 }
 
 .crumb.selected {
-  background: var(--color-background-elevation-1);
+  background: var(--sys-color-tonal-container);
 }
 
 .crumb:focus {
-  outline: var(--color-primary-old) auto 1px;
+  outline: var(--sys-color-primary) auto 1px;
 }
 
-
+/*# sourceURL=elementsBreadcrumbs.css */
 `);
 export default styles;

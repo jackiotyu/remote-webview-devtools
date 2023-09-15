@@ -8,7 +8,7 @@ import * as Coordinator from '../render_coordinator/render_coordinator.js';
 import linkifierImplStyles from './linkifierImpl.css.js';
 import * as LinkifierUtils from './LinkifierUtils.js';
 const coordinator = Coordinator.RenderCoordinator.RenderCoordinator.instance();
-class LinkifierClick extends Event {
+export class LinkifierClick extends Event {
     data;
     static eventName = 'linkifieractivated';
     constructor(data) {
@@ -20,8 +20,7 @@ class LinkifierClick extends Event {
         this.data = data;
     }
 }
-export { LinkifierClick };
-class Linkifier extends HTMLElement {
+export class Linkifier extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-linkifier`;
     #shadow = this.attachShadow({ mode: 'open' });
     #url = Platform.DevToolsPath.EmptyUrlString;
@@ -58,6 +57,5 @@ class Linkifier extends HTMLElement {
         });
     }
 }
-export { Linkifier };
 ComponentHelpers.CustomElements.defineComponent('devtools-linkifier', Linkifier);
 //# map=LinkifierImpl.js.map

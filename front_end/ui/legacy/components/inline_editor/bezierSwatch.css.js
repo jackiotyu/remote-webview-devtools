@@ -18,7 +18,7 @@ styles.replaceSync(
 [is="ui-icon"].icon-mask.bezier-swatch-icon {
   position: relative;
   transform: scale(0.7);
-  margin: -5px -2px -5px -4px;
+  margin: -5px -2px -6px -4px;
   user-select: none;
   background-color: var(--icon-css);
   cursor: default;
@@ -28,6 +28,6 @@ styles.replaceSync(
   background-color: var(--icon-css-hover);
 }
 
-
+/*# sourceURL=bezierSwatch.css */
 `);
 export default styles;

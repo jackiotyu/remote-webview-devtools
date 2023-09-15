@@ -134,7 +134,7 @@ export class ScreencastView extends UI.Widget.VBox {
         this.glassPaneElement =
             this.canvasContainerElement.createChild('div', 'screencast-glasspane fill hidden');
         this.canvasElement = this.canvasContainerElement.createChild('canvas');
-        UI.ARIAUtils.setAccessibleName(this.canvasElement, i18nString(UIStrings.screencastViewOfDebugTarget));
+        UI.ARIAUtils.setLabel(this.canvasElement, i18nString(UIStrings.screencastViewOfDebugTarget));
         this.canvasElement.tabIndex = 0;
         this.canvasElement.addEventListener('mousedown', this.handleMouseEvent.bind(this), false);
         this.canvasElement.addEventListener('mouseup', this.handleMouseEvent.bind(this), false);
@@ -564,14 +564,14 @@ export class ScreencastView extends UI.Widget.VBox {
         this.navigationBar = this.element.createChild('div', 'screencast-navigation');
         this.navigationBack = this.navigationBar.createChild('button', 'back');
         this.navigationBack.disabled = true;
-        UI.ARIAUtils.setAccessibleName(this.navigationBack, i18nString(UIStrings.back));
+        UI.ARIAUtils.setLabel(this.navigationBack, i18nString(UIStrings.back));
         this.navigationForward = this.navigationBar.createChild('button', 'forward');
         this.navigationForward.disabled = true;
-        UI.ARIAUtils.setAccessibleName(this.navigationForward, i18nString(UIStrings.forward));
+        UI.ARIAUtils.setLabel(this.navigationForward, i18nString(UIStrings.forward));
         this.navigationReload = this.navigationBar.createChild('button', 'reload');
-        UI.ARIAUtils.setAccessibleName(this.navigationReload, i18nString(UIStrings.reload));
+        UI.ARIAUtils.setLabel(this.navigationReload, i18nString(UIStrings.reload));
         this.navigationUrl = UI.UIUtils.createInput();
-        UI.ARIAUtils.setAccessibleName(this.navigationUrl, i18nString(UIStrings.addressBar));
+        UI.ARIAUtils.setLabel(this.navigationUrl, i18nString(UIStrings.addressBar));
         this.navigationBar.appendChild(this.navigationUrl);
         this.navigationUrl.type = 'text';
         this.navigationProgressBar = new ProgressTracker(this.resourceTreeModel, this.networkManager, this.navigationBar.createChild('div', 'progress'));
@@ -613,12 +613,8 @@ export class ScreencastView extends UI.Widget.VBox {
         if (!url.match(SCHEME_REGEX)) {
             url = 'http://' + url;
         }
-        // Perform decodeURI in case the user enters an encoded string
-        // decodeURI has no effect on strings that are already decoded
-        // encodeURI ensures an encoded URL is always passed to the backend
-        // This allows the input field to support both encoded and decoded URLs
         if (this.resourceTreeModel) {
-            void this.resourceTreeModel.navigate(encodeURI(decodeURI(url)));
+            void this.resourceTreeModel.navigate(url);
         }
         this.canvasElement.focus();
     }

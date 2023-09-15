@@ -45,6 +45,6 @@ styles.replaceSync(
   margin-top: 5px;
 }
 
-
+/*# sourceURL=networkManageCustomHeadersView.css */
 `);
 export default styles;

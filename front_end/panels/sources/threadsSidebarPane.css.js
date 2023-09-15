@@ -21,11 +21,11 @@ styles.replaceSync(
 }
 
 .thread-item + .thread-item {
-  border-top: 1px solid var(--color-details-hairline-light);
+  border-top: 1px solid var(--sys-color-divider);
 }
 
 .thread-item:hover {
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-state-hover-on-subtle);
 }
 
 .thread-item:focus-visible {
@@ -69,6 +69,6 @@ styles.replaceSync(
   }
 }
 
-
+/*# sourceURL=threadsSidebarPane.css */
 `);
 export default styles;

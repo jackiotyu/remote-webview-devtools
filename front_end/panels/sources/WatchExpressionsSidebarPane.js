@@ -252,7 +252,7 @@ export class WatchExpressionsSidebarPane extends UI.ThrottledWidget.ThrottledWid
         this.registerCSSFiles([watchExpressionsSidebarPaneStyles, objectValueStyles]);
     }
 }
-class WatchExpression extends Common.ObjectWrapper.ObjectWrapper {
+export class WatchExpression extends Common.ObjectWrapper.ObjectWrapper {
     treeElementInternal;
     nameElement;
     valueElement;
@@ -506,5 +506,4 @@ class WatchExpression extends Common.ObjectWrapper.ObjectWrapper {
     }
     static watchObjectGroupId = 'watch-group';
 }
-export { WatchExpression };
 //# map=WatchExpressionsSidebarPane.js.map

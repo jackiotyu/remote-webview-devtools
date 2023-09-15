@@ -14,7 +14,7 @@ styles.replaceSync(
 .link-swatch-link:not(.undefined) {
   cursor: pointer;
   text-underline-offset: 2px;
-  color: var(--color-link);
+  color: var(--text-link);
 }
 
 .link-swatch-link:hover:not(.undefined) {
@@ -26,11 +26,9 @@ styles.replaceSync(
 }
 
 .link-swatch-link.undefined {
-  --override-link-swatch-link-undefined-color: rgb(102 102 102);
-
-  color: var(--override-link-swatch-link-undefined-color);
+  color: var(--text-disabled);
 }
 
-
+/*# sourceURL=linkSwatch.css */
 `);
 export default styles;

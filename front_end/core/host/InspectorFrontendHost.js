@@ -50,6 +50,7 @@ export class InspectorFrontendHostStub {
     #urlsBeingSaved;
     events;
     #fileSystem = null;
+    recordedCountHistograms = [];
     recordedEnumeratedHistograms = [];
     recordedPerformanceHistograms = [];
     constructor() {
@@ -164,6 +165,12 @@ export class InspectorFrontendHostStub {
     }
     sendMessageToBackend(message) {
     }
+    recordCountHistogram(histogramName, sample, min, exclusiveMax, bucketSize) {
+        if (this.recordedCountHistograms.length >= MAX_RECORDED_HISTOGRAMS_SIZE) {
+            this.recordedCountHistograms.shift();
+        }
+        this.recordedCountHistograms.push({ histogramName, sample, min, exclusiveMax, bucketSize });
+    }
     recordEnumeratedHistogram(actionName, actionCode, bucketSize) {
         if (this.recordedEnumeratedHistograms.length >= MAX_RECORDED_HISTOGRAMS_SIZE) {
             this.recordedEnumeratedHistograms.shift();
@@ -215,8 +222,29 @@ export class InspectorFrontendHostStub {
         return this.#fileSystem;
     }
     loadNetworkResource(url, headers, streamId, callback) {
+        // Read the first 3 bytes looking for the gzip signature in the file header
+        function isGzip(ab) {
+            const buf = new Uint8Array(ab);
+            if (!buf || buf.length < 3) {
+                return false;
+            }
+            // https://www.rfc-editor.org/rfc/rfc1952#page-6
+            return buf[0] === 0x1F && buf[1] === 0x8B && buf[2] === 0x08;
+        }
         fetch(url)
-            .then(result => result.text())
+            .then(async (result) => {
+            const resultArrayBuf = await result.arrayBuffer();
+            let decoded = resultArrayBuf;
+            if (isGzip(resultArrayBuf)) {
+                const ds = new DecompressionStream('gzip');
+                const writer = ds.writable.getWriter();
+                void writer.write(resultArrayBuf);
+                void writer.close();
+                decoded = ds.readable;
+            }
+            const text = await new Response(decoded).text();
+            return text;
+        })
             .then(function (text) {
             resourceLoaderStreamWrite(streamId, text);
             callback({
@@ -318,6 +346,11 @@ export class InspectorFrontendHostStub {
     }
     async initialTargetId() {
         return null;
+    }
+    doAidaConversation(request, callback) {
+        callback({
+            response: '{}',
+        });
     }
 }
 // @ts-ignore Global injected by devtools-compatibility.js

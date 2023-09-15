@@ -9,7 +9,7 @@ import * as Components from '../../ui/legacy/components/utils/utils.js';
 import * as UI from '../../ui/legacy/legacy.js';
 import * as Workspace from '../workspace/workspace.js';
 import { FileSystemWorkspaceBinding } from './FileSystemWorkspaceBinding.js';
-import { HEADERS_FILENAME, NetworkPersistenceManager } from './NetworkPersistenceManager.js';
+import { NetworkPersistenceManager } from './NetworkPersistenceManager.js';
 import { Events, PersistenceImpl } from './PersistenceImpl.js';
 const UIStrings = {
     /**
@@ -60,13 +60,11 @@ export class PersistenceUtils {
             !uiSourceCode.url().startsWith('file://')) {
             return null;
         }
-        if (uiSourceCode.url().endsWith(HEADERS_FILENAME)) {
-            if (NetworkPersistenceManager.instance().hasMatchingNetworkUISourceCodeForHeaderOverridesFile(uiSourceCode)) {
-                const icon = new IconButton.Icon.Icon();
-                icon.data = { iconName: 'document', color: 'var(--icon-default)', width: '16px', height: '16px' };
-                icon.classList.add('dot', 'purple');
-                return icon;
-            }
+        if (NetworkPersistenceManager.instance().isActiveHeaderOverrides(uiSourceCode)) {
+            const icon = new IconButton.Icon.Icon();
+            icon.data = { iconName: 'document', color: 'var(--icon-default)', width: '16px', height: '16px' };
+            icon.classList.add('dot', 'purple');
+            return icon;
         }
         const icon = new IconButton.Icon.Icon();
         icon.data = { iconName: 'document', color: 'var(--icon-default)', width: '16px', height: '16px' };

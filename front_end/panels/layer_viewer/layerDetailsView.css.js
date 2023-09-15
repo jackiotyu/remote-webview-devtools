@@ -20,14 +20,7 @@ table td:first-child {
 }
 
 .scroll-rect.active {
-  --override-active-rect-color: rgb(100 100 100 / 20%);
-
-  background-color: var(--override-active-rect-color);
-}
-
-.-theme-with-dark-background .scroll-rect.active,
-:host-context(.-theme-with-dark-background) .scroll-rect.active {
-  --override-active-rect-color: rgb(155 155 155 / 20%);
+  background-color: var(--sys-color-neutral-container);
 }
 
 ul {
@@ -42,6 +35,6 @@ ul {
   display: inline-block;
 }
 
-
+/*# sourceURL=layerDetailsView.css */
 `);
 export default styles;

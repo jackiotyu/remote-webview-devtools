@@ -24,7 +24,7 @@ styles.replaceSync(
 }
 
 .computed-style-trace:hover {
-  background-color: var(--legacy-focus-bg-color);
+  background-color: var(--sys-color-state-hover-on-subtle);
   cursor: text;
 }
 
@@ -40,7 +40,7 @@ styles.replaceSync(
   margin: -1px 0 0 calc(-1 * var(--size));
   -webkit-mask-image: var(--image-file-mediumIcons);
   -webkit-mask-position: -32px 48px;
-  background-color: var(--legacy-active-control-bg-color);
+  background-color: var(--sys-color-surface-variant);
 }
 
 .computed-style-trace:hover .goto {
@@ -48,10 +48,8 @@ styles.replaceSync(
 }
 
 .devtools-link {
-  --override-text-decoration-color: hsl(0deg 0% 60%);
-
-  color: var(--color-text-primary);
-  text-decoration-color: var(--override-text-decoration-color);
+  color: var(--sys-color-on-surface);
+  text-decoration-color: var(--sys-color-token-subtle);
   text-decoration-line: underline;
   cursor: pointer;
 }
@@ -65,7 +63,7 @@ styles.replaceSync(
 }
 
 .trace-selector {
-  --override-trace-selector-color: rgb(128 128 128);
+  --override-trace-selector-color: var(--sys-color-neutral-bright);
 
   color: var(--override-trace-selector-color);
   padding-left: 2em;
@@ -98,6 +96,6 @@ styles.replaceSync(
   }
 }
 
-
+/*# sourceURL=computedStyleTrace.css */
 `);
 export default styles;

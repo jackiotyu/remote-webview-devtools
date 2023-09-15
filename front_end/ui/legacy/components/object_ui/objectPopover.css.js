@@ -28,7 +28,7 @@ styles.replaceSync(
 }
 
 .object-popover-tree {
-  border-top: 1px solid var(--color-details-hairline);
+  border-top: 1px solid var(--sys-color-divider);
   overflow: auto;
   width: 100%;
   height: calc(100% - 13px);
@@ -38,6 +38,6 @@ styles.replaceSync(
   display: inline-block;
 }
 
-
+/*# sourceURL=objectPopover.css */
 `);
 export default styles;

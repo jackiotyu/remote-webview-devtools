@@ -32,7 +32,7 @@ export const dynamicSetting = CM.Facet.define();
 // configuration, the TextEditor class will take care of listening to
 // changes in the setting, and updating the configuration as
 // appropriate.
-class DynamicSetting {
+export class DynamicSetting {
     settingName;
     getExtension;
     compartment = new CM.Compartment();
@@ -59,7 +59,6 @@ class DynamicSetting {
     }
     static none = [];
 }
-export { DynamicSetting };
 export const tabMovesFocus = DynamicSetting.bool('textEditorTabMovesFocus', [], CM.keymap.of([{
         key: 'Tab',
         run: (view) => view.state.doc.length ? CM.indentMore(view) : false,
@@ -268,8 +267,8 @@ const baseKeymap = CM.keymap.of([
     { key: 'Mod-d', run: CM.selectNextOccurrence },
     { key: 'Alt-ArrowLeft', mac: 'Ctrl-ArrowLeft', run: CM.cursorSyntaxLeft, shift: CM.selectSyntaxLeft },
     { key: 'Alt-ArrowRight', mac: 'Ctrl-ArrowRight', run: CM.cursorSyntaxRight, shift: CM.selectSyntaxRight },
-    { key: 'Ctrl-ArrowLeft', mac: 'Alt-ArrowLeft', run: CM.cursorSubwordBackward, shift: CM.selectSubwordBackward },
-    { key: 'Ctrl-ArrowRight', mac: 'Alt-ArrowRight', run: CM.cursorSubwordForward, shift: CM.selectSubwordForward },
+    { key: 'Ctrl-ArrowLeft', mac: 'Alt-ArrowLeft', run: CM.cursorGroupLeft, shift: CM.selectGroupLeft },
+    { key: 'Ctrl-ArrowRight', mac: 'Alt-ArrowRight', run: CM.cursorGroupRight, shift: CM.selectGroupRight },
     ...CM.standardKeymap,
     ...CM.historyKeymap,
 ]);

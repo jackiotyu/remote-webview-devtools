@@ -155,7 +155,7 @@ export class StylesSourceMapping {
         this.#project.removeProject();
     }
 }
-class StyleFile {
+export class StyleFile {
     #cssModel;
     #project;
     headers;
@@ -284,5 +284,4 @@ class StyleFile {
         return this.uiSourceCode;
     }
 }
-export { StyleFile };
 //# map=StylesSourceMapping.js.map

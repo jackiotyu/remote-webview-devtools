@@ -55,7 +55,6 @@ export class ResourceTreeModel extends SDKModel {
     isInterstitialShowing;
     mainFrame;
     #pendingBackForwardCacheNotUsedEvents;
-    #pendingPrerenderAttemptCompletedEvents;
     constructor(target) {
         super(target);
         const networkManager = target.model(NetworkManager);
@@ -69,9 +68,7 @@ export class ResourceTreeModel extends SDKModel {
         this.#securityOriginManager = target.model(SecurityOriginManager);
         this.#storageKeyManager = target.model(StorageKeyManager);
         this.#pendingBackForwardCacheNotUsedEvents = new Set();
-        this.#pendingPrerenderAttemptCompletedEvents = new Set();
         target.registerPageDispatcher(new PageDispatcher(this));
-        target.registerPreloadDispatcher(new PreloadDispatcher(this));
         this.framesInternal = new Map();
         this.#cachedResourcesProcessed = false;
         this.#pendingReloadOptions = null;
@@ -265,7 +262,7 @@ export class ResourceTreeModel extends SDKModel {
             return;
         }
         const request = event.data;
-        if (request.failed || request.resourceType() === Common.ResourceType.resourceTypes.XHR) {
+        if (request.failed) {
             return;
         }
         const frame = request.frameId ? this.framesInternal.get(request.frameId) : null;
@@ -311,7 +308,10 @@ export class ResourceTreeModel extends SDKModel {
     }
     addFramesRecursively(sameTargetParentFrame, frameTreePayload) {
         const framePayload = frameTreePayload.frame;
-        const frame = new ResourceTreeFrame(this, sameTargetParentFrame, framePayload.id, framePayload, null);
+        let frame = this.framesInternal.get(framePayload.id);
+        if (!frame) {
+            frame = new ResourceTreeFrame(this, sameTargetParentFrame, framePayload.id, framePayload, null);
+        }
         if (!sameTargetParentFrame && framePayload.parentId) {
             frame.crossTargetParentFrameId = framePayload.parentId;
         }
@@ -494,19 +494,6 @@ export class ResourceTreeModel extends SDKModel {
             this.#pendingBackForwardCacheNotUsedEvents.add(event);
         }
     }
-    onPrerenderAttemptCompleted(event) {
-        if (this.mainFrame && this.mainFrame.id === event.initiatingFrameId) {
-            this.mainFrame.setPrerenderFinalStatus(event.finalStatus);
-            this.dispatchEventToListeners(Events.PrerenderingStatusUpdated, this.mainFrame);
-            if (event.disallowedApiMethod) {
-                this.mainFrame.setPrerenderDisallowedApiMethod(event.disallowedApiMethod);
-            }
-        }
-        else {
-            this.#pendingPrerenderAttemptCompletedEvents.add(event);
-        }
-        this.dispatchEventToListeners(Events.PrerenderAttemptCompleted, event);
-    }
     processPendingEvents(frame) {
         if (!frame.isMainFrame()) {
             return;
@@ -515,16 +502,6 @@ export class ResourceTreeModel extends SDKModel {
             if (frame.id === event.frameId && frame.loaderId === event.loaderId) {
                 frame.setBackForwardCacheDetails(event);
                 this.#pendingBackForwardCacheNotUsedEvents.delete(event);
-                break;
-            }
-        }
-        for (const event of this.#pendingPrerenderAttemptCompletedEvents) {
-            if (frame.id === event.initiatingFrameId) {
-                frame.setPrerenderFinalStatus(event.finalStatus);
-                if (event.disallowedApiMethod) {
-                    frame.setPrerenderDisallowedApiMethod(event.disallowedApiMethod);
-                }
-                this.#pendingPrerenderAttemptCompletedEvents.delete(event);
                 break;
             }
         }
@@ -554,8 +531,6 @@ export var Events;
     Events["InterstitialShown"] = "InterstitialShown";
     Events["InterstitialHidden"] = "InterstitialHidden";
     Events["BackForwardCacheDetailsUpdated"] = "BackForwardCacheDetailsUpdated";
-    Events["PrerenderingStatusUpdated"] = "PrerenderingStatusUpdated";
-    Events["PrerenderAttemptCompleted"] = "PrerenderAttemptCompleted";
     Events["JavaScriptDialogOpening"] = "JavaScriptDialogOpening";
 })(Events || (Events = {}));
 export class ResourceTreeFrame {
@@ -583,8 +558,6 @@ export class ResourceTreeFrame {
         explanations: [],
         explanationsTree: undefined,
     };
-    prerenderFinalStatus;
-    prerenderDisallowedApiMethod;
     constructor(model, parentFrame, frameId, payload, creationStackTrace) {
         this.#model = model;
         this.#sameTargetParentFrameInternal = parentFrame;
@@ -606,8 +579,6 @@ export class ResourceTreeFrame {
         this.#creationStackTraceTarget = null;
         this.#childFramesInternal = new Set();
         this.resourcesMap = new Map();
-        this.prerenderFinalStatus = null;
-        this.prerenderDisallowedApiMethod = null;
         if (this.#sameTargetParentFrameInternal) {
             this.#sameTargetParentFrameInternal.#childFramesInternal.add(this);
         }
@@ -907,12 +878,6 @@ export class ResourceTreeFrame {
     getResourcesMap() {
         return this.resourcesMap;
     }
-    setPrerenderFinalStatus(status) {
-        this.prerenderFinalStatus = status;
-    }
-    setPrerenderDisallowedApiMethod(disallowedApiMethod) {
-        this.prerenderDisallowedApiMethod = disallowedApiMethod;
-    }
 }
 export class PageDispatcher {
     #resourceTreeModel;
@@ -987,27 +952,6 @@ export class PageDispatcher {
     downloadWillBegin({}) {
     }
     downloadProgress() {
-    }
-}
-class PreloadDispatcher {
-    #resourceTreeModel;
-    constructor(resourceTreeModel) {
-        this.#resourceTreeModel = resourceTreeModel;
-    }
-    ruleSetUpdated(_event) {
-    }
-    ruleSetRemoved(_event) {
-    }
-    prerenderAttemptCompleted(params) {
-        this.#resourceTreeModel.onPrerenderAttemptCompleted(params);
-    }
-    prefetchStatusUpdated(_event) {
-    }
-    prerenderStatusUpdated(_event) {
-    }
-    preloadEnabledStateUpdated(_event) {
-    }
-    preloadingAttemptSourcesUpdated() {
     }
 }
 SDKModel.register(ResourceTreeModel, { capabilities: Capability.DOM, autostart: true, early: true });

@@ -5,7 +5,7 @@
 /* istanbul ignore file */
 const styles = new CSSStyleSheet();
 styles.replaceSync(
-  `/*
+`/*
  * Copyright (C) 2013 Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,11 @@ styles.replaceSync(
 .screencast-navigation button {
   border-radius: 2px;
   background-color: transparent;
-  background-image: var(--image-file-navigationControls);
+  background-image:
+    image-set(
+      var(--image-file-navigationControls) 1x,
+      var(--image-file-navigationControls_2x) 2x
+    );
   background-clip: content-box;
   background-origin: content-box;
   background-repeat: no-repeat;
@@ -126,7 +130,7 @@ styles.replaceSync(
   display: flex;
   border: 1px solid var(--color-details-hairline);
   position: relative;
-  cursor: var(--image-file-touchCursor);
+  cursor: image-set(var(--image-file-touchCursor) 1x, var(--image-file-touchCursor_2x) 2x), default;
 }
 
 .screencast canvas {
@@ -162,6 +166,6 @@ styles.replaceSync(
   align-items: center;
 }
 
-
+/*# sourceURL=screencastView.css */
 `);
 export default styles;

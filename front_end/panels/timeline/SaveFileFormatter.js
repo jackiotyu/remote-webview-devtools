@@ -39,4 +39,10 @@ export function* traceJsonGenerator(traceEvents, metadata) {
     yield `,\n"metadata": ${JSON.stringify(metadata || {}, null, 2)}`;
     yield '}\n';
 }
+/**
+ * Generates a JSON representation of CPU profile.
+ */
+export function cpuprofileJsonGenerator(cpuprofile) {
+    return JSON.stringify(cpuprofile);
+}
 //# map=SaveFileFormatter.js.map

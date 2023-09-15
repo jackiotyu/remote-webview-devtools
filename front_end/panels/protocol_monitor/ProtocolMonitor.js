@@ -1,6 +1,7 @@
 // Copyright 2018 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+import * as Common from '../../core/common/common.js';
 import * as Host from '../../core/host/host.js';
 import * as i18n from '../../core/i18n/i18n.js';
 import * as Platform from '../../core/platform/platform.js';
@@ -13,6 +14,7 @@ import * as IconButton from '../../ui/components/icon_button/icon_button.js';
 import * as SourceFrame from '../../ui/legacy/components/source_frame/source_frame.js';
 import * as UI from '../../ui/legacy/legacy.js';
 import * as LitHtml from '../../ui/lit-html/lit-html.js';
+import * as Components from './components/components.js';
 import protocolMonitorStyles from './protocolMonitor.css.js';
 const UIStrings = {
     /**
@@ -63,6 +65,10 @@ const UIStrings = {
      */
     documentation: 'Documentation',
     /**
+     *@description Text to open the CDP editor with the selected command
+     */
+    editAndResend: 'Edit and resend',
+    /**
      *@description Cell text content in Protocol Monitor of the Protocol Monitor tab
      *@example {30} PH1
      */
@@ -91,14 +97,43 @@ const UIStrings = {
      * @description A label for a select input that allows selecting a CDP target to send the commands to.
      */
     selectTarget: 'Select a target',
+    /**
+     * @description Tooltip for the the console sidebar toggle in the Console panel. Command to
+     * open/show the sidebar.
+     */
+    showCDPCommandEditor: 'Show CDP command editor',
+    /**
+     * @description Tooltip for the the console sidebar toggle in the Console panel. Command to
+     * open/show the sidebar.
+     */
+    hideCDPCommandEditor: 'Hide  CDP command editor',
+    /**
+     * @description Screen reader announcement when the sidebar is shown in the Console panel.
+     */
+    CDPCommandEditorShown: 'CDP command editor shown',
+    /**
+     * @description Screen reader announcement when the sidebar is hidden in the Console panel.
+     */
+    CDPCommandEditorHidden: 'CDP command editor hidden',
 };
 const str_ = i18n.i18n.registerUIStrings('panels/protocol_monitor/ProtocolMonitor.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const timeRenderer = (value) => {
     return LitHtml.html `${i18nString(UIStrings.sMs, { PH1: String(value) })}`;
 };
-let protocolMonitorImplInstance;
-export class ProtocolMonitorImpl extends UI.Widget.VBox {
+export const buildProtocolMetadata = (domains) => {
+    const metadataByCommand = new Map();
+    for (const domain of domains) {
+        for (const command of Object.keys(domain.metadata)) {
+            metadataByCommand.set(command, domain.metadata[command]);
+        }
+    }
+    return metadataByCommand;
+};
+const metadataByCommand = buildProtocolMetadata(ProtocolClient.InspectorBackend.inspectorBackend.agentPrototypes.values());
+const typesByName = ProtocolClient.InspectorBackend.inspectorBackend.typeMap;
+const enumsByName = ProtocolClient.InspectorBackend.inspectorBackend.enumMap;
+export class ProtocolMonitorDataGrid extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) {
     started;
     startTime;
     requestTimeForId;
@@ -110,9 +145,11 @@ export class ProtocolMonitorImpl extends UI.Widget.VBox {
     textFilterUI;
     messages = [];
     isRecording = false;
-    #historyAutocompleteDataProvider = new HistoryAutocompleteDataProvider();
+    selector;
+    #commandAutocompleteSuggestionProvider = new CommandAutocompleteSuggestionProvider();
     #selectedTargetId;
-    constructor() {
+    #commandInput;
+    constructor(splitWidget) {
         super(true);
         this.started = false;
         this.startTime = 0;
@@ -140,8 +177,7 @@ export class ProtocolMonitorImpl extends UI.Widget.VBox {
             void this.saveAsFile();
         });
         topToolbar.appendToolbarItem(saveButton);
-        const split = new UI.SplitWidget.SplitWidget(true, true, 'protocol-monitor-panel-split', 250);
-        split.show(this.contentElement);
+        this.selector = this.#createTargetSelector();
         this.infoWidget = new InfoWidget();
         const dataGridInitialData = {
             paddingRowsCount: 100,
@@ -221,11 +257,27 @@ export class ProtocolMonitorImpl extends UI.Widget.VBox {
                     const methodColumn = DataGrid.DataGridUtils.getRowEntryForColumnId(row, 'method');
                     const typeColumn = DataGrid.DataGridUtils.getRowEntryForColumnId(row, 'type');
                     /**
+                     * You can click the "Edit and resend" item in the context menu to be
+                     * taken to the CDP editor with the filled with the selected command.
+                     */
+                    menu.editSection().appendItem(i18nString(UIStrings.editAndResend), () => {
+                        if (!methodColumn.value) {
+                            return;
+                        }
+                        const parameters = this.infoWidget.request;
+                        const targetId = this.infoWidget.targetId;
+                        const command = String(methodColumn.value);
+                        if (splitWidget.showMode() === UI.SplitWidget.ShowMode.OnlyMain) {
+                            splitWidget.toggleSidebar();
+                        }
+                        this.dispatchEventToListeners(Events.CommandChange, { command, parameters, targetId });
+                    });
+                    /**
                      * You can click the "Filter" item in the context menu to filter the
                      * protocol monitor entries to those that match the method of the
                      * current row.
                      */
-                    menu.defaultSection().appendItem(i18nString(UIStrings.filter), () => {
+                    menu.editSection().appendItem(i18nString(UIStrings.filter), () => {
                         const methodColumn = DataGrid.DataGridUtils.getRowEntryForColumnId(row, 'method');
                         this.textFilterUI.setValue(`method:${methodColumn.value}`, true);
                     });
@@ -233,7 +285,7 @@ export class ProtocolMonitorImpl extends UI.Widget.VBox {
                      * You can click the "Documentation" item in the context menu to be
                      * taken to the CDP Documentation site entry for the given method.
                      */
-                    menu.defaultSection().appendItem(i18nString(UIStrings.documentation), () => {
+                    menu.footerSection().appendItem(i18nString(UIStrings.documentation), () => {
                         if (!methodColumn.value) {
                             return;
                         }
@@ -251,6 +303,7 @@ export class ProtocolMonitorImpl extends UI.Widget.VBox {
             const infoWidgetData = {
                 request: DataGrid.DataGridUtils.getRowEntryForColumnId(focusedRow, 'request'),
                 response: DataGrid.DataGridUtils.getRowEntryForColumnId(focusedRow, 'response'),
+                target: DataGrid.DataGridUtils.getRowEntryForColumnId(focusedRow, 'target'),
                 type: DataGrid.DataGridUtils.getRowEntryForColumnId(focusedRow, 'type').title,
             };
             this.infoWidget.render(infoWidgetData);
@@ -258,6 +311,8 @@ export class ProtocolMonitorImpl extends UI.Widget.VBox {
         this.dataGridIntegrator.dataGrid.addEventListener('newuserfiltertext', event => {
             this.textFilterUI.setValue(event.data.filterText, /* notify listeners */ true);
         });
+        const split = new UI.SplitWidget.SplitWidget(true, true, 'protocol-monitor-panel-split', 250);
+        split.show(this.contentElement);
         split.setMainWidget(this.dataGridIntegrator);
         split.setSidebarWidget(this.infoWidget);
         const keys = ['method', 'request', 'response', 'type', 'target', 'session'];
@@ -269,10 +324,46 @@ export class ProtocolMonitorImpl extends UI.Widget.VBox {
             const filters = this.filterParser.parse(query);
             this.dataGridIntegrator.update({ ...this.dataGridIntegrator.data(), filters });
         });
-        topToolbar.appendToolbarItem(this.textFilterUI);
         const bottomToolbar = new UI.Toolbar.Toolbar('protocol-monitor-bottom-toolbar', this.contentElement);
-        bottomToolbar.appendToolbarItem(this.#createCommandInput());
-        bottomToolbar.appendToolbarItem(this.#createTargetSelector());
+        bottomToolbar.appendToolbarItem(splitWidget.createShowHideSidebarButton(i18nString(UIStrings.showCDPCommandEditor), i18nString(UIStrings.hideCDPCommandEditor), i18nString(UIStrings.CDPCommandEditorShown), i18nString(UIStrings.CDPCommandEditorHidden)));
+        this.#commandInput = this.#createCommandInput();
+        bottomToolbar.appendToolbarItem(this.#commandInput);
+        bottomToolbar.appendToolbarItem(this.selector);
+        const shadowRoot = bottomToolbar.element?.shadowRoot;
+        const inputBar = shadowRoot?.querySelector('.toolbar-input');
+        const tabSelector = shadowRoot?.querySelector('.toolbar-select-container');
+        const populateToolbarInput = () => {
+            const editorWidget = splitWidget.sidebarWidget();
+            if (!(editorWidget instanceof EditorWidget)) {
+                return;
+            }
+            const commandJson = editorWidget.jsonEditor.getCommandJson();
+            const targetId = editorWidget.jsonEditor.targetId;
+            if (targetId) {
+                const selectedIndex = this.selector.options().findIndex(option => option.value === targetId);
+                if (selectedIndex !== -1) {
+                    this.selector.setSelectedIndex(selectedIndex);
+                    this.#selectedTargetId = targetId;
+                }
+            }
+            if (commandJson) {
+                this.#commandInput.setValue(commandJson);
+            }
+        };
+        splitWidget.addEventListener(UI.SplitWidget.Events.ShowModeChanged, (event => {
+            if (event.data === 'OnlyMain') {
+                populateToolbarInput();
+                inputBar?.setAttribute('style', 'display:flex; flex-grow: 1');
+                tabSelector?.setAttribute('style', 'display:flex');
+            }
+            else {
+                const { command, parameters } = parseCommandInput(this.#commandInput.value());
+                this.dispatchEventToListeners(Events.CommandChange, { command, parameters, targetId: this.#selectedTargetId });
+                inputBar?.setAttribute('style', 'display:none');
+                tabSelector?.setAttribute('style', 'display:none');
+            }
+        }));
+        topToolbar.appendToolbarItem(this.textFilterUI);
     }
     #createCommandInput() {
         const placeholder = i18nString(UIStrings.sendRawCDPCommand);
@@ -280,8 +371,12 @@ export class ProtocolMonitorImpl extends UI.Widget.VBox {
         const growFactor = 1;
         const shrinkFactor = 0.2;
         const tooltip = i18nString(UIStrings.sendRawCDPCommandExplanation);
-        const input = new UI.Toolbar.ToolbarInput(placeholder, accessiblePlaceholder, growFactor, shrinkFactor, tooltip, this.#historyAutocompleteDataProvider.buildTextPromptCompletions, false);
-        input.addEventListener(UI.Toolbar.ToolbarInput.Event.EnterPressed, () => this.#onCommandSend(input));
+        const input = new UI.Toolbar.ToolbarInput(placeholder, accessiblePlaceholder, growFactor, shrinkFactor, tooltip, this.#commandAutocompleteSuggestionProvider.buildTextPromptCompletions, false);
+        input.addEventListener(UI.Toolbar.ToolbarInput.Event.EnterPressed, () => {
+            this.#commandAutocompleteSuggestionProvider.addEntry(input.value());
+            const { command, parameters } = parseCommandInput(input.value());
+            this.onCommandSend(command, parameters, this.#selectedTargetId);
+        });
         return input;
     }
     #createTargetSelector() {
@@ -300,18 +395,15 @@ export class ProtocolMonitorImpl extends UI.Widget.VBox {
         syncTargets();
         return selector;
     }
-    #onCommandSend(input) {
-        const value = input.value();
-        const { command, parameters } = parseCommandInput(value);
+    onCommandSend(command, parameters, target) {
         const test = ProtocolClient.InspectorBackend.test;
         const targetManager = SDK.TargetManager.TargetManager.instance();
-        const selectedTarget = this.#selectedTargetId ? targetManager.targetById(this.#selectedTargetId) : null;
+        const selectedTarget = target ? targetManager.targetById(target) : null;
         const sessionId = selectedTarget ? selectedTarget.sessionId : '';
-        // TODO: TS thinks that properties are read-only because
+        // TS thinks that properties are read-only because
         // in TS test is defined as a namespace.
         // @ts-ignore
         test.sendRawMessage(command, parameters, () => { }, sessionId);
-        this.#historyAutocompleteDataProvider.addEntry(value);
     }
     static instance(opts = { forceNew: null }) {
         const { forceNew } = opts;
@@ -453,7 +545,7 @@ export class ProtocolMonitorImpl extends UI.Widget.VBox {
                 },
                 { columnId: 'elapsedTime', value: '(pending)' },
                 { columnId: 'type', value: requestResponseIcon, title: 'sent' },
-                { columnId: 'target', value: this.targetToString(sdkTarget) },
+                { columnId: 'target', value: String(sdkTarget?.id()) },
                 { columnId: 'session', value: message.sessionId || '' },
             ],
             hidden: false,
@@ -477,7 +569,40 @@ export class ProtocolMonitorImpl extends UI.Widget.VBox {
         void stream.close();
     }
 }
-export class HistoryAutocompleteDataProvider {
+let protocolMonitorImplInstance;
+export class ProtocolMonitorImpl extends UI.Widget.VBox {
+    #split;
+    #editorWidget = new EditorWidget();
+    #protocolMonitorDataGrid;
+    // This width corresponds to the optimal width to use the editor properly
+    // It is randomly chosen
+    #sideBarMinWidth = 400;
+    constructor() {
+        super(true);
+        this.#split =
+            new UI.SplitWidget.SplitWidget(true, false, 'protocol-monitor-split-container', this.#sideBarMinWidth);
+        this.#split.show(this.contentElement);
+        this.#protocolMonitorDataGrid = new ProtocolMonitorDataGrid(this.#split);
+        this.#protocolMonitorDataGrid.addEventListener(Events.CommandChange, event => {
+            this.#editorWidget.jsonEditor.displayCommand(event.data.command, event.data.parameters, event.data.targetId);
+        });
+        this.#editorWidget.element.style.overflow = 'hidden';
+        this.#split.setMainWidget(this.#protocolMonitorDataGrid);
+        this.#split.setSidebarWidget(this.#editorWidget);
+        this.#split.hideSidebar(true);
+        this.#editorWidget.addEventListener(Events.CommandSent, event => {
+            this.#protocolMonitorDataGrid.onCommandSend(event.data.command, event.data.parameters, event.data.targetId);
+        });
+    }
+    static instance(opts = { forceNew: null }) {
+        const { forceNew } = opts;
+        if (!protocolMonitorImplInstance || forceNew) {
+            protocolMonitorImplInstance = new ProtocolMonitorImpl();
+        }
+        return protocolMonitorImplInstance;
+    }
+}
+export class CommandAutocompleteSuggestionProvider {
     #maxHistorySize = 200;
     #commandHistory = new Set();
     constructor(maxHistorySize) {
@@ -490,6 +615,7 @@ export class HistoryAutocompleteDataProvider {
             return [];
         }
         const newestToOldest = [...this.#commandHistory].reverse();
+        newestToOldest.push(...metadataByCommand.keys());
         return newestToOldest.filter(cmd => cmd.startsWith(prefix)).map(text => ({
             text,
         }));
@@ -507,6 +633,8 @@ export class HistoryAutocompleteDataProvider {
 }
 export class InfoWidget extends UI.Widget.VBox {
     tabbedPane;
+    request;
+    targetId = '';
     constructor() {
         super();
         this.tabbedPane = new UI.TabbedPane.TabbedPane();
@@ -514,10 +642,11 @@ export class InfoWidget extends UI.Widget.VBox {
         this.tabbedPane.appendTab('response', i18nString(UIStrings.response), new UI.Widget.Widget());
         this.tabbedPane.show(this.contentElement);
         this.tabbedPane.selectTab('response');
+        this.request = {};
         this.render(null);
     }
     render(data) {
-        if (!data || !data.request || !data.response) {
+        if (!data || !data.request || !data.response || !data.target) {
             this.tabbedPane.changeTabView('request', new UI.EmptyWidget.EmptyWidget(i18nString(UIStrings.noMessageSelected)));
             this.tabbedPane.changeTabView('response', new UI.EmptyWidget.EmptyWidget(i18nString(UIStrings.noMessageSelected)));
             return;
@@ -528,9 +657,32 @@ export class InfoWidget extends UI.Widget.VBox {
             this.tabbedPane.selectTab('response');
         }
         const requestParsed = JSON.parse(String(data.request.value) || 'null');
+        this.request = requestParsed;
+        this.targetId = String(data.target.value);
         this.tabbedPane.changeTabView('request', SourceFrame.JSONView.JSONView.createViewSync(requestParsed));
         const responseParsed = data.response.value === '(pending)' ? null : JSON.parse(String(data.response.value) || 'null');
         this.tabbedPane.changeTabView('response', SourceFrame.JSONView.JSONView.createViewSync(responseParsed));
+    }
+}
+// TODO(crbug.com/1167717): Make this a const enum again
+// eslint-disable-next-line rulesdir/const_enum
+export var Events;
+(function (Events) {
+    Events["CommandSent"] = "CommandSent";
+    Events["CommandChange"] = "CommandChange";
+})(Events || (Events = {}));
+export class EditorWidget extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) {
+    jsonEditor;
+    constructor() {
+        super();
+        this.jsonEditor = new Components.JSONEditor.JSONEditor();
+        this.jsonEditor.metadataByCommand = metadataByCommand;
+        this.jsonEditor.typesByName = typesByName;
+        this.jsonEditor.enumsByName = enumsByName;
+        this.element.append(this.jsonEditor);
+        this.jsonEditor.addEventListener(Components.JSONEditor.SubmitEditorEvent.eventName, (event) => {
+            this.dispatchEventToListeners(Events.CommandSent, event.data);
+        });
     }
 }
 export function parseCommandInput(input) {
@@ -543,8 +695,8 @@ export function parseCommandInput(input) {
     }
     catch (err) {
     }
-    const command = json ? json.command || json.method || json.cmd : input;
-    const parameters = json ? json.parameters || json.params || json.args || json.arguments : null;
+    const command = json ? json.command || json.method || json.cmd || '' : input;
+    const parameters = json?.parameters || json?.params || json?.args || json?.arguments || {};
     return { command, parameters };
 }
 //# map=ProtocolMonitor.js.map

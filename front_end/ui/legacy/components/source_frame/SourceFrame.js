@@ -30,12 +30,14 @@
 import * as Common from '../../../../core/common/common.js';
 import * as i18n from '../../../../core/i18n/i18n.js';
 import * as Platform from '../../../../core/platform/platform.js';
+import * as Root from '../../../../core/root/root.js';
 import * as Formatter from '../../../../models/formatter/formatter.js';
 import * as TextUtils from '../../../../models/text_utils/text_utils.js';
 import * as CodeMirror from '../../../../third_party/codemirror.next/codemirror.next.js';
 import * as CodeHighlighter from '../../../components/code_highlighter/code_highlighter.js';
 import * as TextEditor from '../../../components/text_editor/text_editor.js';
 import * as UI from '../../legacy.js';
+import selfXssDialogStyles from './selfXssDialog.css.legacy.js';
 const UIStrings = {
     /**
      *@description Text for the source of something
@@ -78,6 +80,32 @@ const UIStrings = {
      *@example {2} PH2
      */
     dLinesDCharactersSelected: '{PH1} lines, {PH2} characters selected',
+    /**
+     *@description Headline of warning shown to users when pasting text/code into DevTools.
+     */
+    doYouTrustThisCode: 'Do you trust this code?',
+    /**
+     *@description Warning shown to users when pasting text/code into DevTools.
+     *@example {allow pasting} PH1
+     */
+    doNotPaste: 'Don\'t paste code you do not understand or have not reviewed yourself into DevTools. This could allow attackers to steal your identity or take control of your computer. Please type \'\'{PH1}\'\' below to allow pasting.',
+    /**
+     *@description Text a user needs to type in order to confirm that they are aware of the danger of pasting code into the DevTools console.
+     */
+    allowPasting: 'allow pasting',
+    /**
+     *@description Button text for canceling an action
+     */
+    cancel: 'Cancel',
+    /**
+     *@description Button text for allowing an action
+     */
+    allow: 'Allow',
+    /**
+     *@description Input box placeholder which instructs the user to type 'allow pasing' into the input box.
+     *@example {allow pasting} PH1
+     */
+    typeAllowPasting: 'Type  \'\'{PH1}\'\'',
 };
 const str_ = i18n.i18n.registerUIStrings('ui/legacy/components/source_frame/SourceFrame.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
@@ -112,6 +140,7 @@ export class SourceFrameImpl extends Common.ObjectWrapper.eventMixin(UI.View.Sim
     contentRequested;
     wasmDisassemblyInternal;
     contentSet;
+    selfXssWarningDisabledSetting;
     constructor(lazyContent, options = {}) {
         super(i18nString(UIStrings.source));
         this.options = options;
@@ -152,6 +181,7 @@ export class SourceFrameImpl extends Common.ObjectWrapper.eventMixin(UI.View.Sim
         this.contentRequested = false;
         this.wasmDisassemblyInternal = null;
         this.contentSet = false;
+        this.selfXssWarningDisabledSetting = Common.Settings.Settings.instance().createSetting('disableSelfXssWarning', false, Common.Settings.SettingStorageType.Synced);
         Common.Settings.Settings.instance()
             .moduleSetting('textEditorIndent')
             .addChangeListener(this.#textEditorIndentChanged, this);
@@ -194,6 +224,7 @@ export class SourceFrameImpl extends Common.ObjectWrapper.eventMixin(UI.View.Sim
             CodeMirror.EditorView.domEventHandlers({
                 focus: () => this.onFocus(),
                 blur: () => this.onBlur(),
+                paste: () => this.onPaste(),
                 scroll: () => this.dispatchEventToListeners("EditorScroll" /* Events.EditorScroll */),
                 contextmenu: event => this.onContextMenu(event),
             }),
@@ -220,6 +251,23 @@ export class SourceFrameImpl extends Common.ObjectWrapper.eventMixin(UI.View.Sim
     }
     onFocus() {
         this.resetCurrentSearchResultIndex();
+    }
+    onPaste() {
+        if (Root.Runtime.experiments.isEnabled(Root.Runtime.ExperimentName.SELF_XSS_WARNING) &&
+            !this.selfXssWarningDisabledSetting.get()) {
+            void this.showSelfXssWarning();
+            return true;
+        }
+        return false;
+    }
+    async showSelfXssWarning() {
+        // Hack to circumvent Chrome issue which would show a tooltip for the newly opened
+        // dialog if pasting via keyboard.
+        await new Promise(resolve => setTimeout(resolve, 0));
+        const allowPasting = await SelfXssWarningDialog.show();
+        if (allowPasting) {
+            this.selfXssWarningDisabledSetting.set(true);
+        }
     }
     get wasmDisassembly() {
         return this.wasmDisassemblyInternal;
@@ -465,8 +513,8 @@ export class SourceFrameImpl extends Common.ObjectWrapper.eventMixin(UI.View.Sim
     revealPosition(position, shouldHighlight) {
         this.lineToScrollTo = null;
         this.selectionToSet = null;
-        let line = 0, column = 0;
         if (typeof position === 'number') {
+            let line = 0, column = 0;
             const { doc } = this.textEditor.state;
             if (position > doc.length) {
                 line = doc.lines - 1;
@@ -476,12 +524,15 @@ export class SourceFrameImpl extends Common.ObjectWrapper.eventMixin(UI.View.Sim
                 line = lineObj.number - 1;
                 column = position - lineObj.from;
             }
+            this.positionToReveal = { to: { lineNumber: line, columnNumber: column }, shouldHighlight };
+        }
+        else if ('lineNumber' in position) {
+            const { lineNumber, columnNumber } = position;
+            this.positionToReveal = { to: { lineNumber, columnNumber: columnNumber ?? 0 }, shouldHighlight };
         }
         else {
-            line = position.lineNumber;
-            column = position.columnNumber ?? 0;
+            this.positionToReveal = { ...position, shouldHighlight };
         }
-        this.positionToReveal = { line, column, shouldHighlight: shouldHighlight };
         this.innerRevealPositionIfNeeded();
     }
     innerRevealPositionIfNeeded() {
@@ -491,9 +542,11 @@ export class SourceFrameImpl extends Common.ObjectWrapper.eventMixin(UI.View.Sim
         if (!this.loaded || !this.isShowing()) {
             return;
         }
-        const location = this.uiLocationToEditorLocation(this.positionToReveal.line, this.positionToReveal.column);
+        const { from, to, shouldHighlight } = this.positionToReveal;
+        const toLocation = this.uiLocationToEditorLocation(to.lineNumber, to.columnNumber);
+        const fromLocation = from ? this.uiLocationToEditorLocation(from.lineNumber, from.columnNumber) : undefined;
         const { textEditor } = this;
-        textEditor.revealPosition(textEditor.createSelection(location), this.positionToReveal.shouldHighlight);
+        textEditor.revealPosition(textEditor.createSelection(toLocation, fromLocation), shouldHighlight);
         this.positionToReveal = null;
     }
     clearPositionToReveal() {
@@ -854,6 +907,50 @@ class SearchMatch {
             }
             return this.match[Number.parseInt(selector, 10)] || '';
         });
+    }
+}
+export class SelfXssWarningDialog {
+    static async show() {
+        const dialog = new UI.Dialog.Dialog();
+        dialog.setMaxContentSize(new UI.Geometry.Size(504, 340));
+        dialog.setSizeBehavior("SetExactWidthMaxHeight" /* UI.GlassPane.SizeBehavior.SetExactWidthMaxHeight */);
+        dialog.setDimmed(true);
+        const shadowRoot = UI.Utils.createShadowRootWithCoreStyles(dialog.contentElement, { cssFile: selfXssDialogStyles, delegatesFocus: undefined });
+        const content = shadowRoot.createChild('div', 'widget');
+        const result = await new Promise(resolve => {
+            const closeButton = content.createChild('div', 'dialog-close-button', 'dt-close-button');
+            closeButton.addEventListener('click', () => {
+                dialog.hide();
+                resolve(false);
+            }, false);
+            content.createChild('div', 'title').textContent = i18nString(UIStrings.doYouTrustThisCode);
+            content.createChild('div', 'message').textContent =
+                i18nString(UIStrings.doNotPaste, { PH1: i18nString(UIStrings.allowPasting) });
+            const input = UI.UIUtils.createInput('text-input', 'text');
+            input.placeholder = i18nString(UIStrings.typeAllowPasting, { PH1: i18nString(UIStrings.allowPasting) });
+            content.appendChild(input);
+            const buttonsBar = content.createChild('div', 'button');
+            const cancelButton = UI.UIUtils.createTextButton(i18nString(UIStrings.cancel), () => resolve(false));
+            buttonsBar.appendChild(cancelButton);
+            const allowButton = UI.UIUtils.createTextButton(i18nString(UIStrings.allow), () => {
+                resolve(input.value === i18nString(UIStrings.allowPasting));
+            }, '', true);
+            allowButton.disabled = true;
+            buttonsBar.appendChild(allowButton);
+            input.addEventListener('input', () => {
+                allowButton.disabled = !Boolean(input.value);
+            }, false);
+            input.addEventListener('paste', e => e.preventDefault());
+            input.addEventListener('drop', e => e.preventDefault());
+            dialog.setOutsideClickCallback(event => {
+                event.consume();
+                resolve(false);
+            });
+            dialog.show();
+            input.focus();
+        });
+        dialog.hide();
+        return result;
     }
 }
 // TODO(crbug.com/1167717): Make this a const enum again

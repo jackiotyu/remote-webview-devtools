@@ -143,14 +143,13 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/settings/emulation/components/UserAgentClientHintsForm.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class ClientHintsChangeEvent extends Event {
+export class ClientHintsChangeEvent extends Event {
     static eventName = 'clienthintschange';
     constructor() {
         super(ClientHintsChangeEvent.eventName);
     }
 }
-export { ClientHintsChangeEvent };
-class ClientHintsSubmitEvent extends Event {
+export class ClientHintsSubmitEvent extends Event {
     static eventName = 'clienthintssubmit';
     detail;
     constructor(value) {
@@ -158,7 +157,6 @@ class ClientHintsSubmitEvent extends Event {
         this.detail = { value };
     }
 }
-export { ClientHintsSubmitEvent };
 const DEFAULT_METADATA = {
     brands: [
         {
@@ -184,7 +182,7 @@ const DEFAULT_METADATA = {
  * and network conditions panel. It is customizable through showMobileCheckbox and showSubmitButton.
  */
 // eslint-disable-next-line rulesdir/custom_element_definitions_location
-class UserAgentClientHintsForm extends HTMLElement {
+export class UserAgentClientHintsForm extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-user-agent-client-hints-form`;
     #shadow = this.attachShadow({ mode: 'open' });
     #isFormOpened = false;
@@ -754,6 +752,5 @@ class UserAgentClientHintsForm extends HTMLElement {
         return { valid: true };
     };
 }
-export { UserAgentClientHintsForm };
 ComponentHelpers.CustomElements.defineComponent('devtools-user-agent-client-hints-form', UserAgentClientHintsForm);
 //# map=UserAgentClientHintsForm.js.map

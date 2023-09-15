@@ -20,7 +20,7 @@ h1 {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   overflow: auto;
 }
 
@@ -30,8 +30,8 @@ h1 {
 
 .preview-feature {
   padding: 12px 16px;
-  border: 1px solid var(--color-details-hairline);
-  color: var(--color-text-primary);
+  border: 1px solid var(--sys-color-neutral-outline);
+  color: var(--sys-color-on-surface);
   font-size: 13px;
   line-height: 20px;
   border-radius: 12px;
@@ -40,7 +40,7 @@ h1 {
 }
 
 .preview-header {
-  color: var(--color-primary-old);
+  color: var(--sys-color-primary);
   font-size: 13px;
   line-height: 20px;
   letter-spacing: 0.01em;
@@ -76,7 +76,7 @@ h1 {
   font-size: 13px;
   line-height: 20px;
   letter-spacing: 0.04em;
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
   margin-bottom: 2px;
 }
 
@@ -89,9 +89,9 @@ devtools-feedback-button {
   line-height: 22px;
   letter-spacing: 0.04em;
   text-decoration-line: underline;
-  color: var(--color-primary-old);
+  color: var(--sys-color-primary);
 }
 
-
+/*# sourceURL=cssOverviewStartView.css */
 `);
 export default styles;

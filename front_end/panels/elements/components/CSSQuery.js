@@ -7,7 +7,7 @@ import inspectorCommonStyles from '../../../ui/legacy/inspectorCommon.css.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
 import cssQueryStyles from './cssQuery.css.js';
 const { render, html } = LitHtml;
-class CSSQuery extends HTMLElement {
+export class CSSQuery extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-css-query`;
     #shadow = this.attachShadow({ mode: 'open' });
     #queryPrefix = '';
@@ -47,6 +47,5 @@ class CSSQuery extends HTMLElement {
         // clang-format on
     }
 }
-export { CSSQuery };
 ComponentHelpers.CustomElements.defineComponent('devtools-css-query', CSSQuery);
 //# map=CSSQuery.js.map

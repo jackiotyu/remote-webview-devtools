@@ -30,6 +30,13 @@
 import { GlassPane } from './GlassPane.js';
 import popoverStyles from './popover.css.legacy.js';
 export class PopoverHelper {
+    static createPopover = () => {
+        const popover = new GlassPane();
+        popover.registerRequiredCSS(popoverStyles);
+        popover.setSizeBehavior("MeasureContent" /* SizeBehavior.MeasureContent */);
+        popover.setMarginBehavior("Arrow" /* MarginBehavior.Arrow */);
+        return popover;
+    };
     disableOnClick;
     hasPadding;
     getRequest;
@@ -100,7 +107,7 @@ export class PopoverHelper {
         }
         this.startHidePopoverTimer(this.hideTimeout);
         this.stopShowPopoverTimer();
-        if (event.which && this.disableOnClick) {
+        if (event.buttons && this.disableOnClick) {
             return;
         }
         this.startShowPopoverTimer(event, this.isPopoverVisible() ? this.showTimeout * 0.6 : this.showTimeout);
@@ -171,10 +178,7 @@ export class PopoverHelper {
         this.hidePopoverCallback = null;
     }
     showPopover(document) {
-        const popover = new GlassPane();
-        popover.registerRequiredCSS(popoverStyles);
-        popover.setSizeBehavior("MeasureContent" /* SizeBehavior.MeasureContent */);
-        popover.setMarginBehavior("Arrow" /* MarginBehavior.Arrow */);
+        const popover = PopoverHelper.createPopover();
         const request = this.scheduledRequest;
         if (!request) {
             return;
@@ -191,7 +195,6 @@ export class PopoverHelper {
             }
             // This should not happen, but we hide previous popover to be on the safe side.
             if (popoverHelperInstance) {
-                console.error('One popover is already visible');
                 popoverHelperInstance.hidePopover();
             }
             popoverHelperInstance = this;

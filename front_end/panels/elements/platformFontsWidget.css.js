@@ -24,7 +24,7 @@ styles.replaceSync(
 }
 
 .font-usage {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
   padding-left: 3px;
 }
 
@@ -32,12 +32,12 @@ styles.replaceSync(
   padding: 0 5px;
   border-top: 1px solid;
   border-bottom: 1px solid;
-  border-color: var(--color-background-elevation-2);
+  border-color: var(--sys-color-divider);
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
   height: 24px;
-  background-color: var(--color-background-elevation-0);
+  background-color: var(--sys-color-surface2);
   display: flex;
   align-items: center;
 }
@@ -54,6 +54,6 @@ styles.replaceSync(
   margin: 0 1ex;
 }
 
-
+/*# sourceURL=platformFontsWidget.css */
 `);
 export default styles;

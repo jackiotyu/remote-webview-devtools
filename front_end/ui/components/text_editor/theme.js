@@ -16,7 +16,7 @@ export const editorTheme = CM.EditorView.theme({
         fontSize: 'var(--source-code-font-size)',
     },
     '.cm-panels': {
-        backgroundColor: 'var(--color-background-elevation-1)',
+        backgroundColor: 'var(--sys-color-cdt-base-container)',
     },
     '.cm-selectionMatch': {
         backgroundColor: 'var(--color-selection-highlight)',
@@ -37,9 +37,9 @@ export const editorTheme = CM.EditorView.theme({
         background: 'var(--color-editor-selection)',
     },
     '.cm-gutters': {
-        borderRight: '1px solid var(--color-details-hairline)',
+        borderRight: '1px solid var(--sys-color-divider)',
         whiteSpace: 'nowrap',
-        backgroundColor: 'var(--color-background)',
+        backgroundColor: 'var(--sys-color-cdt-base-container)',
     },
     '.cm-gutters .cm-foldGutterElement': {
         cursor: 'pointer',

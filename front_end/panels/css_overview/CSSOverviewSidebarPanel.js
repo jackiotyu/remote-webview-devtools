@@ -38,7 +38,7 @@ export class CSSOverviewSidebarPanel extends Common.ObjectWrapper.eventMixin(UI.
         // Also see crbug/1408003
         this.containerElement =
             this.contentElement.createChild('div', 'overview-sidebar-panel-container');
-        UI.ARIAUtils.setAccessibleName(this.containerElement, i18nString(UIStrings.cssOverviewPanelSidebar));
+        UI.ARIAUtils.setLabel(this.containerElement, i18nString(UIStrings.cssOverviewPanelSidebar));
         UI.ARIAUtils.markAsTree(this.containerElement);
         // Clear overview.
         const clearResultsButton = new UI.Toolbar.ToolbarButton(i18nString(UIStrings.clearOverview), 'clear');
@@ -73,11 +73,11 @@ export class CSSOverviewSidebarPanel extends Common.ObjectWrapper.eventMixin(UI.
         if (!id) {
             return;
         }
-        this.select(id);
-        this.dispatchEventToListeners("ItemSelected" /* SidebarEvents.ItemSelected */, { id, isMouseEvent: true });
+        this.select(id, false);
+        this.dispatchEventToListeners("ItemSelected" /* SidebarEvents.ItemSelected */, { id, isMouseEvent: true, key: undefined });
     }
     #onItemKeyDown(event) {
-        if (event.key !== 'Enter') {
+        if (event.key !== 'Enter' && event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
             return;
         }
         const target = event.composedPath()[0];
@@ -88,11 +88,34 @@ export class CSSOverviewSidebarPanel extends Common.ObjectWrapper.eventMixin(UI.
         if (!id) {
             return;
         }
-        this.select(id);
-        this.dispatchEventToListeners("ItemSelected" /* SidebarEvents.ItemSelected */, { id, isMouseEvent: false });
+        if (event.key === 'Enter') {
+            this.select(id, false);
+            this.dispatchEventToListeners("ItemSelected" /* SidebarEvents.ItemSelected */, { id, isMouseEvent: false, key: event.key });
+        }
+        else { // arrow up/down key
+            const items = this.containerElement.querySelectorAll(`.${CSSOverviewSidebarPanel.ITEM_CLASS_NAME}`);
+            let currItemIndex = -1;
+            for (let idx = 0; idx < items.length; idx++) {
+                if (items[idx].dataset.id === id) {
+                    currItemIndex = idx;
+                    break;
+                }
+            }
+            if (currItemIndex < 0) {
+                return;
+            }
+            const moveTo = (event.key === 'ArrowDown' ? 1 : -1);
+            const nextItemIndex = (currItemIndex + moveTo) % items.length;
+            const nextItemId = items[nextItemIndex].dataset.id;
+            if (!nextItemId) {
+                return;
+            }
+            this.select(nextItemId, true);
+            this.dispatchEventToListeners("ItemSelected" /* SidebarEvents.ItemSelected */, { id: nextItemId, isMouseEvent: false, key: event.key });
+        }
         event.consume(true);
     }
-    select(id) {
+    select(id, focus) {
         const target = this.containerElement.querySelector(`[data-id=${CSS.escape(id)}]`);
         if (!target) {
             return;
@@ -102,6 +125,11 @@ export class CSSOverviewSidebarPanel extends Common.ObjectWrapper.eventMixin(UI.
         }
         this.#deselectAllItems();
         target.classList.add(CSSOverviewSidebarPanel.SELECTED);
+        if (focus) {
+            target.contentEditable = 'true';
+            target.focus();
+            target.contentEditable = 'false';
+        }
     }
     wasShown() {
         super.wasShown();

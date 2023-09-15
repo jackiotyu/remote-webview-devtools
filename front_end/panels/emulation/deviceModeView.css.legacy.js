@@ -14,13 +14,13 @@ export default {
   overflow: hidden;
   align-items: stretch;
   flex: auto;
-  background-color: var(--color-background-elevation-0);
+  background-color: var(--sys-color-cdt-base-container);
 }
 
 .device-mode-toolbar {
   flex: none;
-  background-color: var(--color-background-elevation-0);
-  border-bottom: 1px solid var(--color-details-hairline);
+  background-color: var(--sys-color-cdt-base);
+  border-bottom: 1px solid var(--sys-color-divider);
   display: flex;
   flex-direction: row;
   align-items: stretch;
@@ -57,7 +57,7 @@ export default {
 .device-mode-media-container {
   flex: none;
   overflow: hidden;
-  box-shadow: inset 0 -1px var(--color-details-hairline);
+  box-shadow: inset 0 -1px var(--sys-color-divider);
 }
 
 .device-mode-content-clip:not(.device-mode-outline-visible) .device-mode-media-container {
@@ -73,9 +73,8 @@ export default {
   flex: auto;
   justify-content: center;
   position: relative;
-  background-color: var(--color-background-elevation-2);
-  border: 2px solid var(--color-background-elevation-0);
-  border-bottom: 2px solid var(--color-background-elevation-0);
+  background-color: var(--sys-color-surface1);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .device-mode-presets-container:hover {
@@ -91,12 +90,12 @@ export default {
 }
 
 .device-mode-preset-bar {
-  border-left: 2px solid var(--color-background-elevation-0);
-  border-right: 2px solid var(--color-background-elevation-0);
+  border-left: 2px solid var(--sys-color-on-base-divider);
+  border-right: 2px solid var(--sys-color-on-base-divider);
   pointer-events: auto;
   text-align: center;
   flex: none;
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -107,7 +106,7 @@ export default {
 .device-mode-preset-bar:hover {
   transition: background-color 0.1s;
   transition-delay: 50ms;
-  background-color: var(--color-background-highlight);
+  background-color: var(--sys-color-state-hover-on-subtle);
 }
 
 .device-mode-preset-bar > span {
@@ -132,18 +131,7 @@ export default {
   right: 0;
   width: 0;
   height: 0;
-  background-color: var(--color-background-inverted);
-}
-
-.device-mode-content-clip:not(.device-mode-outline-visible) .device-mode-screen-area {
-  --override-screen-area-box-shadow: hsl(240deg 3% 84%) 0 0 0 0.5px, hsl(0deg 0% 80% / 40%) 0 0 20px;
-
-  box-shadow: var(--override-screen-area-box-shadow);
-}
-
-.-theme-with-dark-background .device-mode-content-clip:not(.device-mode-outline-visible) .device-mode-screen-area,
-:host-context(.-theme-with-dark-background) .device-mode-content-clip:not(.device-mode-outline-visible) .device-mode-screen-area {
-  --override-screen-area-box-shadow: rgb(40 40 42) 0 0 0 0.5px, rgb(51 51 51 / 40%) 0 0 20px;
+  background-color: var(--sys-color-inverse-surface);
 }
 
 .device-mode-screen-image {
@@ -164,7 +152,7 @@ export default {
 }
 
 .device-mode-resizer:hover {
-  background-color: var(--color-background-elevation-2);
+  background-color: var(--sys-color-state-hover-on-subtle);
   opacity: 100%;
 }
 
@@ -199,7 +187,7 @@ export default {
   top: 0;
   right: -20px;
   bottom: -20px;
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-surface1);
 }
 
 .device-mode-bottom-left-resizer {
@@ -255,7 +243,7 @@ export default {
   width: 0;
   height: 0;
   display: flex;
-  background-color: var(--color-background-elevation-0);
+  background-color: var(--sys-color-cdt-base-container);
 }
 
 .device-mode-ruler {
@@ -278,15 +266,13 @@ export default {
   position: absolute;
   left: -20px;
   top: -20px;
-
-  --override-device-ruler-border-color: hsl(0deg 0% 50%);
 }
 
 .device-mode-ruler-top .device-mode-ruler-content {
   border-top: 1px solid transparent;
   right: 0;
   bottom: 20px;
-  background-color: var(--color-background-opacity-80);
+  background-color: var(--sys-color-cdt-base-container);
 }
 
 .device-mode-ruler-left .device-mode-ruler-content {
@@ -296,18 +282,13 @@ export default {
   bottom: 0;
 }
 
-.-theme-with-dark-background .device-mode-ruler-content,
-:host-context(.-theme-with-dark-background) .device-mode-ruler-content {
-  --override-device-ruler-border-color: rgb(127 127 127);
-}
-
 .device-mode-content-clip.device-mode-outline-visible .device-mode-ruler-top .device-mode-ruler-content {
-  border-top: 1px solid var(--override-device-ruler-border-color);
+  border-top: 1px solid var(--sys-color-token-subtle);
 }
 
 .device-mode-content-clip.device-mode-outline-visible .device-mode-ruler-left .device-mode-ruler-content {
-  border-left: 1px solid var(--override-device-ruler-border-color);
-  border-top: 1px solid var(--override-device-ruler-border-color);
+  border-left: 1px solid var(--sys-color-token-subtle);
+  border-top: 1px solid var(--sys-color-token-subtle);
 }
 
 .device-mode-ruler-inner {
@@ -319,7 +300,7 @@ export default {
   bottom: 0;
   left: 20px;
   right: 0;
-  border-bottom: 1px solid var(--override-device-ruler-border-color);
+  border-bottom: 1px solid var(--sys-color-token-subtle);
 }
 
 .device-mode-ruler-left .device-mode-ruler-inner {
@@ -327,8 +308,8 @@ export default {
   right: 0;
   top: 19px;
   bottom: 0;
-  border-right: 1px solid var(--override-device-ruler-border-color);
-  background-color: var(--color-background-opacity-80);
+  border-right: 1px solid var(--sys-color-token-subtle);
+  background-color: var(--sys-color-cdt-base-container);
 }
 
 .device-mode-ruler-marker {
@@ -339,7 +320,7 @@ export default {
   width: 0;
   height: 5px;
   bottom: 0;
-  border-right: 1px solid var(--override-device-ruler-border-color);
+  border-right: 1px solid var(--sys-color-token-subtle);
   margin-right: -1px;
 }
 
@@ -355,7 +336,7 @@ export default {
   height: 0;
   width: 5px;
   right: 0;
-  border-bottom: 1px solid var(--override-device-ruler-border-color);
+  border-bottom: 1px solid var(--sys-color-token-subtle);
   margin-bottom: -1px;
 }
 
@@ -368,13 +349,13 @@ export default {
 }
 
 .device-mode-ruler-text {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
   position: relative;
   pointer-events: auto;
 }
 
 .device-mode-ruler-text:hover {
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
 }
 
 .device-mode-ruler-top .device-mode-ruler-text {

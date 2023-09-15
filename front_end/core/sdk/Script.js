@@ -4,7 +4,7 @@
 import * as TextUtils from '../../models/text_utils/text_utils.js';
 import * as Common from '../common/common.js';
 import * as i18n from '../i18n/i18n.js';
-import { Location, COND_BREAKPOINT_SOURCE_URL, LOGPOINT_SOURCE_URL } from './DebuggerModel.js';
+import { Location, COND_BREAKPOINT_SOURCE_URL, LOGPOINT_SOURCE_URL, Events, } from './DebuggerModel.js';
 import { ResourceTreeModel } from './ResourceTreeModel.js';
 const UIStrings = {
     /**
@@ -242,8 +242,7 @@ export class Script {
             return [];
         }
         const matches = await this.debuggerModel.target().debuggerAgent().invoke_searchInContent({ scriptId: this.scriptId, query, caseSensitive, isRegex });
-        return (matches.result || [])
-            .map(match => new TextUtils.ContentProvider.SearchMatch(match.lineNumber, match.lineContent));
+        return TextUtils.TextUtils.performSearchInSearchMatches(matches.result || [], query, caseSensitive, isRegex);
     }
     appendSourceURLCommentIfNeeded(source) {
         if (!this.hasSourceURL) {
@@ -268,6 +267,7 @@ export class Script {
         if (!response.getError() && response.status === "Ok" /* Protocol.Debugger.SetScriptSourceResponseStatus.Ok */) {
             this.#contentPromise = Promise.resolve({ content: newSource, isEncoded: false });
         }
+        this.debuggerModel.dispatchEventToListeners(Events.ScriptSourceWasEdited, { script: this, status: response.status });
         return { changed: true, status: response.status, exceptionDetails: response.exceptionDetails };
     }
     rawLocation(lineNumber, columnNumber) {

@@ -26,6 +26,10 @@ li {
   border: 0;
 }
 
+.tree-item:hover {
+  background-color: var(--sys-color-state-hover-on-subtle);
+}
+
 .tree-node-key {
   white-space: var(--override-key-whitespace-wrapping);
   /* Override the default |min-width: auto| to avoid overflows of flex items */
@@ -103,7 +107,7 @@ li.is-top-level:last-child {
 
 ul[role="tree"]:focus-within [role="treeitem"].selected > .arrow-and-key-wrapper {
   /* stylelint-disable-next-line color-named */
-  background-color: var(--legacy-item-selection-bg-color);
+  background-color: var(--sys-color-tonal-container);
 }
 
 .text-ellipsis {
@@ -126,6 +130,6 @@ ul[role="tree"]:focus-within [role="treeitem"].selected > .arrow-and-key-wrapper
   }
 }
 
-
+/*# sourceURL=treeOutline.css */
 `);
 export default styles;

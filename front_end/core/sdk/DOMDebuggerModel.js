@@ -586,7 +586,7 @@ export class CSPViolationBreakpoint extends CategorizedBreakpoint {
         return this.#typeInternal;
     }
 }
-class DOMEventListenerBreakpoint extends CategorizedBreakpoint {
+export class DOMEventListenerBreakpoint extends CategorizedBreakpoint {
     instrumentationName;
     eventName;
     eventTargetNames;
@@ -628,7 +628,6 @@ class DOMEventListenerBreakpoint extends CategorizedBreakpoint {
     static listener = 'listener:';
     static instrumentation = 'instrumentation:';
 }
-export { DOMEventListenerBreakpoint };
 let domDebuggerManagerInstance;
 export class DOMDebuggerManager {
     #xhrBreakpointsSetting;

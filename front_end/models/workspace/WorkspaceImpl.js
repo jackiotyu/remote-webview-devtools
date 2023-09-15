@@ -110,6 +110,9 @@ export class ProjectStore {
     }
     deleteFile(_uiSourceCode) {
     }
+    deleteDirectoryRecursively(_path) {
+        return Promise.resolve(false);
+    }
     remove() {
     }
     indexContent(_progress) {
@@ -152,6 +155,9 @@ export class WorkspaceImpl extends Common.ObjectWrapper.ObjectWrapper {
         const contentType = uiSourceCode.contentType();
         const result = [];
         for (const project of this.projectsInternal.values()) {
+            if (uiSourceCode.project().type() !== project.type()) {
+                continue;
+            }
             const candidate = project.uiSourceCodeForURL(url);
             if (candidate && candidate.url() === url && candidate.contentType() === contentType) {
                 result.push(candidate);

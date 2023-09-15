@@ -45,7 +45,6 @@ styles.replaceSync(
 }
 
 #network-container {
-  border: 1px solid var(--color-details-hairline);
   overflow: hidden;
 }
 
@@ -57,8 +56,8 @@ styles.replaceSync(
   flex: 0 0 27px;
   line-height: 27px;
   padding-left: 5px;
-  background-color: var(--color-background-elevation-1);
-  border-top: 1px solid var(--color-details-hairline);
+  background-color: var(--sys-color-cdt-base-container);
+  border-top: 1px solid var(--sys-color-divider);
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -83,7 +82,7 @@ styles.replaceSync(
 
 .network-log-grid.data-grid td {
   height: 41px;
-  border-left: 1px solid var(--color-details-hairline);
+  border-left: 1px solid var(--sys-color-divider);
   vertical-align: middle;
 }
 
@@ -101,14 +100,14 @@ styles.replaceSync(
 
 .network-waterfall-header,
 .network-log-grid.data-grid thead th {
-  border-bottom: 1px solid var(--color-details-hairline);
-  border-left: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
+  border-left: 1px solid var(--sys-color-divider);
 }
 
 .network-waterfall-header,
 .network-log-grid.data-grid thead {
   height: 31px;
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-surface1);
 }
 
 .network-waterfall-header.small,
@@ -179,14 +178,10 @@ styles.replaceSync(
   color: inherit;
 }
 
-.network-log-grid.data-grid:focus-within tr.selected,
-.network-log-grid.data-grid:focus-within tr.selected .network-cell-subtitle,
-.network-log-grid.data-grid:focus-within tr.selected .network-dim-cell {
-  color: var(--legacy-selection-fg-color);
-}
-
-.network-log-grid.data-grid:focus-within tr.selected [is="ui-icon"] {
-  background-color: var(--icon-force-white);
+.network-log-grid.data-grid:focus tr.selected,
+.network-log-grid.data-grid:focus tr.selected .network-cell-subtitle,
+.network-log-grid.data-grid:focus tr.selected .network-dim-cell {
+  color: var(--sys-color-on-tonal-container);
 }
 
 .network-header-subtitle {
@@ -238,13 +233,8 @@ styles.replaceSync(
   margin-right: 3px;
 }
 
-.network-log-grid.data-grid:focus-within .data-grid-data-grid-node.selected div.icon:not(.image) {
-  filter: brightness(0) invert(1);
-}
-
-.network-log-grid.data-grid:focus-within .data-grid-data-grid-node.selected [is="ui-icon"].icon-mask {
-  --network-grid-selected-color: #dadce0;
-  --override-icon-mask-background-color: var(--network-grid-selected-color);
+.network-log-grid.data-grid:focus-within .network-error-row.selected div.icon:not(.image) {
+  filter: none;
 }
 
 .data-grid-data-grid-node [is="ui-icon"].arrow-up-down-circle {
@@ -258,7 +248,6 @@ styles.replaceSync(
 }
 
 .network-log-grid.data-grid.small .icon {
-  margin-top: 2px;
   width: 16px;
   height: 16px;
 }
@@ -337,7 +326,7 @@ styles.replaceSync(
 
 .network-status-pane {
   color: var(--color-text-secondary);
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   z-index: 500;
   display: flex;
   justify-content: center;
@@ -401,12 +390,21 @@ styles.replaceSync(
 }
 
 .network-override-marker {
-  background: rgb(175 75 246); /* stylelint-disable-line plugin/use_theme_colors */
+  position: relative;
+  float: left;
+}
+
+.network-override-marker::before {
+  background-color: var(--color-purple-bright);
+  content: url("Images/empty.svg");
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  width: 8px;
-  height: 8px;
-  display: inline-block;
-  margin-right: 3px;
+  outline: 1px solid var(--icon-gap-toolbar);
+  left: 8px;
+  position: absolute;
+  top: 10px;
+  z-index: 1;
 }
 
 @media (forced-colors: active) {
@@ -433,11 +431,11 @@ styles.replaceSync(
   /* stylelint-enable no-descending-specificity */
 
   .network-log-grid {
-    --network-grid-default-color: canvas;
-    --network-grid-stripe-color: canvas;
-    --network-grid-hovered-color: Highlight;
-    --network-grid-selected-color: ButtonText;
-    --network-grid-focus-selected-color: Highlight;
+    --color-grid-default: canvas;
+    --color-grid-stripe: canvas;
+    --color-grid-hovered: Highlight;
+    --color-grid-selected: ButtonText;
+    --color-grid-focus-selected: Highlight;
   }
 
   #network-container.no-node-selected:focus-within,
@@ -463,6 +461,6 @@ styles.replaceSync(
   }
 }
 
-
+/*# sourceURL=networkLogView.css */
 `);
 export default styles;

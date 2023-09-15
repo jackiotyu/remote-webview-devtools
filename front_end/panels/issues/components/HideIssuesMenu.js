@@ -16,7 +16,7 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/issues/components/HideIssuesMenu.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class HideIssuesMenu extends HTMLElement {
+export class HideIssuesMenu extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-hide-issues-menu`;
     #shadow = this.attachShadow({ mode: 'open' });
     #menuItemLabel = Common.UIString.LocalizedEmptyString;
@@ -58,6 +58,5 @@ class HideIssuesMenu extends HTMLElement {
     `, this.#shadow, { host: this });
     }
 }
-export { HideIssuesMenu };
 ComponentHelpers.CustomElements.defineComponent('devtools-hide-issues-menu', HideIssuesMenu);
 //# map=HideIssuesMenu.js.map

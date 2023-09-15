@@ -35,7 +35,7 @@ const str_ = i18n.i18n.registerUIStrings('ui/components/linear_memory_inspector/
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const { render, html } = LitHtml;
 const SORTED_VALUE_TYPES = Array.from(getDefaultValueTypeMapping().keys());
-class ValueTypeModeChangedEvent extends Event {
+export class ValueTypeModeChangedEvent extends Event {
     static eventName = 'valuetypemodechanged';
     data;
     constructor(type, mode) {
@@ -45,8 +45,7 @@ class ValueTypeModeChangedEvent extends Event {
         this.data = { type, mode };
     }
 }
-export { ValueTypeModeChangedEvent };
-class JumpToPointerAddressEvent extends Event {
+export class JumpToPointerAddressEvent extends Event {
     static eventName = 'jumptopointeraddress';
     data;
     constructor(address) {
@@ -56,8 +55,7 @@ class JumpToPointerAddressEvent extends Event {
         this.data = address;
     }
 }
-export { JumpToPointerAddressEvent };
-class ValueInterpreterDisplay extends HTMLElement {
+export class ValueInterpreterDisplay extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-linear-memory-inspector-interpreter-display`;
     #shadow = this.attachShadow({ mode: 'open' });
     #endianness = "Little Endian" /* Endianness.Little */;
@@ -195,6 +193,5 @@ class ValueInterpreterDisplay extends HTMLElement {
         return format({ buffer: this.#buffer, type: data.type, endianness: this.#endianness, signed: data.signed || false, mode });
     }
 }
-export { ValueInterpreterDisplay };
 ComponentHelpers.CustomElements.defineComponent('devtools-linear-memory-inspector-interpreter-display', ValueInterpreterDisplay);
 //# map=ValueInterpreterDisplay.js.map

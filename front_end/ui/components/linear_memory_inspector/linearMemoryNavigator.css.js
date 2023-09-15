@@ -66,6 +66,6 @@ styles.replaceSync(
   --icon-color: var(--icon-default-hover);
 }
 
-
+/*# sourceURL=linearMemoryNavigator.css */
 `);
 export default styles;

@@ -29,7 +29,7 @@ styles.replaceSync(
 }
 
 .diff-line-marker {
-  border-right: 1px solid var(--color-details-hairline);
+  border-right: 1px solid var(--sys-color-divider);
   width: 20px;
   text-align: center;
 }
@@ -81,6 +81,6 @@ styles.replaceSync(
   background-color: var(--override-spacer-background-color);
 }
 
-
+/*# sourceURL=diffView.css */
 `);
 export default styles;

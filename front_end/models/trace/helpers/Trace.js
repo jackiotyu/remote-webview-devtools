@@ -31,32 +31,62 @@ export function addEventToProcessThread(event, eventsInProcessThread) {
     eventsInThread.set(event.tid, events);
     eventsInProcessThread.set(event.pid, eventsInThread);
 }
+function eventTimeComparator(a, b) {
+    const aBeginTime = a.ts;
+    const bBeginTime = b.ts;
+    if (aBeginTime < bBeginTime) {
+        return -1;
+    }
+    if (aBeginTime > bBeginTime) {
+        return 1;
+    }
+    const aDuration = a.dur ?? 0;
+    const bDuration = b.dur ?? 0;
+    const aEndTime = aBeginTime + aDuration;
+    const bEndTime = bBeginTime + bDuration;
+    if (aEndTime > bEndTime) {
+        return -1;
+    }
+    if (aEndTime < bEndTime) {
+        return 1;
+    }
+    return 0;
+}
 /**
  * Sorts all the events in place, in order, by their start time. If they have
  * the same start time, orders them by longest first.
  */
 export function sortTraceEventsInPlace(events) {
-    events.sort((a, b) => {
-        const aBeginTime = a.ts;
-        const bBeginTime = b.ts;
-        if (aBeginTime < bBeginTime) {
-            return -1;
+    events.sort(eventTimeComparator);
+}
+/**
+ * Returns an array of ordered events that results after merging the two
+ * ordered input arrays.
+ */
+export function mergeEventsInOrder(eventsArray1, eventsArray2) {
+    const result = [];
+    let i = 0;
+    let j = 0;
+    while (i < eventsArray1.length && j < eventsArray2.length) {
+        const event1 = eventsArray1[i];
+        const event2 = eventsArray2[j];
+        const compareValue = eventTimeComparator(event1, event2);
+        if (compareValue <= 0) {
+            result.push(event1);
+            i++;
         }
-        if (aBeginTime > bBeginTime) {
-            return 1;
+        if (compareValue === 1) {
+            result.push(event2);
+            j++;
         }
-        const aDuration = a.dur ?? 0;
-        const bDuration = b.dur ?? 0;
-        const aEndTime = aBeginTime + aDuration;
-        const bEndTime = bBeginTime + bDuration;
-        if (aEndTime > bEndTime) {
-            return -1;
-        }
-        if (aEndTime < bEndTime) {
-            return 1;
-        }
-        return 0;
-    });
+    }
+    while (i < eventsArray1.length) {
+        result.push(eventsArray1[i++]);
+    }
+    while (j < eventsArray2.length) {
+        result.push(eventsArray2[j++]);
+    }
+    return result;
 }
 export function getNavigationForTraceEvent(event, eventFrameId, navigationsByFrameId) {
     const navigations = navigationsByFrameId.get(eventFrameId);
@@ -74,5 +104,20 @@ export function getNavigationForTraceEvent(event, eventFrameId, navigationsByFra
 }
 export function extractId(event) {
     return event.id || event.id2?.global || event.id2?.local;
+}
+export function activeURLForFrameAtTime(frameId, time, rendererProcessesByFrame) {
+    const processData = rendererProcessesByFrame.get(frameId);
+    if (!processData) {
+        return null;
+    }
+    for (const processes of processData.values()) {
+        for (const processInfo of processes) {
+            if (processInfo.window.min > time || processInfo.window.max < time) {
+                continue;
+            }
+            return processInfo.frame.url;
+        }
+    }
+    return null;
 }
 //# map=Trace.js.map

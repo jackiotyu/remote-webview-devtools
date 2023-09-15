@@ -5,7 +5,7 @@ import * as ComponentHelpers from '../../components/helpers/helpers.js';
 import * as LitHtml from '../../lit-html/lit-html.js';
 import { Icon } from './Icon.js';
 import iconButtonStyles from './iconButton.css.js';
-class IconButton extends HTMLElement {
+export class IconButton extends HTMLElement {
     static litTagName = LitHtml.literal `icon-button`;
     #shadow = this.attachShadow({ mode: 'open' });
     #clickHandler = undefined;
@@ -67,6 +67,5 @@ class IconButton extends HTMLElement {
         // clang-format on
     }
 }
-export { IconButton };
 ComponentHelpers.CustomElements.defineComponent('icon-button', IconButton);
 //# map=IconButton.js.map

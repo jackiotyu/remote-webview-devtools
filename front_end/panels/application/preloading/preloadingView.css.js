@@ -12,10 +12,10 @@ styles.replaceSync(
  */
 
 .preloading-toolbar {
-  background-color: var(--color-background-elevation-1);
-  border-bottom: var(--legacy-divider-border);
+  background-color: var(--sys-color-cdt-base-container);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
-
+/*# sourceURL=preloading/preloadingView.css */
 `);
 export default styles;

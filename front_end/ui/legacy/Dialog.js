@@ -34,7 +34,7 @@ import { InspectorView } from './InspectorView.js';
 import { KeyboardShortcut, Keys } from './KeyboardShortcut.js';
 import { WidgetFocusRestorer } from './Widget.js';
 import dialogStyles from './dialog.css.legacy.js';
-class Dialog extends Common.ObjectWrapper.eventMixin(GlassPane) {
+export class Dialog extends Common.ObjectWrapper.eventMixin(GlassPane) {
     tabIndexBehavior;
     tabIndexMap;
     focusRestorer;
@@ -174,7 +174,6 @@ class Dialog extends Common.ObjectWrapper.eventMixin(GlassPane) {
     }
     static instance = null;
 }
-export { Dialog };
 // TODO(crbug.com/1167717): Make this a const enum again
 // eslint-disable-next-line rulesdir/const_enum
 export var OutsideTabIndexBehavior;

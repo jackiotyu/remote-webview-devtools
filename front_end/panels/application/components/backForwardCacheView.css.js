@@ -16,7 +16,7 @@ styles.replaceSync(
 }
 
 .gray-text {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
   margin: 0 0 5px 56px;
   display: flex;
   flex-direction: row;
@@ -54,7 +54,7 @@ styles.replaceSync(
 }
 
 .report-key {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
   min-width: auto;
   overflow-wrap: break-word;
   align-self: start;
@@ -69,7 +69,7 @@ styles.replaceSync(
 
 .link,
 .devtools-link {
-  color: var(--color-link);
+  color: var(--sys-color-primary);
   text-decoration: underline;
   cursor: pointer;
   outline-offset: 2px;
@@ -79,6 +79,6 @@ styles.replaceSync(
   margin-left: -5px;
 }
 
-
+/*# sourceURL=backForwardCacheView.css */
 `);
 export default styles;

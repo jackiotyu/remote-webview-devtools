@@ -25,11 +25,11 @@ styles.replaceSync(
 }
 
 .reset-budget-button:hover devtools-icon {
-  --icon-color: var(--color-text-primary);
+  --icon-color: var(--sys-color-token-subtle);
 }
 
 .reset-budget-button:focus devtools-icon {
-  --icon-color: var(--color-text-secondary);
+  --icon-color: var(--sys-color-token-subtle);
 }
 
 .icon-basic {
@@ -37,6 +37,6 @@ styles.replaceSync(
   height: 14px;
 }
 
-
+/*# sourceURL=sharedStorageMetadataViewResetBudgetButton.css */
 `);
 export default styles;

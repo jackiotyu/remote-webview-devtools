@@ -140,7 +140,7 @@ export var StepMode;
     StepMode["StepOut"] = "StepOut";
     StepMode["StepOver"] = "StepOver";
 })(StepMode || (StepMode = {}));
-class DebuggerModel extends SDKModel {
+export class DebuggerModel extends SDKModel {
     agent;
     runtimeModelInternal;
     #sourceMapManagerInternal;
@@ -265,7 +265,8 @@ class DebuggerModel extends SDKModel {
         DebuggerModel.shouldResyncDebuggerId = true;
     }
     registerDebugger(response) {
-        if (response.getError()) {
+        if (response.getError() || response.debuggerId === undefined) {
+            this.#debuggerEnabledInternal = false;
             return;
         }
         const { debuggerId } = response;
@@ -788,7 +789,6 @@ class DebuggerModel extends SDKModel {
         return this.evaluateOnCallFrameCallback;
     }
 }
-export { DebuggerModel };
 // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export const _debuggerIdToModel = new Map();
@@ -818,6 +818,7 @@ export var Events;
     Events["GlobalObjectCleared"] = "GlobalObjectCleared";
     Events["CallFrameSelected"] = "CallFrameSelected";
     Events["DebuggerIsReadyToPause"] = "DebuggerIsReadyToPause";
+    Events["ScriptSourceWasEdited"] = "ScriptSourceWasEdited";
 })(Events || (Events = {}));
 class DebuggerDispatcher {
     #debuggerModel;
@@ -1063,8 +1064,7 @@ export class Scope {
     #typeInternal;
     #nameInternal;
     #ordinal;
-    #startLocationInternal;
-    #endLocationInternal;
+    #locationRange;
     #objectInternal;
     constructor(callFrame, ordinal) {
         this.#callFrameInternal = callFrame;
@@ -1072,11 +1072,15 @@ export class Scope {
         this.#typeInternal = this.#payload.type;
         this.#nameInternal = this.#payload.name;
         this.#ordinal = ordinal;
-        this.#startLocationInternal =
-            this.#payload.startLocation ? Location.fromPayload(callFrame.debuggerModel, this.#payload.startLocation) : null;
-        this.#endLocationInternal =
-            this.#payload.endLocation ? Location.fromPayload(callFrame.debuggerModel, this.#payload.endLocation) : null;
         this.#objectInternal = null;
+        const start = this.#payload.startLocation ? Location.fromPayload(callFrame.debuggerModel, this.#payload.startLocation) : null;
+        const end = this.#payload.endLocation ? Location.fromPayload(callFrame.debuggerModel, this.#payload.endLocation) : null;
+        if (start && end && start.scriptId === end.scriptId) {
+            this.#locationRange = { start, end };
+        }
+        else {
+            this.#locationRange = null;
+        }
     }
     callFrame() {
         return this.#callFrameInternal;
@@ -1112,11 +1116,8 @@ export class Scope {
     name() {
         return this.#nameInternal;
     }
-    startLocation() {
-        return this.#startLocationInternal;
-    }
-    endLocation() {
-        return this.#endLocationInternal;
+    range() {
+        return this.#locationRange;
     }
     object() {
         if (this.#objectInternal) {

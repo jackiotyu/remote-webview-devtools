@@ -54,8 +54,8 @@ export function getIssueCountsEnumeration(issuesManager, omitEmpty = true) {
     ];
     return listFormat.format(phrases.filter((_, i) => omitEmpty ? counts[i] > 0 : true));
 }
-class IssueCounter extends HTMLElement {
-    static litTagName = LitHtml.literal `issue-counter`;
+export class IssueCounter extends HTMLElement {
+    static litTagName = LitHtml.literal `devtools-issue-counter`;
     #shadow = this.attachShadow({ mode: 'open' });
     #clickHandler = undefined;
     #tooltipCallback = undefined;
@@ -163,6 +163,5 @@ class IssueCounter extends HTMLElement {
         this.#tooltipCallback?.();
     }
 }
-export { IssueCounter };
-ComponentHelpers.CustomElements.defineComponent('issue-counter', IssueCounter);
+ComponentHelpers.CustomElements.defineComponent('devtools-issue-counter', IssueCounter);
 //# map=IssueCounter.js.map

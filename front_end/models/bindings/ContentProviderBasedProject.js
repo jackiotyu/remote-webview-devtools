@@ -28,6 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 import * as i18n from '../../core/i18n/i18n.js';
+import * as Platform from '../../core/platform/platform.js';
+import * as TextUtils from '../text_utils/text_utils.js';
 import * as Workspace from '../workspace/workspace.js';
 const UIStrings = {
     /**
@@ -50,12 +52,24 @@ export class ContentProviderBasedProject extends Workspace.Workspace.ProjectStor
         const { contentProvider } = this.#uiSourceCodeToData.get(uiSourceCode);
         try {
             const content = await contentProvider.requestContent();
+            if ('error' in content) {
+                return {
+                    error: content.error,
+                    isEncoded: content.isEncoded,
+                    content: null,
+                };
+            }
             const wasmDisassemblyInfo = 'wasmDisassemblyInfo' in content ? content.wasmDisassemblyInfo : undefined;
+            if (wasmDisassemblyInfo && content.isEncoded === false) {
+                return {
+                    content: '',
+                    wasmDisassemblyInfo,
+                    isEncoded: false,
+                };
+            }
             return {
                 content: content.content,
-                wasmDisassemblyInfo,
                 isEncoded: content.isEncoded,
-                error: 'error' in content && content.error || '',
             };
         }
         catch (err) {
@@ -127,25 +141,24 @@ export class ContentProviderBasedProject extends Workspace.Workspace.ProjectStor
         return contentProvider.searchInContent(query, caseSensitive, isRegex);
     }
     async findFilesMatchingSearchRequest(searchConfig, filesMatchingFileQuery, progress) {
-        const result = [];
+        const result = new Map();
         progress.setTotalWork(filesMatchingFileQuery.length);
         await Promise.all(filesMatchingFileQuery.map(searchInContent.bind(this)));
         progress.done();
         return result;
-        async function searchInContent(path) {
-            const uiSourceCode = this.uiSourceCodeForURL(path);
-            if (uiSourceCode) {
-                let allMatchesFound = true;
-                for (const query of searchConfig.queries().slice()) {
-                    const searchMatches = await this.searchInFileContent(uiSourceCode, query, !searchConfig.ignoreCase(), searchConfig.isRegex());
-                    if (!searchMatches.length) {
-                        allMatchesFound = false;
-                        break;
-                    }
+        async function searchInContent(uiSourceCode) {
+            let allMatchesFound = true;
+            let matches = [];
+            for (const query of searchConfig.queries().slice()) {
+                const searchMatches = await this.searchInFileContent(uiSourceCode, query, !searchConfig.ignoreCase(), searchConfig.isRegex());
+                if (!searchMatches.length) {
+                    allMatchesFound = false;
+                    break;
                 }
-                if (allMatchesFound) {
-                    result.push(path);
-                }
+                matches = Platform.ArrayUtilities.mergeOrdered(matches, searchMatches, TextUtils.ContentProvider.SearchMatch.comparator);
+            }
+            if (allMatchesFound) {
+                result.set(uiSourceCode, matches);
             }
             progress.incrementWorked(1);
         }

@@ -14,7 +14,6 @@ export default {
   color: var(--color-text-primary);
   display: flex;
   flex: auto;
-  border-bottom: 1px solid var(--color-details-hairline);
   flex-direction: column;
   position: relative;
   padding: 1px 6px;

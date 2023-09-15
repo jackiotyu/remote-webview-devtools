@@ -198,16 +198,21 @@ export class AnimationTimeline extends UI.Widget.VBox {
         const toolbarContainer = this.contentElement.createChild('div', 'animation-timeline-toolbar-container');
         const topToolbar = new UI.Toolbar.Toolbar('animation-timeline-toolbar', toolbarContainer);
         this.#clearButton = new UI.Toolbar.ToolbarButton(i18nString(UIStrings.clearAll), 'clear');
-        this.#clearButton.addEventListener(UI.Toolbar.ToolbarButton.Events.Click, this.reset.bind(this));
+        this.#clearButton.addEventListener(UI.Toolbar.ToolbarButton.Events.Click, () => {
+            Host.userMetrics.actionTaken(Host.UserMetrics.Action.AnimationGroupsCleared);
+            this.reset();
+        });
         topToolbar.appendToolbarItem(this.#clearButton);
         topToolbar.appendSeparator();
         this.#pauseButton = new UI.Toolbar.ToolbarToggle(i18nString(UIStrings.pauseAll), 'pause', 'resume');
-        this.#pauseButton.addEventListener(UI.Toolbar.ToolbarButton.Events.Click, this.togglePauseAll.bind(this));
+        this.#pauseButton.addEventListener(UI.Toolbar.ToolbarButton.Events.Click, () => {
+            this.togglePauseAll();
+        });
         topToolbar.appendToolbarItem(this.#pauseButton);
         const playbackRateControl = toolbarContainer.createChild('div', 'animation-playback-rate-control');
         playbackRateControl.addEventListener('keydown', this.handlePlaybackRateControlKeyDown.bind(this));
         UI.ARIAUtils.markAsListBox(playbackRateControl);
-        UI.ARIAUtils.setAccessibleName(playbackRateControl, i18nString(UIStrings.playbackRates));
+        UI.ARIAUtils.setLabel(playbackRateControl, i18nString(UIStrings.playbackRates));
         this.#playbackRateButtons = [];
         for (const playbackRate of GlobalPlaybackRates) {
             const button = playbackRateControl.createChild('button', 'animation-playback-rate-button');
@@ -223,7 +228,7 @@ export class AnimationTimeline extends UI.Widget.VBox {
         this.updatePlaybackControls();
         this.#previewContainer = this.contentElement.createChild('div', 'animation-timeline-buffer');
         UI.ARIAUtils.markAsListBox(this.#previewContainer);
-        UI.ARIAUtils.setAccessibleName(this.#previewContainer, i18nString(UIStrings.animationPreviews));
+        UI.ARIAUtils.setLabel(this.#previewContainer, i18nString(UIStrings.animationPreviews));
         this.#popoverHelper = new UI.PopoverHelper.PopoverHelper(this.#previewContainer, this.getPopoverRequest.bind(this));
         this.#popoverHelper.setDisableOnClick(true);
         this.#popoverHelper.setTimeout(0);
@@ -317,6 +322,7 @@ export class AnimationTimeline extends UI.Widget.VBox {
     }
     togglePauseAll() {
         this.#allPaused = !this.#allPaused;
+        Host.userMetrics.actionTaken(this.#allPaused ? Host.UserMetrics.Action.AnimationsPaused : Host.UserMetrics.Action.AnimationsResumed);
         if (this.#pauseButton) {
             this.#pauseButton.setToggled(this.#allPaused);
         }
@@ -326,6 +332,12 @@ export class AnimationTimeline extends UI.Widget.VBox {
         }
     }
     setPlaybackRate(playbackRate) {
+        if (playbackRate !== this.#playbackRate) {
+            Host.userMetrics.animationPlaybackRateChanged(playbackRate === 0.1 ? 2 /* Host.UserMetrics.AnimationsPlaybackRate.Percent10 */ :
+                playbackRate === 0.25 ? 1 /* Host.UserMetrics.AnimationsPlaybackRate.Percent25 */ :
+                    playbackRate === 1 ? 0 /* Host.UserMetrics.AnimationsPlaybackRate.Percent100 */ :
+                        3 /* Host.UserMetrics.AnimationsPlaybackRate.Other */);
+        }
         this.#playbackRate = playbackRate;
         for (const animationModel of SDK.TargetManager.TargetManager.instance().models(AnimationModel, { scoped: true })) {
             animationModel.setPlaybackRate(this.#allPaused ? 0 : this.#playbackRate);
@@ -348,6 +360,7 @@ export class AnimationTimeline extends UI.Widget.VBox {
             this.togglePause(false);
         }
         else if (this.#controlState === "replay-outline" /* ControlState.Replay */) {
+            Host.userMetrics.actionTaken(Host.UserMetrics.Action.AnimationGroupReplayed);
             this.replay();
         }
         else {
@@ -366,7 +379,7 @@ export class AnimationTimeline extends UI.Widget.VBox {
             this.#controlButton.setGlyph('play');
         }
         else if (!this.#scrubberPlayer || !this.#scrubberPlayer.currentTime ||
-            this.#scrubberPlayer.currentTime >= this.duration()) {
+            typeof this.#scrubberPlayer.currentTime !== 'number' || this.#scrubberPlayer.currentTime >= this.duration()) {
             this.#controlState = "replay-outline" /* ControlState.Replay */;
             this.#controlButton.setToggled(true);
             this.#controlButton.setTitle(i18nString(UIStrings.replayTimeline));
@@ -427,12 +440,7 @@ export class AnimationTimeline extends UI.Widget.VBox {
     }
     reset() {
         this.clearTimeline();
-        if (this.#allPaused) {
-            this.togglePauseAll();
-        }
-        else {
-            this.setPlaybackRate(this.#playbackRate);
-        }
+        this.setPlaybackRate(this.#playbackRate);
         for (const group of this.#groupBuffer) {
             group.release();
         }
@@ -487,7 +495,7 @@ export class AnimationTimeline extends UI.Widget.VBox {
         preview.removeButton().addEventListener('click', this.removeAnimationGroup.bind(this, group));
         preview.element.addEventListener('click', this.selectAnimationGroup.bind(this, group));
         preview.element.addEventListener('keydown', this.handleAnimationGroupKeyDown.bind(this, group));
-        UI.ARIAUtils.setAccessibleName(preview.element, i18nString(UIStrings.animationPreviewS, { PH1: this.#groupBuffer.indexOf(group) + 1 }));
+        UI.ARIAUtils.setLabel(preview.element, i18nString(UIStrings.animationPreviewS, { PH1: this.#groupBuffer.indexOf(group) + 1 }));
         UI.ARIAUtils.markAsOption(preview.element);
         if (this.#previewMap.size === 1) {
             const preview = this.#previewMap.get(this.#groupBuffer[0]);
@@ -708,7 +716,7 @@ export class AnimationTimeline extends UI.Widget.VBox {
         if (!this.#scrubberPlayer) {
             return;
         }
-        this.#currentTime.textContent = i18n.TimeUtilities.millisToString(this.#scrubberPlayer.currentTime || 0);
+        this.#currentTime.textContent = i18n.TimeUtilities.millisToString(this.#scrubberCurrentTime());
         if (this.#scrubberPlayer.playState.toString() === 'pending' || this.#scrubberPlayer.playState === 'running') {
             this.element.window().requestAnimationFrame(this.updateScrubber.bind(this));
         }
@@ -738,7 +746,8 @@ export class AnimationTimeline extends UI.Widget.VBox {
         if (!this.#scrubberPlayer || !this.#selectedGroup) {
             return false;
         }
-        this.#originalScrubberTime = this.#scrubberPlayer.currentTime;
+        this.#originalScrubberTime =
+            typeof this.#scrubberPlayer.currentTime === 'number' ? this.#scrubberPlayer.currentTime : null;
         this.#timelineScrubber.classList.remove('animation-timeline-end');
         this.#scrubberPlayer.pause();
         const { x } = event; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -758,12 +767,16 @@ export class AnimationTimeline extends UI.Widget.VBox {
             this.#selectedGroup.seekTo(currentTime);
         }
     }
+    #scrubberCurrentTime() {
+        return typeof this.#scrubberPlayer?.currentTime === 'number' ? this.#scrubberPlayer.currentTime : 0;
+    }
     scrubberDragEnd(_event) {
         if (this.#scrubberPlayer) {
-            const currentTime = Math.max(0, this.#scrubberPlayer.currentTime || 0);
+            const currentTime = Math.max(0, this.#scrubberCurrentTime());
             this.#scrubberPlayer.play();
             this.#scrubberPlayer.currentTime = currentTime;
         }
+        Host.userMetrics.actionTaken(Host.UserMetrics.Action.AnimationGroupScrubbed);
         this.#currentTime.window().requestAnimationFrame(this.updateScrubber.bind(this));
     }
 }
@@ -787,7 +800,12 @@ export class NodeUI {
         }
         this.#node = node;
         this.nodeChanged();
-        void Common.Linkifier.Linkifier.linkify(node).then(link => this.#description.appendChild(link));
+        void Common.Linkifier.Linkifier.linkify(node).then(link => {
+            link.addEventListener('click', () => {
+                Host.userMetrics.actionTaken(Host.UserMetrics.Action.AnimatedNodeDescriptionClicked);
+            });
+            this.#description.appendChild(link);
+        });
         if (!node.ownerDocument) {
             this.nodeRemoved();
         }

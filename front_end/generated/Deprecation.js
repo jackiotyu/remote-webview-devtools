@@ -45,17 +45,25 @@ export const UIStrings = {
      */
     CSSSelectorInternalMediaControlsOverlayCastButton: "The `disableRemotePlayback` attribute should be used in order to disable the default Cast integration instead of using `-internal-media-controls-overlay-cast-button` selector.",
     /**
+     * @description Warning displayed to developers to let them know the CSS appearance property values they used are deprecated and will be removed.
+     */
+    CSSValueAppearanceNonStandard: "CSS appearance values  `inner-spin-button`, `media-slider`, `media-sliderthumb`, `media-volume-slider`, `media-volume-sliderthumb`, `push-button`, `searchfield-cancel-button`, `slider-horizontal`, `sliderthumb-horizontal`, `sliderthumb-vertical`, `square-button` are not standardized and will no longer be supported.",
+    /**
+     * @description Warning displayed to developers when a data: URL is assigned to SVGUseElement to let them know that the support is deprecated.
+     */
+    DataUrlInSvgUse: "Support for data: URLs in SVGUseElement is deprecated and it will be removed in the future.",
+    /**
      * @description This warning occurs when a script modifies `document.domain` without having set on `Origin-Agent-Cluster` http header. In other words, when a script relies on the default behaviour of `Origin-Agent-Cluster` when setting document.domain.
      */
     DocumentDomainSettingWithoutOriginAgentClusterHeader: "Relaxing the same-origin policy by setting `document.domain` is deprecated, and will be disabled by default. To continue using this feature, please opt-out of origin-keyed agent clusters by sending an `Origin-Agent-Cluster: ?0` header along with the HTTP response for the document and frames. See https://developer.chrome.com/blog/immutable-document-domain/ for more details.",
     /**
-     * @description Warning displayed to developers when the non-standard `Event.path` API is used to notify them that this API is deprecated.
+     * @description Warning displayed to developers when non-standard Mutation Events are used. These are deprecated and will be removed.
      */
-    EventPath: "`Event.path` is deprecated and will be removed. Please use `Event.composedPath()` instead.",
+    DOMMutationEvents: "DOM Mutation Events, including `DOMSubtreeModified`, `DOMNodeInserted`, `DOMNodeRemoved`, `DOMNodeRemovedFromDocument`, `DOMNodeInsertedIntoDocument`, and `DOMCharacterDataModified` are deprecated (https://w3c.github.io/uievents/#legacy-event-types) and will be removed. Please use `MutationObserver` instead.",
     /**
      * @description This message is shown when the deprecated Expect-CT header is present.
      */
-    ExpectCTHeader: "The `Expect-CT` header is no longer supported. Chrome requires Certificate Transparency for all publicly trusted certificates issued after April 30, 2018.",
+    ExpectCTHeader: "The `Expect-CT` header is deprecated and will be removed. Chrome requires Certificate Transparency for all publicly trusted certificates issued after April 30, 2018.",
     /**
      * @description Warning displayed to developers when the Geolocation API is used from an insecure origin (one that isn't localhost or doesn't use HTTPS) to notify them that this use is no longer supported.
      */
@@ -69,7 +77,7 @@ export const UIStrings = {
      */
     GetUserMediaInsecureOrigin: "`getUserMedia()` no longer works on insecure origins. To use this feature, you should consider switching your application to a secure origin, such as HTTPS. See https://goo.gle/chrome-insecure-origins for more details.",
     /**
-     * @description A deprecation warning shown to developers in the DevTools Issues tab when code tries to use the deprecated hostCandidate field, guiding developers to use the the equivalent information in the .address and .port fields instead.
+     * @description A deprecation warning shown to developers in the DevTools Issues tab when code tries to use the deprecated hostCandidate field, guiding developers to use the equivalent information in the .address and .port fields instead.
      */
     HostCandidateAttributeGetter: "`RTCPeerConnectionIceErrorEvent.hostCandidate` is deprecated. Please use `RTCPeerConnectionIceErrorEvent.address` or `RTCPeerConnectionIceErrorEvent.port` instead.",
     /**
@@ -244,6 +252,9 @@ export const DEPRECATIONS_METADATA = {
     "CSSSelectorInternalMediaControlsOverlayCastButton": {
         "chromeStatusFeature": 5714245488476160
     },
+    "CSSValueAppearanceNonStandard": {
+        "chromeStatusFeature": 5066630972833792
+    },
     "CanRequestURLHTTPContainingNewline": {
         "chromeStatusFeature": 5735596811091968
     },
@@ -260,14 +271,18 @@ export const DEPRECATIONS_METADATA = {
         "milestone": 103
     },
     "CrossOriginAccessBasedOnDocumentDomain": {
-        "milestone": 109
+        "milestone": 115
+    },
+    "DOMMutationEvents": {
+        "chromeStatusFeature": 5083947249172480,
+        "milestone": 127
+    },
+    "DataUrlInSvgUse": {
+        "chromeStatusFeature": 5128825141198848,
+        "milestone": 119
     },
     "DocumentDomainSettingWithoutOriginAgentClusterHeader": {
-        "milestone": 109
-    },
-    "EventPath": {
-        "chromeStatusFeature": 5726124632965120,
-        "milestone": 109
+        "milestone": 115
     },
     "ExpectCTHeader": {
         "chromeStatusFeature": 6244547273687040,

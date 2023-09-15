@@ -25,7 +25,7 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/elements/components/ElementsBreadcrumbs.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class NodeSelectedEvent extends Event {
+export class NodeSelectedEvent extends Event {
     static eventName = 'breadcrumbsnodeselected';
     legacyDomNode;
     constructor(node) {
@@ -33,9 +33,8 @@ class NodeSelectedEvent extends Event {
         this.legacyDomNode = node.legacyDomNode;
     }
 }
-export { NodeSelectedEvent };
 const coordinator = Coordinator.RenderCoordinator.RenderCoordinator.instance();
-class ElementsBreadcrumbs extends HTMLElement {
+export class ElementsBreadcrumbs extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-elements-breadcrumbs`;
     #shadow = this.attachShadow({ mode: 'open' });
     #resizeObserver = new ResizeObserver(() => this.#checkForOverflowOnResize());
@@ -234,7 +233,7 @@ class ElementsBreadcrumbs extends HTMLElement {
         title=${tooltipString}>
         <${IconButton.Icon.Icon.litTagName} .data=${{
             iconName: 'triangle-' + direction,
-            color: 'var(--color-text-primary)',
+            color: 'var(--sys-color-on-surface)',
             width: '12px',
             height: '10px',
         }}>
@@ -315,13 +314,10 @@ class ElementsBreadcrumbs extends HTMLElement {
                     // deeply nested element, and the slow scrolling of the breadcrumbs
                     // is just a distraction and not useful.
                     behavior: 'auto',
-                    block: 'nearest',
-                    inline: 'start'
                 });
             });
         }
     }
 }
-export { ElementsBreadcrumbs };
 ComponentHelpers.CustomElements.defineComponent('devtools-elements-breadcrumbs', ElementsBreadcrumbs);
 //# map=ElementsBreadcrumbs.js.map

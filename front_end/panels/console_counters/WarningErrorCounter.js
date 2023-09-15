@@ -31,7 +31,7 @@ const UIStrings = {
 const str_ = i18n.i18n.registerUIStrings('panels/console_counters/WarningErrorCounter.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 let warningErrorCounterInstance;
-class WarningErrorCounter {
+export class WarningErrorCounter {
     toolbarItem;
     consoleCounter;
     issueCounter;
@@ -54,6 +54,7 @@ class WarningErrorCounter {
         };
         const issuesManager = IssuesManager.IssuesManager.IssuesManager.instance();
         this.issueCounter = new IssueCounter.IssueCounter.IssueCounter();
+        this.issueCounter.classList.add('main-toolbar');
         countersWrapper.appendChild(this.issueCounter);
         this.issueCounter.data = {
             clickHandler: () => {
@@ -147,5 +148,4 @@ class WarningErrorCounter {
     }
     static instanceForTest = null;
 }
-export { WarningErrorCounter };
 //# map=WarningErrorCounter.js.map

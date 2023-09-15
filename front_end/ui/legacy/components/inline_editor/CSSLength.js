@@ -1,24 +1,24 @@
 // Copyright (c) 2021 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+import * as Host from '../../../../core/host/host.js';
 import * as ComponentHelpers from '../../../components/helpers/helpers.js';
 import * as LitHtml from '../../../lit-html/lit-html.js';
 import cssLengthStyles from './cssLength.css.js';
 import { LENGTH_UNITS, parseText } from './CSSLengthUtils.js';
 import { ValueChangedEvent } from './InlineEditorUtils.js';
 const { render, html, Directives: { classMap } } = LitHtml;
-class DraggingFinishedEvent extends Event {
+export class DraggingFinishedEvent extends Event {
     static eventName = 'draggingfinished';
     constructor() {
         super(DraggingFinishedEvent.eventName, {});
     }
 }
-export { DraggingFinishedEvent };
 const DefaultLength = {
     value: 0,
     unit: "px" /* LengthUnit.PIXEL */,
 };
-class CSSLength extends HTMLElement {
+export class CSSLength extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-css-length`;
     shadow = this.attachShadow({ mode: 'open' });
     onDraggingValue = this.dragValue.bind(this);
@@ -96,6 +96,7 @@ class CSSLength extends HTMLElement {
     onUnitMouseup(event) {
         event.preventDefault();
         event.stopPropagation();
+        Host.userMetrics.swatchActivated(8 /* Host.UserMetrics.SwatchType.Length */);
     }
     render() {
         const classes = {
@@ -138,6 +139,5 @@ class CSSLength extends HTMLElement {
         // clang-format on
     }
 }
-export { CSSLength };
 ComponentHelpers.CustomElements.defineComponent('devtools-css-length', CSSLength);
 //# map=CSSLength.js.map

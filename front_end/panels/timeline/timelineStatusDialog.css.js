@@ -16,8 +16,9 @@ styles.replaceSync(
   flex-direction: column;
   padding: 16px 16px 12px;
   align-self: center;
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   box-shadow: var(--drop-shadow);
+  border-radius: 10px;
 }
 
 .status-dialog-line {
@@ -32,7 +33,7 @@ styles.replaceSync(
   display: inline-block;
   width: 80px;
   text-align: right;
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
   margin-right: 10px;
 }
 
@@ -40,11 +41,11 @@ styles.replaceSync(
   display: inline-block;
   width: 200px;
   height: 8px;
-  background-color: var(--color-background-elevation-2);
+  background-color: var(--sys-color-surface5);
 }
 
 .timeline-status-dialog .progress .indicator {
-  background-color: var(--color-primary-variant);
+  background-color: var(--sys-color-primary);
   height: 100%;
   width: 0;
   margin: 0;
@@ -57,7 +58,7 @@ styles.replaceSync(
 }
 
 .timeline-status-dialog .stop-button button {
-  min-width: 80px;
+  border-radius: 12px;
 }
 
 .timeline-status-dialog.small-dialog {
@@ -87,6 +88,6 @@ styles.replaceSync(
   }
 }
 
-
+/*# sourceURL=timelineStatusDialog.css */
 `);
 export default styles;

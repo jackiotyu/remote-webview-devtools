@@ -72,6 +72,6 @@ dialog:focus-visible {
   }
 }
 
-
+/*# sourceURL=dialog.css */
 `);
 export default styles;

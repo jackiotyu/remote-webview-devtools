@@ -44,13 +44,13 @@ styles.replaceSync(
   border-radius: 12px;
   height: 12px;
   width: 12px;
-  border: 1px solid var(--color-background);
+  border: 1px solid var(--sys-color-surface);
   cursor: move;
   z-index: 1;
   position: absolute;
   top: 0;
   left: 0;
-  background: var(--color-background-inverted);
+  background: var(--sys-color-inverse-surface);
   box-shadow: var(--drop-shadow);
 }
 
@@ -126,13 +126,13 @@ styles.replaceSync(
 
 .spectrum-contrast-details {
   position: relative;
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   width: 100%;
   height: 83px;
   top: 0;
   font-size: 13px;
   color: var(--color-text-primary);
-  border-top: var(--legacy-divider-border);
+  border-top: 1px solid var(--sys-color-divider);
   line-height: initial;
   overflow: hidden;
   flex: none;
@@ -210,7 +210,7 @@ styles.replaceSync(
   position: absolute;
   left: 5.5px;
   top: 3.5px;
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   border-radius: 50%;
 }
 
@@ -413,7 +413,7 @@ styles.replaceSync(
 }
 
 .spectrum-palette-container {
-  border-top: var(--legacy-divider-border);
+  border-top: 1px solid var(--sys-color-divider);
   position: relative;
   width: 100%;
   padding: 6px 24px 6px 6px;
@@ -435,7 +435,7 @@ styles.replaceSync(
   margin: 6px;
   cursor: pointer;
   position: relative;
-  border: 1px solid var(--color-details-hairline);
+  border: 1px solid var(--sys-color-divider);
   background-position: -1px !important; /* stylelint-disable-line declaration-no-important */
   z-index: 14;
 }
@@ -466,7 +466,7 @@ styles.replaceSync(
 
 .palette-color-shades {
   position: absolute;
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   height: 228px;
   width: 28px;
   box-shadow: var(--drop-shadow);
@@ -529,10 +529,10 @@ styles.replaceSync(
   top: 100%;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   z-index: 14;
   transition: transform 200ms cubic-bezier(0, 0, 0.2, 1), visibility 0s 200ms;
-  border-top: var(--legacy-divider-border);
+  border-top: 1px solid var(--sys-color-divider);
   visibility: hidden;
 }
 
@@ -550,7 +550,7 @@ styles.replaceSync(
 
 .palette-panel > div:not(.toolbar) {
   flex: 0 0 38px;
-  border-bottom: var(--legacy-divider-border);
+  border-bottom: 1px solid var(--sys-color-divider);
   padding: 12px;
   line-height: 14px;
   color: var(--color-text-primary);
@@ -670,7 +670,7 @@ div.palette-preview {
 }
 
 .no-contrast-info-available {
-  border-top: var(--legacy-divider-border);
+  border-top: 1px solid var(--sys-color-divider);
   position: relative;
   width: 100%;
   padding: 10px;
@@ -725,6 +725,6 @@ div.palette-preview {
   }
 }
 
-
+/*# sourceURL=spectrum.css */
 `);
 export default styles;

@@ -1,5 +1,9 @@
+// Copyright 2023 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 import * as Handlers from './handlers/handlers.js';
-class TraceParseProgressEvent extends Event {
+import * as Types from './types/types.js';
+export class TraceParseProgressEvent extends Event {
     data;
     static eventName = 'traceparseprogress';
     constructor(data, init = { bubbles: true }) {
@@ -7,27 +11,40 @@ class TraceParseProgressEvent extends Event {
         this.data = data;
     }
 }
-export { TraceParseProgressEvent };
 export class TraceProcessor extends EventTarget {
     // We force the Meta handler to be enabled, so the TraceHandlers type here is
     // the model handlers the user passes in and the Meta handler.
     // eslint-disable-next-line @typescript-eslint/naming-convention
     #traceHandlers;
-    #pauseDuration;
-    #eventsPerChunk;
     #status = "IDLE" /* Status.IDLE */;
+    #modelConfiguration = Types.Configuration.DEFAULT;
     static createWithAllHandlers() {
-        return new TraceProcessor(Handlers.ModelHandlers);
+        return new TraceProcessor(Handlers.ModelHandlers, Types.Configuration.DEFAULT);
     }
-    constructor(traceHandlers, { pauseDuration = 1, eventsPerChunk = 15_000 } = {}) {
+    constructor(traceHandlers, modelConfiguration) {
         super();
         this.#verifyHandlers(traceHandlers);
         this.#traceHandlers = {
             Meta: Handlers.ModelHandlers.Meta,
             ...traceHandlers,
         };
-        this.#pauseDuration = pauseDuration;
-        this.#eventsPerChunk = eventsPerChunk;
+        if (modelConfiguration) {
+            this.#modelConfiguration = modelConfiguration;
+        }
+        this.#passConfigToHandlers();
+    }
+    updateConfiguration(config) {
+        this.#modelConfiguration = config;
+        this.#passConfigToHandlers();
+    }
+    #passConfigToHandlers() {
+        for (const handler of Object.values(this.#traceHandlers)) {
+            // Bit of an odd double check, but without this TypeScript refuses to let
+            // you call the function as it thinks it might be undefined.
+            if ('handleUserConfig' in handler && handler.handleUserConfig) {
+                handler.handleUserConfig(this.#modelConfiguration);
+            }
+        }
     }
     /**
      * When the user passes in a set of handlers, we want to ensure that we have all
@@ -92,7 +109,8 @@ export class TraceProcessor extends EventTarget {
         // main thread to avoid blocking execution. It uses `dispatchEvent` to
         // provide status update events, and other various bits of config like the
         // pause duration and frequency.
-        const traceEventIterator = new TraceEventIterator(traceEvents, this.#pauseDuration, this.#eventsPerChunk);
+        const { pauseDuration, eventsPerChunk } = this.#modelConfiguration.processing;
+        const traceEventIterator = new TraceEventIterator(traceEvents, pauseDuration, eventsPerChunk);
         // Convert to array so that we are able to iterate all handlers multiple times.
         const sortedHandlers = [...sortHandlers(this.#traceHandlers).values()];
         // Reset.

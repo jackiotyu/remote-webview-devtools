@@ -27,7 +27,7 @@ styles.replaceSync(
 
 .wrapper {
   padding: 24px;
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -44,6 +44,6 @@ styles.replaceSync(
   justify-content: flex-end;
 }
 
-
+/*# sourceURL=startView.css */
 `);
 export default styles;

@@ -164,6 +164,6 @@ input[type="radio"]:focus {
   grid-template-rows: auto;
 }
 
-
+/*# sourceURL=lighthouseStartView.css */
 `);
 export default styles;

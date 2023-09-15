@@ -13,7 +13,7 @@ styles.replaceSync(
 
 .widget {
   display: flex;
-  background: var(--color-background);
+  background: var(--sys-color-cdt-base-container);
   box-shadow: var(--drop-shadow);
   border-radius: 2px;
   overflow: auto;
@@ -21,6 +21,6 @@ styles.replaceSync(
   line-height: 11px;
 }
 
-
+/*# sourceURL=swatchPopover.css */
 `);
 export default styles;

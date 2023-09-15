@@ -66,14 +66,15 @@ export class DeveloperResourcesView extends UI.ThrottledWidget.ThrottledWidget {
         this.statusMessageElement = this.statusToolbarElement.createChild('div', 'developer-resource-view-message');
         this.loader = SDK.PageResourceLoader.PageResourceLoader.instance();
         this.loader.addEventListener(SDK.PageResourceLoader.Events.Update, this.update, this);
+        this.update();
     }
     async doUpdate() {
         this.listView.reset();
-        this.listView.update(this.loader.getResourcesLoaded().values());
+        this.listView.update(this.loader.getScopedResourcesLoaded().values());
         this.updateStats();
     }
     updateStats() {
-        const { loading, resources } = this.loader.getNumberOfResources();
+        const { loading, resources } = this.loader.getScopedNumberOfResources();
         if (loading > 0) {
             this.statusMessageElement.textContent =
                 i18nString(UIStrings.resourcesCurrentlyLoading, { PH1: resources, PH2: loading });

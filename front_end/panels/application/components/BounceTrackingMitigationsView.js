@@ -4,8 +4,10 @@
 import * as i18n from '../../../core/i18n/i18n.js';
 import * as SDK from '../../../core/sdk/sdk.js';
 import * as Buttons from '../../../ui/components/buttons/buttons.js';
+import * as ChromeLink from '../../../ui/components/chrome_link/chrome_link.js';
 import * as DataGrid from '../../../ui/components/data_grid/data_grid.js';
 import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
+import * as LegacyWrapper from '../../../ui/components/legacy_wrapper/legacy_wrapper.js';
 import * as ReportView from '../../../ui/components/report_view/report_view.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
 import bounceTrackingMitigationsViewStyles from './bounceTrackingMitigationsView.css.js';
@@ -13,7 +15,7 @@ const UIStrings = {
     /**
      * @description Title text in bounce tracking mitigations view of the Application panel.
      */
-    bounceTrackingMitigationsTitle: 'Bounce Tracking Mitigations',
+    bounceTrackingMitigationsTitle: 'Bounce tracking mitigations',
     /**
      * @description Label for the button to force bounce tracking mitigations to run.
      */
@@ -31,7 +33,7 @@ const UIStrings = {
      */
     checkingPotentialTrackers: 'Checking for potential bounce tracking sites.',
     /**
-     * @description Link Text about explanation of Bounce Tracking Mitigations.
+     * @description Link text about explanation of Bounce Tracking Mitigations.
      */
     learnMore: 'Learn more: Bounce Tracking Mitigations',
     /**
@@ -39,30 +41,55 @@ const UIStrings = {
      * identified no potential bounce tracking sites to delete state for. This may also
      * indicate that bounce tracking mitigations are disabled or third-party cookies aren't being blocked.
      */
-    noPotentialBounceTrackersIdentified: 'State was not cleared for any potential bounce tracking sites. Either none were identified, bounce tracking mitigations are not enabled, or third-party cookies are not blocked.',
+    noPotentialBounceTrackersIdentified: 'State was not cleared for any potential bounce tracking sites. Either none were identified or third-party cookies are not blocked.',
+    /**
+     * @description Text shown when bounce tracking mitigations bounce tracking mitigations are disabled. Has a link.
+     * @example {Bounce Tracking Mitigations Feature Flag} PH1
+     */
+    featureDisabled: 'Bounce tracking mitigations are disabled. To enable them, set the flag at {PH1} to "Enabled With Deletion".',
+    /**
+     * @description Text for link to Bounce Tracking Mitigations feature flag entry in the chrome://flags page.
+     */
+    featureFlag: 'Bounce Tracking Mitigations Feature Flag',
 };
 const str_ = i18n.i18n.registerUIStrings('panels/application/components/BounceTrackingMitigationsView.ts', UIStrings);
 export const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class BounceTrackingMitigationsView extends HTMLElement {
+export class BounceTrackingMitigationsView extends LegacyWrapper.LegacyWrapper.WrappableComponent {
     static litTagName = LitHtml.literal `devtools-bounce-tracking-mitigations-view`;
     #shadow = this.attachShadow({ mode: 'open' });
     #trackingSites = [];
     #screenStatus = "Result" /* ScreenStatusType.Result */;
+    #checkedFeature = false;
     #seenButtonClick = false;
     connectedCallback() {
         this.#shadow.adoptedStyleSheets = [bounceTrackingMitigationsViewStyles];
-        this.#render();
+        void this.#render();
     }
-    #render() {
+    async #render() {
         // clang-format off
         LitHtml.render(LitHtml.html `
       <${ReportView.ReportView.Report.litTagName} .data=${{ reportTitle: i18nString(UIStrings.bounceTrackingMitigationsTitle) }}>
-        ${this.#renderMainFrameInformation()}
+        ${await this.#renderMainFrameInformation()}
       </${ReportView.ReportView.Report.litTagName}>
     `, this.#shadow, { host: this });
         // clang-format on
     }
-    #renderMainFrameInformation() {
+    async #renderMainFrameInformation() {
+        if (!this.#checkedFeature) {
+            await this.#checkFeatureState();
+        }
+        if (this.#screenStatus === "Disabled" /* ScreenStatusType.Disabled */) {
+            const mitigationsFlagLink = new ChromeLink.ChromeLink.ChromeLink();
+            mitigationsFlagLink.href = 'chrome://flags/#bounce-tracking-mitigations';
+            mitigationsFlagLink.textContent = i18nString(UIStrings.featureFlag);
+            // clang-format off
+            return LitHtml.html `
+        <${ReportView.ReportView.ReportSection.litTagName}>
+          ${i18n.i18n.getFormatLocalizedString(str_, UIStrings.featureDisabled, { PH1: mitigationsFlagLink })}
+        </${ReportView.ReportView.ReportSection.litTagName}>
+      `;
+            // clang-format on
+        }
         // clang-format off
         return LitHtml.html `
       <${ReportView.ReportView.ReportSection.litTagName}>
@@ -146,6 +173,7 @@ class BounceTrackingMitigationsView extends HTMLElement {
         }
         this.#seenButtonClick = true;
         this.#screenStatus = "Running" /* ScreenStatusType.Running */;
+        void this.#render();
         const response = await mainTarget.storageAgent().invoke_runBounceTrackingMitigations();
         this.#trackingSites = [];
         response.deletedSites.forEach(element => {
@@ -155,7 +183,7 @@ class BounceTrackingMitigationsView extends HTMLElement {
     }
     #renderMitigationsResult() {
         this.#screenStatus = "Result" /* ScreenStatusType.Result */;
-        this.#render();
+        void this.#render();
     }
     #buildRowsFromDeletedSites() {
         const trackingSites = this.#trackingSites;
@@ -165,7 +193,16 @@ class BounceTrackingMitigationsView extends HTMLElement {
             ],
         }));
     }
+    async #checkFeatureState() {
+        this.#checkedFeature = true;
+        const mainTarget = SDK.TargetManager.TargetManager.instance().primaryPageTarget();
+        if (!mainTarget) {
+            return;
+        }
+        if (!(await mainTarget.systemInfo().invoke_getFeatureState({ featureState: 'DIPS' })).featureEnabled) {
+            this.#screenStatus = "Disabled" /* ScreenStatusType.Disabled */;
+        }
+    }
 }
-export { BounceTrackingMitigationsView };
 ComponentHelpers.CustomElements.defineComponent('devtools-bounce-tracking-mitigations-view', BounceTrackingMitigationsView);
 //# map=BounceTrackingMitigationsView.js.map

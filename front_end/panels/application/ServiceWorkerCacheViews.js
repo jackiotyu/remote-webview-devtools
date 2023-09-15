@@ -7,6 +7,7 @@ import * as Platform from '../../core/platform/platform.js';
 import * as SDK from '../../core/sdk/sdk.js';
 import * as DataGrid from '../../ui/legacy/components/data_grid/data_grid.js';
 import * as UI from '../../ui/legacy/legacy.js';
+import * as ApplicationComponents from './components/components.js';
 import serviceWorkerCacheViewsStyles from './serviceWorkerCacheViews.css.js';
 import * as Network from '../network/network.js';
 const UIStrings = {
@@ -67,7 +68,7 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/application/ServiceWorkerCacheViews.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class ServiceWorkerCacheView extends UI.View.SimpleView {
+export class ServiceWorkerCacheView extends UI.View.SimpleView {
     model;
     entriesForTest;
     splitWidget;
@@ -82,6 +83,7 @@ class ServiceWorkerCacheView extends UI.View.SimpleView {
     returnCount;
     summaryBarElement;
     loadingPromise;
+    metadataView = new ApplicationComponents.StorageMetadataView.StorageMetadataView();
     constructor(model, cache) {
         super(i18nString(UIStrings.cache));
         this.model = model;
@@ -89,6 +91,7 @@ class ServiceWorkerCacheView extends UI.View.SimpleView {
         this.element.classList.add('service-worker-cache-data-view');
         this.element.classList.add('storage-view');
         const editorToolbar = new UI.Toolbar.Toolbar('data-view-toolbar', this.element);
+        this.element.appendChild(this.metadataView);
         this.splitWidget = new UI.SplitWidget.SplitWidget(false, false);
         this.splitWidget.show(this.element);
         this.previewPanel = new UI.Widget.VBox();
@@ -97,6 +100,15 @@ class ServiceWorkerCacheView extends UI.View.SimpleView {
         this.splitWidget.installResizer(resizer);
         this.preview = null;
         this.cache = cache;
+        const bucketInfo = this.model.target()
+            .model(SDK.StorageBucketsModel.StorageBucketsModel)
+            ?.getBucketByName(cache.storageBucket.storageKey, cache.storageBucket.name);
+        if (bucketInfo) {
+            this.metadataView.setStorageBucket(bucketInfo);
+        }
+        else if (cache.storageKey) {
+            this.metadataView.setStorageKey(cache.storageKey);
+        }
         this.dataGrid = null;
         this.refreshThrottler = new Common.Throttler.Throttler(300);
         this.refreshButton = new UI.Toolbar.ToolbarButton(i18nString(UIStrings.refresh), 'refresh');
@@ -318,8 +330,8 @@ class ServiceWorkerCacheView extends UI.View.SimpleView {
         void this.updateData(true);
     }
     cacheContentUpdated(event) {
-        const { cacheName, storageKey } = event.data;
-        if ((this.cache.storageKey !== storageKey || this.cache.cacheName !== cacheName)) {
+        const { cacheName, storageBucket } = event.data;
+        if ((!this.cache.inBucket(storageBucket) || this.cache.cacheName !== cacheName)) {
             return;
         }
         void this.refreshThrottler.schedule(() => Promise.resolve(this.updateData(true)), true);
@@ -374,7 +386,6 @@ class ServiceWorkerCacheView extends UI.View.SimpleView {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     static previewSymbol = Symbol('preview');
 }
-export { ServiceWorkerCacheView };
 const networkRequestToPreview = new WeakMap();
 export class DataGridNode extends DataGrid.DataGrid.DataGridNode {
     number;

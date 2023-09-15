@@ -30,6 +30,8 @@ function getIssueCode(details) {
             return "AttributionReportingIssue::InvalidRegisterOsTriggerHeader" /* IssueCode.InvalidRegisterOsTriggerHeader */;
         case "WebAndOsHeaders" /* Protocol.Audits.AttributionReportingIssueType.WebAndOsHeaders */:
             return "AttributionReportingIssue::WebAndOsHeaders" /* IssueCode.WebAndOsHeaders */;
+        case "NavigationRegistrationWithoutTransientUserActivation" /* Protocol.Audits.AttributionReportingIssueType.NavigationRegistrationWithoutTransientUserActivation */:
+            return "AttributionReportingIssue::NavigationRegistrationWithoutTransientUserActivation" /* IssueCode.NavigationRegistrationWithoutTransientUserActivation */;
         default:
             return "AttributionReportingIssue::Unknown" /* IssueCode.Unknown */;
     }
@@ -125,6 +127,11 @@ export class AttributionReportingIssue extends Issue {
                     file: 'arOsTriggerIgnored.md',
                     links: [structuredHeaderLink],
                 };
+            case "AttributionReportingIssue::NavigationRegistrationWithoutTransientUserActivation" /* IssueCode.NavigationRegistrationWithoutTransientUserActivation */:
+                return {
+                    file: 'arNavigationRegistrationWithoutTransientUserActivation.md',
+                    links: [],
+                };
             case "AttributionReportingIssue::Unknown" /* IssueCode.Unknown */:
                 return null;
         }
@@ -147,6 +154,7 @@ export class AttributionReportingIssue extends Issue {
             case "AttributionReportingIssue::TriggerIgnored" /* IssueCode.TriggerIgnored */:
             case "AttributionReportingIssue::OsSourceIgnored" /* IssueCode.OsSourceIgnored */:
             case "AttributionReportingIssue::OsTriggerIgnored" /* IssueCode.OsTriggerIgnored */:
+            case "AttributionReportingIssue::NavigationRegistrationWithoutTransientUserActivation" /* IssueCode.NavigationRegistrationWithoutTransientUserActivation */:
             case "AttributionReportingIssue::Unknown" /* IssueCode.Unknown */:
                 return IssueKind.PageError;
         }

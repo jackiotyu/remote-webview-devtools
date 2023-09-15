@@ -108,6 +108,7 @@ export class Item {
                     checked: Boolean(this.checked),
                     enabled: !this.disabled,
                     subItems: undefined,
+                    tooltip: this.#tooltip,
                 };
                 if (this.customElement) {
                     result.element = this.customElement;
@@ -185,7 +186,7 @@ export class Section {
         return item;
     }
 }
-class SubMenu extends Item {
+export class SubMenu extends Item {
     sections;
     sectionList;
     constructor(contextMenu, label, disabled) {
@@ -233,6 +234,9 @@ class SubMenu extends Item {
     }
     defaultSection() {
         return this.section('default');
+    }
+    overrideSection() {
+        return this.section('override');
     }
     saveSection() {
         return this.section('save');
@@ -300,14 +304,14 @@ class SubMenu extends Item {
     }
     static uniqueSectionName = 0;
 }
-export { SubMenu };
-class ContextMenu extends SubMenu {
+export class ContextMenu extends SubMenu {
     contextMenu;
     defaultSectionInternal;
     pendingPromises;
     pendingTargets;
     event;
     useSoftMenu;
+    keepOpen;
     x;
     y;
     onSoftMenuClosed;
@@ -315,6 +319,7 @@ class ContextMenu extends SubMenu {
     idInternal;
     softMenu;
     contextMenuLabel;
+    hostedMenuOpened;
     constructor(event, options = {}) {
         super(null);
         const mouseEvent = event;
@@ -325,11 +330,13 @@ class ContextMenu extends SubMenu {
         this.pendingTargets = [];
         this.event = mouseEvent;
         this.useSoftMenu = Boolean(options.useSoftMenu);
+        this.keepOpen = Boolean(options.keepOpen);
         this.x = options.x === undefined ? mouseEvent.x : options.x;
         this.y = options.y === undefined ? mouseEvent.y : options.y;
         this.onSoftMenuClosed = options.onSoftMenuClosed;
         this.handlers = new Map();
         this.idInternal = 0;
+        this.hostedMenuOpened = false;
         const target = deepElementFromEvent(event);
         if (target) {
             this.appendApplicableItems(target);
@@ -350,6 +357,15 @@ class ContextMenu extends SubMenu {
     }
     nextId() {
         return this.idInternal++;
+    }
+    isHostedMenuOpen() {
+        return this.hostedMenuOpened;
+    }
+    getItems() {
+        return this.softMenu?.getItems() || [];
+    }
+    setChecked(item, checked) {
+        this.softMenu?.setChecked(item, checked);
     }
     async show() {
         ContextMenu.pendingMenu = this;
@@ -385,7 +401,7 @@ class ContextMenu extends SubMenu {
         const ownerDocument = eventTarget.ownerDocument;
         if (this.useSoftMenu || ContextMenu.useSoftMenu ||
             Host.InspectorFrontendHost.InspectorFrontendHostInstance.isHostedMode()) {
-            this.softMenu = new SoftContextMenu(menuObject, this.itemSelected.bind(this), undefined, this.onSoftMenuClosed);
+            this.softMenu = new SoftContextMenu(menuObject, this.itemSelected.bind(this), this.keepOpen, undefined, this.onSoftMenuClosed);
             // let soft context menu focus on the first item when the event is triggered by a non-mouse event
             // add another check of button value to differentiate mouse event with 'shift + f10' keyboard event
             const isMouseEvent = this.event.pointerType === 'mouse' && this.event.button >= 0;
@@ -401,6 +417,7 @@ class ContextMenu extends SubMenu {
                 Host.InspectorFrontendHost.InspectorFrontendHostInstance.events.addEventListener(Host.InspectorFrontendHostAPI.Events.ContextMenuCleared, this.menuCleared, this);
                 Host.InspectorFrontendHost.InspectorFrontendHostInstance.events.addEventListener(Host.InspectorFrontendHostAPI.Events.ContextMenuItemSelected, this.onItemSelected, this);
             }
+            this.hostedMenuOpened = true;
             // showContextMenuAtPoint call above synchronously issues a clear event for previous context menu (if any),
             // so we skip it before subscribing to the clear event.
             queueMicrotask(listenToEvents.bind(this));
@@ -436,6 +453,8 @@ class ContextMenu extends SubMenu {
     menuCleared() {
         Host.InspectorFrontendHost.InspectorFrontendHostInstance.events.removeEventListener(Host.InspectorFrontendHostAPI.Events.ContextMenuCleared, this.menuCleared, this);
         Host.InspectorFrontendHost.InspectorFrontendHostInstance.events.removeEventListener(Host.InspectorFrontendHostAPI.Events.ContextMenuItemSelected, this.onItemSelected, this);
+        this.hostedMenuOpened = false;
+        this.onSoftMenuClosed?.();
     }
     containsTarget(target) {
         return this.pendingTargets.indexOf(target) >= 0;
@@ -453,9 +472,8 @@ class ContextMenu extends SubMenu {
     static useSoftMenu = false;
     // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    static groupWeights = ['header', 'new', 'reveal', 'edit', 'clipboard', 'debug', 'view', 'default', 'save', 'footer'];
+    static groupWeights = ['header', 'new', 'reveal', 'edit', 'clipboard', 'debug', 'view', 'default', 'override', 'save', 'footer'];
 }
-export { ContextMenu };
 const registeredProviders = [];
 export function registerProvider(registration) {
     registeredProviders.push(registration);

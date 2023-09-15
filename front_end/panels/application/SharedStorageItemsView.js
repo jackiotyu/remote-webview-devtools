@@ -6,6 +6,7 @@ import * as i18n from '../../core/i18n/i18n.js';
 import * as DataGrid from '../../ui/legacy/components/data_grid/data_grid.js';
 import * as SourceFrame from '../../ui/legacy/components/source_frame/source_frame.js';
 import * as UI from '../../ui/legacy/legacy.js';
+import * as LegacyWrapper from '../../ui/components/legacy_wrapper/legacy_wrapper.js';
 import * as ApplicationComponents from './components/components.js';
 import { SharedStorageForOrigin } from './SharedStorageModel.js';
 import { StorageItemsView } from './StorageItemsView.js';
@@ -13,7 +14,7 @@ const UIStrings = {
     /**
      *@description Text in SharedStorage Items View of the Application panel
      */
-    sharedStorage: 'Shared Storage',
+    sharedStorage: 'Shared storage',
     /**
      *@description Text representing the name of a value stored in the "Shared Storage Items" table
      */
@@ -107,7 +108,7 @@ export class SharedStorageItemsView extends StorageItemsView {
         this.dataGrid.setName('SharedStorageItemsView');
         const dataGridWidget = this.dataGrid.asWidget();
         dataGridWidget.setMinimumSize(0, 100);
-        this.#metadataView = new ApplicationComponents.SharedStorageMetadataView.SharedStorageMetadataView(sharedStorage, sharedStorage.securityOrigin);
+        this.#metadataView = LegacyWrapper.LegacyWrapper.legacyWrapper(UI.Widget.VBox, new ApplicationComponents.SharedStorageMetadataView.SharedStorageMetadataView(sharedStorage, sharedStorage.securityOrigin));
         this.#metadataView.setMinimumSize(0, 275);
         const innerResizer = this.#metadataView.element.createChild('div', 'metadata-view-resizer');
         this.innerSplitWidget = new UI.SplitWidget.SplitWidget(
@@ -158,7 +159,7 @@ export class SharedStorageItemsView extends StorageItemsView {
         if (!this.isShowing()) {
             return;
         }
-        await this.#metadataView.doUpdate();
+        await this.#metadataView.getComponent().render();
         await this.updateEntriesOnly();
         this.sharedStorageItemsDispatcher.dispatchEventToListeners(SharedStorageItemsDispatcher.Events.ItemsRefreshed);
     }

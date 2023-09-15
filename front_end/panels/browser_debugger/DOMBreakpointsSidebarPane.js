@@ -133,7 +133,7 @@ export class DOMBreakpointsSidebarPane extends UI.Widget.VBox {
         this.contentElement.appendChild(this.#list.element);
         this.#list.element.classList.add('breakpoint-list', 'hidden');
         UI.ARIAUtils.markAsList(this.#list.element);
-        UI.ARIAUtils.setAccessibleName(this.#list.element, i18nString(UIStrings.domBreakpointsList));
+        UI.ARIAUtils.setLabel(this.#list.element, i18nString(UIStrings.domBreakpointsList));
         this.#emptyElement.tabIndex = -1;
         SDK.TargetManager.TargetManager.instance().addModelListener(SDK.DOMDebuggerModel.DOMDebuggerModel, SDK.DOMDebuggerModel.Events.DOMBreakpointAdded, this.breakpointAdded, this);
         SDK.TargetManager.TargetManager.instance().addModelListener(SDK.DOMDebuggerModel.DOMDebuggerModel, SDK.DOMDebuggerModel.Events.DOMBreakpointToggled, this.breakpointToggled, this);
@@ -178,7 +178,7 @@ export class DOMBreakpointsSidebarPane extends UI.Widget.VBox {
         const breakpointTypeLabel = BreakpointTypeLabels.get(item.type);
         description.textContent = breakpointTypeLabel ? breakpointTypeLabel() : null;
         const breakpointTypeText = breakpointTypeLabel ? breakpointTypeLabel() : '';
-        UI.ARIAUtils.setAccessibleName(checkboxElement, breakpointTypeText);
+        UI.ARIAUtils.setLabel(checkboxElement, breakpointTypeText);
         const checkedStateText = item.enabled ? i18nString(UIStrings.checked) : i18nString(UIStrings.unchecked);
         const linkifiedNode = document.createElement('monospace');
         linkifiedNode.style.display = 'block';
@@ -187,10 +187,10 @@ export class DOMBreakpointsSidebarPane extends UI.Widget.VBox {
             .then(linkified => {
             linkifiedNode.appendChild(linkified);
             // Give the checkbox an aria-label as it is required for all form element
-            UI.ARIAUtils.setAccessibleName(checkboxElement, i18nString(UIStrings.sS, { PH1: breakpointTypeText, PH2: linkified.deepTextContent() }));
+            UI.ARIAUtils.setLabel(checkboxElement, i18nString(UIStrings.sS, { PH1: breakpointTypeText, PH2: linkified.deepTextContent() }));
             // The parent list element is the one that actually gets focused.
             // Assign it an aria-label with complete information for the screen reader to read out properly
-            UI.ARIAUtils.setAccessibleName(element, i18nString(UIStrings.sSS, { PH1: breakpointTypeText, PH2: linkified.deepTextContent(), PH3: checkedStateText }));
+            UI.ARIAUtils.setLabel(element, i18nString(UIStrings.sSS, { PH1: breakpointTypeText, PH2: linkified.deepTextContent(), PH3: checkedStateText }));
         });
         labelElement.appendChild(description);
         if (item === this.#highlightedBreakpoint) {

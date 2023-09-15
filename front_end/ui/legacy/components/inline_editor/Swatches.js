@@ -7,7 +7,7 @@ import * as UI from '../../legacy.js';
 import { ColorChangedEvent, ColorSwatch } from './ColorSwatch.js';
 import bezierSwatchStyles from './bezierSwatch.css.js';
 import cssShadowSwatchStyles from './cssShadowSwatch.css.js';
-class BezierSwatch extends HTMLSpanElement {
+export class BezierSwatch extends HTMLSpanElement {
     iconElementInternal;
     textElement;
     constructor() {
@@ -43,8 +43,7 @@ class BezierSwatch extends HTMLSpanElement {
     }
     static constructorInternal = null;
 }
-export { BezierSwatch };
-class CSSShadowSwatch extends HTMLSpanElement {
+export class CSSShadowSwatch extends HTMLSpanElement {
     iconElementInternal;
     contentElement;
     colorSwatchInternal;
@@ -108,5 +107,4 @@ class CSSShadowSwatch extends HTMLSpanElement {
     }
     static constructorInternal = null;
 }
-export { CSSShadowSwatch };
 //# map=Swatches.js.map

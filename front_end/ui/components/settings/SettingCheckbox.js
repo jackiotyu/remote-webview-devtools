@@ -9,7 +9,7 @@ import { SettingDeprecationWarning } from './SettingDeprecationWarning.js';
 /**
  * A simple checkbox that is backed by a boolean setting.
  */
-class SettingCheckbox extends HTMLElement {
+export class SettingCheckbox extends HTMLElement {
     static litTagName = LitHtml.literal `setting-checkbox`;
     #shadow = this.attachShadow({ mode: 'open' });
     #setting;
@@ -51,6 +51,5 @@ class SettingCheckbox extends HTMLElement {
         this.#setting?.set(e.target.checked);
     }
 }
-export { SettingCheckbox };
 ComponentHelpers.CustomElements.defineComponent('setting-checkbox', SettingCheckbox);
 //# map=SettingCheckbox.js.map

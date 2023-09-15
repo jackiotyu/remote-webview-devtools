@@ -31,7 +31,7 @@ styles.replaceSync(
   position: relative;
   left: 0;
   top: 0;
-  background-color: var(--color-text-primary);
+  background-color: var(--sys-color-on-surface);
   display: inline-block;
   mask-repeat: no-repeat;
   -webkit-mask-repeat: no-repeat;
@@ -49,7 +49,7 @@ devtools-select-menu {
   border-radius: 0 4px 4px 0;
   box-sizing: border-box;
 
-  --override-select-menu-show-button-outline: var(--color-button-outline-focus);
+  --override-select-menu-show-button-outline: var(--sys-color-state-focus-ring);
   --override-select-menu-label-with-arrow-padding: 0;
   --override-select-menu-border: none;
   --override-select-menu-show-button-padding: 0 6px 0 0;
@@ -59,10 +59,10 @@ devtools-select-menu.primary {
   border: none;
   border-left: 1px solid var(--override-icon-and-text-color);
 
-  --override-icon-and-text-color: var(--color-background);
+  --override-icon-and-text-color: var(--sys-color-cdt-base-container);
   --override-select-menu-arrow-color: var(--override-icon-and-text-color);
   --override-divider-color: var(--override-icon-and-text-color);
-  --override-select-menu-background-color: var(--color-primary-old);
+  --override-select-menu-background-color: var(--sys-color-primary);
   --override-select-menu-active-background-color:
     var(
       --override-select-menu-background-color
@@ -70,48 +70,15 @@ devtools-select-menu.primary {
 }
 
 devtools-select-menu.primary:hover {
-  --override-select-menu-background-color:
-    var(
-      --color-button-primary-background-hovering
-    );
+  --override-select-menu-background-color: color-mix(in sRGB, var(--sys-color-primary), var(--sys-color-state-hover-on-prominent) 10%);
 }
 
 devtools-select-menu[disabled].primary,
 devtools-select-menu[disabled].primary:hover {
-  --override-icon-and-text-color: var(--color-text-disabled);
-  --override-select-menu-background-color: var(--color-background-elevation-1);
+  --override-icon-and-text-color: var(--sys-color-state-disabled);
+  --override-select-menu-background-color: var(--sys-color-cdt-base-container-elevation-1);
 }
 
-devtools-select-menu.secondary {
-  border: 1px solid var(--color-details-hairline);
-  border-left: none;
-
-  --override-icon-and-text-color: var(--color-primary-old);
-  --override-select-menu-arrow-color: var(--override-icon-and-text-color);
-  --override-divider-color: var(--color-details-hairline);
-  --override-select-menu-background-color: var(--color-background);
-  --override-select-menu-active-background-color:
-    var(
-      --override-select-menu-background-color
-    );
-}
-
-devtools-select-menu.secondary:hover {
-  --override-select-menu-background-color:
-    var(
-      --color-button-secondary-background-hovering
-    );
-}
-
-devtools-select-menu[disabled].secondary,
-devtools-select-menu[disabled].secondary:hover {
-  border: 1px solid var(--color-background-elevation-1);
-  border-left: none;
-
-  --override-icon-and-text-color: var(--color-text-disabled);
-  --override-select-menu-background-color: var(--color-background);
-}
-
-
+/*# sourceURL=selectButton.css */
 `);
 export default styles;

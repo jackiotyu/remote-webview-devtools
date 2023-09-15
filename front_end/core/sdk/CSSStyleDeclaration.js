@@ -330,5 +330,6 @@ export var Type;
     Type["Regular"] = "Regular";
     Type["Inline"] = "Inline";
     Type["Attributes"] = "Attributes";
+    Type["Pseudo"] = "Pseudo";
 })(Type || (Type = {}));
 //# map=CSSStyleDeclaration.js.map

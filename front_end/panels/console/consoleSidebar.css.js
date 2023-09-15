@@ -13,7 +13,7 @@ styles.replaceSync(
 
 :host {
   overflow: auto;
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-cdt-base-container);
 }
 
 .tree-outline-disclosure {
@@ -43,11 +43,11 @@ li {
 
 .tree-outline li:hover:not(.selected) .selection {
   display: block;
-  background-color: var(--item-hover-color);
+  background-color: var(--sys-color-state-hover-on-subtle);
 }
 
 [is="ui-icon"].cross-circle {
-  background-color: var(--icon-error);
+  background-color: var(--sys-color-error-bright);
 }
 
 [is="ui-icon"].warning {
@@ -83,6 +83,6 @@ li {
   }
 }
 
-
+/*# sourceURL=consoleSidebar.css */
 `);
 export default styles;

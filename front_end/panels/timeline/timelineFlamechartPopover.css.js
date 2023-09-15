@@ -35,6 +35,6 @@ styles.replaceSync(
   color: inherit;
 }
 
-
+/*# sourceURL=timelineFlamechartPopover.css */
 `);
 export default styles;

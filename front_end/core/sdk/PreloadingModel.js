@@ -1,6 +1,7 @@
 // Copyright 2023 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+import { assertNotNullOrUndefined } from '../platform/platform.js';
 import { SDKModel } from './SDKModel.js';
 import { Capability } from './Target.js';
 import { TargetManager } from './TargetManager.js';
@@ -16,7 +17,6 @@ export class PreloadingModel extends SDKModel {
     targetJustAttached = true;
     lastPrimaryPageModel = null;
     documents = new Map();
-    preloadEnabledState = null;
     constructor(target) {
         super(target);
         target.registerPreloadDispatcher(new PreloadDispatcher(this));
@@ -66,6 +66,21 @@ export class PreloadingModel extends SDKModel {
     getAllRuleSets() {
         return this.currentDocument()?.ruleSets.getAll() || [];
     }
+    getPreloadCountsByRuleSetId() {
+        const countsByRuleSetId = new Map();
+        for (const { value } of this.getPreloadingAttempts(null)) {
+            for (const ruleSetId of [null, ...value.ruleSetIds]) {
+                if (countsByRuleSetId.get(ruleSetId) === undefined) {
+                    countsByRuleSetId.set(ruleSetId, new Map());
+                }
+                const countsByStatus = countsByRuleSetId.get(ruleSetId);
+                assertNotNullOrUndefined(countsByStatus);
+                const i = countsByStatus.get(value.status) || 0;
+                countsByStatus.set(value.status, i + 1);
+            }
+        }
+        return countsByRuleSetId;
+    }
     // Returns a preloading attempt of the current page.
     //
     // Returns reference. Don't save returned values.
@@ -102,9 +117,6 @@ export class PreloadingModel extends SDKModel {
             return [];
         }
         return document.preloadingAttempts.getAll(null, document.sources);
-    }
-    getPreloadEnabledState() {
-        return this.preloadEnabledState;
     }
     onPrimaryPageChanged(event) {
         const { frame, type } = event.data;
@@ -173,8 +185,11 @@ export class PreloadingModel extends SDKModel {
         const loaderId = event.key.loaderId;
         this.ensureDocumentPreloadingData(loaderId);
         const attempt = {
+            action: "Prefetch" /* Protocol.Preload.SpeculationAction.Prefetch */,
             key: event.key,
             status: convertPreloadingStatus(event.status),
+            prefetchStatus: event.prefetchStatus || null,
+            requestId: event.requestId,
         };
         this.documents.get(loaderId)?.preloadingAttempts.upsert(attempt);
         this.dispatchEventToListeners(Events.ModelUpdated);
@@ -183,15 +198,17 @@ export class PreloadingModel extends SDKModel {
         const loaderId = event.key.loaderId;
         this.ensureDocumentPreloadingData(loaderId);
         const attempt = {
+            action: "Prerender" /* Protocol.Preload.SpeculationAction.Prerender */,
             key: event.key,
             status: convertPreloadingStatus(event.status),
+            prerenderStatus: event.prerenderStatus || null,
+            disallowedMojoInterface: event.disallowedMojoInterface || null,
         };
         this.documents.get(loaderId)?.preloadingAttempts.upsert(attempt);
         this.dispatchEventToListeners(Events.ModelUpdated);
     }
     onPreloadEnabledStateUpdated(event) {
-        this.preloadEnabledState = event.state;
-        this.dispatchEventToListeners(Events.ModelUpdated);
+        this.dispatchEventToListeners(Events.WarningsUpdated, event);
     }
 }
 SDKModel.register(PreloadingModel, { capabilities: Capability.DOM, autostart: false });
@@ -200,6 +217,7 @@ SDKModel.register(PreloadingModel, { capabilities: Capability.DOM, autostart: fa
 export var Events;
 (function (Events) {
     Events["ModelUpdated"] = "ModelUpdated";
+    Events["WarningsUpdated"] = "WarningsUpdated";
 })(Events || (Events = {}));
 class PreloadDispatcher {
     model;
@@ -224,7 +242,7 @@ class PreloadDispatcher {
         this.model.onPrerenderStatusUpdated(event);
     }
     preloadEnabledStateUpdated(event) {
-        this.model.onPreloadEnabledStateUpdated(event);
+        void this.model.onPreloadEnabledStateUpdated(event);
     }
 }
 class DocumentPreloadingData {
@@ -351,10 +369,28 @@ class PreloadingAttemptRegistry {
             if (this.map.get(id) !== undefined) {
                 continue;
             }
-            const attempt = {
-                key,
-                status: "NotTriggered" /* PreloadingStatus.NotTriggered */,
-            };
+            let attempt;
+            switch (key.action) {
+                case "Prefetch" /* Protocol.Preload.SpeculationAction.Prefetch */:
+                    attempt = {
+                        action: "Prefetch" /* Protocol.Preload.SpeculationAction.Prefetch */,
+                        key,
+                        status: "NotTriggered" /* PreloadingStatus.NotTriggered */,
+                        prefetchStatus: null,
+                        // Fill invalid request id.
+                        requestId: '',
+                    };
+                    break;
+                case "Prerender" /* Protocol.Preload.SpeculationAction.Prerender */:
+                    attempt = {
+                        action: "Prerender" /* Protocol.Preload.SpeculationAction.Prerender */,
+                        key,
+                        status: "NotTriggered" /* PreloadingStatus.NotTriggered */,
+                        prerenderStatus: null,
+                        disallowedMojoInterface: null,
+                    };
+                    break;
+            }
             this.map.set(id, attempt);
         }
     }

@@ -61,7 +61,7 @@ span.ax-value-undefined {
 }
 
 .tree-outline li.property {
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
 }
 
 .tree-outline li.invalid {
@@ -89,6 +89,6 @@ span.ax-value-undefined {
   }
 }
 
-
+/*# sourceURL=accessibilityNode.css */
 `);
 export default styles;

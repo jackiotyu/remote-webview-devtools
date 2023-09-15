@@ -99,7 +99,8 @@ export function accessibilityNodeRenderer(node) {
     const role = sdkNode.role()?.value || '';
     const properties = sdkNode.properties() || [];
     const ignored = sdkNode.ignored();
-    return LitHtml.html `<${tag} .data=${{ name, role, ignored, properties }}></${tag}>`;
+    const id = getNodeId(sdkNode);
+    return LitHtml.html `<${tag} .data=${{ name, role, ignored, properties, id }}></${tag}>`;
 }
 export function getNodeId(node) {
     return node.getFrameId() + '#' + node.id();

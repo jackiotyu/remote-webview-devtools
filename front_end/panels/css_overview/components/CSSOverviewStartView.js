@@ -39,14 +39,13 @@ const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const { render, html } = LitHtml;
 const FEEDBACK_LINK = 'https://g.co/devtools/css-overview-feedback';
 const DOC_LINK = 'https://developer.chrome.com/docs/devtools/css-overview';
-class OverviewStartRequestedEvent extends Event {
+export class OverviewStartRequestedEvent extends Event {
     static eventName = 'overviewstartrequested';
     constructor() {
         super(OverviewStartRequestedEvent.eventName);
     }
 }
-export { OverviewStartRequestedEvent };
-class CSSOverviewStartView extends HTMLElement {
+export class CSSOverviewStartView extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-css-overview-start-view`;
     #shadow = this.attachShadow({ mode: 'open' });
     connectedCallback() {
@@ -102,6 +101,5 @@ class CSSOverviewStartView extends HTMLElement {
         }
     }
 }
-export { CSSOverviewStartView };
 ComponentHelpers.CustomElements.defineComponent('devtools-css-overview-start-view', CSSOverviewStartView);
 //# map=CSSOverviewStartView.js.map

@@ -37,6 +37,7 @@ import * as Platform from '../../core/platform/platform.js';
 import * as SDK from '../../core/sdk/sdk.js';
 import * as Bindings from '../../models/bindings/bindings.js';
 import * as Logs from '../../models/logs/logs.js';
+import * as TraceEngine from '../../models/trace/trace.js';
 import * as Workspace from '../../models/workspace/workspace.js';
 import * as NetworkForward from '../../panels/network/forward/forward.js';
 import * as IconButton from '../../ui/components/icon_button/icon_button.js';
@@ -88,7 +89,7 @@ const UIStrings = {
     /**
      *@description Text in Network Panel of the Network panel
      */
-    useLargeRequestRows: 'Use large request rows',
+    useLargeRequestRows: 'Big request rows',
     /**
      *@description Tooltip text for network request overview setting
      */
@@ -96,7 +97,7 @@ const UIStrings = {
     /**
      *@description Text in Network Panel of the Network panel
      */
-    showOverview: 'Show overview',
+    showOverview: 'Overview',
     /**
      *@description Tooltip for group by frame network setting
      */
@@ -112,7 +113,7 @@ const UIStrings = {
     /**
      *@description Text to take screenshots
      */
-    captureScreenshots: 'Capture screenshots',
+    captureScreenshots: 'Screenshots',
     /**
      * @description Tooltip text that appears when hovering over the largeicon load button in the
      * Network Panel. This action prompts the user to select a HAR file to upload to DevTools.
@@ -321,7 +322,16 @@ export class NetworkPanel extends UI.Panel.Panel {
     onWindowChanged(event) {
         const startTime = Math.max(this.calculator.minimumBoundary(), event.data.startTime / 1000);
         const endTime = Math.min(this.calculator.maximumBoundary(), event.data.endTime / 1000);
-        this.networkLogView.setWindow(startTime, endTime);
+        if (startTime === this.calculator.minimumBoundary() && endTime === this.calculator.maximumBoundary()) {
+            // Reset the filters for NetworkLogView when the window is reset
+            // to its boundaries. This clears the filters and allows the users
+            // to see the incoming requests after they have updated the curtains
+            // to be in the edges. (ex: by double clicking on the overview grid)
+            this.networkLogView.setWindow(0, 0);
+        }
+        else {
+            this.networkLogView.setWindow(startTime, endTime);
+        }
     }
     async searchToggleClick() {
         const action = UI.ActionRegistry.ActionRegistry.instance().action('network.search');
@@ -406,19 +416,14 @@ export class NetworkPanel extends UI.Panel.Panel {
             this.filmStripRecorder.stopRecording(this.filmStripAvailable.bind(this));
         }
     }
-    filmStripAvailable(filmStripModel) {
-        if (!filmStripModel) {
-            return;
-        }
-        const calculator = this.networkLogView.timeCalculator();
+    filmStripAvailable(filmStrip) {
         if (this.filmStripView) {
-            this.filmStripView.setModel(filmStripModel, calculator.minimumBoundary() * 1000, calculator.boundarySpan() * 1000);
+            this.filmStripView.setModel(filmStrip);
         }
-        this.networkOverview.setFilmStripModel(filmStripModel);
-        const timestamps = filmStripModel.frames().map(mapTimestamp);
-        function mapTimestamp(frame) {
-            return frame.timestamp / 1000;
-        }
+        const timestamps = filmStrip.frames.map(frame => {
+            // The network view works in seconds.
+            return TraceEngine.Helpers.Timing.microSecondsToSeconds(frame.screenshotEvent.ts);
+        });
         this.networkLogView.addFilmStripFrames(timestamps);
     }
     onNetworkLogReset(event) {
@@ -443,6 +448,9 @@ export class NetworkPanel extends UI.Panel.Panel {
     }
     load() {
         if (this.filmStripRecorder && this.filmStripRecorder.isRecording()) {
+            if (this.pendingStopTimer) {
+                window.clearTimeout(this.pendingStopTimer);
+            }
             this.pendingStopTimer = window.setTimeout(this.stopFilmStripRecording.bind(this), this.displayScreenshotDelay);
         }
     }
@@ -469,7 +477,6 @@ export class NetworkPanel extends UI.Panel.Panel {
         const toggled = this.networkRecordFilmStripSetting.get();
         if (toggled && !this.filmStripRecorder) {
             this.filmStripView = new PerfUI.FilmStripView.FilmStripView();
-            this.filmStripView.setMode(PerfUI.FilmStripView.Modes.FrameBased);
             this.filmStripView.element.classList.add('network-film-strip');
             this.filmStripRecorder = new FilmStripRecorder(this.networkLogView.timeCalculator(), this.filmStripView);
             this.filmStripView.show(this.filmStripPlaceholderElement);
@@ -523,6 +530,7 @@ export class NetworkPanel extends UI.Panel.Panel {
         await UI.ViewManager.ViewManager.instance().showView('network');
         this.networkLogView.selectRequest(request, options);
         this.showRequestPanel(shownTab);
+        this.networkLogView.revealAndHighlightRequest(request);
         return this.networkItemView;
     }
     handleFilterChanged() {
@@ -650,7 +658,7 @@ export class NetworkPanel extends UI.Panel.Panel {
         const request = event.data;
         this.calculator.updateBoundaries(request);
         // FIXME: Unify all time units across the frontend!
-        this.overviewPane.setBounds(this.calculator.minimumBoundary() * 1000, this.calculator.maximumBoundary() * 1000);
+        this.overviewPane.setBounds(TraceEngine.Types.Timing.MilliSeconds(this.calculator.minimumBoundary() * 1000), TraceEngine.Types.Timing.MilliSeconds(this.calculator.maximumBoundary() * 1000));
         this.networkOverview.updateRequest(request);
         this.overviewPane.scheduleUpdate();
     }
@@ -731,7 +739,12 @@ export class FilmStripRecorder {
     filmStripView;
     tracingModel;
     callback;
+    // Used to fetch screenshots of the page load and show them in the panel.
+    #traceEngine;
     constructor(timeCalculator, filmStripView) {
+        this.#traceEngine = new TraceEngine.TraceModel.Model({
+            Screenshots: TraceEngine.Handlers.ModelHandlers.Screenshots,
+        });
         this.tracingManager = null;
         this.resourceTreeModel = null;
         this.timeCalculator = timeCalculator;
@@ -744,16 +757,30 @@ export class FilmStripRecorder {
             this.tracingModel.addEvents(events);
         }
     }
-    tracingComplete() {
+    async tracingComplete() {
         if (!this.tracingModel || !this.tracingManager) {
             return;
         }
         this.tracingModel.tracingComplete();
         this.tracingManager = null;
+        await this.#traceEngine.parse(
+        // OPP's data layer uses `EventPayload` as the type to represent raw JSON from the trace.
+        // When we pass this into the new data engine, we need to tell TS to use the new TraceEventData type.
+        this.tracingModel.allRawEvents());
+        const data = this.#traceEngine.traceParsedData(this.#traceEngine.size() - 1);
+        if (!data) {
+            return;
+        }
+        const zeroTimeInSeconds = TraceEngine.Types.Timing.Seconds(this.timeCalculator.minimumBoundary());
+        const filmStrip = TraceEngine.Extras.FilmStrip.fromTraceData(data, TraceEngine.Helpers.Timing.secondsToMicroseconds(zeroTimeInSeconds));
         if (this.callback) {
-            this.callback(new SDK.FilmStripModel.FilmStripModel(this.tracingModel, this.timeCalculator.minimumBoundary() * 1000));
+            this.callback(filmStrip);
         }
         this.callback = null;
+        // Now we have created the film strip and stored the data, we need to reset
+        // the trace processor so that it is ready to record again if the user
+        // refreshes the page.
+        this.#traceEngine.resetProcessor();
         if (this.resourceTreeModel) {
             this.resourceTreeModel.resumeReload();
         }
@@ -766,16 +793,13 @@ export class FilmStripRecorder {
     startRecording() {
         this.filmStripView.reset();
         this.filmStripView.setStatusText(i18nString(UIStrings.recordingFrames));
-        const tracingManager = SDK.TargetManager.TargetManager.instance().scopeTarget()?.model(SDK.TracingManager.TracingManager);
+        const tracingManager = SDK.TargetManager.TargetManager.instance().scopeTarget()?.model(TraceEngine.TracingManager.TracingManager);
         if (this.tracingManager || !tracingManager) {
             return;
         }
         this.tracingManager = tracingManager;
         this.resourceTreeModel = this.tracingManager.target().model(SDK.ResourceTreeModel.ResourceTreeModel);
-        if (this.tracingModel) {
-            this.tracingModel.dispose();
-        }
-        this.tracingModel = new SDK.TracingModel.TracingModel(new Bindings.TempFile.TempFileBackingStorage());
+        this.tracingModel = new TraceEngine.Legacy.TracingModel();
         void this.tracingManager.start(this, '-*,disabled-by-default-devtools.screenshot', '');
         Host.userMetrics.actionTaken(Host.UserMetrics.Action.FilmStripStartedRecording);
     }
@@ -858,7 +882,12 @@ export class RequestLocationRevealer {
             return;
         }
         if (location.searchMatch) {
-            await view.revealResponseBody(location.searchMatch.lineNumber);
+            const { lineNumber, columnNumber, matchLength } = location.searchMatch;
+            const revealPosition = {
+                from: { lineNumber, columnNumber },
+                to: { lineNumber, columnNumber: columnNumber + matchLength },
+            };
+            await view.revealResponseBody(revealPosition);
         }
         if (location.header) {
             view.revealHeader(location.header.section, location.header.header?.name);
@@ -868,7 +897,7 @@ export class RequestLocationRevealer {
 let searchNetworkViewInstance;
 export class SearchNetworkView extends Search.SearchView.SearchView {
     constructor() {
-        super('network');
+        super('network', new Common.Throttler.Throttler(/* timeoutMs */ 200));
     }
     static instance(opts = { forceNew: null }) {
         const { forceNew } = opts;
@@ -884,7 +913,7 @@ export class SearchNetworkView extends Search.SearchView.SearchView {
         return searchView;
     }
     createScope() {
-        return new NetworkSearchScope();
+        return new NetworkSearchScope(Logs.NetworkLog.NetworkLog.instance());
     }
 }
 //# map=NetworkPanel.js.map

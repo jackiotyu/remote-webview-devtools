@@ -32,11 +32,6 @@ styles.replaceSync(
   flex: none;
 }
 
-.tree-outline li.selected:focus .lock-icon,
-.tree-outline .security-sidebar-tree-item.selected:focus .icon {
-  background-color: var(--legacy-selection-fg-color);
-}
-
 @media (forced-colors: active) {
   .tree-outline .lock-icon,
   .tree-outline .security-property {
@@ -50,7 +45,7 @@ styles.replaceSync(
 }
 
 .tree-outline .security-main-view-sidebar-tree-item {
-  border-bottom: 1px solid var(--color-background-elevation-2);
+  border-bottom: 1px solid var(--sys-color-divider);
   padding: 16px 0;
 }
 
@@ -92,6 +87,6 @@ styles.replaceSync(
   padding-left: 8px;
 }
 
-
+/*# sourceURL=sidebar.css */
 `);
 export default styles;

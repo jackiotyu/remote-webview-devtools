@@ -47,11 +47,11 @@ styles.replaceSync(
 
 .style-panes-wrapper {
   overflow: hidden scroll;
-  background-color: var(--color-background);
-}
+  background-color: var(--sys-color-cdt-base-container);
 
-.style-panes-wrapper > div:not(:last-child) {
-  border-bottom: 1px solid var(--color-details-hairline);
+  & > div:not(:last-child) {
+    border-bottom: 1px solid var(--sys-color-divider);
+  }
 }
 
 #elements-content:not(.elements-wrap) > div {
@@ -60,15 +60,15 @@ styles.replaceSync(
 }
 
 #elements-crumbs {
-  background-color: var(--color-background);
-  border-top: 1px solid var(--color-details-hairline);
+  background-color: var(--sys-color-cdt-base-container);
+  border-top: 1px solid var(--sys-color-divider);
   overflow: hidden;
   width: 100%;
 }
 
 devtools-adorner-settings-pane {
   margin-bottom: 10px;
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
   overflow: auto;
 }
 
@@ -80,15 +80,15 @@ devtools-tree-outline {
   position: absolute;
   top: 16px;
   right: 20px;
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-cdt-base-container);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1;
-  border: 1px solid var(--color-details-hairline);
+  border: 1px solid var(--sys-color-neutral-outline);
   border-radius: 3px;
 }
 
-
+/*# sourceURL=elementsPanel.css */
 `);
 export default styles;

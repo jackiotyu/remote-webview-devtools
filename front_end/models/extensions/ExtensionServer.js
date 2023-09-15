@@ -27,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-// TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
-/* eslint-disable @typescript-eslint/naming-convention */
 import * as Common from '../../core/common/common.js';
 import * as Host from '../../core/host/host.js';
 import * as i18n from '../../core/i18n/i18n.js';
@@ -43,12 +41,88 @@ import * as Bindings from '../bindings/bindings.js';
 import * as HAR from '../har/har.js';
 import * as Workspace from '../workspace/workspace.js';
 import { ExtensionButton, ExtensionPanel, ExtensionSidebarPane } from './ExtensionPanel.js';
+import { HostUrlPattern } from './HostUrlPattern.js';
 import { LanguageExtensionEndpoint } from './LanguageExtensionEndpoint.js';
 import { RecorderExtensionEndpoint } from './RecorderExtensionEndpoint.js';
 import { RecorderPluginManager } from './RecorderPluginManager.js';
 const extensionOrigins = new WeakMap();
 const kAllowedOrigins = [].map(url => (new URL(url)).origin);
 let extensionServerInstance;
+export class HostsPolicy {
+    runtimeAllowedHosts;
+    runtimeBlockedHosts;
+    static create(policy) {
+        const runtimeAllowedHosts = [];
+        const runtimeBlockedHosts = [];
+        if (policy) {
+            for (const pattern of policy.runtimeAllowedHosts) {
+                const parsedPattern = HostUrlPattern.parse(pattern);
+                if (!parsedPattern) {
+                    return null;
+                }
+                runtimeAllowedHosts.push(parsedPattern);
+            }
+            for (const pattern of policy.runtimeBlockedHosts) {
+                const parsedPattern = HostUrlPattern.parse(pattern);
+                if (!parsedPattern) {
+                    return null;
+                }
+                runtimeBlockedHosts.push(parsedPattern);
+            }
+        }
+        return new HostsPolicy(runtimeAllowedHosts, runtimeBlockedHosts);
+    }
+    constructor(runtimeAllowedHosts, runtimeBlockedHosts) {
+        this.runtimeAllowedHosts = runtimeAllowedHosts;
+        this.runtimeBlockedHosts = runtimeBlockedHosts;
+    }
+    isAllowedOnURL(inspectedURL) {
+        if (!inspectedURL) {
+            // If there aren't any blocked hosts retain the old behavior and don't worry about the inspectedURL
+            return this.runtimeBlockedHosts.length === 0;
+        }
+        if (this.runtimeBlockedHosts.some(pattern => pattern.matchesUrl(inspectedURL)) &&
+            !this.runtimeAllowedHosts.some(pattern => pattern.matchesUrl(inspectedURL))) {
+            return false;
+        }
+        return true;
+    }
+}
+class RegisteredExtension {
+    name;
+    hostsPolicy;
+    allowFileAccess;
+    constructor(name, hostsPolicy, allowFileAccess) {
+        this.name = name;
+        this.hostsPolicy = hostsPolicy;
+        this.allowFileAccess = allowFileAccess;
+    }
+    isAllowedOnTarget(inspectedURL) {
+        if (!inspectedURL) {
+            inspectedURL = SDK.TargetManager.TargetManager.instance().primaryPageTarget()?.inspectedURL();
+        }
+        if (!inspectedURL) {
+            return false;
+        }
+        if (!ExtensionServer.canInspectURL(inspectedURL)) {
+            return false;
+        }
+        if (!this.hostsPolicy.isAllowedOnURL(inspectedURL)) {
+            return false;
+        }
+        if (!this.allowFileAccess) {
+            let parsedURL;
+            try {
+                parsedURL = new URL(inspectedURL);
+            }
+            catch (exception) {
+                return false;
+            }
+            return parsedURL.protocol !== 'file:';
+        }
+        return true;
+    }
+}
 export class ExtensionServer extends Common.ObjectWrapper.ObjectWrapper {
     clientObjects;
     handlers;
@@ -66,6 +140,7 @@ export class ExtensionServer extends Common.ObjectWrapper.ObjectWrapper {
     inspectedTabId;
     extensionAPITestHook;
     themeChangeHandlers = new Map();
+    #pendingExtensions = [];
     constructor() {
         super();
         this.clientObjects = new Map();
@@ -264,7 +339,7 @@ export class ExtensionServer extends Common.ObjectWrapper.ObjectWrapper {
         return this.status.OK();
     }
     inspectedURLChanged(event) {
-        if (!this.canInspectURL(event.data.inspectedURL())) {
+        if (!ExtensionServer.canInspectURL(event.data.inspectedURL())) {
             this.disableExtensions();
             return;
         }
@@ -274,6 +349,8 @@ export class ExtensionServer extends Common.ObjectWrapper.ObjectWrapper {
         this.requests = new Map();
         const url = event.data.inspectedURL();
         this.postNotification("inspected-url-changed" /* PrivateAPI.Events.InspectedURLChanged */, url);
+        this.#pendingExtensions.forEach(e => this.addExtension(e));
+        this.#pendingExtensions.splice(0);
     }
     hasSubscribers(type) {
         return this.subscribers.has(type);
@@ -288,7 +365,9 @@ export class ExtensionServer extends Common.ObjectWrapper.ObjectWrapper {
         }
         const message = { command: 'notify-' + type, arguments: Array.prototype.slice.call(arguments, 1) };
         for (const subscriber of subscribers) {
-            subscriber.postMessage(message);
+            if (this.extensionEnabled(subscriber)) {
+                subscriber.postMessage(message);
+            }
         }
     }
     onSubscribe(message, port) {
@@ -598,11 +677,13 @@ export class ExtensionServer extends Common.ObjectWrapper.ObjectWrapper {
         }
         return this.evaluate(expression, true, true, evaluateOptions, this.getExtensionOrigin(port), callback.bind(this));
     }
-    async onGetHAR(message) {
+    async onGetHAR(message, port) {
         if (message.command !== "getHAR" /* PrivateAPI.Commands.GetHAR */) {
             return this.status.E_BADARG('command', `expected ${"getHAR" /* PrivateAPI.Commands.GetHAR */}`);
         }
-        const requests = Logs.NetworkLog.NetworkLog.instance().requests();
+        const origin = extensionOrigins.get(port);
+        const extension = origin && this.registeredExtensions.get(origin);
+        const requests = Logs.NetworkLog.NetworkLog.instance().requests().filter(r => extension?.isAllowedOnTarget(r.url()));
         const harLog = await HAR.Log.Log.build(requests);
         for (let i = 0; i < harLog.entries.length; ++i) {
             // @ts-ignore
@@ -630,6 +711,13 @@ export class ExtensionServer extends Common.ObjectWrapper.ObjectWrapper {
         return [...resources.values()];
     }
     async getResourceContent(contentProvider, message, port) {
+        const url = contentProvider.contentURL();
+        const origin = extensionOrigins.get(port);
+        const extension = origin && this.registeredExtensions.get(origin);
+        if (!extension?.isAllowedOnTarget(url)) {
+            this.dispatchCallback(message.requestId, port, this.status.E_FAILED('Permission denied'));
+            return undefined;
+        }
         const { content, isEncoded } = await contentProvider.requestContent();
         this.dispatchCallback(message.requestId, port, { encoding: isEncoded ? 'base64' : '', content: content });
     }
@@ -665,6 +753,11 @@ export class ExtensionServer extends Common.ObjectWrapper.ObjectWrapper {
         function callbackWrapper(error) {
             const response = error ? this.status.E_FAILED(error) : this.status.OK();
             this.dispatchCallback(requestId, port, response);
+        }
+        const origin = extensionOrigins.get(port);
+        const extension = origin && this.registeredExtensions.get(origin);
+        if (!extension?.isAllowedOnTarget(url)) {
+            return this.status.E_FAILED('Permission denied');
         }
         const uiSourceCode = Workspace.Workspace.WorkspaceImpl.instance().uiSourceCodeForURL(url);
         if (!uiSourceCode || !uiSourceCode.contentType().isDocumentOrScriptOrStyleSheet()) {
@@ -779,35 +872,45 @@ export class ExtensionServer extends Common.ObjectWrapper.ObjectWrapper {
             this.initializeExtensions();
         }
     }
-    addExtensionForTest(extensionInfo, origin) {
-        const name = extensionInfo.name || `Extension ${origin}`;
-        this.registeredExtensions.set(origin, { name });
-        return true;
+    addExtensionFrame({ startPage, name }) {
+        const iframe = document.createElement('iframe');
+        iframe.src = startPage;
+        iframe.dataset.devtoolsExtension = name;
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe); // Only for main window.
     }
     addExtension(extensionInfo) {
         const startPage = extensionInfo.startPage;
         const inspectedURL = SDK.TargetManager.TargetManager.instance().primaryPageTarget()?.inspectedURL() ?? '';
-        if (inspectedURL !== '' && !this.canInspectURL(inspectedURL)) {
+        if (inspectedURL === '') {
+            this.#pendingExtensions.push(extensionInfo);
+            return;
+        }
+        if (!ExtensionServer.canInspectURL(inspectedURL)) {
             this.disableExtensions();
         }
         if (!this.extensionsEnabled) {
             return;
         }
+        const hostsPolicy = HostsPolicy.create(extensionInfo.hostsPolicy);
+        if (!hostsPolicy) {
+            return;
+        }
         try {
             const startPageURL = new URL(startPage);
             const extensionOrigin = startPageURL.origin;
+            const name = extensionInfo.name || `Extension ${extensionOrigin}`;
+            const extensionRegistration = new RegisteredExtension(name, hostsPolicy, Boolean(extensionInfo.allowFileAccess));
+            if (!extensionRegistration.isAllowedOnTarget(inspectedURL)) {
+                return;
+            }
             if (!this.registeredExtensions.get(extensionOrigin)) {
                 // See ExtensionAPI.js for details.
                 const injectedAPI = self.buildExtensionAPIInjectedScript(extensionInfo, this.inspectedTabId, ThemeSupport.ThemeSupport.instance().themeName(), UI.ShortcutRegistry.ShortcutRegistry.instance().globalShortcutKeys(), ExtensionServer.instance().extensionAPITestHook);
                 Host.InspectorFrontendHost.InspectorFrontendHostInstance.setInjectedScriptForOrigin(extensionOrigin, injectedAPI);
-                const name = extensionInfo.name || `Extension ${extensionOrigin}`;
-                this.registeredExtensions.set(extensionOrigin, { name });
+                this.registeredExtensions.set(extensionOrigin, extensionRegistration);
             }
-            const iframe = document.createElement('iframe');
-            iframe.src = startPage;
-            iframe.dataset.devtoolsExtension = extensionInfo.name;
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe); // Only for main window.
+            this.addExtensionFrame(extensionInfo);
         }
         catch (e) {
             console.error('Failed to initialize extension ' + startPage + ':' + e);
@@ -831,14 +934,29 @@ export class ExtensionServer extends Common.ObjectWrapper.ObjectWrapper {
             this.registerExtension(event.origin, event.ports[0]);
         }
     };
+    extensionEnabled(port) {
+        if (!this.extensionsEnabled) {
+            return false;
+        }
+        const origin = extensionOrigins.get(port);
+        if (!origin) {
+            return false;
+        }
+        const extension = this.registeredExtensions.get(origin);
+        if (!extension) {
+            return false;
+        }
+        return extension.isAllowedOnTarget();
+    }
     async onmessage(event) {
         const message = event.data;
         let result;
+        const port = event.currentTarget;
         const handler = this.handlers.get(message.command);
         if (!handler) {
             result = this.status.E_NOTSUPPORTED(message.command);
         }
-        else if (!this.extensionsEnabled) {
+        else if (!this.extensionEnabled(port)) {
             result = this.status.E_FAILED('Permission denied');
         }
         else {
@@ -913,7 +1031,8 @@ export class ExtensionServer extends Common.ObjectWrapper.ObjectWrapper {
         }
         // We shouldn't get here if the outermost frame can't be inspected by an extension, but
         // let's double check for subframes.
-        if (!this.canInspectURL(frame.url)) {
+        const extension = this.registeredExtensions.get(securityOrigin);
+        if (!extension?.isAllowedOnTarget(frame.url)) {
             return this.status.E_FAILED('Permission denied');
         }
         let contextSecurityOrigin;
@@ -949,7 +1068,7 @@ export class ExtensionServer extends Common.ObjectWrapper.ObjectWrapper {
                 return this.status.E_FAILED(frame.url + ' has no execution context');
             }
         }
-        if (!this.canInspectURL(context.origin)) {
+        if (!extension?.isAllowedOnTarget(context.origin)) {
             return this.status.E_FAILED('Permission denied');
         }
         void context
@@ -972,7 +1091,7 @@ export class ExtensionServer extends Common.ObjectWrapper.ObjectWrapper {
         }
         return undefined;
     }
-    canInspectURL(url) {
+    static canInspectURL(url) {
         let parsedURL;
         // This is only to work around invalid URLs we're occasionally getting from some tests.
         // TODO(caseq): make sure tests supply valid URLs or we specifically handle invalid ones.
@@ -985,11 +1104,15 @@ export class ExtensionServer extends Common.ObjectWrapper.ObjectWrapper {
         if (kAllowedOrigins.includes(parsedURL.origin)) {
             return true;
         }
-        if (parsedURL.protocol === 'chrome:' || parsedURL.protocol === 'devtools:') {
+        if (parsedURL.protocol === 'chrome:' || parsedURL.protocol === 'devtools:' ||
+            parsedURL.protocol === 'chrome-untrusted:' || parsedURL.protocol === 'chrome-error:') {
             return false;
         }
         if (parsedURL.protocol.startsWith('http') && parsedURL.hostname === 'chrome.google.com' &&
             parsedURL.pathname.startsWith('/webstore')) {
+            return false;
+        }
+        if (parsedURL.protocol.startsWith('http') && parsedURL.hostname === 'chromewebstore.google.com') {
             return false;
         }
         if ((window.DevToolsAPI && window.DevToolsAPI.getOriginsForbiddenForExtensions &&

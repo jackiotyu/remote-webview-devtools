@@ -20,7 +20,7 @@ styles.replaceSync(
 }
 
 .tree-outline li.filter-match {
-  background-color: var(--color-match-highlight);
+  background-color: var(--sys-color-tonal-container);
 }
 
 .tree-outline li.not-parsed-ok .exclamation-mark {
@@ -137,7 +137,7 @@ ol.expanded {
 }
 
 .changed {
-  background-color: var(--color-accent-green-background);
+  background-color: var(--sys-color-tertiary-container);
 }
 
 .changed::after {
@@ -147,7 +147,7 @@ ol.expanded {
   top: 0;
   width: 2px;
   height: 100%;
-  background-color: var(--color-accent-green);
+  background-color: var(--sys-color-tertiary);
 }
 
 .copy {
@@ -183,7 +183,7 @@ ol.expanded {
 }
 
 .has-ignorable-error {
-  color: var(--color-text-disabled);
+  color: var(--sys-color-state-disabled);
 }
 
 .tree-outline li.editing {
@@ -234,12 +234,16 @@ ol.expanded {
   margin: 0 0 0 6px;
   position: absolute;
   top: -1px;
-  background-color: var(--color-background-elevation-2);
+  background-color: var(--sys-color-cdt-base-container);
   border-radius: 3px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+
+  &:hover devtools-icon {
+    --icon-color: var(--icon-default-hover);
+  }
 }
 
 .tree-outline li.child-editing .styles-clipboard-only {
@@ -288,6 +292,6 @@ devtools-css-length {
   display: inline-block;
 }
 
-
+/*# sourceURL=stylesSectionTree.css */
 `);
 export default styles;

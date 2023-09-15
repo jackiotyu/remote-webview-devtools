@@ -37,8 +37,8 @@ styles.replaceSync(
 
 .indexed-db-data-view .data-view-toolbar {
   position: relative;
-  background-color: var(--color-background-elevation-1);
-  border-bottom: 1px solid var(--color-details-hairline);
+  background-color: var(--sys-color-cdt-base-container);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .indexed-db-data-view .data-grid {
@@ -46,7 +46,7 @@ styles.replaceSync(
 }
 
 .indexed-db-data-view .data-grid .data-container tr:nth-last-child(1) {
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
 }
 
 .indexed-db-data-view .data-grid .data-container tr:nth-last-child(1) td {
@@ -54,11 +54,11 @@ styles.replaceSync(
 }
 
 .indexed-db-data-view .data-grid .data-container tr:nth-last-child(2) td {
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .indexed-db-data-view .data-grid:focus .data-container tr.selected {
-  background-color: var(--color-background-highlight);
+  background-color: var(--sys-color-tonal-container);
   color: inherit;
 }
 
@@ -77,7 +77,7 @@ styles.replaceSync(
 }
 
 .indexed-db-key-path {
-  color: var(--color-accent-red);
+  color: var(--sys-color-error);
   white-space: pre-wrap;
   unicode-bidi: -webkit-isolate;
 }
@@ -108,13 +108,13 @@ styles.replaceSync(
   flex: 0 0 27px;
   line-height: 27px;
   padding-left: 5px;
-  background-color: var(--color-background-elevation-1);
-  border-top: 1px solid var(--color-details-hairline);
+  background-color: var(--sys-color-cdt-base-container);
+  border-top: 1px solid var(--sys-color-divider);
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
 }
 
-
+/*# sourceURL=indexedDBViews.css */
 `);
 export default styles;

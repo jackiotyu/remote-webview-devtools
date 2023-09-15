@@ -161,7 +161,6 @@ export class DataGridImpl extends Common.ObjectWrapper.ObjectWrapper {
             event.consume(true);
         });
         this.element.addEventListener('focusout', event => {
-            this.updateGridAccessibleName(/* text */ '');
             event.consume(true);
         });
         UI.ARIAUtils.markAsApplication(this.element);
@@ -309,12 +308,17 @@ export class DataGridImpl extends Common.ObjectWrapper.ObjectWrapper {
         // 'no-selection' class causes datagrid to have a focus-indicator border
         this.element.classList.toggle('no-selection', !hasSelected);
     }
-    updateGridAccessibleName(text) {
-        // Update the label with the provided text or the current selected node
-        const accessibleText = (this.selectedNode && this.selectedNode.existingElement()) ? this.selectedNode.nodeAccessibleText : '';
-        if (this.element === Platform.DOMUtilities.deepActiveElement(this.element.ownerDocument)) {
-            // Only alert if the datagrid has focus
-            UI.ARIAUtils.alert(text ? text : accessibleText);
+    announceSelectedGridNode() {
+        // Only alert if the datagrid has focus
+        if (this.element === Platform.DOMUtilities.deepActiveElement(this.element.ownerDocument) && this.selectedNode &&
+            this.selectedNode.existingElement()) {
+            // Update the expand/collapse state for the current selected node
+            let expandText;
+            if (this.selectedNode.hasChildren()) {
+                expandText = this.selectedNode.expanded ? i18nString(UIStrings.expanded) : i18nString(UIStrings.collapsed);
+            }
+            const accessibleText = expandText ? `${this.selectedNode.nodeAccessibleText}, ${expandText}` : this.selectedNode.nodeAccessibleText;
+            UI.ARIAUtils.alert(accessibleText);
         }
     }
     updateGridAccessibleNameOnFocus() {
@@ -489,7 +493,7 @@ export class DataGridImpl extends Common.ObjectWrapper.ObjectWrapper {
         const column = this.visibleColumnsArray[cellIndex];
         if (column.dataType === DataType.Boolean) {
             const checkboxLabel = UI.UIUtils.CheckboxLabel.create(undefined, node.data[column.id]);
-            UI.ARIAUtils.setAccessibleName(checkboxLabel, column.title || '');
+            UI.ARIAUtils.setLabel(checkboxLabel, column.title || '');
             let hasChanged = false;
             checkboxLabel.style.height = '100%';
             const checkboxElement = checkboxLabel.checkboxElement;
@@ -1384,7 +1388,7 @@ export class DataGridImpl extends Common.ObjectWrapper.ObjectWrapper {
         return this.dataTableHeadInternal.offsetHeight;
     }
     revealNode(element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+        element.scrollIntoViewIfNeeded(false);
         // The header row is a child of the scrollable container, and uses position: sticky
         // so scrollIntoViewIfNeeded may place the element behind it. If the element is
         // obscured by the header, adjust the scrollTop so that the element is fully revealed.
@@ -1455,7 +1459,7 @@ export class DataGridNode {
     parent;
     previousSibling;
     nextSibling;
-    disclosureToggleWidth;
+    #disclosureToggleWidth = 15;
     selectable;
     isRoot;
     nodeAccessibleText;
@@ -1477,7 +1481,6 @@ export class DataGridNode {
         this.parent = null;
         this.previousSibling = null;
         this.nextSibling = null;
-        this.disclosureToggleWidth = 10;
         this.selectable = true;
         this.isRoot = false;
         this.nodeAccessibleText = '';
@@ -1527,11 +1530,6 @@ export class DataGridNode {
         this.elementInternal = null;
     }
     createCells(element) {
-        // Keep track of the focused cell before removing child elements.
-        let focusedCellClassName;
-        if (element.contains(document.activeElement)) {
-            focusedCellClassName = document.activeElement?.className;
-        }
         element.removeChildren();
         if (!this.dataGrid || !this.parent) {
             return;
@@ -1545,11 +1543,6 @@ export class DataGridNode {
         for (let i = 0; i < columnsArray.length; ++i) {
             const column = columnsArray[i];
             const cell = element.appendChild(this.createCell(column.id));
-            // Restore focus back to active cell to avoid losing focus
-            // when the datagrid is resized and cells are recreated.
-            if (cell.className === focusedCellClassName) {
-                cell.focus();
-            }
             // Add each visibile cell to the node's accessible text by gathering 'Column Title: content'
             if (column.dataType === DataType.Boolean && this.data[column.id] === true) {
                 this.setCellAccessibleName(i18nString(UIStrings.checked), cell, column.id);
@@ -1751,7 +1744,7 @@ export class DataGridNode {
         for (let i = 0; i < cell.children.length; i++) {
             UI.ARIAUtils.markAsHidden(cell.children[i]);
         }
-        UI.ARIAUtils.setAccessibleName(cell, name);
+        UI.ARIAUtils.setLabel(cell, name);
     }
     nodeSelfHeight() {
         return 20;
@@ -1874,7 +1867,7 @@ export class DataGridNode {
         }
         this.expandedInternal = false;
         if (this.selected && this.dataGrid) {
-            this.dataGrid.updateGridAccessibleName(/* text */ i18nString(UIStrings.collapsed));
+            this.dataGrid.announceSelectedGridNode();
         }
         for (let i = 0; i < this.children.length; ++i) {
             this.children[i].revealed = false;
@@ -1923,7 +1916,7 @@ export class DataGridNode {
             this.elementInternal.classList.add('expanded');
         }
         if (this.selected && this.dataGrid) {
-            this.dataGrid.updateGridAccessibleName(/* text */ i18nString(UIStrings.expanded));
+            this.dataGrid.announceSelectedGridNode();
         }
         this.expandedInternal = true;
     }
@@ -1959,7 +1952,7 @@ export class DataGridNode {
         if (this.elementInternal) {
             this.elementInternal.classList.add('selected');
             this.dataGrid.setHasSelection(true);
-            this.dataGrid.updateGridAccessibleName();
+            this.dataGrid.announceSelectedGridNode();
         }
         if (!supressSelectedEvent) {
             this.dataGrid.dispatchEventToListeners(Events.SelectedNode, this);
@@ -1981,7 +1974,6 @@ export class DataGridNode {
         if (this.elementInternal) {
             this.elementInternal.classList.remove('selected');
             this.dataGrid.setHasSelection(false);
-            this.dataGrid.updateGridAccessibleName('');
         }
         if (!supressDeselectedEvent) {
             this.dataGrid.dispatchEventToListeners(Events.DeselectedNode);
@@ -2050,7 +2042,7 @@ export class DataGridNode {
             return false;
         }
         const left = cell.getBoundingClientRect().left + this.leftPadding;
-        return event.pageX >= left && event.pageX <= left + this.disclosureToggleWidth;
+        return event.pageX >= left && event.pageX <= left + this.#disclosureToggleWidth;
     }
     attach() {
         if (!this.dataGrid || this.attachedInternal) {

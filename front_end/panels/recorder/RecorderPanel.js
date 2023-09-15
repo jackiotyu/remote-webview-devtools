@@ -4,7 +4,7 @@
 import * as UI from '../../ui/legacy/legacy.js';
 import { RecorderController } from './RecorderController.js';
 let recorderPanelInstance;
-class RecorderPanel extends UI.Panel.Panel {
+export class RecorderPanel extends UI.Panel.Panel {
     static panelName = 'chrome_recorder';
     #controller;
     constructor() {
@@ -35,7 +35,6 @@ class RecorderPanel extends UI.Panel.Panel {
         return this.#controller.isActionPossible(actionId);
     }
 }
-export { RecorderPanel };
 let recorderActionDelegateInstance;
 export class ActionDelegate {
     static instance(opts = { forceNew: null }) {

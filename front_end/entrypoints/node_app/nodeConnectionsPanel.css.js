@@ -116,6 +116,6 @@ styles.replaceSync(
   margin: 6px 9px;
 }
 
-
+/*# sourceURL=nodeConnectionsPanel.css */
 `);
 export default styles;

@@ -18,7 +18,7 @@ styles.replaceSync(
 }
 
 .node-label-class {
-  color: var(--override-node-text-class-color, var(--color-token-attribute));
+  color: var(--override-node-text-class-color, var(--sys-color-token-attribute));
 }
 
 .node-label-id {
@@ -33,6 +33,6 @@ styles.replaceSync(
   color: var(--override-node-text-multiple-descriptors-id, var(--override-node-text-id-color, var(--color-token-attribute)));
 }
 
-
+/*# sourceURL=nodeText.css */
 `);
 export default styles;

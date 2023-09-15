@@ -25,6 +25,6 @@ styles.replaceSync(
   margin: 0 var(--icon-padding);
 }
 
-
+/*# sourceURL=WebBundleInfoView.css */
 `);
 export default styles;

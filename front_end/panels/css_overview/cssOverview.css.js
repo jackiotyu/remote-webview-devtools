@@ -19,6 +19,6 @@ devtools-css-overview-start-view {
   overflow: auto;
 }
 
-
+/*# sourceURL=cssOverview.css */
 `);
 export default styles;

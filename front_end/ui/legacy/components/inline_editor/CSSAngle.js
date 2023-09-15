@@ -11,7 +11,7 @@ import { CSSAngleSwatch } from './CSSAngleSwatch.js';
 const { render, html } = LitHtml;
 const styleMap = LitHtml.Directives.styleMap;
 const ContextAwareProperties = new Set(['color', 'background', 'background-color']);
-class PopoverToggledEvent extends Event {
+export class PopoverToggledEvent extends Event {
     static eventName = 'popovertoggled';
     data;
     constructor(open) {
@@ -19,8 +19,7 @@ class PopoverToggledEvent extends Event {
         this.data = { open };
     }
 }
-export { PopoverToggledEvent };
-class UnitChangedEvent extends Event {
+export class UnitChangedEvent extends Event {
     static eventName = 'unitchanged';
     data;
     constructor(value) {
@@ -28,12 +27,11 @@ class UnitChangedEvent extends Event {
         this.data = { value };
     }
 }
-export { UnitChangedEvent };
 const DefaultAngle = {
     value: 0,
     unit: "rad" /* AngleUnit.Rad */,
 };
-class CSSAngle extends HTMLElement {
+export class CSSAngle extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-css-angle`;
     shadow = this.attachShadow({ mode: 'open' });
     angle = DefaultAngle;
@@ -215,6 +213,5 @@ class CSSAngle extends HTMLElement {
         // clang-format on
     }
 }
-export { CSSAngle };
 ComponentHelpers.CustomElements.defineComponent('devtools-css-angle', CSSAngle);
 //# map=CSSAngle.js.map

@@ -25,7 +25,7 @@ styles.replaceSync(
 }
 
 .report-field .inline-name {
-  color: var(--color-text-disabled);
+  color: var(--sys-color-state-disabled);
   padding-left: 2ex;
   user-select: none;
   white-space: pre-line;
@@ -36,7 +36,7 @@ styles.replaceSync(
 }
 
 .report-field .inline-comment {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
   padding-left: 1ex;
   white-space: pre-line;
 }
@@ -50,7 +50,7 @@ styles.replaceSync(
 }
 
 .report-field .inline-span {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
   padding-left: 1ex;
   white-space: pre-line;
 }
@@ -60,7 +60,7 @@ styles.replaceSync(
 }
 
 .icon-link.devtools-link {
-  background-color: var(--color-link);
+  background-color: var(--sys-color-primary);
   vertical-align: sub;
 }
 
@@ -77,6 +77,6 @@ styles.replaceSync(
   text-overflow: ellipsis;
 }
 
-
+/*# sourceURL=openedWindowDetailsView.css */
 `);
 export default styles;

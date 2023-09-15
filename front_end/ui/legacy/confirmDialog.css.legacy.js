@@ -14,6 +14,10 @@ export default {
   padding: 20px;
 }
 
+.message {
+  text-align: center;
+}
+
 .message,
 .button {
   font-size: larger;

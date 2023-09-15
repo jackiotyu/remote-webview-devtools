@@ -6,7 +6,7 @@ import * as ComponentHelpers from '../../components/helpers/helpers.js';
 import * as LitHtml from '../../lit-html/lit-html.js';
 import * as IconButton from '../icon_button/icon_button.js';
 import settingDeprecationWarning from './settingDeprecationWarning.css.js';
-class SettingDeprecationWarning extends HTMLElement {
+export class SettingDeprecationWarning extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-setting-deprecation-warning`;
     #shadow = this.attachShadow({ mode: 'open' });
     connectedCallback() {
@@ -28,6 +28,5 @@ class SettingDeprecationWarning extends HTMLElement {
         LitHtml.render(LitHtml.html `<${IconButton.Icon.Icon.litTagName} class=${LitHtml.Directives.classMap(classes)} .data=${iconData} title=${warning} @click=${onclick}></${IconButton.Icon.Icon.litTagName}>`, this.#shadow, { host: this });
     }
 }
-export { SettingDeprecationWarning };
 ComponentHelpers.CustomElements.defineComponent('devtools-setting-deprecation-warning', SettingDeprecationWarning);
 //# map=SettingDeprecationWarning.js.map

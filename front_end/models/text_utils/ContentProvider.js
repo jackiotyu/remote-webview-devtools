@@ -33,10 +33,15 @@ export class SearchMatch {
     lineNumber;
     lineContent;
     columnNumber;
-    constructor(lineNumber, lineContent, columnNumber) {
+    matchLength;
+    constructor(lineNumber, lineContent, columnNumber, matchLength) {
         this.lineNumber = lineNumber;
         this.lineContent = lineContent;
         this.columnNumber = columnNumber;
+        this.matchLength = matchLength;
+    }
+    static comparator(a, b) {
+        return a.lineNumber - b.lineNumber || a.columnNumber - b.columnNumber;
     }
 }
 export const contentAsDataURL = function (content, mimeType, contentEncoded, charset, limitSize = true) {

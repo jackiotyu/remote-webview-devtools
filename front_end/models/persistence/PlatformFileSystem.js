@@ -42,6 +42,9 @@ export class PlatformFileSystem {
     deleteFile(_path) {
         return Promise.resolve(false);
     }
+    deleteDirectoryRecursively(_path) {
+        return Promise.resolve(false);
+    }
     requestFileBlob(_path) {
         return Promise.resolve(null);
     }

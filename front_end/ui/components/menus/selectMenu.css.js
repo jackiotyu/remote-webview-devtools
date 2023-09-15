@@ -55,6 +55,6 @@ button:disabled {
   }
 }
 
-
+/*# sourceURL=selectMenu.css */
 `);
 export default styles;

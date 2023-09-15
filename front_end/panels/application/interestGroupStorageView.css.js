@@ -20,9 +20,9 @@ devtools-interest-group-access-grid {
   align-items: center;
   justify-content: center;
   font-size: 13px;
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
 }
 
-
+/*# sourceURL=interestGroupStorageView.css */
 `);
 export default styles;

@@ -23,14 +23,13 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('ui/components/dialogs/ShortcutDialog.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class ShowDialog extends Event {
+export class ShowDialog extends Event {
     static eventName = 'showdialog';
     constructor() {
         super(ShowDialog.eventName);
     }
 }
-export { ShowDialog };
-class ShortcutDialog extends HTMLElement {
+export class ShortcutDialog extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-shortcut-dialog`;
     #shadow = this.attachShadow({ mode: 'open' });
     #renderBound = this.#render.bind(this);
@@ -134,6 +133,5 @@ class ShortcutDialog extends HTMLElement {
         }
     }
 }
-export { ShortcutDialog };
 ComponentHelpers.CustomElements.defineComponent('devtools-shortcut-dialog', ShortcutDialog);
 //# map=ShortcutDialog.js.map

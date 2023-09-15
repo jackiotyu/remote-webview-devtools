@@ -21,9 +21,9 @@ devtools-request-headers-category {
 }
 
 .header {
-  background-color: var(--color-background-elevation-1);
-  border-bottom: var(--legacy-divider-border);
-  border-top: var(--legacy-divider-border);
+  background-color: var(--sys-color-surface1);
+  border-bottom: 1px solid var(--sys-color-divider);
+  border-top: 1px solid var(--sys-color-divider);
   line-height: 25px;
   padding: 0 5px;
 }
@@ -36,7 +36,7 @@ devtools-request-headers-category {
 }
 
 .header:focus {
-  background-color: var(--legacy-focus-bg-color);
+  background-color: var(--sys-color-state-header-hover);
 }
 
 details[open] .header-count {
@@ -78,13 +78,26 @@ div.raw-headers-row {
 .header-name {
   color: var(--color-text-primary);
   font-weight: 400;
-  width: 160px;
+  width: 30%;
+  min-width: 160px;
+  max-width: 240px;
   flex-shrink: 0;
   text-transform: capitalize;
 }
 
 .header-value {
   word-break: break-all;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.header-name,
+.header-value {
+  &::selection {
+    color: var(--sys-color-on-tonal-container);
+    background-color: var(--sys-color-tonal-container);
+  }
 }
 
 .green-circle::before,
@@ -179,6 +192,6 @@ summary label:hover {
   color: var(--color-text-primary);
 }
 
-
+/*# sourceURL=RequestHeadersView.css */
 `);
 export default styles;

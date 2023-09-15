@@ -23,8 +23,7 @@ export default {
 }
 
 .item.highlighted {
-  color: var(--legacy-selection-fg-color);
-  background-color: var(--legacy-selection-bg-color);
+  background-color: var(--sys-color-state-hover-on-subtle);
 }
 
 @media (forced-colors: active) {

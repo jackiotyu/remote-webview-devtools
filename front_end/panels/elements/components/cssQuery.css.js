@@ -16,7 +16,7 @@ styles.replaceSync(
 }
 
 .editable .query-text {
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
 }
 
 .editable .query-text:hover {
@@ -24,6 +24,6 @@ styles.replaceSync(
   cursor: var(--override-styles-section-text-hover-cursor);
 }
 
-
+/*# sourceURL=cssQuery.css */
 `);
 export default styles;

@@ -9,14 +9,13 @@ import * as LitHtml from '../../../ui/lit-html/lit-html.js';
 import queryContainerStyles from './queryContainer.css.js';
 const { render, html } = LitHtml;
 const { PhysicalAxis, QueryAxis } = SDK.CSSContainerQuery;
-class QueriedSizeRequestedEvent extends Event {
+export class QueriedSizeRequestedEvent extends Event {
     static eventName = 'queriedsizerequested';
     constructor() {
         super(QueriedSizeRequestedEvent.eventName, {});
     }
 }
-export { QueriedSizeRequestedEvent };
-class QueryContainer extends HTMLElement {
+export class QueryContainer extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-query-container`;
     #shadow = this.attachShadow({ mode: 'open' });
     #queryName;
@@ -109,6 +108,5 @@ class QueryContainer extends HTMLElement {
         // clang-format on
     }
 }
-export { QueryContainer };
 ComponentHelpers.CustomElements.defineComponent('devtools-query-container', QueryContainer);
 //# map=QueryContainer.js.map

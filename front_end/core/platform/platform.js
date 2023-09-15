@@ -35,8 +35,10 @@ import * as DOMUtilities from './dom-utilities.js';
 import * as KeyboardUtilities from './keyboard-utilities.js';
 import * as MapUtilities from './map-utilities.js';
 import * as NumberUtilities from './number-utilities.js';
+import * as PromiseUtilities from './promise-utilities.js';
 import * as SetUtilities from './set-utilities.js';
 import * as StringUtilities from './string-utilities.js';
+import * as Timing from './Timing.js';
 import * as TypeScriptUtilities from './typescript-utilities.js';
 import * as UIString from './UIString.js';
 import * as UserVisibleError from './UserVisibleError.js';
@@ -47,5 +49,5 @@ export { DCHECK } from './dcheck.js';
  * compiler error)
  */
 export { assertNever, assertNotNullOrUndefined, assertUnhandled } from './typescript-utilities.js';
-export { ArrayUtilities, Brand, DateUtilities, DevToolsPath, DOMUtilities, KeyboardUtilities, MapUtilities, NumberUtilities, SetUtilities, StringUtilities, TypeScriptUtilities, UIString, UserVisibleError, };
+export { ArrayUtilities, Brand, DateUtilities, DevToolsPath, DOMUtilities, KeyboardUtilities, MapUtilities, NumberUtilities, PromiseUtilities, SetUtilities, StringUtilities, Timing, TypeScriptUtilities, UIString, UserVisibleError, };
 //# map=platform.js.map

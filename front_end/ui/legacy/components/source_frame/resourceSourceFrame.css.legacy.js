@@ -15,8 +15,8 @@ export default {
 }
 
 .toolbar {
-  background-color: var(--color-background-elevation-2);
-  border-top: 1px solid var(--color-details-hairline);
+  background-color: var(--sys-color-cdt-base-container);
+  border-top: 1px solid var(--sys-color-divider);
 }
 `
 };

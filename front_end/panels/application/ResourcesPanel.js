@@ -12,6 +12,7 @@ import { DatabaseQueryView } from './DatabaseQueryView.js';
 import { DatabaseTableView } from './DatabaseTableView.js';
 import { DOMStorageItemsView } from './DOMStorageItemsView.js';
 import { StorageItemsView } from './StorageItemsView.js';
+import * as PreloadingHelper from './preloading/helper/helper.js';
 let resourcesPanelInstance;
 export class ResourcesPanel extends UI.Panel.PanelWithSidebar {
     resourcesLastSelectedItemSetting;
@@ -188,6 +189,40 @@ export class FrameDetailsRevealer {
         }
         const sidebar = await ResourcesPanel.showAndGetSidebar();
         sidebar.showFrame(frame);
+    }
+}
+let ruleSetViewRevealerInstance;
+export class RuleSetViewRevealer {
+    static instance(opts = { forceNew: null }) {
+        const { forceNew } = opts;
+        if (!ruleSetViewRevealerInstance || forceNew) {
+            ruleSetViewRevealerInstance = new RuleSetViewRevealer();
+        }
+        return ruleSetViewRevealerInstance;
+    }
+    async reveal(revealInfo) {
+        if (!(revealInfo instanceof PreloadingHelper.PreloadingForward.RuleSetView)) {
+            throw new Error('Internal error: not an RuleSetView');
+        }
+        const sidebar = await ResourcesPanel.showAndGetSidebar();
+        sidebar.showPreloadingRuleSetView(revealInfo);
+    }
+}
+let attemptViewWithFilterRevealerInstance;
+export class AttemptViewWithFilterRevealer {
+    static instance(opts = { forceNew: null }) {
+        const { forceNew } = opts;
+        if (!attemptViewWithFilterRevealerInstance || forceNew) {
+            attemptViewWithFilterRevealerInstance = new AttemptViewWithFilterRevealer();
+        }
+        return attemptViewWithFilterRevealerInstance;
+    }
+    async reveal(filter) {
+        if (!(filter instanceof PreloadingHelper.PreloadingForward.AttemptViewWithFilter)) {
+            throw new Error('Internal error: not an AttemptViewWithFilter');
+        }
+        const sidebar = await ResourcesPanel.showAndGetSidebar();
+        sidebar.showPreloadingAttemptViewWithFilter(filter);
     }
 }
 //# map=ResourcesPanel.js.map

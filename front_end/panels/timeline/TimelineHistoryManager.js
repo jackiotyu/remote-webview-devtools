@@ -5,8 +5,8 @@ import * as Common from '../../core/common/common.js';
 import * as i18n from '../../core/i18n/i18n.js';
 import * as Platform from '../../core/platform/platform.js';
 import * as UI from '../../ui/legacy/legacy.js';
-import timelineHistoryManagerStyles from './timelineHistoryManager.css.js';
 import { TimelineEventOverviewCPUActivity, TimelineEventOverviewNetwork, TimelineEventOverviewResponsiveness, } from './TimelineEventOverview.js';
+import timelineHistoryManagerStyles from './timelineHistoryManager.css.js';
 const UIStrings = {
     /**
      *@description Screen reader label for the Timeline History dropdown button
@@ -70,29 +70,41 @@ export class TimelineHistoryManager {
         UI.ARIAUtils.markAsMenuButton(this.buttonInternal.element);
         this.clear();
         this.allOverviews = [
-            { constructor: TimelineEventOverviewResponsiveness, height: 3 },
-            { constructor: TimelineEventOverviewCPUActivity, height: 20 },
-            { constructor: TimelineEventOverviewNetwork, height: 8 },
+            {
+                constructor: (traceParsedData) => {
+                    return new TimelineEventOverviewResponsiveness(traceParsedData);
+                },
+                height: 3,
+            },
+            {
+                constructor: (_traceParsedData, performanceModel) => new TimelineEventOverviewCPUActivity(performanceModel),
+                height: 20,
+            },
+            {
+                constructor: (traceParsedData) => new TimelineEventOverviewNetwork(traceParsedData),
+                height: 8,
+            },
         ];
         this.totalHeight = this.allOverviews.reduce((acc, entry) => acc + entry.height, 0);
         this.enabled = true;
         this.lastActiveModel = null;
     }
-    addRecording(performanceModel, traceParseData) {
-        this.lastActiveModel = performanceModel;
-        this.recordings.unshift({ legacyModel: performanceModel, traceParseData });
-        this.buildPreview(performanceModel);
-        const modelTitle = this.title(performanceModel);
+    addRecording(newInput) {
+        const { legacyModel, traceParseDataIndex } = newInput.data;
+        const filmStrip = newInput.filmStripForPreview;
+        this.lastActiveModel = legacyModel;
+        this.recordings.unshift({ legacyModel: legacyModel, traceParseDataIndex });
+        this.buildPreview(legacyModel, newInput.traceParsedData, filmStrip);
+        const modelTitle = this.title(legacyModel);
         this.buttonInternal.setText(modelTitle);
         const buttonTitle = this.action.title();
-        UI.ARIAUtils.setAccessibleName(this.buttonInternal.element, i18nString(UIStrings.currentSessionSS, { PH1: modelTitle, PH2: buttonTitle }));
+        UI.ARIAUtils.setLabel(this.buttonInternal.element, i18nString(UIStrings.currentSessionSS, { PH1: modelTitle, PH2: buttonTitle }));
         this.updateState();
         if (this.recordings.length <= maxRecordings) {
             return;
         }
         const modelUsedMoreTimeAgo = this.recordings.reduce((a, b) => lastUsedTime(a.legacyModel) < lastUsedTime(b.legacyModel) ? a : b);
         this.recordings.splice(this.recordings.indexOf(modelUsedMoreTimeAgo), 1);
-        modelUsedMoreTimeAgo.legacyModel.dispose();
         function lastUsedTime(model) {
             const data = TimelineHistoryManager.dataForModel(model);
             if (!data) {
@@ -109,7 +121,6 @@ export class TimelineHistoryManager {
         return this.buttonInternal;
     }
     clear() {
-        this.recordings.forEach(model => model.legacyModel.dispose());
         this.recordings = [];
         this.lastActiveModel = null;
         this.updateState();
@@ -159,7 +170,7 @@ export class TimelineHistoryManager {
         const modelTitle = this.title(model);
         const buttonTitle = this.action.title();
         this.buttonInternal.setText(modelTitle);
-        UI.ARIAUtils.setAccessibleName(this.buttonInternal.element, i18nString(UIStrings.currentSessionSS, { PH1: modelTitle, PH2: buttonTitle }));
+        UI.ARIAUtils.setLabel(this.buttonInternal.element, i18nString(UIStrings.currentSessionSS, { PH1: modelTitle, PH2: buttonTitle }));
     }
     updateState() {
         this.action.setEnabled(this.recordings.length > 1 && this.enabled);
@@ -193,7 +204,7 @@ export class TimelineHistoryManager {
         }
         return data.title;
     }
-    buildPreview(performanceModel) {
+    buildPreview(performanceModel, traceParsedData, filmStrip) {
         const parsedURL = Common.ParsedURL.ParsedURL.fromString(performanceModel.timelineModel().pageURL());
         const domain = parsedURL ? parsedURL.host : '';
         const title = performanceModel.tracingModel().title() || domain;
@@ -208,8 +219,8 @@ export class TimelineHistoryManager {
         modelToPerformanceData.set(performanceModel, data);
         preview.appendChild(this.buildTextDetails(performanceModel, title, timeElement));
         const screenshotAndOverview = preview.createChild('div', 'hbox');
-        screenshotAndOverview.appendChild(this.buildScreenshotThumbnail(performanceModel));
-        screenshotAndOverview.appendChild(this.buildOverview(performanceModel));
+        screenshotAndOverview.appendChild(this.buildScreenshotThumbnail(filmStrip));
+        screenshotAndOverview.appendChild(this.buildOverview(performanceModel, traceParsedData));
         return data.preview;
     }
     buildTextDetails(performanceModel, title, timeElement) {
@@ -218,7 +229,7 @@ export class TimelineHistoryManager {
         container.classList.add('hbox');
         const nameSpan = container.createChild('span', 'name');
         nameSpan.textContent = title;
-        UI.ARIAUtils.setAccessibleName(nameSpan, title);
+        UI.ARIAUtils.setLabel(nameSpan, title);
         const tracingModel = performanceModel.tracingModel();
         const duration = i18n.TimeUtilities.millisToString(tracingModel.maximumRecordTime() - tracingModel.minimumRecordTime(), false);
         const timeContainer = container.createChild('span', 'time');
@@ -226,26 +237,27 @@ export class TimelineHistoryManager {
         timeContainer.appendChild(timeElement);
         return container;
     }
-    buildScreenshotThumbnail(performanceModel) {
+    buildScreenshotThumbnail(filmStrip) {
         const container = document.createElement('div');
         container.classList.add('screenshot-thumb');
         const thumbnailAspectRatio = 3 / 2;
         container.style.width = this.totalHeight * thumbnailAspectRatio + 'px';
         container.style.height = this.totalHeight + 'px';
-        const filmStripModel = performanceModel.filmStripModel();
-        const frames = filmStripModel.frames();
-        const lastFrame = frames[frames.length - 1];
+        if (!filmStrip) {
+            return container;
+        }
+        const lastFrame = filmStrip.frames.at(-1);
         if (!lastFrame) {
             return container;
         }
-        void lastFrame.imageDataPromise()
-            .then(data => UI.UIUtils.loadImageFromData(data))
-            // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .then(image => image && container.appendChild(image));
+        void UI.UIUtils.loadImageFromData(lastFrame.screenshotAsString).then(img => {
+            if (img) {
+                container.appendChild(img);
+            }
+        });
         return container;
     }
-    buildOverview(performanceModel) {
+    buildOverview(performanceModel, traceParsedData) {
         const container = document.createElement('div');
         container.style.width = previewWidth + 'px';
         container.style.height = this.totalHeight + 'px';
@@ -255,11 +267,10 @@ export class TimelineHistoryManager {
         const ctx = canvas.getContext('2d');
         let yOffset = 0;
         for (const overview of this.allOverviews) {
-            const timelineOverview = new overview.constructor();
-            timelineOverview.setCanvasSize(previewWidth, overview.height);
-            timelineOverview.setModel(performanceModel);
-            timelineOverview.update();
-            const sourceContext = timelineOverview.context();
+            const timelineOverviewComponent = overview.constructor(traceParsedData, performanceModel);
+            timelineOverviewComponent.setCanvasSize(previewWidth, overview.height);
+            timelineOverviewComponent.update();
+            const sourceContext = timelineOverviewComponent.context();
             const imageData = sourceContext.getImageData(0, 0, sourceContext.canvas.width, sourceContext.canvas.height);
             if (ctx) {
                 ctx.putImageData(imageData, 0, yOffset);
@@ -275,7 +286,7 @@ export class TimelineHistoryManager {
 export const maxRecordings = 5;
 export const previewWidth = 450;
 const modelToPerformanceData = new WeakMap();
-class DropDown {
+export class DropDown {
     glassPane;
     listControl;
     focusRestorer;
@@ -298,7 +309,7 @@ class DropDown {
         this.listControl.element.addEventListener('mousemove', this.onMouseMove.bind(this), false);
         listModel.replaceAll(models);
         UI.ARIAUtils.markAsMenu(this.listControl.element);
-        UI.ARIAUtils.setAccessibleName(this.listControl.element, i18nString(UIStrings.selectTimelineSession));
+        UI.ARIAUtils.setLabel(this.listControl.element, i18nString(UIStrings.selectTimelineSession));
         contentElement.appendChild(this.listControl.element);
         contentElement.addEventListener('keydown', this.onKeyDown.bind(this), false);
         contentElement.addEventListener('click', this.onClick.bind(this), false);
@@ -392,7 +403,6 @@ class DropDown {
     }
     static instance = null;
 }
-export { DropDown };
 export class ToolbarButton extends UI.Toolbar.ToolbarItem {
     contentElement;
     constructor(action) {

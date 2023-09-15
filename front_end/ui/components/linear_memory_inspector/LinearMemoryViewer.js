@@ -6,7 +6,7 @@ import * as ComponentHelpers from '../helpers/helpers.js';
 import { toHexString } from './LinearMemoryInspectorUtils.js';
 import linearMemoryViewerStyles from './linearMemoryViewer.css.js';
 const { render, html } = LitHtml;
-class ByteSelectedEvent extends Event {
+export class ByteSelectedEvent extends Event {
     static eventName = 'byteselected';
     data;
     constructor(address) {
@@ -14,8 +14,7 @@ class ByteSelectedEvent extends Event {
         this.data = address;
     }
 }
-export { ByteSelectedEvent };
-class ResizeEvent extends Event {
+export class ResizeEvent extends Event {
     static eventName = 'resize';
     data;
     constructor(numBytesPerPage) {
@@ -23,10 +22,9 @@ class ResizeEvent extends Event {
         this.data = numBytesPerPage;
     }
 }
-export { ResizeEvent };
 const BYTE_GROUP_MARGIN = 8;
 const BYTE_GROUP_SIZE = 4;
-class LinearMemoryViewer extends HTMLElement {
+export class LinearMemoryViewer extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-linear-memory-inspector-viewer`;
     #shadow = this.attachShadow({ mode: 'open' });
     #resizeObserver = new ResizeObserver(() => this.#resize());
@@ -259,6 +257,5 @@ class LinearMemoryViewer extends HTMLElement {
             && index < this.#focusedMemoryHighlight.startAddress + this.#focusedMemoryHighlight.size;
     }
 }
-export { LinearMemoryViewer };
 ComponentHelpers.CustomElements.defineComponent('devtools-linear-memory-inspector-viewer', LinearMemoryViewer);
 //# map=LinearMemoryViewer.js.map

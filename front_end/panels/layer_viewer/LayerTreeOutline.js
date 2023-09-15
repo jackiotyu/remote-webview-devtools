@@ -65,7 +65,7 @@ export class LayerTreeOutline extends Common.ObjectWrapper.eventMixin(UI.TreeOut
         this.treeOutline.element.addEventListener('mousemove', this.onMouseMove.bind(this), false);
         this.treeOutline.element.addEventListener('mouseout', this.onMouseMove.bind(this), false);
         this.treeOutline.element.addEventListener('contextmenu', this.onContextMenu.bind(this), true);
-        UI.ARIAUtils.setAccessibleName(this.treeOutline.contentElement, i18nString(UIStrings.layersTreePane));
+        UI.ARIAUtils.setLabel(this.treeOutline.contentElement, i18nString(UIStrings.layersTreePane));
         this.lastHoveredNode = null;
         this.element = this.treeOutline.element;
         this.layerViewHost.showInternalLayersSetting().addChangeListener(this.update, this);

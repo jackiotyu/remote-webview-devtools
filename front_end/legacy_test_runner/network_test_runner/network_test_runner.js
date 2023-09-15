@@ -2,16 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import '../../panels/network/network-legacy.js';
-import '../test_runner/test_runner.js';
-import '../console_test_runner/console_test_runner.js';
 import * as HAR from '../../models/har/har.js';
 import * as Logs from '../../models/logs/logs.js';
+import {ConsoleTestRunner} from '../console_test_runner/console_test_runner.js';
+import {TestRunner} from '../test_runner/test_runner.js';
 
 /**
  * @fileoverview using private properties isn't a Closure violation in tests.
  */
-self.NetworkTestRunner = self.NetworkTestRunner || {};
+export const NetworkTestRunner = {};
 
 NetworkTestRunner.waitForRequestResponse = function(request) {
   if (request.responseReceivedTime !== -1) {
@@ -291,6 +290,3 @@ TestRunner.deprecatedInitAsync(`
     });
   }
 `);
-
-const globalTestRunner = self.NetworkTestRunner;
-export {globalTestRunner as NetworkTestRunner};

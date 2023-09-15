@@ -12,21 +12,6 @@ const speedDelayMap = {
     ["extremely_slow" /* PlayRecordingSpeed.ExtremelySlow */]: 2000,
 };
 export const defaultTimeout = 5000; // ms
-export function shouldAttachToTarget(mainTargetId, targetInfo) {
-    // Ignore chrome extensions as we don't support them. This includes DevTools extensions.
-    if (targetInfo.url.startsWith('chrome-extension://')) {
-        return false;
-    }
-    // Allow DevTools-on-DevTools replay.
-    if (targetInfo.url.startsWith('devtools://') && targetInfo.targetId === mainTargetId) {
-        return true;
-    }
-    if (targetInfo.type !== 'page' && targetInfo.type !== 'iframe') {
-        return false;
-    }
-    // TODO only connect to iframes that are related to the main target. This requires refactoring in Puppeteer: https://github.com/puppeteer/puppeteer/issues/3667.
-    return (targetInfo.targetId === mainTargetId || targetInfo.openerId === mainTargetId || targetInfo.type === 'iframe');
-}
 function isPageTarget(target) {
     // Treat DevTools targets as page targets too.
     return (target.url.startsWith('devtools://') || target.type === 'page' || target.type === 'background_page' ||
@@ -64,15 +49,19 @@ export class RecordingPlayer extends Common.ObjectWrapper.ObjectWrapper {
         });
     }
     static async connectPuppeteer() {
-        const mainTarget = SDK.TargetManager.TargetManager.instance().primaryPageTarget();
-        if (!mainTarget) {
-            throw new Error('Could not find main target');
+        const rootTarget = SDK.TargetManager.TargetManager.instance().rootTarget();
+        if (!rootTarget) {
+            throw new Error('Could not find the root target');
         }
-        const childTargetManager = mainTarget.model(SDK.ChildTargetManager.ChildTargetManager);
+        const primaryPageTarget = SDK.TargetManager.TargetManager.instance().primaryPageTarget();
+        if (!primaryPageTarget) {
+            throw new Error('Could not find the primary page target');
+        }
+        const childTargetManager = primaryPageTarget.model(SDK.ChildTargetManager.ChildTargetManager);
         if (!childTargetManager) {
             throw new Error('Could not get childTargetManager');
         }
-        const resourceTreeModel = mainTarget.model(SDK.ResourceTreeModel.ResourceTreeModel);
+        const resourceTreeModel = primaryPageTarget.model(SDK.ResourceTreeModel.ResourceTreeModel);
         if (!resourceTreeModel) {
             throw new Error('Could not get resource tree model');
         }
@@ -80,15 +69,18 @@ export class RecordingPlayer extends Common.ObjectWrapper.ObjectWrapper {
         if (!mainFrame) {
             throw new Error('Could not find main frame');
         }
+        const rootChildTargetManager = rootTarget.model(SDK.ChildTargetManager.ChildTargetManager);
+        if (!rootChildTargetManager) {
+            throw new Error('Could not find the child target manager class for the root target');
+        }
         // Pass an empty message handler because it will be overwritten by puppeteer anyways.
-        const result = await childTargetManager.createParallelConnection(() => { });
+        const result = await rootChildTargetManager.createParallelConnection(() => { });
         const connection = result.connection;
         const mainTargetId = await childTargetManager.getParentTargetId();
-        const { page, browser, puppeteerConnection } = await PuppeteerService.PuppeteerConnection.PuppeteerConnectionHelper.connectPuppeteerToConnection({
+        const rootTargetId = await rootChildTargetManager.getParentTargetId();
+        const { page, browser, puppeteerConnection } = await PuppeteerService.PuppeteerConnection.PuppeteerConnectionHelper.connectPuppeteerToConnectionViaTab({
             connection,
-            mainFrameId: mainFrame.id,
-            targetInfos: childTargetManager.targetInfos(),
-            targetFilterCallback: shouldAttachToTarget.bind(null, mainTargetId),
+            rootTargetId: rootTargetId,
             isPageTargetCallback: isPageTarget,
         });
         if (!page) {
@@ -204,7 +196,9 @@ export class RecordingPlayer extends Common.ObjectWrapper.ObjectWrapper {
                 if (page?.url().startsWith('devtools://') && (step.type === 'setViewport' || step.type === 'navigate')) {
                     return;
                 }
-                return await super.runStep(step, flow);
+                // Focus the target in case it's not focused.
+                await this.page.bringToFront();
+                await super.runStep(step, flow);
             }
         }
         const extension = new ExtensionWithBreak(browser, page, {

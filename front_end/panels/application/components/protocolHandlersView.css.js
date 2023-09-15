@@ -12,7 +12,7 @@ styles.replaceSync(
  */
 
 .devtools-link {
-  color: var(--color-link);
+  color: var(--sys-color-primary);
   text-decoration: underline;
   cursor: pointer;
   outline-offset: 2px;
@@ -31,7 +31,7 @@ input.devtools-text-input[type="text"] {
 }
 
 input.devtools-text-input[type="text"]::placeholder {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
 }
 
 .protocol-handlers-row {
@@ -53,6 +53,6 @@ input.devtools-text-input[type="text"]::placeholder {
   }
 }
 
-
+/*# sourceURL=protocolHandlersView.css */
 `);
 export default styles;

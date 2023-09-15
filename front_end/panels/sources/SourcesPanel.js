@@ -33,6 +33,7 @@ import * as Platform from '../../core/platform/platform.js';
 import * as Root from '../../core/root/root.js';
 import * as SDK from '../../core/sdk/sdk.js';
 import * as Bindings from '../../models/bindings/bindings.js';
+import * as Breakpoints from '../../models/breakpoints/breakpoints.js';
 import * as Extensions from '../../models/extensions/extensions.js';
 import * as Workspace from '../../models/workspace/workspace.js';
 import * as IconButton from '../../ui/components/icon_button/icon_button.js';
@@ -41,8 +42,8 @@ import * as UI from '../../ui/legacy/legacy.js';
 import * as Snippets from '../snippets/snippets.js';
 import { CallStackSidebarPane } from './CallStackSidebarPane.js';
 import { DebuggerPausedMessage } from './DebuggerPausedMessage.js';
-import sourcesPanelStyles from './sourcesPanel.css.js';
 import { ContentScriptsNavigatorView, FilesNavigatorView, NetworkNavigatorView, OverridesNavigatorView, SnippetsNavigatorView, } from './SourcesNavigator.js';
+import sourcesPanelStyles from './sourcesPanel.css.js';
 import { Events, SourcesView } from './SourcesView.js';
 import { ThreadsSidebarPane } from './ThreadsSidebarPane.js';
 import { UISourceCodeFrame } from './UISourceCodeFrame.js';
@@ -226,14 +227,14 @@ export class SourcesPanel extends UI.Panel.Panel {
         this.editorView.enableShowModeSaving();
         this.splitWidget.setMainWidget(this.editorView);
         // Create navigator tabbed pane with toolbar.
-        this.navigatorTabbedLocation = UI.ViewManager.ViewManager.instance().createTabbedLocation(this.revealNavigatorSidebar.bind(this), 'navigator-view', true);
+        this.navigatorTabbedLocation = UI.ViewManager.ViewManager.instance().createTabbedLocation(this.revealNavigatorSidebar.bind(this), 'navigator-view', true, true);
         const tabbedPane = this.navigatorTabbedLocation.tabbedPane();
         tabbedPane.setMinimumSize(100, 25);
         tabbedPane.element.classList.add('navigator-tabbed-pane');
         const navigatorMenuButton = new UI.Toolbar.ToolbarMenuButton(this.populateNavigatorMenu.bind(this), true);
         navigatorMenuButton.setTitle(i18nString(UIStrings.moreOptions));
         tabbedPane.rightToolbar().appendToolbarItem(navigatorMenuButton);
-        tabbedPane.addEventListener(UI.TabbedPane.Events.TabSelected, ({ data: { tabId } }) => Host.userMetrics.sidebarPaneShown(tabId));
+        tabbedPane.addEventListener(UI.TabbedPane.Events.TabSelected, ({ data: { tabId } }) => Host.userMetrics.sourcesSidebarTabShown(tabId));
         if (UI.ViewManager.ViewManager.instance().hasViewsForLocation('run-view-sidebar')) {
             const navigatorSplitWidget = new UI.SplitWidget.SplitWidget(false, true, 'sourcePanelNavigatorSidebarSplitViewState');
             navigatorSplitWidget.setMainWidget(tabbedPane);
@@ -313,7 +314,7 @@ export class SourcesPanel extends UI.Panel.Panel {
         if (ThreadsSidebarPane.shouldBeShown() && !this.threadsSidebarPane) {
             this.threadsSidebarPane = UI.ViewManager.ViewManager.instance().view('sources.threads');
             if (this.sidebarPaneStack && this.threadsSidebarPane) {
-                void this.sidebarPaneStack.showView(this.threadsSidebarPane, this.splitWidget.isVertical() ? this.watchSidebarPane : this.callstackPane);
+                this.sidebarPaneStack.appendView(this.threadsSidebarPane, this.splitWidget.isVertical() ? this.watchSidebarPane : this.callstackPane);
             }
         }
     }
@@ -444,7 +445,7 @@ export class SourcesPanel extends UI.Panel.Panel {
     get visibleView() {
         return this.sourcesViewInternal.visibleView();
     }
-    showUISourceCode(uiSourceCode, lineNumber, columnNumber, omitFocus) {
+    showUISourceCode(uiSourceCode, location, omitFocus) {
         if (omitFocus) {
             const wrapperShowing = WrapperView.isShowing();
             if (!this.isShowing() && !wrapperShowing) {
@@ -454,7 +455,7 @@ export class SourcesPanel extends UI.Panel.Panel {
         else {
             this.showEditor();
         }
-        this.sourcesViewInternal.showSourceLocation(uiSourceCode, lineNumber === undefined ? undefined : { lineNumber, columnNumber }, omitFocus);
+        this.sourcesViewInternal.showSourceLocation(uiSourceCode, location, omitFocus);
     }
     showEditor() {
         if (WrapperView.isShowing()) {
@@ -463,7 +464,8 @@ export class SourcesPanel extends UI.Panel.Panel {
         void this.setAsCurrentPanel();
     }
     showUILocation(uiLocation, omitFocus) {
-        this.showUISourceCode(uiLocation.uiSourceCode, uiLocation.lineNumber, uiLocation.columnNumber, omitFocus);
+        const { uiSourceCode, lineNumber, columnNumber } = uiLocation;
+        this.showUISourceCode(uiSourceCode, { lineNumber, columnNumber }, omitFocus);
     }
     revealInNavigator(uiSourceCode, skipReveal) {
         for (const navigator of registeredNavigatorViews) {
@@ -575,7 +577,7 @@ export class SourcesPanel extends UI.Panel.Panel {
             this.stepAction.setEnabled(false);
         }
         const details = currentDebuggerModel ? currentDebuggerModel.debuggerPausedDetails() : null;
-        await this.debuggerPausedMessage.render(details, Bindings.DebuggerWorkspaceBinding.DebuggerWorkspaceBinding.instance(), Bindings.BreakpointManager.BreakpointManager.instance());
+        await this.debuggerPausedMessage.render(details, Bindings.DebuggerWorkspaceBinding.DebuggerWorkspaceBinding.instance(), Breakpoints.BreakpointManager.BreakpointManager.instance());
         if (details) {
             this.updateDebuggerButtonsAndStatusForTest();
         }
@@ -745,7 +747,9 @@ export class SourcesPanel extends UI.Panel.Panel {
         const uiSourceCode = target;
         const eventTarget = event.target;
         if (!uiSourceCode.project().isServiceProject() &&
-            !eventTarget.isSelfOrDescendant(this.navigatorTabbedLocation.widget().element)) {
+            !eventTarget.isSelfOrDescendant(this.navigatorTabbedLocation.widget().element) &&
+            !(Root.Runtime.experiments.isEnabled(Root.Runtime.ExperimentName.JUST_MY_CODE) &&
+                Bindings.IgnoreListManager.IgnoreListManager.instance().isUserOrSourceMapIgnoreListedUISourceCode(uiSourceCode))) {
             contextMenu.revealSection().appendItem(i18nString(UIStrings.revealInSidebar), this.handleContextMenuReveal.bind(this, uiSourceCode));
         }
         // Ignore list only works for JavaScript debugging.
@@ -851,6 +855,22 @@ export class SourcesPanel extends UI.Panel.Panel {
         function toStringForClipboard(data) {
             const subtype = data.subtype;
             const indent = data.indent;
+            if (subtype === 'map') {
+                if (this instanceof Map) {
+                    const elements = Array.from(this.entries());
+                    const literal = elements.length === 0 ? '' : JSON.stringify(elements, null, indent);
+                    return `new Map(${literal})`;
+                }
+                return undefined;
+            }
+            if (subtype === 'set') {
+                if (this instanceof Set) {
+                    const values = Array.from(this.values());
+                    const literal = values.length === 0 ? '' : JSON.stringify(values, null, indent);
+                    return `new Set(${literal})`;
+                }
+                return undefined;
+            }
             if (subtype === 'node') {
                 return this instanceof Element ? this.outerHTML : undefined;
             }
@@ -941,7 +961,7 @@ export class SourcesPanel extends UI.Panel.Panel {
         this.sidebarPaneStack.widget().element.appendChild(this.debuggerPausedMessage.element());
         this.sidebarPaneStack.appendApplicableItems('sources.sidebar-top');
         if (this.threadsSidebarPane) {
-            void this.sidebarPaneStack.showView(this.threadsSidebarPane);
+            this.sidebarPaneStack.appendView(this.threadsSidebarPane);
         }
         const jsBreakpoints = UI.ViewManager.ViewManager.instance().view('sources.jsBreakpoints');
         const scopeChainView = UI.ViewManager.ViewManager.instance().view('sources.scopeChain');
@@ -1005,6 +1025,8 @@ export class SourcesPanel extends UI.Panel.Panel {
         const entry = items[0].webkitGetAsEntry();
         if (entry && entry.isDirectory) {
             Host.InspectorFrontendHost.InspectorFrontendHostInstance.upgradeDraggedFileSystemPermissions(entry.filesystem);
+            Host.userMetrics.actionTaken(Host.UserMetrics.Action.WorkspaceDropFolder);
+            void UI.ViewManager.ViewManager.instance().showView('navigator-files');
         }
     }
 }
@@ -1024,6 +1046,22 @@ export class UILocationRevealer {
             throw new Error('Internal error: not a ui location');
         }
         SourcesPanel.instance().showUILocation(uiLocation, omitFocus);
+    }
+}
+export class UILocationRangeRevealer {
+    static #instance;
+    static instance(opts = { forceNew: false }) {
+        if (!UILocationRangeRevealer.#instance || opts.forceNew) {
+            UILocationRangeRevealer.#instance = new UILocationRangeRevealer();
+        }
+        return UILocationRangeRevealer.#instance;
+    }
+    async reveal(uiLocationRange, omitFocus) {
+        if (!(uiLocationRange instanceof Workspace.UISourceCode.UILocationRange)) {
+            throw new Error('Internal error: Not a UILocationRange');
+        }
+        const { uiSourceCode, range: { start: from, end: to } } = uiLocationRange;
+        SourcesPanel.instance().showUISourceCode(uiSourceCode, { from, to }, omitFocus);
     }
 }
 let debuggerLocationRevealerInstance;
@@ -1058,7 +1096,7 @@ export class UISourceCodeRevealer {
         if (!(uiSourceCode instanceof Workspace.UISourceCode.UISourceCode)) {
             throw new Error('Internal error: not a ui source code');
         }
-        SourcesPanel.instance().showUISourceCode(uiSourceCode, undefined, undefined, omitFocus);
+        SourcesPanel.instance().showUISourceCode(uiSourceCode, undefined, omitFocus);
     }
 }
 let debuggerPausedDetailsRevealerInstance;

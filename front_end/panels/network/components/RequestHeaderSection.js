@@ -30,7 +30,7 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/network/components/RequestHeaderSection.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class RequestHeaderSection extends HTMLElement {
+export class RequestHeaderSection extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-request-header-section`;
     #shadow = this.attachShadow({ mode: 'open' });
     #request;
@@ -102,6 +102,5 @@ class RequestHeaderSection extends HTMLElement {
         // clang-format on
     }
 }
-export { RequestHeaderSection };
 ComponentHelpers.CustomElements.defineComponent('devtools-request-header-section', RequestHeaderSection);
 //# map=RequestHeaderSection.js.map

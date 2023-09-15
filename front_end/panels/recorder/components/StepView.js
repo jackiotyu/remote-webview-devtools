@@ -120,7 +120,7 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/recorder/components/StepView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class CaptureSelectorsEvent extends Event {
+export class CaptureSelectorsEvent extends Event {
     static eventName = 'captureselectors';
     data;
     constructor(step) {
@@ -128,8 +128,7 @@ class CaptureSelectorsEvent extends Event {
         this.data = step;
     }
 }
-export { CaptureSelectorsEvent };
-class StopSelectorsCaptureEvent extends Event {
+export class StopSelectorsCaptureEvent extends Event {
     static eventName = 'stopselectorscapture';
     constructor() {
         super(StopSelectorsCaptureEvent.eventName, {
@@ -138,8 +137,7 @@ class StopSelectorsCaptureEvent extends Event {
         });
     }
 }
-export { StopSelectorsCaptureEvent };
-class CopyStepEvent extends Event {
+export class CopyStepEvent extends Event {
     static eventName = 'copystep';
     step;
     constructor(step) {
@@ -147,8 +145,7 @@ class CopyStepEvent extends Event {
         this.step = step;
     }
 }
-export { CopyStepEvent };
-class StepChanged extends Event {
+export class StepChanged extends Event {
     static eventName = 'stepchanged';
     currentStep;
     newStep;
@@ -158,8 +155,7 @@ class StepChanged extends Event {
         this.newStep = newStep;
     }
 }
-export { StepChanged };
-class AddStep extends Event {
+export class AddStep extends Event {
     static eventName = 'addstep';
     position;
     stepOrSection;
@@ -169,8 +165,7 @@ class AddStep extends Event {
         this.position = position;
     }
 }
-export { AddStep };
-class RemoveStep extends Event {
+export class RemoveStep extends Event {
     static eventName = 'removestep';
     step;
     constructor(step) {
@@ -178,8 +173,7 @@ class RemoveStep extends Event {
         this.step = step;
     }
 }
-export { RemoveStep };
-class AddBreakpointEvent extends Event {
+export class AddBreakpointEvent extends Event {
     static eventName = 'addbreakpoint';
     index;
     constructor(index) {
@@ -187,8 +181,7 @@ class AddBreakpointEvent extends Event {
         this.index = index;
     }
 }
-export { AddBreakpointEvent };
-class RemoveBreakpointEvent extends Event {
+export class RemoveBreakpointEvent extends Event {
     static eventName = 'removebreakpoint';
     index;
     constructor(index) {
@@ -196,9 +189,8 @@ class RemoveBreakpointEvent extends Event {
         this.index = index;
     }
 }
-export { RemoveBreakpointEvent };
 const COPY_ACTION_PREFIX = 'copy-step-as-';
-class StepView extends HTMLElement {
+export class StepView extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-step-view`;
     #shadow = this.attachShadow({ mode: 'open' });
     #step;
@@ -248,7 +240,7 @@ class StepView extends HTMLElement {
         this.#recorderSettings = data.recorderSettings;
         this.#render();
         if (this.#state !== prevState && this.#state === 'current' && !this.#isVisible) {
-            this.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+            this.scrollIntoView();
         }
     }
     get step() {
@@ -649,7 +641,7 @@ class StepView extends HTMLElement {
                     class="chevron"
                     .data=${{
                 iconName: 'triangle-down',
-                color: 'var(--color-text-primary)',
+                color: 'var(--sys-color-on-surface)',
             }}>
                   </${IconButton.Icon.Icon.litTagName}>`
             : ''}
@@ -664,6 +656,7 @@ class StepView extends HTMLElement {
         <div class="details">
           ${this.#step &&
             LitHtml.html `<devtools-recorder-step-editor
+            class=${this.#isSelected ? 'is-selected' : ''}
             .step=${this.#step}
             .disabled=${this.#isPlaying}
             @stepedited=${this.#stepEdited}>
@@ -687,6 +680,5 @@ class StepView extends HTMLElement {
         // clang-format on
     }
 }
-export { StepView };
 ComponentHelpers.CustomElements.defineComponent('devtools-step-view', StepView);
 //# map=StepView.js.map

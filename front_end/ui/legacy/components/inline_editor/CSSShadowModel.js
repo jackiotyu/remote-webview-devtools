@@ -209,7 +209,7 @@ export class CSSShadowModel {
         return parts.join(' ');
     }
 }
-class CSSLength {
+export class CSSLength {
     amount;
     unit;
     constructor(amount, unit) {
@@ -241,5 +241,4 @@ class CSSLength {
         return new RegExp(number + unit + '|' + zero, 'gi');
     })();
 }
-export { CSSLength };
 //# map=CSSShadowModel.js.map

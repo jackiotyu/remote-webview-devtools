@@ -68,6 +68,6 @@ styles.replaceSync(
   cursor: pointer;
 }
 
-
+/*# sourceURL=imagePreview.css */
 `);
 export default styles;

@@ -271,50 +271,45 @@ export class Automapping {
         }
         void this.onStatusRemoved.call(null, status);
     }
-    createBinding(networkSourceCode) {
+    async createBinding(networkSourceCode) {
         const url = networkSourceCode.url();
         if (url.startsWith('file://') || url.startsWith('snippet://')) {
             const fileSourceCode = this.fileSystemUISourceCodes.get(url);
             const status = fileSourceCode ? new AutomappingStatus(networkSourceCode, fileSourceCode, false) : null;
-            return Promise.resolve(status);
+            return status;
         }
         let networkPath = Common.ParsedURL.ParsedURL.extractPath(url);
         if (networkPath === null) {
-            return Promise.resolve(null);
+            return null;
         }
         if (networkPath.endsWith('/')) {
             networkPath = Common.ParsedURL.ParsedURL.concatenate(networkPath, 'index.html');
         }
         const similarFiles = this.filesIndex.similarFiles(networkPath).map(path => this.fileSystemUISourceCodes.get(path));
         if (!similarFiles.length) {
-            return Promise.resolve(null);
+            return null;
         }
-        return this.pullMetadatas(similarFiles.concat(networkSourceCode)).then(onMetadatas.bind(this));
-        function onMetadatas() {
-            const activeFiles = similarFiles.filter(file => Boolean(file) && Boolean(this.activeFoldersIndex.closestParentFolder(file.url())));
-            const networkMetadata = this.sourceCodeToMetadataMap.get(networkSourceCode);
-            if (!networkMetadata || (!networkMetadata.modificationTime && typeof networkMetadata.contentSize !== 'number')) {
-                // If networkSourceCode does not have metadata, try to match against active folders.
-                if (activeFiles.length !== 1) {
-                    return null;
-                }
-                return new AutomappingStatus(networkSourceCode, activeFiles[0], false);
-            }
-            // Try to find exact matches, prioritizing active folders.
-            let exactMatches = this.filterWithMetadata(activeFiles, networkMetadata);
-            if (!exactMatches.length) {
-                exactMatches = this.filterWithMetadata(similarFiles, networkMetadata);
-            }
-            if (exactMatches.length !== 1) {
+        await Promise.all(similarFiles.concat(networkSourceCode).map(async (sourceCode) => {
+            this.sourceCodeToMetadataMap.set(sourceCode, await sourceCode.requestMetadata());
+        }));
+        const activeFiles = similarFiles.filter(file => Boolean(this.activeFoldersIndex.closestParentFolder(file.url())));
+        const networkMetadata = this.sourceCodeToMetadataMap.get(networkSourceCode);
+        if (!networkMetadata || (!networkMetadata.modificationTime && typeof networkMetadata.contentSize !== 'number')) {
+            // If networkSourceCode does not have metadata, try to match against active folders.
+            if (activeFiles.length !== 1) {
                 return null;
             }
-            return new AutomappingStatus(networkSourceCode, exactMatches[0], true);
+            return new AutomappingStatus(networkSourceCode, activeFiles[0], false);
         }
-    }
-    async pullMetadatas(uiSourceCodes) {
-        await Promise.all(uiSourceCodes.map(async (file) => {
-            this.sourceCodeToMetadataMap.set(file, await file.requestMetadata());
-        }));
+        // Try to find exact matches, prioritizing active folders.
+        let exactMatches = this.filterWithMetadata(activeFiles, networkMetadata);
+        if (!exactMatches.length) {
+            exactMatches = this.filterWithMetadata(similarFiles, networkMetadata);
+        }
+        if (exactMatches.length !== 1) {
+            return null;
+        }
+        return new AutomappingStatus(networkSourceCode, exactMatches[0], true);
     }
     filterWithMetadata(files, networkMetadata) {
         return files.filter(file => {

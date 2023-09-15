@@ -14,7 +14,7 @@ const UIStrings = {
 const str_ = i18n.i18n.registerUIStrings('panels/elements/components/CSSHintDetailsView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const { render, html, Directives } = LitHtml;
-class CSSHintDetailsView extends HTMLElement {
+export class CSSHintDetailsView extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-css-hint-details-view`;
     #shadow = this.attachShadow({ mode: 'open' });
     #authoringHint;
@@ -49,6 +49,5 @@ class CSSHintDetailsView extends HTMLElement {
         // clang-format on
     }
 }
-export { CSSHintDetailsView };
 ComponentHelpers.CustomElements.defineComponent('devtools-css-hint-details-view', CSSHintDetailsView);
 //# map=CSSHintDetailsView.js.map

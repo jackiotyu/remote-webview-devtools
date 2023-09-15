@@ -12,7 +12,7 @@ styles.replaceSync(
  */
 
 button.link {
-  color: var(--color-link);
+  color: var(--sys-color-primary);
   text-decoration: underline;
   padding: 0;
   border: none;
@@ -26,6 +26,12 @@ button.link devtools-icon {
   vertical-align: sub;
 }
 
+.link {
+  color: var(--color-link);
+  text-decoration: underline;
+  cursor: pointer;
+}
 
+/*# sourceURL=preloadingDetailsReportView.css */
 `);
 export default styles;

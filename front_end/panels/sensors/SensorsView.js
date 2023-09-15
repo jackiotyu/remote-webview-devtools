@@ -208,17 +208,17 @@ export class SensorsView extends UI.Widget.VBox {
         this.Location = SDK.EmulationModel.Location.parseSetting(this.LocationSetting.get());
         this.LocationOverrideEnabled = false;
         this.createLocationSection(this.Location);
-        this.contentElement.createChild('div').classList.add('panel-section-separator');
+        this.createPanelSeparator();
         this.deviceOrientationSetting =
             Common.Settings.Settings.instance().createSetting('emulation.deviceOrientationOverride', '');
         this.deviceOrientation = SDK.EmulationModel.DeviceOrientation.parseSetting(this.deviceOrientationSetting.get());
         this.deviceOrientationOverrideEnabled = false;
         this.createDeviceOrientationSection();
-        this.contentElement.createChild('div').classList.add('panel-section-separator');
+        this.createPanelSeparator();
         this.appendTouchControl();
-        this.contentElement.createChild('div').classList.add('panel-section-separator');
+        this.createPanelSeparator();
         this.appendIdleEmulator();
-        this.contentElement.createChild('div').classList.add('panel-section-separator');
+        this.createPanelSeparator();
     }
     static instance() {
         if (!_instanceObject) {
@@ -229,6 +229,9 @@ export class SensorsView extends UI.Widget.VBox {
     wasShown() {
         super.wasShown();
         this.registerCSSFiles([sensorsStyles]);
+    }
+    createPanelSeparator() {
+        this.contentElement.createChild('div').classList.add('panel-section-separator');
     }
     createLocationSection(location) {
         const geogroup = this.contentElement.createChild('section', 'sensors-group');
@@ -245,7 +248,7 @@ export class SensorsView extends UI.Widget.VBox {
         this.customLocationsGroup.label = i18nString(UIStrings.overrides);
         const customLocations = Common.Settings.Settings.instance().moduleSetting('emulation.locations');
         const manageButton = UI.UIUtils.createTextButton(i18nString(UIStrings.manage), () => Common.Revealer.reveal(customLocations));
-        UI.ARIAUtils.setAccessibleName(manageButton, i18nString(UIStrings.manageTheListOfLocations));
+        UI.ARIAUtils.setLabel(manageButton, i18nString(UIStrings.manageTheListOfLocations));
         fields.appendChild(manageButton);
         const fillCustomSettings = () => {
             if (!this.customLocationsGroup) {
@@ -535,7 +538,7 @@ export class SensorsView extends UI.Widget.VBox {
         this.gammaSetter = this.createAxisInput(cellElement, this.gammaElement, i18nString(UIStrings.gamma), SDK.EmulationModel.DeviceOrientation.gammaAngleValidator);
         this.gammaSetter(String(deviceOrientation.gamma));
         const resetButton = UI.UIUtils.createTextButton(i18nString(UIStrings.reset), this.resetDeviceOrientation.bind(this), 'orientation-reset-button');
-        UI.ARIAUtils.setAccessibleName(resetButton, i18nString(UIStrings.resetDeviceOrientation));
+        UI.ARIAUtils.setLabel(resetButton, i18nString(UIStrings.resetDeviceOrientation));
         resetButton.setAttribute('type', 'reset');
         cellElement.appendChild(resetButton);
         return fieldsetElement;

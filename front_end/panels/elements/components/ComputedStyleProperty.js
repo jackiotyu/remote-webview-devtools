@@ -5,14 +5,13 @@ import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
 import computedStylePropertyStyles from './computedStyleProperty.css.js';
 const { render, html } = LitHtml;
-class NavigateToSourceEvent extends Event {
+export class NavigateToSourceEvent extends Event {
     static eventName = 'onnavigatetosource';
     constructor() {
         super(NavigateToSourceEvent.eventName, { bubbles: true, composed: true });
     }
 }
-export { NavigateToSourceEvent };
-class ComputedStyleProperty extends HTMLElement {
+export class ComputedStyleProperty extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-computed-style-property`;
     #shadow = this.attachShadow({ mode: 'open' });
     #inherited = false;
@@ -61,6 +60,5 @@ class ComputedStyleProperty extends HTMLElement {
         // clang-format on
     }
 }
-export { ComputedStyleProperty };
 ComponentHelpers.CustomElements.defineComponent('devtools-computed-style-property', ComputedStyleProperty);
 //# map=ComputedStyleProperty.js.map

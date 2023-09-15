@@ -49,7 +49,7 @@ styles.replaceSync(
 }
 
 .profile-view .data-grid tr:hover td:not(.bottom-filler-td) {
-  background-color: var(--color-background-hover-overlay);
+  background-color: var(--sys-color-state-hover-on-subtle);
 }
 
 .profile-view .data-grid td.numeric-column {
@@ -71,8 +71,8 @@ styles.replaceSync(
 }
 
 .profiles-toolbar {
-  background-color: var(--color-background-elevation-1);
-  border-bottom: 1px solid var(--color-details-hairline);
+  background-color: var(--sys-color-cdt-base-container);
+  border-bottom: 1px solid var(--sys-color-divider);
   flex-shrink: 0;
 }
 
@@ -172,6 +172,6 @@ button {
   }
 }
 
-
+/*# sourceURL=profilesPanel.css */
 `);
 export default styles;

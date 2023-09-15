@@ -14,7 +14,7 @@ styles.replaceSync(
 .drop-down {
   padding: 1px;
   box-shadow: var(--drop-shadow);
-  background: var(--color-background);
+  background: var(--sys-color-cdt-base-container);
 }
 
 .preview-item {
@@ -26,7 +26,7 @@ styles.replaceSync(
 }
 
 .preview-item.selected {
-  border-color: var(--legacy-selection-bg-color);
+  border-color: var(--sys-color-primary);
 }
 
 .preview-item canvas {
@@ -50,13 +50,13 @@ styles.replaceSync(
 }
 
 .text-details span.time {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
   text-align: right;
 }
 
 .screenshot-thumb {
   display: flex;
-  border: 1px solid var(--color-background-elevation-2);
+  border: 1px solid var(--sys-color-neutral-outline);
   margin: 2px 4px;
 }
 
@@ -66,6 +66,6 @@ styles.replaceSync(
   max-height: 100%;
 }
 
-
+/*# sourceURL=timelineHistoryManager.css */
 `);
 export default styles;

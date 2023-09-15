@@ -85,7 +85,7 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/recorder/components/CreateRecordingView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class RecordingStartedEvent extends Event {
+export class RecordingStartedEvent extends Event {
     static eventName = 'recordingstarted';
     name;
     selectorAttribute;
@@ -97,15 +97,13 @@ class RecordingStartedEvent extends Event {
         this.selectorTypesToRecord = selectorTypesToRecord;
     }
 }
-export { RecordingStartedEvent };
-class RecordingCancelledEvent extends Event {
+export class RecordingCancelledEvent extends Event {
     static eventName = 'recordingcancelled';
     constructor() {
         super(RecordingCancelledEvent.eventName);
     }
 }
-export { RecordingCancelledEvent };
-class CreateRecordingView extends HTMLElement {
+export class CreateRecordingView extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-create-recording-view`;
     #shadow = this.attachShadow({ mode: 'open' });
     #defaultRecordingName = '';
@@ -287,6 +285,5 @@ class CreateRecordingView extends HTMLElement {
         // clang-format on
     }
 }
-export { CreateRecordingView };
 ComponentHelpers.CustomElements.defineComponent('devtools-create-recording-view', CreateRecordingView);
 //# map=CreateRecordingView.js.map

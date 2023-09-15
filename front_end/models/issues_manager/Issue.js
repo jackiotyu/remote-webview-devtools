@@ -102,7 +102,7 @@ export function unionIssueKind(a, b) {
     return IssueKind.Improvement;
 }
 export function getShowThirdPartyIssuesSetting() {
-    return Common.Settings.Settings.instance().createSetting('showThirdPartyIssues', false);
+    return Common.Settings.Settings.instance().createSetting('showThirdPartyIssues', true);
 }
 export class Issue {
     #issueCode;

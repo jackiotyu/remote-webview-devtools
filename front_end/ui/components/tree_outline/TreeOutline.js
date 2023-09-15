@@ -12,7 +12,7 @@ const coordinator = Coordinator.RenderCoordinator.RenderCoordinator.instance();
 export function defaultRenderer(node) {
     return LitHtml.html `${node.treeNodeData}`;
 }
-class ItemSelectedEvent extends Event {
+export class ItemSelectedEvent extends Event {
     static eventName = 'itemselected';
     data;
     constructor(node) {
@@ -20,8 +20,7 @@ class ItemSelectedEvent extends Event {
         this.data = { node };
     }
 }
-export { ItemSelectedEvent };
-class ItemMouseOverEvent extends Event {
+export class ItemMouseOverEvent extends Event {
     static eventName = 'itemmouseover';
     data;
     constructor(node) {
@@ -29,8 +28,7 @@ class ItemMouseOverEvent extends Event {
         this.data = { node };
     }
 }
-export { ItemMouseOverEvent };
-class ItemMouseOutEvent extends Event {
+export class ItemMouseOutEvent extends Event {
     static eventName = 'itemmouseout';
     data;
     constructor(node) {
@@ -38,8 +36,7 @@ class ItemMouseOutEvent extends Event {
         this.data = { node };
     }
 }
-export { ItemMouseOutEvent };
-class TreeOutline extends HTMLElement {
+export class TreeOutline extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-tree-outline`;
     #shadow = this.attachShadow({ mode: 'open' });
     #treeData = [];
@@ -452,6 +449,5 @@ class TreeOutline extends HTMLElement {
         }
     }
 }
-export { TreeOutline };
 ComponentHelpers.CustomElements.defineComponent('devtools-tree-outline', TreeOutline);
 //# map=TreeOutline.js.map

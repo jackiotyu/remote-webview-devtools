@@ -36,7 +36,7 @@ import { DockController } from './DockController.js';
 import { GlassPane } from './GlassPane.js';
 import { Infobar, Type as InfobarType } from './Infobar.js';
 import { KeyboardShortcut } from './KeyboardShortcut.js';
-import { SplitWidget } from './SplitWidget.js';
+import { SplitWidget, ShowMode } from './SplitWidget.js';
 import { Events as TabbedPaneEvents } from './TabbedPane.js';
 import { ToolbarButton } from './Toolbar.js';
 import { ViewManager } from './ViewManager.js';
@@ -152,10 +152,14 @@ export class InspectorView extends VBox {
         const closeDrawerButton = new ToolbarButton(i18nString(UIStrings.closeDrawer), 'cross');
         closeDrawerButton.addEventListener(ToolbarButton.Events.Click, this.closeDrawer, this);
         this.drawerTabbedPane.addEventListener(TabbedPaneEvents.TabSelected, this.tabSelected, this);
+        const selectedDrawerTab = this.drawerTabbedPane.selectedTabId;
+        if (this.drawerSplitWidget.showMode() !== ShowMode.OnlyMain && selectedDrawerTab) {
+            Host.userMetrics.panelShown(selectedDrawerTab, true);
+        }
         this.drawerTabbedPane.setTabDelegate(this.tabDelegate);
         const drawerElement = this.drawerTabbedPane.element;
         ARIAUtils.markAsComplementary(drawerElement);
-        ARIAUtils.setAccessibleName(drawerElement, i18nString(UIStrings.drawer));
+        ARIAUtils.setLabel(drawerElement, i18nString(UIStrings.drawer));
         this.drawerSplitWidget.installResizer(this.drawerTabbedPane.headerElement());
         this.drawerSplitWidget.setSidebarWidget(this.drawerTabbedPane);
         this.drawerTabbedPane.rightToolbar().appendToolbarItem(closeDrawerButton);
@@ -171,11 +175,15 @@ export class InspectorView extends VBox {
         this.tabbedPane.leftToolbar().element.style.minWidth = allocatedSpace;
         this.tabbedPane.registerRequiredCSS(inspectorViewTabbedPaneStyles);
         this.tabbedPane.addEventListener(TabbedPaneEvents.TabSelected, this.tabSelected, this);
+        const selectedTab = this.tabbedPane.selectedTabId;
+        if (selectedTab) {
+            Host.userMetrics.panelShown(selectedTab, true);
+        }
         this.tabbedPane.setAccessibleName(i18nString(UIStrings.panels));
         this.tabbedPane.setTabDelegate(this.tabDelegate);
         const mainHeaderElement = this.tabbedPane.headerElement();
         ARIAUtils.markAsNavigation(mainHeaderElement);
-        ARIAUtils.setAccessibleName(mainHeaderElement, i18nString(UIStrings.mainToolbar));
+        ARIAUtils.setLabel(mainHeaderElement, i18nString(UIStrings.mainToolbar));
         // Store the initial selected panel for use in launch histograms
         Host.userMetrics.setLaunchPanel(this.tabbedPane.selectedTabId);
         if (Host.InspectorFrontendHost.isUnderTest()) {

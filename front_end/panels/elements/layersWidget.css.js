@@ -14,8 +14,8 @@ styles.replaceSync(
 .styles-layers-pane {
   overflow: hidden;
   padding-left: 2px;
-  background-color: var(--color-background-elevation-1);
-  border-bottom: 1px solid var(--color-details-hairline);
+  background-color: var(--sys-color-cdt-base-container);
+  border-bottom: 1px solid var(--sys-color-divider);
   margin-top: 0;
   padding-bottom: 2px;
 }
@@ -34,6 +34,6 @@ styles.replaceSync(
   padding: 0;
 }
 
-
+/*# sourceURL=layersWidget.css */
 `);
 export default styles;

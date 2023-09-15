@@ -72,6 +72,9 @@ export class AttributionReportingIssueDetailsView extends AffectedResourcesView 
             case "AttributionReportingIssue::WebAndOsHeaders" /* IssuesManager.AttributionReportingIssue.IssueCode.WebAndOsHeaders */:
                 this.appendColumnTitle(header, i18nString(UIStrings.request));
                 break;
+            case "AttributionReportingIssue::NavigationRegistrationWithoutTransientUserActivation" /* IssuesManager.AttributionReportingIssue.IssueCode.NavigationRegistrationWithoutTransientUserActivation */:
+                this.appendColumnTitle(header, i18nString(UIStrings.element));
+                break;
         }
         this.affectedResources.appendChild(header);
         let count = 0;
@@ -88,6 +91,10 @@ export class AttributionReportingIssueDetailsView extends AffectedResourcesView 
         switch (issueCode) {
             case "AttributionReportingIssue::InvalidRegisterSourceHeader" /* IssuesManager.AttributionReportingIssue.IssueCode.InvalidRegisterSourceHeader */:
             case "AttributionReportingIssue::InvalidRegisterTriggerHeader" /* IssuesManager.AttributionReportingIssue.IssueCode.InvalidRegisterTriggerHeader */:
+            case "AttributionReportingIssue::InvalidRegisterOsSourceHeader" /* IssuesManager.AttributionReportingIssue.IssueCode.InvalidRegisterOsSourceHeader */:
+            case "AttributionReportingIssue::InvalidRegisterOsTriggerHeader" /* IssuesManager.AttributionReportingIssue.IssueCode.InvalidRegisterOsTriggerHeader */:
+            case "AttributionReportingIssue::OsSourceIgnored" /* IssuesManager.AttributionReportingIssue.IssueCode.OsSourceIgnored */:
+            case "AttributionReportingIssue::OsTriggerIgnored" /* IssuesManager.AttributionReportingIssue.IssueCode.OsTriggerIgnored */:
             case "AttributionReportingIssue::SourceIgnored" /* IssuesManager.AttributionReportingIssue.IssueCode.SourceIgnored */:
             case "AttributionReportingIssue::TriggerIgnored" /* IssuesManager.AttributionReportingIssue.IssueCode.TriggerIgnored */:
                 this.#appendRequestOrEmptyCell(element, details.request);
@@ -104,7 +111,11 @@ export class AttributionReportingIssueDetailsView extends AffectedResourcesView 
                 this.#appendRequestOrEmptyCell(element, details.request);
                 break;
             case "AttributionReportingIssue::SourceAndTriggerHeaders" /* IssuesManager.AttributionReportingIssue.IssueCode.SourceAndTriggerHeaders */:
+            case "AttributionReportingIssue::WebAndOsHeaders" /* IssuesManager.AttributionReportingIssue.IssueCode.WebAndOsHeaders */:
                 this.#appendRequestOrEmptyCell(element, details.request);
+                break;
+            case "AttributionReportingIssue::NavigationRegistrationWithoutTransientUserActivation" /* IssuesManager.AttributionReportingIssue.IssueCode.NavigationRegistrationWithoutTransientUserActivation */:
+                await this.#appendElementOrEmptyCell(element, issue);
                 break;
         }
         this.affectedResources.appendChild(element);

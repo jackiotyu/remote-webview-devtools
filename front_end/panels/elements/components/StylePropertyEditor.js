@@ -24,7 +24,7 @@ const UIStrings = {
 const str_ = i18n.i18n.registerUIStrings('panels/elements/components/StylePropertyEditor.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const { render, html, Directives } = LitHtml;
-class PropertySelectedEvent extends Event {
+export class PropertySelectedEvent extends Event {
     static eventName = 'propertyselected';
     data;
     constructor(name, value) {
@@ -32,8 +32,7 @@ class PropertySelectedEvent extends Event {
         this.data = { name, value };
     }
 }
-export { PropertySelectedEvent };
-class PropertyDeselectedEvent extends Event {
+export class PropertyDeselectedEvent extends Event {
     static eventName = 'propertydeselected';
     data;
     constructor(name, value) {
@@ -41,7 +40,6 @@ class PropertyDeselectedEvent extends Event {
         this.data = { name, value };
     }
 }
-export { PropertyDeselectedEvent };
 // eslint-disable-next-line rulesdir/check_component_naming
 export class StylePropertyEditor extends HTMLElement {
     #shadow = this.attachShadow({ mode: 'open' });

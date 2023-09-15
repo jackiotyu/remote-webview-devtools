@@ -18,7 +18,7 @@ styles.replaceSync(
 
 .row {
   padding: 0;
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
   padding-bottom: 16px;
 }
 
@@ -32,15 +32,15 @@ styles.replaceSync(
 }
 
 .property-name {
-  color: var(--color-syntax-1);
+  color: var(--sys-color-token-property-special);
 }
 
 .property-value {
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
 }
 
 .property-value.not-authored {
-  color: var(--color-text-disabled);
+  color: var(--sys-color-state-disabled);
 }
 
 .buttons {
@@ -57,8 +57,8 @@ styles.replaceSync(
 }
 
 .button {
-  border: 1px solid var(--color-background-elevation-2);
-  background-color: var(--color-background);
+  border: 1px solid var(--sys-color-neutral-outline);
+  background-color: var(--sys-color-cdt-base-container);
   width: 24px;
   height: 24px;
   min-width: 24px;
@@ -79,14 +79,14 @@ styles.replaceSync(
   --icon-color: var(--icon-default);
 }
 
-.button.selected {
-  background-color: var(--color-background-elevation-1);
+.button:hover devtools-icon {
+  --icon-color: var(--icon-default-hover);
 }
 
 .button.selected devtools-icon {
   --icon-color: var(--icon-toggled);
 }
 
-
+/*# sourceURL=stylePropertyEditor.css */
 `);
 export default styles;

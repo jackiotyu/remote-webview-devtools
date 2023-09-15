@@ -271,7 +271,7 @@ export class ShadowSwatchPopoverHelper {
         delete this.originalPropertyText;
     }
 }
-class FontEditorSectionManager {
+export class FontEditorSectionManager {
     treeElementMap;
     swatchPopoverHelper;
     section;
@@ -408,5 +408,4 @@ class FontEditorSectionManager {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     static treeElementSymbol = Symbol('FontEditorSectionManager._treeElementSymbol');
 }
-export { FontEditorSectionManager };
 //# map=ColorSwatchPopoverIcon.js.map

@@ -35,7 +35,7 @@ styles.replaceSync(
 }
 
 .subtitle {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
   margin-right: 3px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -46,6 +46,6 @@ styles.replaceSync(
   color: inherit;
 }
 
-
+/*# sourceURL=consoleContextSelector.css */
 `);
 export default styles;

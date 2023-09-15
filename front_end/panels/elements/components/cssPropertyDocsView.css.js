@@ -26,7 +26,7 @@ styles.replaceSync(
 }
 
 .clickable {
-  color: var(--color-link);
+  color: var(--sys-color-primary);
 }
 
 .underlined {
@@ -46,6 +46,6 @@ styles.replaceSync(
   vertical-align: bottom;
 }
 
-
+/*# sourceURL=cssPropertyDocsView.css */
 `);
 export default styles;

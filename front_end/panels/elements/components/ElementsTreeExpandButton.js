@@ -4,7 +4,7 @@
 import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
 import elementsTreeExpandButtonStyles from './elementsTreeExpandButton.css.js';
-class ElementsTreeExpandButton extends HTMLElement {
+export class ElementsTreeExpandButton extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-elements-tree-expand-button`;
     #shadow = this.attachShadow({ mode: 'open' });
     #clickHandler = () => { };
@@ -28,6 +28,5 @@ class ElementsTreeExpandButton extends HTMLElement {
         // clang-format on
     }
 }
-export { ElementsTreeExpandButton };
 ComponentHelpers.CustomElements.defineComponent('devtools-elements-tree-expand-button', ElementsTreeExpandButton);
 //# map=ElementsTreeExpandButton.js.map

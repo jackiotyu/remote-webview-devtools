@@ -33,6 +33,7 @@ import * as i18n from '../../../../core/i18n/i18n.js';
 import * as Platform from '../../../../core/platform/platform.js';
 import * as SDK from '../../../../core/sdk/sdk.js';
 import * as Bindings from '../../../../models/bindings/bindings.js';
+import * as Breakpoints from '../../../../models/breakpoints/breakpoints.js';
 import * as TextUtils from '../../../../models/text_utils/text_utils.js';
 import * as Workspace from '../../../../models/workspace/workspace.js';
 import * as UI from '../../legacy.js';
@@ -150,7 +151,7 @@ export class Linkifier {
         if (!info) {
             return;
         }
-        const breakpoint = Bindings.BreakpointManager.BreakpointManager.instance().findBreakpoint(uiLocation);
+        const breakpoint = Breakpoints.BreakpointManager.BreakpointManager.instance().findBreakpoint(uiLocation);
         if (breakpoint) {
             info.revealable = breakpoint;
         }
@@ -204,6 +205,7 @@ export class Linkifier {
             className: options?.className,
             tabStop: options?.tabStop,
             inlineFrameIndex: options?.inlineFrameIndex ?? 0,
+            userMetric: options?.userMetric,
         };
         const { columnNumber, className = '' } = linkifyURLOptions;
         if (sourceURL) {
@@ -230,12 +232,13 @@ export class Linkifier {
         const { link, linkInfo } = Linkifier.createLink(fallbackAnchor && fallbackAnchor.textContent ? fallbackAnchor.textContent : '', className, createLinkOptions);
         linkInfo.enableDecorator = this.useLinkDecorator;
         linkInfo.fallback = fallbackAnchor;
+        linkInfo.userMetric = options?.userMetric;
         const pool = this.locationPoolByTarget.get(rawLocation.debuggerModel.target());
         if (!pool) {
             return fallbackAnchor;
         }
         const linkDisplayOptions = {
-            showColumnNumber: linkifyURLOptions.showColumnNumber,
+            showColumnNumber: linkifyURLOptions.showColumnNumber ?? false,
             revealBreakpoint: options?.revealBreakpoint,
         };
         const currentOnLiveLocationUpdate = this.onLiveLocationUpdate;
@@ -261,6 +264,7 @@ export class Linkifier {
             showColumnNumber: Boolean(options?.showColumnNumber),
             inlineFrameIndex: options?.inlineFrameIndex ?? 0,
             tabStop: options?.tabStop,
+            userMetric: options?.userMetric,
         };
         return scriptLink || Linkifier.linkifyURL(sourceURL, linkifyURLOptions);
     }
@@ -461,6 +465,7 @@ export class Linkifier {
         if (columnNumber) {
             linkInfo.columnNumber = columnNumber;
         }
+        linkInfo.userMetric = options?.userMetric;
         return link;
     }
     static linkifyRevealable(revealable, text, fallbackHref, title, className) {
@@ -598,6 +603,9 @@ export class Linkifier {
         const actions = Linkifier.linkActions(linkInfo);
         if (actions.length) {
             void actions[0].handler.call(null);
+            if (linkInfo.userMetric) {
+                Host.userMetrics.actionTaken(linkInfo.userMetric);
+            }
             return true;
         }
         return false;
@@ -647,7 +655,7 @@ export class Linkifier {
                 section: 'reveal',
                 title: destination ? i18nString(UIStrings.revealInS, { PH1: destination }) : i18nString(UIStrings.reveal),
                 handler: () => {
-                    if (revealable instanceof Bindings.BreakpointManager.BreakpointLocation) {
+                    if (revealable instanceof Breakpoints.BreakpointManager.BreakpointLocation) {
                         Host.userMetrics.breakpointEditDialogRevealedFrom(5 /* Host.UserMetrics.BreakpointEditDialogRevealedFrom.Linkifier */);
                     }
                     return Common.Revealer.reveal(revealable);

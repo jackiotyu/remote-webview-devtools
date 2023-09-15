@@ -33,7 +33,7 @@ const UIStrings = {
 const str_ = i18n.i18n.registerUIStrings('panels/application/components/ReportsGrid.ts', UIStrings);
 export const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const { render, html } = LitHtml;
-class ReportsGridStatusHeader extends HTMLElement {
+export class ReportsGridStatusHeader extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-resources-reports-grid-status-header`;
     #shadow = this.attachShadow({ mode: 'open' });
     connectedCallback() {
@@ -57,8 +57,7 @@ class ReportsGridStatusHeader extends HTMLElement {
         // clang-format on
     }
 }
-export { ReportsGridStatusHeader };
-class ReportsGrid extends HTMLElement {
+export class ReportsGrid extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-resources-reports-grid`;
     #shadow = this.attachShadow({ mode: 'open' });
     #reports = [];
@@ -157,7 +156,6 @@ class ReportsGrid extends HTMLElement {
         }));
     }
 }
-export { ReportsGrid };
 ComponentHelpers.CustomElements.defineComponent('devtools-resources-reports-grid-status-header', ReportsGridStatusHeader);
 ComponentHelpers.CustomElements.defineComponent('devtools-resources-reports-grid', ReportsGrid);
 //# map=ReportsGrid.js.map

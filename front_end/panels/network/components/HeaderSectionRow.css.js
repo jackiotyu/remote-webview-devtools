@@ -33,10 +33,20 @@ styles.replaceSync(
 .header-name {
   color: var(--color-text-primary);
   font-weight: 400;
-  width: 160px;
+  width: 30%;
+  min-width: 160px;
+  max-width: 240px;
   flex-shrink: 0;
   text-transform: capitalize;
   overflow-wrap: break-word;
+}
+
+.header-name,
+.header-value {
+  &::selection {
+    color: var(--sys-color-on-tonal-container);
+    background-color: var(--sys-color-tonal-container);
+  }
 }
 
 .header-name.pseudo-header {
@@ -54,6 +64,7 @@ styles.replaceSync(
 .header-value {
   display: flex;
   overflow-wrap: anywhere;
+  margin-inline-end: 14px;
 }
 
 .header-badge-text {
@@ -183,6 +194,10 @@ x-link .inline-icon { /* stylelint-disable-line selector-type-no-unknown */
   margin-left: auto;
 }
 
+.flex-columns {
+  flex-direction: column;
+}
 
+/*# sourceURL=HeaderSectionRow.css */
 `);
 export default styles;

@@ -7,6 +7,7 @@ import * as Platform from '../../core/platform/platform.js';
 import * as SDK from '../../core/sdk/sdk.js';
 import * as Components from '../../ui/legacy/components/utils/utils.js';
 import * as Bindings from '../bindings/bindings.js';
+import * as BreakpointManager from '../breakpoints/breakpoints.js';
 import * as Workspace from '../workspace/workspace.js';
 import { Automapping } from './Automapping.js';
 import { LinkDecorator } from './PersistenceUtils.js';
@@ -207,7 +208,7 @@ export class PersistenceImpl extends Common.ObjectWrapper.ObjectWrapper {
         const breakpoints = this.breakpointManager.breakpointLocationsForUISourceCode(from).map(breakpointLocation => breakpointLocation.breakpoint);
         await Promise.all(breakpoints.map(async (breakpoint) => {
             await breakpoint.remove(false /* keepInStorage */);
-            return this.breakpointManager.setBreakpoint(to, breakpoint.lineNumber(), breakpoint.columnNumber(), breakpoint.condition(), breakpoint.enabled(), breakpoint.isLogpoint(), "RESTORED" /* Bindings.BreakpointManager.BreakpointOrigin.OTHER */);
+            return this.breakpointManager.setBreakpoint(to, breakpoint.lineNumber(), breakpoint.columnNumber(), breakpoint.condition(), breakpoint.enabled(), breakpoint.isLogpoint(), "RESTORED" /* BreakpointManager.BreakpointManager.BreakpointOrigin.OTHER */);
         }));
     }
     hasUnsavedCommittedChanges(uiSourceCode) {

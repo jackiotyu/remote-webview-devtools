@@ -27,8 +27,8 @@ styles.replaceSync(
   the theme.
   To ensure proper contrast between those colors and the 1px borders between
   them, we use these local variables, not theme variables. */
-  --override-box-model-separator-color: #000;
-  --override-box-model-text-color: #222;
+  --override-box-model-separator-color: var(--ref-palette-neutral0);
+  --override-box-model-text-color: var(--ref-palette-neutral10);
 }
 
 :host {
@@ -64,8 +64,8 @@ styles.replaceSync(
   /* This border is different from the ones displayed between the box-moodel
   regions because it is displayed against the pane background, so needs to be
   visible in both light and dark theme. We therefore use a theme variable. */
-  border: 1px var(--color-text-secondary) dotted;
-  background-color: var(--color-background);
+  border: 1px var(--sys-color-token-subtle) dotted;
+  background-color: var(--sys-color-cdt-base-container);
   display: inline-block;
   text-align: center;
   padding: 3px;
@@ -75,7 +75,7 @@ styles.replaceSync(
 
 .metrics .margin {
   border: 1px dashed var(--override-box-model-separator-color);
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   display: inline-block;
   text-align: center;
   vertical-align: middle;
@@ -86,7 +86,7 @@ styles.replaceSync(
 
 .metrics .border {
   border: 1px solid var(--override-box-model-separator-color);
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   display: inline-block;
   text-align: center;
   vertical-align: middle;
@@ -97,7 +97,7 @@ styles.replaceSync(
 
 .metrics .padding {
   border: 1px dashed var(--override-box-model-separator-color);
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   display: inline-block;
   text-align: center;
   vertical-align: middle;
@@ -110,7 +110,7 @@ styles.replaceSync(
 .metrics .content {
   position: static;
   border: 1px solid var(--override-box-model-separator-color);
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   display: inline-block;
   text-align: center;
   vertical-align: middle;
@@ -153,7 +153,7 @@ lose their background colors, so we need to give them a lighter border color so
 that region separators remain visible against the dark panel background. */
 :host-context(.-theme-with-dark-background) .margin:hover,
 :host-context(.-theme-with-dark-background) .margin:hover * {
-  border-color: var(--color-text-secondary);
+  border-color: var(--sys-color-token-subtle);
 }
 
 /* With the exception of the position labels, labels are displayed on top of
@@ -163,6 +163,6 @@ visible. */
   color: var(--override-box-model-text-color);
 }
 
-
+/*# sourceURL=metricsSidebarPane.css */
 `);
 export default styles;

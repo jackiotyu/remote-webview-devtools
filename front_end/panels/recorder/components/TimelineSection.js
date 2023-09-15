@@ -4,7 +4,7 @@
 import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
 import timelineSectionStyles from './timelineSection.css.js';
-class TimelineSection extends HTMLElement {
+export class TimelineSection extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-timeline-section`;
     #isEndOfGroup = false;
     #isStartOfGroup = false;
@@ -50,6 +50,5 @@ class TimelineSection extends HTMLElement {
         // clang-format on
     }
 }
-export { TimelineSection };
 ComponentHelpers.CustomElements.defineComponent('devtools-timeline-section', TimelineSection);
 //# map=TimelineSection.js.map

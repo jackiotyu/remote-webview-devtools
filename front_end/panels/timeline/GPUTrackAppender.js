@@ -3,8 +3,7 @@
 // found in the LICENSE file.
 import * as i18n from '../../core/i18n/i18n.js';
 import * as TraceEngine from '../../models/trace/trace.js';
-import { EntryType, } from './TimelineFlameChartDataProvider.js';
-import { buildGroupStyle, buildTrackHeader, getFormattedTime, getSyncEventLevel } from './AppenderUtils.js';
+import { buildGroupStyle, buildTrackHeader, getFormattedTime } from './AppenderUtils.js';
 const UIStrings = {
     /**
      *@description Text in Timeline Flame Chart Data Provider of the Performance panel
@@ -17,32 +16,26 @@ export class GPUTrackAppender {
     appenderName = 'GPU';
     #compatibilityBuilder;
     #traceParsedData;
-    // TODO(crbug.com/1416533)
-    // This is used only for compatibility with the legacy flame chart
-    // architecture of the panel. Once all tracks have been migrated to
-    // use the new engine and flame chart architecture, the reference can
-    // be removed.
-    #legacyEntryTypeByLevel;
-    constructor(compatibilityBuilder, traceParsedData, legacyEntryTypeByLevel) {
+    constructor(compatibilityBuilder, traceParsedData) {
         this.#compatibilityBuilder = compatibilityBuilder;
         this.#traceParsedData = traceParsedData;
-        this.#legacyEntryTypeByLevel = legacyEntryTypeByLevel;
     }
     /**
      * Appends into the flame chart data the data corresponding to the
      * GPU track.
-     * @param currentLevel the horizontal level of the flame chart events where
+     * @param trackStartLevel the horizontal level of the flame chart events where
      * the track's events will start being appended.
      * @param expanded wether the track should be rendered expanded.
      * @returns the first available level to append more data after having
      * appended the track's events.
      */
-    appendTrackAtLevel(currentLevel, expanded) {
-        if (this.#traceParsedData.GPU.mainGPUThreadTasks.length === 0) {
-            return currentLevel;
+    appendTrackAtLevel(trackStartLevel, expanded) {
+        const gpuEvents = this.#traceParsedData.GPU.mainGPUThreadTasks;
+        if (gpuEvents.length === 0) {
+            return trackStartLevel;
         }
-        this.#appendTrackHeaderAtLevel(currentLevel, expanded);
-        return this.#appendGPUsAtLevel(currentLevel);
+        this.#appendTrackHeaderAtLevel(trackStartLevel, expanded);
+        return this.#compatibilityBuilder.appendEventsAtLevel(gpuEvents, trackStartLevel, this);
     }
     /**
      * Adds into the flame chart data the header corresponding to the
@@ -58,36 +51,6 @@ export class GPUTrackAppender {
         const style = buildGroupStyle({ shareHeaderLine: false });
         const group = buildTrackHeader(currentLevel, i18nString(UIStrings.gpu), style, /* selectable= */ true, expanded);
         this.#compatibilityBuilder.registerTrackForGroup(group, this);
-    }
-    /**
-     * Adds into the flame chart data the trace events corresponding to
-     * user GPU Tasks. These are taken straight from the GPU handler.
-     * @param trackStartLevel the flame chart level from which GPU events will
-     * be appended.
-     * @returns the next level after the last occupied by the appended
-     * GPU tasks (the first available level to append next track).
-     */
-    #appendGPUsAtLevel(trackStartLevel) {
-        const gpuEvents = this.#traceParsedData.GPU.mainGPUThreadTasks;
-        const openEvents = [];
-        let maxStackDepth = 0;
-        for (let i = 0; i < gpuEvents.length; ++i) {
-            const event = gpuEvents[i];
-            const level = getSyncEventLevel(event, openEvents);
-            maxStackDepth = Math.max(maxStackDepth, level + 1);
-            this.#appendEventAtLevel(event, trackStartLevel + level);
-        }
-        this.#legacyEntryTypeByLevel.length = trackStartLevel + maxStackDepth;
-        this.#legacyEntryTypeByLevel.fill(EntryType.TrackAppender, trackStartLevel);
-        return trackStartLevel + maxStackDepth;
-    }
-    /**
-     * Adds an event to the flame chart data at a defined level.
-     * @returns the position occupied by the new event in the entryData
-     * array, which contains all the events in the timeline.
-     */
-    #appendEventAtLevel(event, level) {
-        return this.#compatibilityBuilder.appendEventAtLevel(event, level, this);
     }
     /*
       ------------------------------------------------------------------------------------

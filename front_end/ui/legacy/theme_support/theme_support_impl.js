@@ -126,11 +126,10 @@ export class ThemeSupport extends EventTarget {
         }
     }
 }
-class ThemeChangeEvent extends Event {
+export class ThemeChangeEvent extends Event {
     static eventName = 'themechange';
     constructor() {
         super(ThemeChangeEvent.eventName, { bubbles: true, composed: true });
     }
 }
-export { ThemeChangeEvent };
 //# map=theme_support_impl.js.map

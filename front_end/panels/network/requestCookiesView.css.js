@@ -15,7 +15,7 @@ styles.replaceSync(
   overflow: auto;
   padding: 12px;
   height: 100%;
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
 }
 
 .request-cookies-view .request-cookies-title {
@@ -43,6 +43,6 @@ styles.replaceSync(
   }
 }
 
-
+/*# sourceURL=requestCookiesView.css */
 `);
 export default styles;

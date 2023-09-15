@@ -21,16 +21,15 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/recorder/components/ExtensionView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class ClosedEvent extends Event {
+export class ClosedEvent extends Event {
     static eventName = 'recorderextensionviewclosed';
     constructor() {
         super(ClosedEvent.eventName, { bubbles: true, composed: true });
     }
 }
-export { ClosedEvent };
 const extensionIcon = new URL('../images/extension_icon.svg', import.meta.url)
     .toString();
-class ExtensionView extends HTMLElement {
+export class ExtensionView extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-recorder-extension-view`;
     #shadow = this.attachShadow({ mode: 'open' });
     #descriptor;
@@ -67,7 +66,7 @@ class ExtensionView extends HTMLElement {
                 title=${i18nString(UIStrings.extension)}
                 .data=${{
             iconPath: extensionIcon,
-            color: 'var(--color-text-secondary)',
+            color: 'var(--sys-color-secondary)',
         }}>
               </${IconButton.Icon.Icon.litTagName}>
               ${this.#descriptor.title}
@@ -77,7 +76,7 @@ class ExtensionView extends HTMLElement {
               .data=${{
             variant: "round" /* Buttons.Button.Variant.ROUND */,
             size: "TINY" /* Buttons.Button.Size.TINY */,
-            iconName: 'bin',
+            iconName: 'cross',
         }}
               @click=${this.#closeView}
             ></${Buttons.Button.Button.litTagName}>
@@ -90,6 +89,5 @@ class ExtensionView extends HTMLElement {
         // clang-format on
     }
 }
-export { ExtensionView };
 ComponentHelpers.CustomElements.defineComponent('devtools-recorder-extension-view', ExtensionView);
 //# map=ExtensionView.js.map

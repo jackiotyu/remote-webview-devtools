@@ -82,7 +82,7 @@ const replaySpeedToMetricSpeedMap = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/recorder/components/ReplayButton.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class StartReplayEvent extends Event {
+export class StartReplayEvent extends Event {
     speed;
     extension;
     static eventName = 'startreplay';
@@ -92,9 +92,8 @@ class StartReplayEvent extends Event {
         this.extension = extension;
     }
 }
-export { StartReplayEvent };
 const REPLAY_EXTENSION_PREFIX = 'extension';
-class ReplayButton extends HTMLElement {
+export class ReplayButton extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-replay-button`;
     #shadow = this.attachShadow({ mode: 'open' });
     #boundRender = this.#render.bind(this);
@@ -164,6 +163,5 @@ class ReplayButton extends HTMLElement {
         // clang-format on
     }
 }
-export { ReplayButton };
 ComponentHelpers.CustomElements.defineComponent('devtools-replay-button', ReplayButton);
 //# map=ReplayButton.js.map

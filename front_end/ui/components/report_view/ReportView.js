@@ -9,7 +9,7 @@ import reportSectionStyles from './reportSection.css.js';
 import reportSectionDividerStyles from './reportSectionDivider.css.js';
 import reportSectionHeaderStyles from './reportSectionHeader.css.js';
 import reportValueStyles from './reportValue.css.js';
-class Report extends HTMLElement {
+export class Report extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-report`;
     #shadow = this.attachShadow({ mode: 'open' });
     #reportTitle = '';
@@ -33,8 +33,7 @@ class Report extends HTMLElement {
         // clang-format on
     }
 }
-export { Report };
-class ReportSection extends HTMLElement {
+export class ReportSection extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-report-section`;
     #shadow = this.attachShadow({ mode: 'open' });
     connectedCallback() {
@@ -52,8 +51,7 @@ class ReportSection extends HTMLElement {
         // clang-format on
     }
 }
-export { ReportSection };
-class ReportSectionHeader extends HTMLElement {
+export class ReportSectionHeader extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-report-section-header`;
     #shadow = this.attachShadow({ mode: 'open' });
     connectedCallback() {
@@ -71,8 +69,7 @@ class ReportSectionHeader extends HTMLElement {
         // clang-format on
     }
 }
-export { ReportSectionHeader };
-class ReportSectionDivider extends HTMLElement {
+export class ReportSectionDivider extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-report-divider`;
     #shadow = this.attachShadow({ mode: 'open' });
     connectedCallback() {
@@ -89,8 +86,7 @@ class ReportSectionDivider extends HTMLElement {
         // clang-format on
     }
 }
-export { ReportSectionDivider };
-class ReportKey extends HTMLElement {
+export class ReportKey extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-report-key`;
     #shadow = this.attachShadow({ mode: 'open' });
     connectedCallback() {
@@ -106,8 +102,7 @@ class ReportKey extends HTMLElement {
         // clang-format on
     }
 }
-export { ReportKey };
-class ReportValue extends HTMLElement {
+export class ReportValue extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-report-value`;
     #shadow = this.attachShadow({ mode: 'open' });
     connectedCallback() {
@@ -123,7 +118,6 @@ class ReportValue extends HTMLElement {
         // clang-format on
     }
 }
-export { ReportValue };
 ComponentHelpers.CustomElements.defineComponent('devtools-report', Report);
 ComponentHelpers.CustomElements.defineComponent('devtools-report-section', ReportSection);
 ComponentHelpers.CustomElements.defineComponent('devtools-report-section-header', ReportSectionHeader);

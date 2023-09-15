@@ -13,13 +13,12 @@ styles.replaceSync(
 .resource-service-worker-update-view {
   display: block;
   margin: 6px;
-  color: rgb(30% 30% 30%); /* stylelint-disable-line plugin/use_theme_colors */
-  /* See: crbug.com/1152736 for color variable migration. */
+  color: var(--sys-color-on-surface-subtle);
   overflow: auto;
 }
 
 .service-worker-update-timing-table {
-  border: 1px solid var(--color-details-hairline);
+  border: 1px solid var(--sys-color-divider);
   border-spacing: 0;
   padding-left: 10px;
   padding-right: 10px;
@@ -61,7 +60,7 @@ styles.replaceSync(
 }
 
 .service-worker-update-timing-bar-clickable:focus-visible {
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-state-focus-highlight);
 }
 
 .service-worker-update-timing-bar-clickable[aria-checked="true"]::before {
@@ -77,28 +76,25 @@ styles.replaceSync(
 }
 
 .service-worker-update-timing-bar-details:focus-visible {
-  background-color: var(--legacy-selection-bg-color);
+  background-color: var(--sys-color-state-focus-highlight);
 }
 
 .service-worker-update-timing-bar.activate {
   top: 5px;
   height: 10px;
-  background-color: #ff9800; /* stylelint-disable-line plugin/use_theme_colors */
-  /* See: crbug.com/1152736 for color variable migration. */
+  background-color: var(--sys-color-yellow-bright);
 }
 
 .service-worker-update-timing-bar.wait {
   top: 5px;
   height: 10px;
-  background-color: #9c27b0; /* stylelint-disable-line plugin/use_theme_colors */
-  /* See: crbug.com/1152736 for color variable migration. */
+  background-color: var(--sys-color-purple-bright);
 }
 
 .service-worker-update-timing-bar.install {
   top: 5px;
   height: 10px;
-  background-color: #009688; /* stylelint-disable-line plugin/use_theme_colors */
-  /* See: crbug.com/1152736 for color variable migration. */
+  background-color: var(--sys-color-cyan-bright);
 }
 
 .service-worker-update-timing-table > tr > td {
@@ -108,8 +104,7 @@ styles.replaceSync(
 
 table.service-worker-update-timing-table > tr.service-worker-update-timing-table-header > td {
   border-top: 5px solid transparent;
-  color: #737373; /* stylelint-disable-line plugin/use_theme_colors */
-  /* See: crbug.com/1152736 for color variable migration. */
+  color: var(--sys-color-token-subtle);
 }
 
 table.service-worker-update-timing-table > tr.service-worker-update-timing-bar-details > td:first-child {
@@ -120,6 +115,6 @@ table.service-worker-update-timing-table > tr.service-worker-update-timeline > t
   padding-left: 12px;
 }
 
-
+/*# sourceURL=serviceWorkerUpdateCycleView.css */
 `);
 export default styles;

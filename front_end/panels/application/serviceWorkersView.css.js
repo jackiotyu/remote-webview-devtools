@@ -27,7 +27,7 @@ styles.replaceSync(
   bottom: 20px;
   left: 4px;
   content: "";
-  border-left: 1px solid var(--color-details-hairline);
+  border-left: 1px solid var(--sys-color-divider);
   z-index: 0;
 }
 
@@ -52,35 +52,32 @@ styles.replaceSync(
   z-index: 10;
   margin-right: 5px;
   border-radius: 50%;
-  border: 1px solid var(--color-text-secondary);
+  border: 1px solid var(--sys-color-token-subtle);
   align-self: center;
   /* The circle should not shrink, to avoid risking becoming invisible. */
   flex-shrink: 0;
 }
-/* The circle's color does not change for light/dark mode on purpose */
+
 .service-worker-active-circle {
-  background-color: #50b04f; /* stylelint-disable-line plugin/use_theme_colors */
-  /* See: crbug.com/1152736 for color variable migration. */
+  background-color: var(--sys-color-green-bright);
 }
 
 .service-worker-waiting-circle {
-  background-color: #f38e24; /* stylelint-disable-line plugin/use_theme_colors */
-  /* See: crbug.com/1152736 for color variable migration. */
+  background-color: var(--sys-color-yellow-bright);
 }
 
 .service-worker-installing-circle {
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
 }
 
 .service-worker-redundant-circle {
-  background-color: #808080; /* stylelint-disable-line plugin/use_theme_colors */
-  /* See: crbug.com/1152736 for color variable migration. */
+  background-color: var(--sys-color-neutral-bright);
 }
 
 .service-worker-subtitle {
   padding-left: 14px;
   line-height: 14px;
-  color: var(--color-text-disabled);
+  color: var(--sys-color-state-disabled);
 }
 
 .link {
@@ -93,7 +90,7 @@ styles.replaceSync(
 }
 
 .service-worker-notification-editor {
-  border: 1px solid var(--color-details-hairline);
+  border: 1px solid var(--sys-color-divider);
   display: flex;
   flex: auto;
   margin-right: 4px;
@@ -139,7 +136,7 @@ styles.replaceSync(
 }
 
 .service-worker-list {
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-cdt-base-container);
   overflow: auto;
 }
 
@@ -155,7 +152,7 @@ styles.replaceSync(
 
 .service-worker-has-current .service-workers-other-origin {
   margin-top: 16px;
-  border-top: 1px solid var(--color-details-hairline);
+  border-top: 1px solid var(--sys-color-divider);
 }
 
 .devtools-link {
@@ -172,6 +169,6 @@ button.link:focus-visible {
   background-color: inherit;
 }
 
-
+/*# sourceURL=serviceWorkersView.css */
 `);
 export default styles;

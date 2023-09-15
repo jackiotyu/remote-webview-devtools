@@ -15,7 +15,7 @@ styles.replaceSync(
   display: flex;
   height: 2.67em;
   padding: 0 12px;
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
   font-size: 12px;
   align-items: center;
 }
@@ -45,7 +45,7 @@ styles.replaceSync(
   height: 1.5em;
   border: none;
   border-radius: 50%;
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-cdt-base-container);
 }
 
 .close::before,
@@ -60,13 +60,13 @@ styles.replaceSync(
   margin: auto;
   width: 1em;
   height: 0.2em;
-  background-color: var(--color-text-secondary);
+  background-color: var(--sys-color-token-subtle);
   border-radius: 2px;
 }
 
 .close:hover,
 .close:focus {
-  background-color: var(--color-background-elevation-2);
+  background-color: var(--sys-color-state-hover-on-subtle);
 }
 
 .close::before {
@@ -77,6 +77,6 @@ styles.replaceSync(
   transform: rotate(-45deg);
 }
 
-
+/*# sourceURL=adornerSettingsPane.css */
 `);
 export default styles;

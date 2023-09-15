@@ -29,7 +29,7 @@ const str_ = i18n.i18n.registerUIStrings('ui/components/panel_feedback/PanelFeed
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const previewFeatureUrl = new URL('../../../Images/experiment.svg', import.meta.url).toString();
 const videoThumbnailUrl = new URL('../../../Images/preview_feature_video_thumbnail.svg', import.meta.url).toString();
-class PanelFeedback extends HTMLElement {
+export class PanelFeedback extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-panel-feedback`;
     #shadow = this.attachShadow({ mode: 'open' });
     #boundRender = this.#render.bind(this);
@@ -75,6 +75,5 @@ class PanelFeedback extends HTMLElement {
         // clang-format on
     }
 }
-export { PanelFeedback };
 ComponentHelpers.CustomElements.defineComponent('devtools-panel-feedback', PanelFeedback);
 //# map=PanelFeedback.js.map

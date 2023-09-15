@@ -12,8 +12,6 @@ styles.replaceSync(
  */
 
 .element-reveal-icon {
-  --override-element-reveal-icon-background: rgb(110 110 110);
-
   display: inline-block;
   width: 20px;
   height: 20px;
@@ -21,6 +19,6 @@ styles.replaceSync(
   background-color: var(--icon-default);
 }
 
-
+/*# sourceURL=./elementsPanelLink.css */
 `);
 export default styles;

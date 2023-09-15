@@ -40,8 +40,8 @@ styles.replaceSync(
 }
 
 .timeline-toolbar-container > .toolbar {
-  background-color: var(--color-background-elevation-1);
-  border-bottom: var(--legacy-divider-border);
+  background-color: var(--sys-color-cdt-base-container);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .timeline-main-toolbar {
@@ -50,18 +50,18 @@ styles.replaceSync(
 
 .timeline-settings-pane {
   flex: none;
-  background-color: var(--color-background-elevation-1);
-  border-bottom: var(--legacy-divider-border);
+  background-color: var(--sys-color-cdt-base-container);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 #timeline-overview-panel {
   flex: none;
   position: relative;
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 #timeline-overview-grid {
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
 }
 
 #timeline-overview-grid .timeline-grid-header {
@@ -89,101 +89,14 @@ styles.replaceSync(
 }
 
 .timeline.panel .status-pane-container.tinted {
-  background-color: var(--color-background-elevation-2);
+  background-color: var(--sys-color-cdt-base-container);
   pointer-events: auto;
-}
-
-#timeline-overview-panel .overview-strip {
-  margin-top: 2px;
-  justify-content: center;
-}
-
-#timeline-overview-panel .overview-strip .timeline-overview-strip-title {
-  color: var(--color-text-secondary);
-  font-size: 10px;
-  font-weight: bold;
-  z-index: 100;
-  background-color: var(--color-background-opacity-80);
-  padding: 0 4px;
-  position: absolute;
-  top: -2px;
-  right: 0;
-}
-
-#timeline-overview-cpu-activity {
-  flex-basis: 20px;
-}
-
-#timeline-overview-network {
-  flex-basis: 8px;
-}
-
-#timeline-overview-filmstrip {
-  flex-basis: 30px;
-}
-
-#timeline-overview-memory {
-  flex-basis: 20px;
-}
-
-#timeline-overview-network::before,
-#timeline-overview-cpu-activity::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-bottom: 1px solid var(--divider-line);
-  z-index: -200;
-}
-
-.overview-strip .background {
-  z-index: -10;
-}
-
-#timeline-overview-responsiveness {
-  flex-basis: 5px;
-  margin-top: 0 !important; /* stylelint-disable-line declaration-no-important */
-}
-
-#timeline-overview-input {
-  flex-basis: 6px;
-}
-
-#timeline-overview-pane {
-  flex: auto;
-  position: relative;
-  overflow: hidden;
-}
-
-#timeline-overview-container {
-  display: flex;
-  flex-direction: column;
-  flex: none;
-  position: relative;
-  overflow: hidden;
-}
-
-#timeline-overview-container canvas {
-  width: 100%;
-  height: 100%;
 }
 
 .popover ul {
   margin: 0;
   padding: 0;
   list-style-type: none;
-}
-
-.memory-graph-label {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  font-size: 9px;
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-  padding: 0 4px;
-  background-color: var(--color-background-opacity-80);
 }
 
 #memory-graphs-canvas-container {
@@ -207,8 +120,8 @@ styles.replaceSync(
 
 #memory-graphs-container .timeline-memory-header {
   flex: 0 0 26px;
-  background-color: var(--color-background-elevation-1);
-  border-bottom: 1px solid var(--color-details-hairline);
+  background-color: var(--sys-color-surface2);
+  border-bottom: 1px solid var(--sys-color-divider);
   justify-content: space-between;
 }
 
@@ -231,25 +144,10 @@ styles.replaceSync(
 
 #counter-values-bar {
   flex: 0 0 20px;
-  border-top: solid 1px var(--color-details-hairline);
+  border-top: solid 1px var(--sys-color-divider);
   width: 100%;
   overflow: hidden;
   line-height: 18px;
-}
-
-#timeline-overview-coverage {
-  flex-basis: 20px;
-}
-
-.timeline-overview-coverage-label {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  font-size: 9px;
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-  padding: 0 4px;
-  background-color: var(--color-background-opacity-80);
 }
 
 .timeline-details {
@@ -257,7 +155,7 @@ styles.replaceSync(
 }
 
 .timeline-details-view {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-on-surface);
   overflow: hidden;
 }
 
@@ -265,17 +163,17 @@ styles.replaceSync(
   flex: auto;
   overflow: auto;
   position: relative;
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-cdt-base-container);
   user-select: text;
 }
 
 .timeline-details-view-block {
   flex: none;
   display: flex;
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   flex-direction: column;
   padding-bottom: 5px;
-  border-bottom: var(--legacy-divider-border);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .timeline-details-view-row {
@@ -295,7 +193,7 @@ styles.replaceSync(
 }
 
 .timeline-details-view-row-title:not(:empty) {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
   overflow: hidden;
   padding-right: 10px;
   display: inline-block;
@@ -313,7 +211,7 @@ styles.replaceSync(
 }
 
 .timeline-details-warning .timeline-details-view-row-title {
-  color: var(--color-red);
+  color: var(--sys-color-error);
 }
 
 .timeline-details-view-row-value {
@@ -353,8 +251,8 @@ styles.replaceSync(
 
 .timeline-flamechart-resizer {
   flex: 8px 0 0;
-  background-color: var(--color-background-elevation-1);
-  border: 1px var(--color-details-hairline);
+  background-color: var(--sys-color-surface2);
+  border: 1px var(--sys-color-divider);
   border-style: solid none;
   display: flex;
   flex-direction: row;
@@ -378,7 +276,7 @@ styles.replaceSync(
 }
 
 .timeline-layers-view-properties td {
-  border: 1px solid var(--color-details-hairline);
+  border: 1px solid var(--sys-color-divider);
   line-height: 22px;
 }
 
@@ -387,7 +285,7 @@ styles.replaceSync(
   max-width: 500px;
   max-height: 300px;
   cursor: pointer;
-  border: 1px solid var(--color-details-hairline);
+  border: 1px solid var(--sys-color-divider);
 }
 
 .timeline-tree-view {
@@ -396,8 +294,8 @@ styles.replaceSync(
 }
 
 .timeline-tree-view .toolbar {
-  background-color: var(--color-background-elevation-1);
-  border-bottom: var(--legacy-divider-border);
+  background-color: var(--sys-color-cdt-base-container);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .timeline-tree-view .data-grid {
@@ -414,11 +312,15 @@ styles.replaceSync(
 }
 
 .timeline-tree-view .data-grid table.data {
-  background: var(--color-background);
+  background: var(--sys-color-cdt-base-container);
+}
+
+.timeline-tree-view .data-grid .odd {
+  background-color: var(--sys-color-surface1);
 }
 
 .timeline-tree-view .data-grid tr:hover td:not(.bottom-filler-td) {
-  background-color: var(--color-background-hover-overlay);
+  background-color: var(--sys-color-state-hover-on-subtle);
 }
 
 .timeline-tree-view .data-grid td.numeric-column {
@@ -428,16 +330,22 @@ styles.replaceSync(
 
 .timeline-tree-view .data-grid div.background-percent-bar {
   float: right;
+  position: relative;
+  z-index: 1;
 }
 
 .timeline-tree-view .data-grid span.percent-column {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
   width: 45px;
   display: inline-block;
 }
 
 .timeline-tree-view .data-grid tr.selected span {
   color: inherit;
+}
+
+.timeline-tree-view .data-grid tr.selected {
+  background-color: var(--sys-color-tonal-container);
 }
 
 .timeline-tree-view .data-grid .name-container {
@@ -469,11 +377,11 @@ styles.replaceSync(
   margin: 0 4px;
   line-height: 12px;
   font-size: 10px;
-  color: var(--color-text-disabled);
+  color: var(--sys-color-state-disabled);
 }
 
 .timeline-tree-view .data-grid tr.selected .name-container .activity-warning::after {
-  color: var(--color-text-secondary-selected);
+  color: var(--sys-color-on-tonal-container);
 }
 
 .timeline-tree-view .data-grid .name-container .activity-link {
@@ -491,24 +399,15 @@ styles.replaceSync(
 }
 
 .timeline-tree-view .data-grid .background-bar {
-  --override-background-bar-background-color: hsl(43deg 84% 64% / 20%);
-  --override-background-bar-border-color: hsl(43deg 84% 64%);
-
   float: right;
   height: 18px;
-  background-color: var(--override-background-bar-background-color);
-  border-bottom: 1px solid var(--override-background-bar-border-color);
+  background-color: var(--sys-color-yellow-container);
+  border-bottom: 1px solid var(--sys-color-yellow-outline);
 }
 
 .timeline-tree-view .data-grid .selected .background-bar {
-  background-color: var(--color-background-opacity-50);
-  border-bottom: 1px solid var(--color-background-opacity-80);
-}
-
-.-theme-with-dark-background .timeline-tree-view .data-grid .background-bar,
-:host-context(.-theme-with-dark-background) .timeline-tree-view .data-grid .background-bar {
-  --override-background-bar-background-color: rgb(169 126 15 / 20%);
-  --override-background-bar-border-color: rgb(169 126 15);
+  background-color: var(--app-color-selected-progress-bar);
+  border-bottom: 1px solid var(--app-border-selected-progress-bar);
 }
 
 .timeline-tree-view .timeline-details-view-body .full-widget-dimmed-banner {
@@ -521,25 +420,27 @@ styles.replaceSync(
 
 .timeline-tree-view .data-grid thead {
   height: 21px;
+  /* so the header is always above any body rows that the user has scrolled past */
+  z-index: 2;
 }
 
 .timeline-stack-view-header {
   height: 27px;
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-cdt-base-container);
   padding: 6px 10px;
-  color: var(--color-text-secondary);
+  color: var(--sys-color-on-surface);
   white-space: nowrap;
-  border-bottom: var(--legacy-divider-border);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .timeline-landing-page {
   position: absolute;
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   justify-content: center;
   align-items: center;
   overflow: auto;
   font-size: 13px;
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
 }
 
 @media (forced-colors: active) {
@@ -564,15 +465,6 @@ styles.replaceSync(
   }
 }
 
-.timeline-additional-metrics {
-  display: flex;
-  flex: 0 0 27px;
-  background-color: var(--color-background-elevation-1);
-  border-top: var(--legacy-divider-border);
-  overflow: hidden;
-  z-index: 100;
-}
-
 .timeline-details-view-row-stack-trace div {
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -592,7 +484,7 @@ styles.replaceSync(
 .timeline-details-chip-title > div {
   width: 12px;
   height: 12px;
-  border: 1px solid var(--color-details-hairline);
+  border: 1px solid var(--sys-color-divider);
   display: inline-block;
   margin-right: 4px;
   content: " ";
@@ -639,6 +531,6 @@ devtools-feedback-button {
   float: right;
 }
 
-
+/*# sourceURL=timelinePanel.css */
 `);
 export default styles;

@@ -51,6 +51,6 @@ styles.replaceSync(
   background: var(--color-background-elevation-1);
 }
 
-
+/*# sourceURL=markdownView.css */
 `);
 export default styles;

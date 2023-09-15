@@ -99,6 +99,7 @@ export class GlassPane {
         // TODO(crbug.com/1006759): Extract the magic number
         // Deliberately starts with 3000 to hide other z-indexed elements below.
         this.element.style.zIndex = `${3000 + 1000 * _panes.size}`;
+        this.element.setAttribute('data-devtools-glass-pane', '');
         document.body.addEventListener('mousedown', this.onMouseDownBound, true);
         document.body.addEventListener('pointerdown', this.onMouseDownBound, true);
         this.widgetInternal.show(document.body);

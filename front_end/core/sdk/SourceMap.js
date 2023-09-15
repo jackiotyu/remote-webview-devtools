@@ -33,6 +33,7 @@
 import * as TextUtils from '../../models/text_utils/text_utils.js';
 import * as Common from '../common/common.js';
 import * as Platform from '../platform/platform.js';
+import * as Root from '../root/root.js';
 /**
  * Parses the {@link content} as JSON, ignoring BOM markers in the beginning, and
  * also handling the CORB bypass prefix correctly.
@@ -70,6 +71,33 @@ export class SourceMapEntry {
             return entry1.lineNumber - entry2.lineNumber;
         }
         return entry1.columnNumber - entry2.columnNumber;
+    }
+}
+function comparePositions(a, b) {
+    return a.lineNumber - b.lineNumber || a.columnNumber - b.columnNumber;
+}
+class ScopeTreeEntry {
+    startLineNumber;
+    startColumnNumber;
+    endLineNumber;
+    endColumnNumber;
+    name;
+    children = [];
+    constructor(startLineNumber, startColumnNumber, endLineNumber, endColumnNumber, name) {
+        this.startLineNumber = startLineNumber;
+        this.startColumnNumber = startColumnNumber;
+        this.endLineNumber = endLineNumber;
+        this.endColumnNumber = endColumnNumber;
+        this.name = name;
+    }
+    scopeName() {
+        return this.name;
+    }
+    start() {
+        return { lineNumber: this.startLineNumber, columnNumber: this.startColumnNumber };
+    }
+    end() {
+        return { lineNumber: this.endLineNumber, columnNumber: this.endColumnNumber };
     }
 }
 const base64Digits = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
@@ -309,7 +337,7 @@ export class SourceMap {
             if (!this.#sourceInfos.has(url)) {
                 const content = source ?? null;
                 const ignoreListHint = ignoreList.has(i);
-                this.#sourceInfos.set(url, { content, ignoreListHint, reverseMappings: null });
+                this.#sourceInfos.set(url, { content, ignoreListHint, reverseMappings: null, scopeTree: null });
             }
         }
         sourceMapToSourceList.set(sourceMap, sourcesList);
@@ -363,6 +391,99 @@ export class SourceMap {
             }
             nameIndex += this.decodeVLQ(stringCharIterator);
             this.mappings().push(new SourceMapEntry(lineNumber, columnNumber, sourceURL, sourceLineNumber, sourceColumnNumber, names[nameIndex]));
+        }
+        if (Root.Runtime.experiments.isEnabled(Root.Runtime.ExperimentName.USE_SOURCE_MAP_SCOPES)) {
+            this.parseScopes(map);
+        }
+    }
+    parseScopes(map) {
+        if (!map.x_com_bloomberg_sourcesFunctionMappings) {
+            return;
+        }
+        const sources = sourceMapToSourceList.get(map);
+        if (!sources) {
+            return;
+        }
+        const names = map.names ?? [];
+        const scopeList = map.x_com_bloomberg_sourcesFunctionMappings;
+        for (let i = 0; i < sources?.length; i++) {
+            if (!scopeList[i] || !sources[i]) {
+                continue;
+            }
+            const sourceInfo = this.#sourceInfos.get(sources[i]);
+            if (!sourceInfo) {
+                continue;
+            }
+            const scopes = scopeList[i];
+            let nameIndex = 0;
+            let startLineNumber = 0;
+            let startColumnNumber = 0;
+            let endLineNumber = 0;
+            let endColumnNumber = 0;
+            const stringCharIterator = new SourceMap.StringCharIterator(scopes);
+            const entries = [];
+            let atStart = true;
+            while (stringCharIterator.hasNext()) {
+                if (atStart) {
+                    atStart = false;
+                }
+                else if (stringCharIterator.peek() === ',') {
+                    stringCharIterator.next();
+                }
+                else {
+                    // Unexpected character.
+                    return;
+                }
+                nameIndex += this.decodeVLQ(stringCharIterator);
+                startLineNumber += this.decodeVLQ(stringCharIterator);
+                startColumnNumber += this.decodeVLQ(stringCharIterator);
+                endLineNumber += this.decodeVLQ(stringCharIterator);
+                endColumnNumber += this.decodeVLQ(stringCharIterator);
+                entries.push(new ScopeTreeEntry(startLineNumber, startColumnNumber, endLineNumber, endColumnNumber, names[nameIndex] ?? '<invalid>'));
+            }
+            sourceInfo.scopeTree = this.buildScopeTree(entries);
+        }
+    }
+    buildScopeTree(entries) {
+        const toplevel = [];
+        entries.sort((l, r) => comparePositions(l.start(), r.start()));
+        const stack = [];
+        for (const entry of entries) {
+            const start = entry.start();
+            // Pop all the scopes that precede the current entry.
+            while (stack.length > 0) {
+                const top = stack[stack.length - 1];
+                if (comparePositions(top.end(), start) < 0) {
+                    stack.pop();
+                }
+                else {
+                    break;
+                }
+            }
+            if (stack.length > 0) {
+                stack[stack.length - 1].children.push(entry);
+            }
+            else {
+                toplevel.push(entry);
+            }
+            stack.push(entry);
+        }
+        return toplevel;
+    }
+    findScopeEntry(sourceURL, sourceLineNumber, sourceColumnNumber) {
+        const sourceInfo = this.#sourceInfos.get(sourceURL);
+        if (!sourceInfo || !sourceInfo.scopeTree) {
+            return null;
+        }
+        const position = { lineNumber: sourceLineNumber, columnNumber: sourceColumnNumber };
+        let current = null;
+        while (true) {
+            const children = current?.children ?? sourceInfo.scopeTree;
+            const match = children.find(child => comparePositions(child.start(), position) <= 0 && comparePositions(position, child.end()) <= 0);
+            if (!match) {
+                return current;
+            }
+            current = match;
         }
     }
     isSeparator(char) {

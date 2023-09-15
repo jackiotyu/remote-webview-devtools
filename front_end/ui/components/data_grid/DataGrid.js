@@ -48,7 +48,7 @@ const str_ = i18n.i18n.registerUIStrings('ui/components/data_grid/DataGrid.ts', 
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const KEYS_TREATED_AS_CLICKS = new Set([' ', 'Enter']);
 const ROW_HEIGHT_PIXELS = 18;
-class DataGrid extends HTMLElement {
+export class DataGrid extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-data-grid`;
     #shadow = this.attachShadow({ mode: 'open' });
     #columns = [];
@@ -60,6 +60,7 @@ class DataGrid extends HTMLElement {
     #label = undefined;
     #paddingRowsCount = 10;
     #showScrollbar = false;
+    #striped = false;
     #currentResize = null;
     // Because we only render a subset of rows, we need a way to look up the
     // actual row index from the original dataset. We could use this.rows[index]
@@ -104,6 +105,7 @@ class DataGrid extends HTMLElement {
             label: this.#label,
             paddingRowsCount: this.#paddingRowsCount,
             showScrollbar: this.#showScrollbar,
+            striped: this.#striped,
         };
     }
     set data(data) {
@@ -116,6 +118,7 @@ class DataGrid extends HTMLElement {
         this.#contextMenus = data.contextMenus;
         this.#label = data.label;
         this.#showScrollbar = data.showScrollbar;
+        this.#striped = data.striped;
         /**
          * On first render, now we have data, we can figure out which cell is the
          * focusable cell for the table.
@@ -452,7 +455,8 @@ class DataGrid extends HTMLElement {
      * data grid.
      */
     #onHeaderContextMenu(event) {
-        if (event.button !== 2) {
+        if (event.button !== 2 && event.button !== -1) {
+            // -1 = right click invoked by keyboard, for example 'Shift + F10'.
             // 2 = secondary button = right click. We only show context menus if the
             // user has right clicked.
             return;
@@ -471,7 +475,8 @@ class DataGrid extends HTMLElement {
         void menu.show();
     }
     #onBodyRowContextMenu(event) {
-        if (event.button !== 2) {
+        if (event.button !== 2 && event.button !== -1) {
+            // -1 = right click invoked by keyboard, for example 'Shift + F10'.
             // 2 = secondary button = right click. We only show context menus if the
             // user has right clicked.
             return;
@@ -613,6 +618,7 @@ class DataGrid extends HTMLElement {
         const containerClassMap = {
             'wrapping-container': true,
             'show-scrollbar': this.#showScrollbar === true,
+            'striped': this.#striped === true,
         };
         await coordinator.write(() => {
             // Disabled until https://crbug.com/1079231 is fixed.
@@ -672,7 +678,6 @@ class DataGrid extends HTMLElement {
                 }}
                   title=${col.title}
                   aria-sort=${LitHtml.Directives.ifDefined(this.#ariaSortForHeader(col))}
-                  role=${col.sortable ? 'button' : 'columnheader'}
                   aria-colindex=${columnIndex + 1}
                   data-row-index='0'
                   data-col-index=${columnIndex}
@@ -773,6 +778,5 @@ class DataGrid extends HTMLElement {
         }
     }
 }
-export { DataGrid };
 ComponentHelpers.CustomElements.defineComponent('devtools-data-grid', DataGrid);
 //# map=DataGrid.js.map

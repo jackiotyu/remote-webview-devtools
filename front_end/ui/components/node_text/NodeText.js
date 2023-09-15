@@ -5,7 +5,7 @@ import * as LitHtml from '../../../ui/lit-html/lit-html.js';
 import * as ComponentHelpers from '../helpers/helpers.js';
 import nodeTextStyles from './nodeText.css.js';
 const { render, html } = LitHtml;
-class NodeText extends HTMLElement {
+export class NodeText extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-node-text`;
     #shadow = this.attachShadow({ mode: 'open' });
     #nodeTitle = '';
@@ -51,6 +51,5 @@ class NodeText extends HTMLElement {
         // clang-format on
     }
 }
-export { NodeText };
 ComponentHelpers.CustomElements.defineComponent('devtools-node-text', NodeText);
 //# map=NodeText.js.map

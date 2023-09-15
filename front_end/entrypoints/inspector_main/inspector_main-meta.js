@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 import * as Common from '../../core/common/common.js';
 import * as i18n from '../../core/i18n/i18n.js';
+import * as Root from '../../core/root/root.js';
 import * as UI from '../../ui/legacy/legacy.js';
 const UIStrings = {
     /**
@@ -251,5 +252,18 @@ UI.Toolbar.registerToolbarItem({
     condition: undefined,
     separator: undefined,
     actionId: undefined,
+});
+UI.Toolbar.registerToolbarItem({
+    async loadItem() {
+        const InspectorMain = await loadInspectorMainModule();
+        return InspectorMain.OutermostTargetSelector.OutermostTargetSelector.instance();
+    },
+    order: 98,
+    location: UI.Toolbar.ToolbarItemLocation.MAIN_TOOLBAR_RIGHT,
+    showLabel: undefined,
+    condition: undefined,
+    separator: undefined,
+    actionId: undefined,
+    experiment: Root.Runtime.ExperimentName.OUTERMOST_TARGET_SELECTOR,
 });
 //# map=inspector_main-meta.js.map

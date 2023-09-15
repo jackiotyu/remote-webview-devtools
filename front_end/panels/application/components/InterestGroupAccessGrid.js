@@ -46,7 +46,7 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/application/components/InterestGroupAccessGrid.ts', UIStrings);
 export const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class InterestGroupAccessGrid extends HTMLElement {
+export class InterestGroupAccessGrid extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-interest-group-access-grid`;
     #shadow = this.attachShadow({ mode: 'open' });
     #datastores = [];
@@ -139,6 +139,5 @@ class InterestGroupAccessGrid extends HTMLElement {
         return LitHtml.html `${date.toLocaleString()}`;
     }
 }
-export { InterestGroupAccessGrid };
 ComponentHelpers.CustomElements.defineComponent('devtools-interest-group-access-grid', InterestGroupAccessGrid);
 //# map=InterestGroupAccessGrid.js.map

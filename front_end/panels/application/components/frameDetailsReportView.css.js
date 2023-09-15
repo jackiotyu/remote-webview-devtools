@@ -23,7 +23,7 @@ button ~ .text-ellipsis {
 
 .link,
 .devtools-link {
-  color: var(--color-link);
+  color: var(--sys-color-primary);
   text-decoration: underline;
   cursor: pointer;
   outline-offset: 2px;
@@ -65,7 +65,7 @@ button.text-link {
 }
 
 .inline-name {
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
   padding-left: 2ex;
   user-select: none;
   white-space: pre-line;
@@ -89,6 +89,6 @@ button.text-link {
   min-width: auto;
 }
 
-
+/*# sourceURL=frameDetailsReportView.css */
 `);
 export default styles;

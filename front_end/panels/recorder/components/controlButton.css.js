@@ -36,7 +36,7 @@ styles.replaceSync(
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: var(--color-red);
+  background: var(--sys-color-error-bright);
   margin-bottom: 8px;
   position: relative;
   transition: background 200ms;
@@ -70,15 +70,15 @@ styles.replaceSync(
 }
 
 .icon:hover {
-  background: var(--color-accent-red);
+  background: color-mix(in sRGB, var(--sys-color-error-bright), var(--sys-color-state-hover-on-prominent) 10%);
 }
 
 .icon:active {
-  background: var(--color-red);
+  background: color-mix(in sRGB, var(--sys-color-error-bright), var(--sys-color-state-ripple-neutral-on-prominent) 16%);
 }
 
 .control[disabled] .icon:hover {
-  background: var(--color-red);
+  background: var(--sys-color-error);
 }
 
 .label {
@@ -86,9 +86,9 @@ styles.replaceSync(
   line-height: 16px;
   text-align: center;
   letter-spacing: 0.02em;
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
 }
 
-
+/*# sourceURL=controlButton.css */
 `);
 export default styles;

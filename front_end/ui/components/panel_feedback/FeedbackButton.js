@@ -16,7 +16,7 @@ const UIStrings = {
 const str_ = i18n.i18n.registerUIStrings('ui/components/panel_feedback/FeedbackButton.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const feedbackIconUrl = new URL('../../../Images/review.svg', import.meta.url).toString();
-class FeedbackButton extends HTMLElement {
+export class FeedbackButton extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-feedback-button`;
     #shadow = this.attachShadow({ mode: 'open' });
     #boundRender = this.#render.bind(this);
@@ -45,6 +45,5 @@ class FeedbackButton extends HTMLElement {
         // clang-format on
     }
 }
-export { FeedbackButton };
 ComponentHelpers.CustomElements.defineComponent('devtools-feedback-button', FeedbackButton);
 //# map=FeedbackButton.js.map

@@ -73,6 +73,6 @@ styles.replaceSync(
   text-align: inherit;
 }
 
-
+/*# sourceURL=editFileSystemView.css */
 `);
 export default styles;

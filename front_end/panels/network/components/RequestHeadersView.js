@@ -14,6 +14,7 @@ import * as Buttons from '../../../ui/components/buttons/buttons.js';
 import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
 import * as IconButton from '../../../ui/components/icon_button/icon_button.js';
 import * as Input from '../../../ui/components/input/input.js';
+import * as LegacyWrapper from '../../../ui/components/legacy_wrapper/legacy_wrapper.js';
 import * as UI from '../../../ui/legacy/legacy.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
 import * as Sources from '../../sources/sources.js';
@@ -51,11 +52,6 @@ const UIStrings = {
      *@description Section header for a list of the main aspects of a http request
      */
     general: 'General',
-    /**
-     *@description Label for a link from the network panel's headers view to the file in which
-     * header overrides are defined in the sources panel.
-     */
-    headerOverrides: 'Header overrides',
     /**
      *@description Label for a checkbox to switch between raw and parsed headers
      */
@@ -99,19 +95,26 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/network/components/RequestHeadersView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-export class RequestHeadersView extends UI.Widget.VBox {
-    #requestHeadersComponent = new RequestHeadersComponent();
+export class RequestHeadersView extends LegacyWrapper.LegacyWrapper.WrappableComponent {
     #request;
+    static litTagName = LitHtml.literal `devtools-request-headers`;
+    #shadow = this.attachShadow({ mode: 'open' });
+    #showResponseHeadersText = false;
+    #showRequestHeadersText = false;
+    #showResponseHeadersTextFull = false;
+    #showRequestHeadersTextFull = false;
+    #toReveal = undefined;
+    #workspace = Workspace.Workspace.WorkspaceImpl.instance();
     constructor(request) {
         super();
         this.#request = request;
-        this.contentElement.appendChild(this.#requestHeadersComponent);
     }
     wasShown() {
         this.#request.addEventListener(SDK.NetworkRequest.Events.RemoteAddressChanged, this.#refreshHeadersView, this);
         this.#request.addEventListener(SDK.NetworkRequest.Events.FinishedLoading, this.#refreshHeadersView, this);
         this.#request.addEventListener(SDK.NetworkRequest.Events.RequestHeadersChanged, this.#refreshHeadersView, this);
         this.#request.addEventListener(SDK.NetworkRequest.Events.ResponseHeadersChanged, this.#resetAndRefreshHeadersView, this);
+        this.#toReveal = undefined;
         this.#refreshHeadersView();
     }
     willHide() {
@@ -122,36 +125,14 @@ export class RequestHeadersView extends UI.Widget.VBox {
     }
     #resetAndRefreshHeadersView() {
         this.#request.deleteAssociatedData(RESPONSE_HEADER_SECTION_DATA_KEY);
-        this.#requestHeadersComponent.data = {
-            request: this.#request,
-        };
+        void this.render();
     }
     #refreshHeadersView() {
-        this.#requestHeadersComponent.data = {
-            request: this.#request,
-        };
+        void this.render();
     }
     revealHeader(section, header) {
-        this.#requestHeadersComponent.data = {
-            request: this.#request,
-            toReveal: { section, header: header },
-        };
-    }
-}
-class RequestHeadersComponent extends HTMLElement {
-    static litTagName = LitHtml.literal `devtools-request-headers`;
-    #shadow = this.attachShadow({ mode: 'open' });
-    #request;
-    #showResponseHeadersText = false;
-    #showRequestHeadersText = false;
-    #showResponseHeadersTextFull = false;
-    #showRequestHeadersTextFull = false;
-    #toReveal = undefined;
-    #workspace = Workspace.Workspace.WorkspaceImpl.instance();
-    set data(data) {
-        this.#request = data.request;
-        this.#toReveal = data.toReveal;
-        this.#render();
+        this.#toReveal = { section, header };
+        void this.render();
     }
     connectedCallback() {
         this.#shadow.adoptedStyleSheets = [requestHeadersViewStyles];
@@ -159,21 +140,21 @@ class RequestHeadersComponent extends HTMLElement {
         this.#workspace.addEventListener(Workspace.Workspace.Events.UISourceCodeRemoved, this.#uiSourceCodeAddedOrRemoved, this);
         Common.Settings.Settings.instance()
             .moduleSetting('persistenceNetworkOverridesEnabled')
-            .addChangeListener(this.#render, this);
+            .addChangeListener(this.render, this);
     }
     disconnectedCallback() {
         this.#workspace.removeEventListener(Workspace.Workspace.Events.UISourceCodeAdded, this.#uiSourceCodeAddedOrRemoved, this);
         this.#workspace.removeEventListener(Workspace.Workspace.Events.UISourceCodeRemoved, this.#uiSourceCodeAddedOrRemoved, this);
         Common.Settings.Settings.instance()
             .moduleSetting('persistenceNetworkOverridesEnabled')
-            .removeChangeListener(this.#render, this);
+            .removeChangeListener(this.render, this);
     }
     #uiSourceCodeAddedOrRemoved(event) {
         if (this.#getHeaderOverridesFileUrl() === event.data.url()) {
-            this.#render();
+            void this.render();
         }
     }
-    #render() {
+    async render() {
         if (!this.#request) {
             return;
         }
@@ -192,7 +173,7 @@ class RequestHeadersComponent extends HTMLElement {
         }
         const toggleShowRaw = () => {
             this.#showResponseHeadersText = !this.#showResponseHeadersText;
-            this.#render();
+            void this.render();
         };
         // Disabled until https://crbug.com/1079231 is fixed.
         // clang-format off
@@ -258,7 +239,7 @@ class RequestHeadersComponent extends HTMLElement {
         </${IconButton.Icon.Icon.litTagName}
       ></x-link>
       <x-link @click=${revealHeadersFile} class="link devtools-link" title=${UIStrings.revealHeaderOverrides}>
-        ${fileIcon}${i18nString(UIStrings.headerOverrides)}
+        ${fileIcon}${Persistence.NetworkPersistenceManager.HEADERS_FILENAME}
       </x-link>
     `;
         // clang-format on
@@ -278,7 +259,7 @@ class RequestHeadersComponent extends HTMLElement {
         const requestHeadersText = this.#request.requestHeadersText();
         const toggleShowRaw = () => {
             this.#showRequestHeadersText = !this.#showRequestHeadersText;
-            this.#render();
+            void this.render();
         };
         // Disabled until https://crbug.com/1079231 is fixed.
         // clang-format off
@@ -316,7 +297,7 @@ class RequestHeadersComponent extends HTMLElement {
             else {
                 this.#showRequestHeadersTextFull = true;
             }
-            this.#render();
+            void this.render();
         };
         const onContextMenuOpen = (event) => {
             const showFull = forResponseHeaders ? this.#showResponseHeadersTextFull : this.#showRequestHeadersTextFull;
@@ -349,7 +330,7 @@ class RequestHeadersComponent extends HTMLElement {
         if (!this.#request) {
             return LitHtml.nothing;
         }
-        const statusClasses = [];
+        const statusClasses = ['status'];
         if (this.#request.statusCode < 300 || this.#request.statusCode === 304) {
             statusClasses.push('green-circle');
         }
@@ -359,31 +340,29 @@ class RequestHeadersComponent extends HTMLElement {
         else {
             statusClasses.push('red-circle');
         }
-        let statusText = this.#request.statusCode + ' ' + this.#request.statusText;
+        let comment = '';
         if (this.#request.cachedInMemory()) {
-            statusText += ' ' + i18nString(UIStrings.fromMemoryCache);
-            statusClasses.push('status-with-comment');
+            comment = i18nString(UIStrings.fromMemoryCache);
         }
         else if (this.#request.fetchedViaServiceWorker) {
-            statusText += ' ' + i18nString(UIStrings.fromServiceWorker);
-            statusClasses.push('status-with-comment');
+            comment = i18nString(UIStrings.fromServiceWorker);
         }
         else if (this.#request.redirectSourceSignedExchangeInfoHasNoErrors()) {
-            statusText += ' ' + i18nString(UIStrings.fromSignedexchange);
-            statusClasses.push('status-with-comment');
+            comment = i18nString(UIStrings.fromSignedexchange);
         }
         else if (this.#request.webBundleInnerRequestInfo()) {
-            statusText += ' ' + i18nString(UIStrings.fromWebBundle);
-            statusClasses.push('status-with-comment');
+            comment = i18nString(UIStrings.fromWebBundle);
         }
         else if (this.#request.fromPrefetchCache()) {
-            statusText += ' ' + i18nString(UIStrings.fromPrefetchCache);
-            statusClasses.push('status-with-comment');
+            comment = i18nString(UIStrings.fromPrefetchCache);
         }
         else if (this.#request.cached()) {
-            statusText += ' ' + i18nString(UIStrings.fromDiskCache);
+            comment = i18nString(UIStrings.fromDiskCache);
+        }
+        if (comment) {
             statusClasses.push('status-with-comment');
         }
+        const statusText = [this.#request.statusCode, this.#request.getInferredStatusText(), comment].join(' ');
         // Disabled until https://crbug.com/1079231 is fixed.
         // clang-format off
         return html `
@@ -418,15 +397,13 @@ class RequestHeadersComponent extends HTMLElement {
     `;
     }
 }
-export { RequestHeadersComponent };
-class ToggleRawHeadersEvent extends Event {
+export class ToggleRawHeadersEvent extends Event {
     static eventName = 'togglerawevent';
     constructor() {
         super(ToggleRawHeadersEvent.eventName, {});
     }
 }
-export { ToggleRawHeadersEvent };
-class Category extends HTMLElement {
+export class Category extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-request-headers-category`;
     #shadow = this.attachShadow({ mode: 'open' });
     #expandedSetting;
@@ -498,7 +475,6 @@ class Category extends HTMLElement {
         this.#expandedSetting?.set(event.target.open);
     }
 }
-export { Category };
-ComponentHelpers.CustomElements.defineComponent('devtools-request-headers', RequestHeadersComponent);
+ComponentHelpers.CustomElements.defineComponent('devtools-request-headers', RequestHeadersView);
 ComponentHelpers.CustomElements.defineComponent('devtools-request-headers-category', Category);
 //# map=RequestHeadersView.js.map

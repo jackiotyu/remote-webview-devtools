@@ -177,6 +177,14 @@ export class CorsIssueDetailsView extends AffectedResourcesView {
                 this.appendColumnTitle(header, i18nString(UIStrings.initiatorAddressSpace));
                 this.appendColumnTitle(header, i18nString(UIStrings.initiatorContext));
                 break;
+            case IssuesManager.CorsIssue.IssueCode.PreflightMissingPrivateNetworkAccessId:
+            case IssuesManager.CorsIssue.IssueCode.PreflightMissingPrivateNetworkAccessName:
+                this.appendColumnTitle(header, i18nString(UIStrings.preflightRequest));
+                this.appendColumnTitle(header, i18nString(UIStrings.invalidValue));
+                this.appendColumnTitle(header, i18nString(UIStrings.resourceAddressSpace));
+                this.appendColumnTitle(header, i18nString(UIStrings.initiatorAddressSpace));
+                this.appendColumnTitle(header, i18nString(UIStrings.initiatorContext));
+                break;
             case IssuesManager.CorsIssue.IssueCode.MethodDisallowedByPreflightResponse:
                 this.appendColumnTitle(header, i18nString(UIStrings.preflightRequest));
                 this.appendColumnTitle(header, i18nString(UIStrings.disallowedRequestMethod));
@@ -247,6 +255,10 @@ export class CorsIssueDetailsView extends AffectedResourcesView {
                 return 'Location';
             case "PreflightInvalidStatus" /* Protocol.Network.CorsError.PreflightInvalidStatus */:
                 return 'Status-Code';
+            case "PreflightMissingPrivateNetworkAccessId" /* Protocol.Network.CorsError.PreflightMissingPrivateNetworkAccessId */:
+                return 'Private-Network-Access-Id';
+            case "PreflightMissingPrivateNetworkAccessName" /* Protocol.Network.CorsError.PreflightMissingPrivateNetworkAccessName */:
+                return 'Private-Network-Access-Name';
         }
         return '';
     }
@@ -421,6 +433,16 @@ export class CorsIssueDetailsView extends AffectedResourcesView {
                 element.appendChild(this.createRequestCell(details.request, opts));
                 this.#appendStatus(element, details.isWarning);
                 this.appendSourceLocation(element, details.location, issue.model()?.getTargetIfNotDisposed());
+                break;
+            case IssuesManager.CorsIssue.IssueCode.PreflightMissingPrivateNetworkAccessId:
+            case IssuesManager.CorsIssue.IssueCode.PreflightMissingPrivateNetworkAccessName:
+                element.appendChild(this.createRequestCell(details.request, opts));
+                this.#appendStatus(element, details.isWarning);
+                element.appendChild(this.createRequestCell(details.request, { ...opts, linkToPreflight: true, highlightHeader }));
+                this.appendIssueDetailCell(element, CorsIssueDetailsView.getHeaderFromError(corsError));
+                this.appendIssueDetailCell(element, details.resourceIPAddressSpace ?? '');
+                this.appendIssueDetailCell(element, details.clientSecurityState?.initiatorIPAddressSpace ?? '');
+                this.#appendSecureContextCell(element, details.clientSecurityState?.initiatorIsSecureContext);
                 break;
             default:
                 element.appendChild(this.createRequestCell(details.request, opts));

@@ -106,6 +106,7 @@ export class Layers3DView extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox
     gl;
     dimensionsForAutoscale;
     needsUpdate;
+    updateScheduled;
     panelToolbar;
     showSlowScrollRectsSetting;
     showPaintsSetting;
@@ -130,9 +131,10 @@ export class Layers3DView extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox
         this.canvasElement.addEventListener('mouseleave', this.onMouseMove.bind(this), false);
         this.canvasElement.addEventListener('mousemove', this.onMouseMove.bind(this), false);
         this.canvasElement.addEventListener('contextmenu', this.onContextMenu.bind(this), false);
-        UI.ARIAUtils.setAccessibleName(this.canvasElement, i18nString(UIStrings.dLayersView));
+        UI.ARIAUtils.setLabel(this.canvasElement, i18nString(UIStrings.dLayersView));
         this.lastSelection = {};
         this.layerTree = null;
+        this.updateScheduled = false;
         this.textureManager = new LayerTextureManager(this.update.bind(this));
         this.chromeTextures = [];
         this.rects = [];
@@ -513,6 +515,10 @@ export class Layers3DView extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(array), gl.STATIC_DRAW);
         gl.vertexAttribPointer(attribute, length, gl.FLOAT, false, 0, 0);
     }
+    // This view currently draws every rect, every frame
+    // It'd be far more effectient to retain the buffers created in setVertexAttribute,
+    // and manipulate them as needed.
+    // TODO(crbug.com/1473451): consider those optimizations or porting to 3D css transforms
     drawRectangle(vertices, mode, color, texture) {
         const gl = this.gl;
         const white = [255, 255, 255, 1];
@@ -629,6 +635,19 @@ export class Layers3DView extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox
             this.needsUpdate = true;
             return;
         }
+        // Debounce into the next frame (double rAF).
+        // Without this the GPU work can pile up without any backpressure.
+        // A single rAF might be fine, but the GPU work here is so heavy, we prefer
+        // the extra breathing room over lower latency
+        if (!this.updateScheduled) {
+            this.updateScheduled = true;
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                this.updateScheduled = false;
+                this.innerUpdate();
+            }));
+        }
+    }
+    innerUpdate() {
         if (!this.layerTree || !this.layerTree.root()) {
             this.failBanner.show(this.contentElement);
             return;
@@ -691,9 +710,9 @@ export class Layers3DView extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox
     initToolbar() {
         this.panelToolbar = this.transformController.toolbar();
         this.contentElement.appendChild(this.panelToolbar.element);
-        this.showSlowScrollRectsSetting = this.createVisibilitySetting(i18nString(UIStrings.slowScrollRects), 'frameViewerShowSlowScrollRects', true, this.panelToolbar);
         this.showPaintsSetting =
-            this.createVisibilitySetting(i18nString(UIStrings.paints), 'frameViewerShowPaints', true, this.panelToolbar);
+            this.createVisibilitySetting(i18nString(UIStrings.paints), 'frameViewerShowPaints', false, this.panelToolbar);
+        this.showSlowScrollRectsSetting = this.createVisibilitySetting(i18nString(UIStrings.slowScrollRects), 'frameViewerShowSlowScrollRects', true, this.panelToolbar);
         this.showPaintsSetting.addChangeListener(this.updatePaints, this);
         Common.Settings.Settings.instance()
             .moduleSetting('frameViewerHideChromeWindow')

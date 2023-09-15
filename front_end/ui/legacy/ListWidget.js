@@ -254,8 +254,7 @@ export class Editor {
         const input = createInput('', type);
         input.placeholder = title;
         input.addEventListener('input', this.validateControls.bind(this, false), false);
-        input.addEventListener('blur', this.validateControls.bind(this, false), false);
-        ARIAUtils.setAccessibleName(input, title);
+        ARIAUtils.setLabel(input, title);
         this.controlByName.set(name, input);
         this.controls.push(input);
         this.validators.push(validator);
@@ -271,7 +270,7 @@ export class Editor {
         }
         if (title) {
             Tooltip.install(select, title);
-            ARIAUtils.setAccessibleName(select, title);
+            ARIAUtils.setLabel(select, title);
         }
         select.addEventListener('input', this.validateControls.bind(this, false), false);
         select.addEventListener('blur', this.validateControls.bind(this, false), false);
@@ -323,7 +322,7 @@ export class Editor {
         this.item = item;
         this.index = index;
         this.commitButton.textContent = commitButtonTitle;
-        this.element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+        this.element.scrollIntoViewIfNeeded(false);
         if (this.controls.length) {
             this.controls[0].focus();
         }

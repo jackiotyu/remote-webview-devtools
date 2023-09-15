@@ -16,9 +16,9 @@ styles.replaceSync(
 }
 
 .section-divider {
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
-
+/*# sourceURL=reportSectionDivider.css */
 `);
 export default styles;

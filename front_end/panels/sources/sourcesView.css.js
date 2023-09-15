@@ -46,8 +46,8 @@ styles.replaceSync(
 #sources-panel-sources-view .sources-toolbar {
   display: flex;
   flex: 0 0 27px;
-  background-color: var(--color-background-elevation-1);
-  border-top: var(--legacy-divider-border);
+  background-color: var(--sys-color-cdt-base-container);
+  border-top: 1px solid var(--sys-color-divider);
   overflow: hidden;
   z-index: 0;
 }
@@ -66,6 +66,6 @@ styles.replaceSync(
   --override-debugger-background-tint: rgb(61 61 0 / 50%);
 }
 
-
+/*# sourceURL=sourcesView.css */
 `);
 export default styles;

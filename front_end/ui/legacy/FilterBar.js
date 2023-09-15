@@ -225,7 +225,7 @@ export class TextFilterUI extends Common.ObjectWrapper.ObjectWrapper {
         this.setValue('');
     }
 }
-class NamedBitSetFilterUI extends Common.ObjectWrapper.ObjectWrapper {
+export class NamedBitSetFilterUI extends Common.ObjectWrapper.ObjectWrapper {
     filtersElement;
     typeFilterElementTypeNames;
     allowedTypes;
@@ -384,7 +384,6 @@ class NamedBitSetFilterUI extends Common.ObjectWrapper.ObjectWrapper {
     }
     static ALL_TYPES = 'all';
 }
-export { NamedBitSetFilterUI };
 export class CheckboxFilterUI extends Common.ObjectWrapper.ObjectWrapper {
     filterElement;
     activeWhenChecked;

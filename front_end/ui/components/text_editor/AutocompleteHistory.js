@@ -1,7 +1,7 @@
 // Copyright 2023 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-class AutocompleteHistory {
+export class AutocompleteHistory {
     static #historySize = 300;
     #setting;
     /**
@@ -25,6 +25,9 @@ class AutocompleteHistory {
         this.#data = [];
         this.#setting.set([]);
         this.#historyOffset = 1;
+    }
+    length() {
+        return this.#data.length;
     }
     /**
      * Pushes a committed text into the history.
@@ -85,5 +88,4 @@ class AutocompleteHistory {
         this.#setting.set(this.#data.slice(-AutocompleteHistory.#historySize));
     }
 }
-export { AutocompleteHistory };
 //# map=AutocompleteHistory.js.map

@@ -34,6 +34,6 @@ p {
   margin: 12px 0;
 }
 
-
+/*# sourceURL=settingCheckbox.css */
 `);
 export default styles;

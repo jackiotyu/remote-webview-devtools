@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as Dialog from './Dialog.js';
+import * as IconDialog from './IconDialog.js';
 import * as ShortcutDialog from './ShortcutDialog.js';
-export { Dialog, ShortcutDialog, };
+export { Dialog, IconDialog, ShortcutDialog, };
 //# map=dialogs.js.map

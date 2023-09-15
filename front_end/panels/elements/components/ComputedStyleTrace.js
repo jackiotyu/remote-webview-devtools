@@ -5,7 +5,7 @@ import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
 import computedStyleTraceStyles from './computedStyleTrace.css.js';
 const { render, html } = LitHtml;
-class ComputedStyleTrace extends HTMLElement {
+export class ComputedStyleTrace extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-computed-style-trace`;
     #shadow = this.attachShadow({ mode: 'open' });
     #selector = '';
@@ -38,6 +38,5 @@ class ComputedStyleTrace extends HTMLElement {
         // clang-format on
     }
 }
-export { ComputedStyleTrace };
 ComponentHelpers.CustomElements.defineComponent('devtools-computed-style-trace', ComputedStyleTrace);
 //# map=ComputedStyleTrace.js.map

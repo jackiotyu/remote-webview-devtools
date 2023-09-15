@@ -8,6 +8,7 @@ export const millisecondsToMicroseconds = (value) => Types.Timing.MicroSeconds(v
 export const secondsToMilliseconds = (value) => Types.Timing.MilliSeconds(value * 1000);
 export const secondsToMicroseconds = (value) => millisecondsToMicroseconds(secondsToMilliseconds(value));
 export const microSecondsToMilliseconds = (value) => Types.Timing.MilliSeconds(value / 1000);
+export const microSecondsToSeconds = (value) => Types.Timing.Seconds(value / 1000 / 1000);
 export function detectBestTimeUnit(timeInMicroseconds) {
     if (timeInMicroseconds < 1000) {
         return 0 /* Types.Timing.TimeUnit.MICROSECONDS */;
@@ -31,7 +32,13 @@ const defaultFormatOptions = {
 // them repeatedly during rendering.
 const serialize = (value) => JSON.stringify(value);
 const formatterFactory = (key) => {
-    return new Intl.NumberFormat(navigator.language, key ? JSON.parse(key) : {});
+    // If we pass undefined as the locale, that achieves two things:
+    // 1. Avoids us referencing window.navigatior to fetch the locale, which is
+    //    useful given long term we would like this engine to run in NodeJS
+    //    environments.
+    // 2. Will cause the formatter to fallback to the locale of the system, which
+    //    is likely going to be the most accurate one to use anyway.
+    return new Intl.NumberFormat(undefined, key ? JSON.parse(key) : {});
 };
 const formatters = new Map();
 // Microsecond Formatter.
@@ -92,5 +99,41 @@ export function timeStampForEventAdjustedByClosestNavigation(event, traceBounds,
         }
     }
     return Types.Timing.MicroSeconds(eventTimeStamp);
+}
+export function eventTimingsMicroSeconds(event) {
+    return {
+        startTime: event.ts,
+        endTime: Types.Timing.MicroSeconds(event.ts + (event.dur || Types.Timing.MicroSeconds(0))),
+        duration: Types.Timing.MicroSeconds(event.dur || 0),
+        // TODO(crbug.com/1434599): Implement selfTime calculation for events
+        // from the new engine.
+        selfTime: Types.TraceEvents.isRendererEvent(event) ? Types.Timing.MicroSeconds(event.selfTime || 0) :
+            Types.Timing.MicroSeconds(event.dur || 0),
+    };
+}
+export function eventTimingsMilliSeconds(event) {
+    const microTimes = eventTimingsMicroSeconds(event);
+    return {
+        startTime: microSecondsToMilliseconds(microTimes.startTime),
+        endTime: microSecondsToMilliseconds(microTimes.endTime),
+        duration: microSecondsToMilliseconds(microTimes.duration),
+        selfTime: microSecondsToMilliseconds(microTimes.selfTime),
+    };
+}
+export function eventTimingsSeconds(event) {
+    const microTimes = eventTimingsMicroSeconds(event);
+    return {
+        startTime: microSecondsToSeconds(microTimes.startTime),
+        endTime: microSecondsToSeconds(microTimes.endTime),
+        duration: microSecondsToSeconds(microTimes.duration),
+        selfTime: microSecondsToSeconds(microTimes.selfTime),
+    };
+}
+export function traceBoundsMilliseconds(bounds) {
+    return {
+        min: microSecondsToMilliseconds(bounds.min),
+        max: microSecondsToMilliseconds(bounds.max),
+        range: microSecondsToMilliseconds(bounds.range),
+    };
 }
 //# map=Timing.js.map

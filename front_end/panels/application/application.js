@@ -31,8 +31,9 @@ import * as SharedStorageItemsView from './SharedStorageItemsView.js';
 import * as SharedStorageListTreeElement from './SharedStorageListTreeElement.js';
 import * as SharedStorageModel from './SharedStorageModel.js';
 import * as SharedStorageTreeElement from './SharedStorageTreeElement.js';
+import * as StorageBucketsTreeElement from './StorageBucketsTreeElement.js';
 import * as StorageItemsView from './StorageItemsView.js';
 import * as StorageView from './StorageView.js';
 import * as TrustTokensTreeElement from './TrustTokensTreeElement.js';
-export { ApplicationPanelSidebar, AppManifestView, BackgroundServiceModel, BackgroundServiceView, BounceTrackingMitigationsTreeElement, CookieItemsView, DatabaseModel, DatabaseQueryView, DatabaseTableView, DOMStorageItemsView, DOMStorageModel, IndexedDBModel, IndexedDBViews, InterestGroupStorageModel, InterestGroupStorageView, InterestGroupTreeElement, OpenedWindowDetailsView, PreloadingTreeElement, PreloadingView, ReportingApiReportsView, ReportingApiView, ResourcesPanel, ServiceWorkerCacheViews, ServiceWorkersView, ServiceWorkerUpdateCycleView, SharedStorageEventsView, SharedStorageItemsView, SharedStorageListTreeElement, SharedStorageModel, SharedStorageTreeElement, StorageItemsView, StorageView, TrustTokensTreeElement, };
+export { ApplicationPanelSidebar, AppManifestView, BackgroundServiceModel, BackgroundServiceView, BounceTrackingMitigationsTreeElement, CookieItemsView, DatabaseModel, DatabaseQueryView, DatabaseTableView, DOMStorageItemsView, DOMStorageModel, IndexedDBModel, IndexedDBViews, InterestGroupStorageModel, InterestGroupStorageView, InterestGroupTreeElement, OpenedWindowDetailsView, PreloadingTreeElement, PreloadingView, ReportingApiReportsView, ReportingApiView, ResourcesPanel, ServiceWorkerCacheViews, ServiceWorkersView, ServiceWorkerUpdateCycleView, SharedStorageEventsView, SharedStorageItemsView, SharedStorageListTreeElement, SharedStorageModel, SharedStorageTreeElement, StorageBucketsTreeElement, StorageItemsView, StorageView, TrustTokensTreeElement, };
 //# map=application.js.map

@@ -22,6 +22,6 @@ styles.replaceSync(
   margin: 0;
 }
 
-
+/*# sourceURL=signedExchangeInfoView.css */
 `);
 export default styles;

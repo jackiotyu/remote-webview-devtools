@@ -5,7 +5,7 @@ import * as LitHtml from '../../lit-html/lit-html.js';
 import * as ComponentHelpers from '../helpers/helpers.js';
 import * as IconButton from '../icon_button/icon_button.js';
 import buttonStyles from './button.css.js';
-class Button extends HTMLElement {
+export class Button extends HTMLElement {
     static formAssociated = true;
     static litTagName = LitHtml.literal `devtools-button`;
     #shadow = this.attachShadow({ mode: 'open', delegatesFocus: true });
@@ -232,6 +232,5 @@ class Button extends HTMLElement {
         return this.#internals.reportValidity();
     }
 }
-export { Button };
 ComponentHelpers.CustomElements.defineComponent('devtools-button', Button);
 //# map=Button.js.map

@@ -12,8 +12,8 @@ export default {
 
 .search-bar {
   flex: 0 0 31px;
-  background-color: var(--color-background-elevation-1);
-  border-top: 1px solid var(--color-details-hairline);
+  background-color: var(--sys-color-cdt-base-container);
+  border-top: 1px solid var(--sys-color-divider);
   display: flex;
   overflow: hidden;
   z-index: 0;
@@ -26,6 +26,8 @@ export default {
 .search-replace {
   appearance: none;
   border: 0;
+  /* prevents the input background from going over the border of toolbar-search-control */
+  border-radius: 4px;
   padding: 0 3px;
   margin: 0;
   flex: 1;
@@ -45,9 +47,39 @@ export default {
   flex-shrink: 0;
 }
 
+.toolbar-search-control,
+.toolbar-replace-control {
+  border: 1px solid var(--sys-color-neutral-outline);
+  height: 22px;
+  border-radius: 4px;
+  width: 100%;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.toolbar-search-control {
+  display: flex;
+  position: relative;
+  background-color: var(--sys-color-cdt-base-container);
+
+  &:focus-within {
+    border-color: var(--sys-color-state-focus-ring);
+  }
+}
+
 .toolbar-search-inputs {
   flex-grow: 1;
   min-width: 150px;
+
+  &:hover:not(:focus-within) {
+    & .toolbar-search-control {
+      background-color: var(--sys-color-state-hover-on-subtle);
+    }
+
+    & input {
+      background: none;
+    }
+  }
 }
 
 .toolbar-search-navigation-controls {
@@ -59,7 +91,7 @@ export default {
   width: 20px;
   height: 20px;
   background-repeat: no-repeat;
-  border-left: 1px solid var(--color-details-hairline);
+  border-left: 1px solid var(--sys-color-divider);
   opacity: 30%;
 }
 
@@ -73,12 +105,6 @@ export default {
   width: 87px;
 }
 
-.toolbar-search-control {
-  display: flex;
-  position: relative;
-  background-color: var(--color-background);
-}
-
 .toolbar-search-buttons {
   display: flex;
   flex-direction: column;
@@ -89,23 +115,13 @@ export default {
   line-height: 17px;
 }
 
-.toolbar-search-control,
-.toolbar-replace-control {
-  border: 1px solid var(--color-details-hairline);
-  height: 22px;
-  border-radius: 2px;
-  width: 100%;
-  margin-top: 2px;
-  margin-bottom: 2px;
-}
-
 .toolbar-search-navigation.enabled:active {
   background-position: 4px 7px, 0 0;
 }
 
 .toolbar-search-navigation.toolbar-search-navigation-prev {
   background-image: var(--image-file-chevron-up);
-  border-left: 1px solid var(--color-details-hairline);
+  border-left: 1px solid var(--sys-color-neutral-outline);
 }
 
 :host-context(.-theme-with-dark-background) .toolbar-search-navigation {
@@ -118,7 +134,7 @@ export default {
 
 .toolbar-search-navigation.toolbar-search-navigation-next {
   background-image: var(--image-file-chevron-down);
-  border-left: 1px solid var(--color-details-hairline);
+  border-left: 1px solid var(--sys-color-neutral-outline);
 }
 
 .toolbar-search-navigation.toolbar-search-navigation-next.enabled:active {

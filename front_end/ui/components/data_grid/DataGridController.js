@@ -27,7 +27,7 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('ui/components/data_grid/DataGridController.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class DataGridController extends HTMLElement {
+export class DataGridController extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-data-grid-controller`;
     #shadow = this.attachShadow({ mode: 'open' });
     #hasRenderedAtLeastOnce = false;
@@ -36,6 +36,7 @@ class DataGridController extends HTMLElement {
     #contextMenus = undefined;
     #label = undefined;
     #showScrollbar = false;
+    #striped = false;
     /**
      * Because the controller will sort data in place (e.g. mutate it) when we get
      * new data in we store the original data separately. This is so we don't
@@ -59,6 +60,7 @@ class DataGridController extends HTMLElement {
             label: this.#label,
             paddingRowsCount: this.#paddingRowsCount,
             showScrollbar: this.#showScrollbar,
+            striped: this.#striped,
         };
     }
     set data(data) {
@@ -69,6 +71,7 @@ class DataGridController extends HTMLElement {
         this.#contextMenus = data.contextMenus;
         this.#label = data.label;
         this.#showScrollbar = data.showScrollbar;
+        this.#striped = data.striped;
         this.#columns = [...this.#originalColumns];
         this.#rows = this.#cloneAndFilterRows(data.rows, this.#filters);
         if (!this.#hasRenderedAtLeastOnce && data.initialSort) {
@@ -208,6 +211,7 @@ class DataGridController extends HTMLElement {
             label: this.#label,
             paddingRowsCount: this.#paddingRowsCount,
             showScrollbar: this.#showScrollbar,
+            striped: this.#striped,
         }}
         @columnheaderclick=${this.#onColumnHeaderClick}
         @contextmenucolumnsortclick=${this.#onContextMenuColumnSortClick}
@@ -220,6 +224,5 @@ class DataGridController extends HTMLElement {
         this.#hasRenderedAtLeastOnce = true;
     }
 }
-export { DataGridController };
 ComponentHelpers.CustomElements.defineComponent('devtools-data-grid-controller', DataGridController);
 //# map=DataGridController.js.map

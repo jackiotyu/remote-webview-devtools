@@ -27,6 +27,6 @@ styles.replaceSync(
   max-height: 50vh;
 }
 
-
+/*# sourceURL=timelineOverviewInfo.css */
 `);
 export default styles;

@@ -1176,7 +1176,7 @@ export class HeapSnapshot {
         }
         dominators[rootPostOrderedIndex] = rootPostOrderedIndex;
         // The affected array is used to mark entries which dominators
-        // have to be racalculated because of changes in their retainers.
+        // have to be recalculated because of changes in their retainers.
         const affected = new Uint8Array(nodesCount);
         let nodeOrdinal;
         { // Mark the root direct children as affected.
@@ -1225,22 +1225,22 @@ export class HeapSnapshot {
                     if (retainerNodeIndex !== rootNodeIndex && nodeFlag && !retainerNodeFlag) {
                         continue;
                     }
-                    let retanerPostOrderIndex = nodeOrdinal2PostOrderIndex[retainerNodeOrdinal];
-                    if (dominators[retanerPostOrderIndex] !== noEntry) {
+                    let retainerPostOrderIndex = nodeOrdinal2PostOrderIndex[retainerNodeOrdinal];
+                    if (dominators[retainerPostOrderIndex] !== noEntry) {
                         if (newDominatorIndex === noEntry) {
-                            newDominatorIndex = retanerPostOrderIndex;
+                            newDominatorIndex = retainerPostOrderIndex;
                         }
                         else {
-                            while (retanerPostOrderIndex !== newDominatorIndex) {
-                                while (retanerPostOrderIndex < newDominatorIndex) {
-                                    retanerPostOrderIndex = dominators[retanerPostOrderIndex];
+                            while (retainerPostOrderIndex !== newDominatorIndex) {
+                                while (retainerPostOrderIndex < newDominatorIndex) {
+                                    retainerPostOrderIndex = dominators[retainerPostOrderIndex];
                                 }
-                                while (newDominatorIndex < retanerPostOrderIndex) {
+                                while (newDominatorIndex < retainerPostOrderIndex) {
                                     newDominatorIndex = dominators[newDominatorIndex];
                                 }
                             }
                         }
-                        // If idom has already reached the root, it doesn't make sense
+                        // If item has already reached the root, it doesn't make sense
                         // to check other retainers.
                         if (newDominatorIndex === rootPostOrderedIndex) {
                             break;
@@ -2024,7 +2024,7 @@ export class JSHeapSnapshot extends HeapSnapshot {
     markQueriableHeapObjects() {
         // Allow runtime properties query for objects accessible from Window objects
         // via regular properties, and for DOM wrappers. Trying to access random objects
-        // can cause a crash due to insonsistent state of internal properties of wrappers.
+        // can cause a crash due to inconsistent state of internal properties of wrappers.
         const flag = this.nodeFlags.canBeQueried;
         const hiddenEdgeType = this.edgeHiddenType;
         const internalEdgeType = this.edgeInternalType;

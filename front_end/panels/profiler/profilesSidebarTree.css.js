@@ -64,6 +64,10 @@ ol.tree-outline {
   display: none;
 }
 
+.title-container > .save-link:focus-visible {
+  outline-width: unset;
+}
+
 li.selected .title-container > .save-link {
   display: block;
   cursor: pointer;
@@ -177,28 +181,6 @@ li.wait .icon {
   background-color: inherit;
 }
 
-/* stylelint-disable no-descending-specificity */
-.force-white-icons .heap-snapshot-sidebar-tree-item:not(.wait) .icon,
-.force-white-icons .profile-sidebar-tree-item:not(.wait) .icon,
-:host-context(.force-white-icons) .heap-snapshot-sidebar-tree-item:not(.wait) .icon,
-:host-context(.force-white-icons) .profile-sidebar-tree-item:not(.wait) .icon,
-.force-white-icons.profile-sidebar-tree-item:not(.wait) .icon,
-.force-white-icons.heap-snapshot-sidebar-tree-item:not(.wait) .icon,
-.-theme-preserve {
-  -webkit-mask-image: var(--image-file-heap-snapshot);
-  -webkit-mask-position: var(--spritesheet-position);
-  background: var(--icon-force-white) !important; /* stylelint-disable-line declaration-no-important */
-}
-
-.force-white-icons .profile-group-sidebar-tree-item:not(.wait) .icon,
-:host-context(.force-white-icons) .profile-group-sidebar-tree-item:not(.wait) .icon,
-.force-white-icons.profile-group-sidebar-tree-item:not(.wait) .icon,
-.-theme-preserve {
-  -webkit-mask-image: var(--image-file-heap-snapshots);
-  -webkit-mask-position: var(--spritesheet-position);
-  background: var(--icon-force-white) !important; /* stylelint-disable-line declaration-no-important */
-}
-
 .heap-snapshot-sidebar-tree-item.small .icon {
   -webkit-mask-image: var(--image-file-heap-snapshots);
   background: var(--icon-default);
@@ -223,6 +205,6 @@ li.wait .icon {
   }
 }
 
-
+/*# sourceURL=profilesSidebarTree.css */
 `);
 export default styles;

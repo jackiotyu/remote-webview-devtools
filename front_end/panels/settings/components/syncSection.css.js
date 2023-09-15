@@ -65,6 +65,6 @@ img {
   margin-left: 8px;
 }
 
-
+/*# sourceURL=syncSection.css */
 `);
 export default styles;

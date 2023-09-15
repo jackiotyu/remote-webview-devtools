@@ -35,11 +35,11 @@ export default {
  */
 
 .filter-bar {
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-cdt-base-container);
   flex: none;
   flex-wrap: wrap;
   align-items: center;
-  border-bottom: var(--legacy-divider-border);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .filter-text-filter {
@@ -63,15 +63,19 @@ export default {
 
 .filter-bitset-filter span {
   color: var(--color-text-primary);
+  outline: 1px solid var(--sys-color-tonal-outline);
+  outline-offset: -1px;
+  box-sizing: border-box;
   display: inline-block;
   flex: none;
   margin: auto 2px;
-  padding: 3px;
+  padding: 3px 6px;
   background: transparent;
   border-radius: 6px;
   overflow: hidden;
   cursor: pointer;
-  line-height: 1.2;
+  font-weight: 500;
+  font-size: 11px;
 }
 
 .filter-bitset-filter span:focus-visible {
@@ -79,7 +83,7 @@ export default {
 }
 
 .filter-bitset-filter-divider {
-  background-color: var(--color-details-hairline);
+  background-color: var(--sys-color-divider);
   height: 16px;
   width: 1px;
   margin: auto 2px;
@@ -87,12 +91,15 @@ export default {
 }
 
 .filter-bitset-filter span:hover {
-  background: var(--color-background-elevation-2);
+  outline: none;
+  background: var(--sys-color-state-hover-on-subtle);
 }
 
 .filter-bitset-filter span.selected,
 .filter-bitset-filter span:active {
-  background: var(--color-background-highlight);
+  color: var(--sys-color-on-tonal-container);
+  outline: none;
+  background-color: var(--sys-color-tonal-container);
 }
 
 .filter-checkbox-filter {
@@ -126,17 +133,22 @@ export default {
 .filter-input-container {
   margin: 0 3px;
   display: flex;
-  background: var(--color-background);
+  background: var(--sys-color-cdt-base-container);
+  border: 1px solid var(--sys-color-neutral-outline);
+  border-radius: 4px;
   width: 163px;
+
+  &:focus-within {
+    border-color: var(--sys-color-state-focus-ring);
+  }
+
+  &:hover:not(:focus-within) {
+    background: var(--sys-color-state-hover-on-subtle);
+  }
 }
 
-.filter-input-container:hover {
-  box-shadow: var(--legacy-focus-ring-inactive-shadow);
-}
-
-.filter-input-container:focus-within,
 .filter-text-filter:not(.filter-text-empty) .filter-input-container {
-  box-shadow: var(--legacy-focus-ring-active-shadow);
+  border-color: var(--sys-color-state-focus-ring);
 }
 
 .filter-input-clear-button {

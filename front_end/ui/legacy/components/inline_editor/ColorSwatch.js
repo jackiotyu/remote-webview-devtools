@@ -16,7 +16,7 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('ui/legacy/components/inline_editor/ColorSwatch.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class ColorChangedEvent extends Event {
+export class ColorChangedEvent extends Event {
     static eventName = 'colorchanged';
     data;
     constructor(text) {
@@ -24,21 +24,20 @@ class ColorChangedEvent extends Event {
         this.data = { text };
     }
 }
-export { ColorChangedEvent };
-class ClickEvent extends Event {
+export class ClickEvent extends Event {
     static eventName = 'swatchclick';
     constructor() {
         super(ClickEvent.eventName, {});
     }
 }
-export { ClickEvent };
-class ColorSwatch extends HTMLElement {
+export class ColorSwatch extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-color-swatch`;
     shadow = this.attachShadow({ mode: 'open' });
     tooltip = i18nString(UIStrings.shiftclickToChangeColorFormat);
     text = null;
     color = null;
     format = null;
+    readonly = false;
     constructor() {
         super();
         this.shadow.adoptedStyleSheets = [
@@ -47,6 +46,9 @@ class ColorSwatch extends HTMLElement {
     }
     static isColorSwatch(element) {
         return element.localName === 'devtools-color-swatch';
+    }
+    setReadonly(readonly) {
+        this.readonly = readonly;
     }
     getColor() {
         return this.color;
@@ -113,6 +115,9 @@ class ColorSwatch extends HTMLElement {
         // clang-format on
     }
     onClick(e) {
+        if (this.readonly) {
+            return;
+        }
         if (e.shiftKey) {
             e.stopPropagation();
             this.showFormatPicker(e);
@@ -146,6 +151,5 @@ class ColorSwatch extends HTMLElement {
         });
     }
 }
-export { ColorSwatch };
 ComponentHelpers.CustomElements.defineComponent('devtools-color-swatch', ColorSwatch);
 //# map=ColorSwatch.js.map

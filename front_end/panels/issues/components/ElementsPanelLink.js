@@ -4,7 +4,7 @@
 import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
 import elementsPanelLinkStyles from './elementsPanelLink.css.js';
-class ElementsPanelLink extends HTMLElement {
+export class ElementsPanelLink extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-elements-panel-link`;
     #shadow = this.attachShadow({ mode: 'open' });
     #onElementRevealIconClick = () => { };
@@ -34,6 +34,5 @@ class ElementsPanelLink extends HTMLElement {
         // clang-format on
     }
 }
-export { ElementsPanelLink };
 ComponentHelpers.CustomElements.defineComponent('devtools-elements-panel-link', ElementsPanelLink);
 //# map=ElementsPanelLink.js.map

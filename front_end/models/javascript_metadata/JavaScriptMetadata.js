@@ -4,7 +4,7 @@
 import { NativeFunctions } from './NativeFunctions.js';
 import * as DOMPinnedProperties from './DOMPinnedProperties.js';
 let javaScriptMetadataInstance;
-class JavaScriptMetadataImpl {
+export class JavaScriptMetadataImpl {
     static domPinnedProperties = DOMPinnedProperties;
     uniqueFunctions;
     receiverMethods;
@@ -51,5 +51,4 @@ class JavaScriptMetadataImpl {
         return staticMethod.get(name) || null;
     }
 }
-export { JavaScriptMetadataImpl };
 //# map=JavaScriptMetadata.js.map

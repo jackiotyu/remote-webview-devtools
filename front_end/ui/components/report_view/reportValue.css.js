@@ -24,6 +24,6 @@ styles.replaceSync(
   overflow-wrap: break-word;
 }
 
-
+/*# sourceURL=reportValue.css */
 `);
 export default styles;

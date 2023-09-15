@@ -6,8 +6,7 @@ import * as Host from '../host/host.js';
 import * as i18n from '../i18n/i18n.js';
 import { FrameManager } from './FrameManager.js';
 import { IOModel } from './IOModel.js';
-import { MultitargetNetworkManager } from './NetworkManager.js';
-import { NetworkManager } from './NetworkManager.js';
+import { MultitargetNetworkManager, NetworkManager } from './NetworkManager.js';
 import { Events as ResourceTreeModelEvents, ResourceTreeModel, } from './ResourceTreeModel.js';
 import { TargetManager } from './TargetManager.js';
 const UIStrings = {
@@ -26,6 +25,7 @@ let pageResourceLoader = null;
  */
 export class PageResourceLoader extends Common.ObjectWrapper.ObjectWrapper {
     #currentlyLoading;
+    #currentlyLoadingPerTarget;
     #maxConcurrentLoads;
     #pageResources;
     #queuedLoads;
@@ -33,6 +33,7 @@ export class PageResourceLoader extends Common.ObjectWrapper.ObjectWrapper {
     constructor(loadOverride, maxConcurrentLoads) {
         super();
         this.#currentlyLoading = 0;
+        this.#currentlyLoadingPerTarget = new Map();
         this.#maxConcurrentLoads = maxConcurrentLoads;
         this.#pageResources = new Map();
         this.#queuedLoads = [];
@@ -53,7 +54,7 @@ export class PageResourceLoader extends Common.ObjectWrapper.ObjectWrapper {
         pageResourceLoader = null;
     }
     onPrimaryPageChanged(event) {
-        const mainFrame = event.data.frame;
+        const { frame: mainFrame, type } = event.data;
         if (!mainFrame.isOutermostFrame()) {
             return;
         }
@@ -61,11 +62,24 @@ export class PageResourceLoader extends Common.ObjectWrapper.ObjectWrapper {
             reject(new Error(i18nString(UIStrings.loadCanceledDueToReloadOf)));
         }
         this.#queuedLoads = [];
-        this.#pageResources.clear();
+        const mainFrameTarget = mainFrame.resourceTreeModel().target();
+        const keptResources = new Map();
+        // If the navigation is a prerender-activation, the pageResources for the destination page have
+        // already been preloaded. In such cases, we therefore don't just discard all pageResources, but
+        // instead make sure to keep the pageResources for the prerendered target.
+        for (const [key, pageResource] of this.#pageResources.entries()) {
+            if ((type === "Activation" /* PrimaryPageChangeType.Activation */) && mainFrameTarget === pageResource.initiator.target) {
+                keptResources.set(key, pageResource);
+            }
+        }
+        this.#pageResources = keptResources;
         this.dispatchEventToListeners(Events.Update);
     }
     getResourcesLoaded() {
         return this.#pageResources;
+    }
+    getScopedResourcesLoaded() {
+        return new Map([...this.#pageResources].filter(([_, pageResource]) => TargetManager.instance().isInScope(pageResource.initiator.target)));
     }
     /**
      * Loading is the number of currently loading and queued items. Resources is the total number of resources,
@@ -75,8 +89,23 @@ export class PageResourceLoader extends Common.ObjectWrapper.ObjectWrapper {
     getNumberOfResources() {
         return { loading: this.#currentlyLoading, queued: this.#queuedLoads.length, resources: this.#pageResources.size };
     }
-    async acquireLoadSlot() {
+    getScopedNumberOfResources() {
+        const targetManager = TargetManager.instance();
+        let loadingCount = 0;
+        for (const [targetId, count] of this.#currentlyLoadingPerTarget) {
+            const target = targetManager.targetById(targetId);
+            if (targetManager.isInScope(target)) {
+                loadingCount += count;
+            }
+        }
+        return { loading: loadingCount, resources: this.getScopedResourcesLoaded().size };
+    }
+    async acquireLoadSlot(target) {
         this.#currentlyLoading++;
+        if (target) {
+            const currentCount = this.#currentlyLoadingPerTarget.get(target.id()) || 0;
+            this.#currentlyLoadingPerTarget.set(target.id(), currentCount + 1);
+        }
         if (this.#currentlyLoading > this.#maxConcurrentLoads) {
             const entry = { resolve: () => { }, reject: () => { } };
             const waitForCapacity = new Promise((resolve, reject) => {
@@ -87,8 +116,14 @@ export class PageResourceLoader extends Common.ObjectWrapper.ObjectWrapper {
             await waitForCapacity;
         }
     }
-    releaseLoadSlot() {
+    releaseLoadSlot(target) {
         this.#currentlyLoading--;
+        if (target) {
+            const currentCount = this.#currentlyLoadingPerTarget.get(target.id());
+            if (currentCount) {
+                this.#currentlyLoadingPerTarget.set(target.id(), currentCount - 1);
+            }
+        }
         const entry = this.#queuedLoads.shift();
         if (entry) {
             entry.resolve();
@@ -109,7 +144,7 @@ export class PageResourceLoader extends Common.ObjectWrapper.ObjectWrapper {
         this.#pageResources.set(key, pageResource);
         this.dispatchEventToListeners(Events.Update);
         try {
-            await this.acquireLoadSlot();
+            await this.acquireLoadSlot(initiator.target);
             const resultPromise = this.dispatchLoad(url, initiator);
             const result = await resultPromise;
             pageResource.errorMessage = result.errorDescription.message;
@@ -130,7 +165,7 @@ export class PageResourceLoader extends Common.ObjectWrapper.ObjectWrapper {
             throw e;
         }
         finally {
-            this.releaseLoadSlot();
+            this.releaseLoadSlot(initiator.target);
             this.dispatchEventToListeners(Events.Update);
         }
     }

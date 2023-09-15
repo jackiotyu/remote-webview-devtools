@@ -42,7 +42,7 @@ input {
 }
 
 details {
-  border-top: 1px solid var(--color-details-hairline);
+  border-top: 1px solid var(--sys-color-divider);
 }
 
 details:not(.active) {
@@ -277,6 +277,6 @@ details > summary:focus,
   outline-width: 0;
 }
 
-
+/*# sourceURL=breakpointsView.css */
 `);
 export default styles;

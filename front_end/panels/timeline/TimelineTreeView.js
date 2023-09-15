@@ -6,6 +6,7 @@ import * as i18n from '../../core/i18n/i18n.js';
 import * as Platform from '../../core/platform/platform.js';
 import * as SDK from '../../core/sdk/sdk.js';
 import * as TimelineModel from '../../models/timeline_model/timeline_model.js';
+import * as TraceEngine from '../../models/trace/trace.js';
 import * as DataGrid from '../../ui/legacy/components/data_grid/data_grid.js';
 import * as Components from '../../ui/legacy/components/utils/utils.js';
 import * as UI from '../../ui/legacy/legacy.js';
@@ -538,7 +539,7 @@ export class GridNode extends DataGrid.SortableDataGrid.SortableDataGridNode {
             }
             const eventStyle = TimelineUIUtils.eventStyle(event);
             const eventCategory = eventStyle.category;
-            UI.ARIAUtils.setAccessibleName(icon, eventCategory.title);
+            UI.ARIAUtils.setLabel(icon, eventCategory.title);
             icon.style.backgroundColor = eventCategory.color;
         }
         return cell;
@@ -559,7 +560,7 @@ export class GridNode extends DataGrid.SortableDataGrid.SortableDataGridNode {
                     if (!model) {
                         throw new Error('Unable to find model for tree view');
                     }
-                    const timings = event && SDK.TracingModel.timesForEventInMilliseconds(event);
+                    const timings = event && TraceEngine.Legacy.timesForEventInMilliseconds(event);
                     const startTime = timings?.startTime ?? 0;
                     value = startTime - model.timelineModel().minimumRecordTime();
                 }
@@ -615,7 +616,7 @@ export class TreeGridNode extends GridNode {
     }
 }
 const profileNodeToTreeGridNode = new WeakMap();
-class AggregatedTimelineTreeView extends TimelineTreeView {
+export class AggregatedTimelineTreeView extends TimelineTreeView {
     groupBySetting;
     stackView;
     executionContextNamesByOrigin = new Map();
@@ -836,7 +837,6 @@ class AggregatedTimelineTreeView extends TimelineTreeView {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     static v8NativePrefix = 'native ';
 }
-export { AggregatedTimelineTreeView };
 (function (AggregatedTimelineTreeView) {
     // TODO(crbug.com/1167717): Make this a const enum again
     // eslint-disable-next-line rulesdir/const_enum

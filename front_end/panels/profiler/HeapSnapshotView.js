@@ -795,7 +795,10 @@ export class HeapSnapshotView extends UI.View.SimpleView {
         this.perspectiveSelect.removeOptions();
         this.perspectives.forEach((perspective, index) => {
             if (multipleSnapshots || perspective !== this.comparisonPerspective) {
-                this.perspectiveSelect.createOption(perspective.title(), String(index));
+                const option = this.perspectiveSelect.createOption(perspective.title(), String(index));
+                if (perspective === this.currentPerspective) {
+                    this.perspectiveSelect.select(option);
+                }
             }
         });
     }
@@ -1008,7 +1011,7 @@ export class StatisticsPerspective extends Perspective {
         return null;
     }
 }
-class HeapSnapshotProfileType extends Common.ObjectWrapper.eventMixin(ProfileType) {
+export class HeapSnapshotProfileType extends Common.ObjectWrapper.eventMixin(ProfileType) {
     exposeInternals;
     captureNumericValue;
     customContentInternal;
@@ -1137,8 +1140,7 @@ class HeapSnapshotProfileType extends Common.ObjectWrapper.eventMixin(ProfileTyp
     // eslint-disable-next-line @typescript-eslint/naming-convention
     static SnapshotReceived = 'SnapshotReceived';
 }
-export { HeapSnapshotProfileType };
-class TrackingHeapSnapshotProfileType extends Common.ObjectWrapper.eventMixin(HeapSnapshotProfileType) {
+export class TrackingHeapSnapshotProfileType extends Common.ObjectWrapper.eventMixin(HeapSnapshotProfileType) {
     recordAllocationStacksSettingInternal;
     customContentInternal;
     recording;
@@ -1309,7 +1311,6 @@ class TrackingHeapSnapshotProfileType extends Common.ObjectWrapper.eventMixin(He
     // eslint-disable-next-line @typescript-eslint/naming-convention
     static TrackingStopped = 'TrackingStopped';
 }
-export { TrackingHeapSnapshotProfileType };
 export class HeapProfileHeader extends ProfileHeader {
     heapProfilerModelInternal;
     maxJSObjectId;

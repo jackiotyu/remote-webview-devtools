@@ -125,7 +125,7 @@ export class SearchResultsTreeElement extends UI.TreeOutline.TreeElement {
         const matchesCountSpan = document.createElement('span');
         matchesCountSpan.className = 'search-result-matches-count';
         matchesCountSpan.textContent = `${this.searchResult.matchesCount()}`;
-        UI.ARIAUtils.setAccessibleName(matchesCountSpan, i18nString(UIStrings.matchesCountS, { PH1: this.searchResult.matchesCount() }));
+        UI.ARIAUtils.setLabel(matchesCountSpan, i18nString(UIStrings.matchesCountS, { PH1: this.searchResult.matchesCount() }));
         this.listItemElement.appendChild(matchesCountSpan);
         if (this.expanded) {
             this.updateMatchesUI();
@@ -145,10 +145,24 @@ export class SearchResultsTreeElement extends UI.TreeOutline.TreeElement {
             regexes.push(Platform.StringUtilities.createSearchRegex(queries[i], !this.searchConfig.ignoreCase(), this.searchConfig.isRegex()));
         }
         for (let i = fromIndex; i < toIndex; ++i) {
-            const lineContent = searchResult.matchLineContent(i).trim();
+            let lineContent = searchResult.matchLineContent(i);
             let matchRanges = [];
-            for (let j = 0; j < regexes.length; ++j) {
-                matchRanges = matchRanges.concat(this.regexMatchRanges(lineContent, regexes[j]));
+            // Searching in scripts and network response bodies produces one result entry per match. We can skip re-doing the
+            // search since we have the exact match range.
+            // For matches found in headers or the request URL we re-do the search to find all match ranges.
+            const column = searchResult.matchColumn(i);
+            const matchLength = searchResult.matchLength(i);
+            if (column !== undefined && matchLength !== undefined) {
+                const { matchRange, lineSegment } = lineSegmentForMatch(lineContent, new TextUtils.TextRange.SourceRange(column, matchLength));
+                lineContent = lineSegment;
+                matchRanges = [matchRange];
+            }
+            else {
+                lineContent = lineContent.trim();
+                for (let j = 0; j < regexes.length; ++j) {
+                    matchRanges = matchRanges.concat(this.regexMatchRanges(lineContent, regexes[j]));
+                }
+                ({ lineSegment: lineContent, matchRanges } = lineSegmentForMultipleMatches(lineContent, matchRanges));
             }
             const anchor = Components.Linkifier.Linkifier.linkifyRevealable(searchResult.matchRevealable(i), '');
             anchor.classList.add('search-match-link');
@@ -157,10 +171,10 @@ export class SearchResultsTreeElement extends UI.TreeOutline.TreeElement {
             const resultLabel = searchResult.matchLabel(i);
             labelSpan.textContent = resultLabel;
             if (typeof resultLabel === 'number' && !isNaN(resultLabel)) {
-                UI.ARIAUtils.setAccessibleName(labelSpan, i18nString(UIStrings.lineS, { PH1: resultLabel }));
+                UI.ARIAUtils.setLabel(labelSpan, i18nString(UIStrings.lineS, { PH1: resultLabel }));
             }
             else {
-                UI.ARIAUtils.setAccessibleName(labelSpan, resultLabel);
+                UI.ARIAUtils.setLabel(labelSpan, resultLabel);
             }
             anchor.appendChild(labelSpan);
             const contentSpan = this.createContentSpan(lineContent, matchRanges);
@@ -188,20 +202,10 @@ export class SearchResultsTreeElement extends UI.TreeOutline.TreeElement {
             this.showMoreMatchesElementSelected.bind(this, showMoreMatchesTreeElement, startMatchIndex);
     }
     createContentSpan(lineContent, matchRanges) {
-        let trimBy = 0;
-        if (matchRanges.length > 0 && matchRanges[0].offset > 20) {
-            trimBy = 15;
-        }
-        lineContent = lineContent.substring(trimBy, 1000 + trimBy);
-        if (trimBy) {
-            matchRanges =
-                matchRanges.map(range => new TextUtils.TextRange.SourceRange(range.offset - trimBy + 1, range.length));
-            lineContent = '…' + lineContent;
-        }
         const contentSpan = document.createElement('span');
         contentSpan.className = 'search-match-content';
         contentSpan.textContent = lineContent;
-        UI.ARIAUtils.setAccessibleName(contentSpan, `${lineContent} line`);
+        UI.ARIAUtils.setLabel(contentSpan, `${lineContent} line`);
         UI.UIUtils.highlightRangesWithStyleClass(contentSpan, matchRanges, 'highlighted-search-result');
         return contentSpan;
     }
@@ -219,5 +223,59 @@ export class SearchResultsTreeElement extends UI.TreeOutline.TreeElement {
         this.appendSearchMatches(startMatchIndex, this.searchResult.matchesCount());
         return false;
     }
+}
+const DEFAULT_OPTS = {
+    prefixLength: 25,
+    maxLength: 1000,
+};
+/**
+ * Takes a whole line and calculates the substring we want to actually display in the UI.
+ * Also returns a translated {matchRange} (the parameter is relative to {lineContent} but the
+ * caller needs it relative to {lineSegment}).
+ *
+ * {lineContent} is modified in the following way:
+ *
+ *   * Whitespace is trimmed from the beginning (unless the match includes it).
+ *   * We only leave {options.prefixLength} characters before the match (and add an ellipsis in
+ *     case we removed anything)
+ *   * Truncate the remainder to {options.maxLength} characters.
+ */
+export function lineSegmentForMatch(lineContent, range, optionsArg = DEFAULT_OPTS) {
+    const options = { ...DEFAULT_OPTS, ...optionsArg };
+    // Remove the whitespace at the beginning, but stop where the match starts.
+    const attemptedTrimmedLine = lineContent.trimStart();
+    const potentiallyRemovedWhitespaceLength = lineContent.length - attemptedTrimmedLine.length;
+    const actuallyRemovedWhitespaceLength = Math.min(range.offset, potentiallyRemovedWhitespaceLength);
+    // Apply {options.prefixLength} and {options.maxLength}.
+    const lineSegmentBegin = Math.max(actuallyRemovedWhitespaceLength, range.offset - options.prefixLength);
+    const lineSegmentEnd = Math.min(lineContent.length, lineSegmentBegin + options.maxLength);
+    const lineSegmentPrefix = lineSegmentBegin > actuallyRemovedWhitespaceLength ? '…' : '';
+    // Build the resulting line segment and match range.
+    const lineSegment = lineSegmentPrefix + lineContent.substring(lineSegmentBegin, lineSegmentEnd);
+    const rangeOffset = range.offset - lineSegmentBegin + lineSegmentPrefix.length;
+    const rangeLength = Math.min(range.length, lineSegment.length - rangeOffset);
+    const matchRange = new TextUtils.TextRange.SourceRange(rangeOffset, rangeLength);
+    return { lineSegment, matchRange };
+}
+/**
+ * Takes a line and multiple match ranges and trims/cuts the line accordingly.
+ * The match ranges are then adjusted to reflect the transformation.
+ *
+ * Ideally prefer `lineSegmentForMatch`, it can center the line on the match
+ * whereas this method risks cutting matches out of the string.
+ */
+function lineSegmentForMultipleMatches(lineContent, ranges) {
+    let trimBy = 0;
+    let matchRanges = ranges;
+    if (matchRanges.length > 0 && matchRanges[0].offset > 20) {
+        trimBy = 15;
+    }
+    let lineSegment = lineContent.substring(trimBy, 1000 + trimBy);
+    if (trimBy) {
+        matchRanges =
+            matchRanges.map(range => new TextUtils.TextRange.SourceRange(range.offset - trimBy + 1, range.length));
+        lineSegment = '…' + lineSegment;
+    }
+    return { lineSegment, matchRanges };
 }
 //# map=SearchResultsPane.js.map

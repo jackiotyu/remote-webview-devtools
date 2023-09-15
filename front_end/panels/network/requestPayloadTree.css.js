@@ -29,7 +29,7 @@ styles.replaceSync(
 
 .tree-outline > ol {
   padding-bottom: 5px;
-  border-bottom: solid 1px var(--color-details-hairline);
+  border-bottom: solid 1px var(--sys-color-divider);
 }
 
 .tree-outline > .parent {
@@ -139,6 +139,6 @@ styles.replaceSync(
   color: var(--color-accent-red);
 }
 
-
+/*# sourceURL=requestPayloadTree.css */
 `);
 export default styles;

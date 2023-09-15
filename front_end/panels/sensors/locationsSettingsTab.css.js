@@ -17,7 +17,7 @@ styles.replaceSync(
 
 .header {
   padding: 0 0 6px;
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
   font-size: 18px;
   font-weight: normal;
   flex: none;
@@ -93,6 +93,6 @@ styles.replaceSync(
   padding: 1px;
 }
 
-
+/*# sourceURL=locationsSettingsTab.css */
 `);
 export default styles;

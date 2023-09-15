@@ -33,7 +33,7 @@ const UIStrings = {
     /**
      *@description Message in the Headers View of the Network panel when a cross-origin opener policy blocked loading a sandbox iframe.
      */
-    thisDocumentWasBlockedFrom: 'This document was blocked from loading in an `iframe` with a `sandbox` attribute because this document specified a cross-origin opener policy.',
+    thisDocumentWasBlockedFrom: 'The document was blocked from loading in a popup opened by a sandboxed iframe because this document specified a cross-origin opener policy.',
     /**
      *@description Message in the Headers View of the Network panel when a cross-origin embedder policy header needs to be set.
      */
@@ -56,7 +56,7 @@ const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const i18nLazyString = i18n.i18n.getLazilyComputedLocalizedString.bind(undefined, str_);
 const plusIconUrl = new URL('../../../Images/plus.svg', import.meta.url).toString();
 export const RESPONSE_HEADER_SECTION_DATA_KEY = 'ResponseHeaderSection';
-class ResponseHeaderSection extends HTMLElement {
+export class ResponseHeaderSection extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-response-header-section`;
     #shadow = this.attachShadow({ mode: 'open' });
     #request;
@@ -446,7 +446,6 @@ class ResponseHeaderSection extends HTMLElement {
         }
     }
 }
-export { ResponseHeaderSection };
 ComponentHelpers.CustomElements.defineComponent('devtools-response-header-section', ResponseHeaderSection);
 const BlockedReasonDetails = new Map([
     [

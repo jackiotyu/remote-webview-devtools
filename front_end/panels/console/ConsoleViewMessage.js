@@ -36,6 +36,7 @@ import * as Platform from '../../core/platform/platform.js';
 import * as SDK from '../../core/sdk/sdk.js';
 import * as Bindings from '../../models/bindings/bindings.js';
 import * as Logs from '../../models/logs/logs.js';
+import * as Host from '../../core/host/host.js';
 import * as TextUtils from '../../models/text_utils/text_utils.js';
 import * as Workspace from '../../models/workspace/workspace.js';
 import * as CodeHighlighter from '../../ui/components/code_highlighter/code_highlighter.js';
@@ -392,8 +393,9 @@ export class ConsoleViewMessage {
             if (request.statusCode !== 0) {
                 UI.UIUtils.createTextChildren(messageElement, ' ', String(request.statusCode));
             }
-            if (request.statusText) {
-                UI.UIUtils.createTextChildren(messageElement, ' (', request.statusText, ')');
+            const statusText = request.getInferredStatusText();
+            if (statusText) {
+                UI.UIUtils.createTextChildren(messageElement, ' (', statusText, ')');
             }
         }
         else {
@@ -432,26 +434,35 @@ export class ConsoleViewMessage {
         }
         return elements;
     }
+    #getLinkifierMetric() {
+        const request = Logs.NetworkLog.NetworkLog.requestForConsoleMessage(this.message);
+        if (request?.resourceType().isStyleSheet()) {
+            return Host.UserMetrics.Action.StyleSheetInitiatorLinkClicked;
+        }
+        return undefined;
+    }
     buildMessageAnchor() {
         const runtimeModel = this.message.runtimeModel();
         if (!runtimeModel) {
             return null;
         }
         const linkify = ({ stackFrameWithBreakpoint, scriptId, stackTrace, url, line, column }) => {
+            const userMetric = this.#getLinkifierMetric();
             if (stackFrameWithBreakpoint) {
                 return this.linkifier.maybeLinkifyConsoleCallFrame(runtimeModel.target(), stackFrameWithBreakpoint, {
                     inlineFrameIndex: 0,
                     revealBreakpoint: true,
+                    userMetric,
                 });
             }
             if (scriptId) {
-                return this.linkifier.linkifyScriptLocation(runtimeModel.target(), scriptId, url || Platform.DevToolsPath.EmptyUrlString, line, { columnNumber: column, inlineFrameIndex: 0 });
+                return this.linkifier.linkifyScriptLocation(runtimeModel.target(), scriptId, url || Platform.DevToolsPath.EmptyUrlString, line, { columnNumber: column, inlineFrameIndex: 0, userMetric });
             }
             if (stackTrace && stackTrace.callFrames.length) {
                 return this.linkifier.linkifyStackTraceTopFrame(runtimeModel.target(), stackTrace);
             }
             if (url && url !== 'undefined') {
-                return this.linkifier.linkifyScriptLocation(runtimeModel.target(), /* scriptId */ null, url, line, { columnNumber: column, inlineFrameIndex: 0 });
+                return this.linkifier.linkifyScriptLocation(runtimeModel.target(), /* scriptId */ null, url, line, { columnNumber: column, inlineFrameIndex: 0, userMetric });
             }
             return null;
         };
@@ -494,13 +505,13 @@ export class ConsoleViewMessage {
             this.selectableChildren.push({ element: linkElement, forceSelect: () => linkElement.focus() });
         }
         stackTraceElement.classList.add('hidden');
-        UI.ARIAUtils.setAccessibleName(contentElement, `${messageElement.textContent} ${i18nString(UIStrings.stackMessageCollapsed)}`);
+        UI.ARIAUtils.setLabel(contentElement, `${messageElement.textContent} ${i18nString(UIStrings.stackMessageCollapsed)}`);
         UI.ARIAUtils.markAsGroup(stackTraceElement);
         this.expandTrace = (expand) => {
             icon.setIconType(expand ? 'triangle-down' : 'triangle-right');
             stackTraceElement.classList.toggle('hidden', !expand);
             const stackTableState = expand ? i18nString(UIStrings.stackMessageExpanded) : i18nString(UIStrings.stackMessageCollapsed);
-            UI.ARIAUtils.setAccessibleName(contentElement, `${messageElement.textContent} ${stackTableState}`);
+            UI.ARIAUtils.setLabel(contentElement, `${messageElement.textContent} ${stackTableState}`);
             UI.ARIAUtils.alert(stackTableState);
             UI.ARIAUtils.setExpanded(clickableElement, expand);
             this.traceExpanded = expand;
@@ -887,7 +898,8 @@ export class ConsoleViewMessage {
         return nestingLevel;
     }
     setConsoleGroup(group) {
-        console.assert(this.consoleGroupInternal === null);
+        // TODO(crbug.com/1477675): Figure out why `this.consoleGroupInternal` is
+        //     not null here and add an assertion.
         this.consoleGroupInternal = group;
     }
     clearConsoleGroup() {
@@ -1163,7 +1175,7 @@ export class ConsoleViewMessage {
         if (this.contentElementInternal) {
             this.contentElementInternal.insertBefore(this.messageIcon, this.contentElementInternal.firstChild);
         }
-        UI.ARIAUtils.setAccessibleName(this.messageIcon, accessibleName);
+        UI.ARIAUtils.setLabel(this.messageIcon, accessibleName);
     }
     setAdjacentUserCommandResult(adjacentUserCommandResult) {
         this.#adjacentUserCommandResult = adjacentUserCommandResult;
@@ -1229,7 +1241,7 @@ export class ConsoleViewMessage {
         else {
             accessibleName = i18nString(UIStrings.repeatS, { n: this.repeatCountInternal });
         }
-        UI.ARIAUtils.setAccessibleName(this.repeatCountElement, accessibleName);
+        UI.ARIAUtils.setLabel(this.repeatCountElement, accessibleName);
     }
     get text() {
         return this.message.messageText;

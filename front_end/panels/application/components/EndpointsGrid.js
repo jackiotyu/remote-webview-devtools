@@ -16,7 +16,7 @@ const UIStrings = {
 const str_ = i18n.i18n.registerUIStrings('panels/application/components/EndpointsGrid.ts', UIStrings);
 export const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const { render, html } = LitHtml;
-class EndpointsGrid extends HTMLElement {
+export class EndpointsGrid extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-resources-endpoints-grid`;
     #shadow = this.attachShadow({ mode: 'open' });
     #endpoints = new Map();
@@ -86,6 +86,5 @@ class EndpointsGrid extends HTMLElement {
             .flat();
     }
 }
-export { EndpointsGrid };
 ComponentHelpers.CustomElements.defineComponent('devtools-resources-endpoints-grid', EndpointsGrid);
 //# map=EndpointsGrid.js.map

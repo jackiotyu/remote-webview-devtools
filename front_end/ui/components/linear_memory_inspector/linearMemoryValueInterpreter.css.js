@@ -57,6 +57,6 @@ styles.replaceSync(
   /* See: crbug.com/1152736 for color variable migration. */
 }
 
-
+/*# sourceURL=linearMemoryValueInterpreter.css */
 `);
 export default styles;

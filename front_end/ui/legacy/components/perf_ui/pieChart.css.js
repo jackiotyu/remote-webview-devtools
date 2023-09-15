@@ -12,7 +12,7 @@ styles.replaceSync(
  */
 
 .root {
-  align-items: center;
+  align-items: flex-start; /* keep chart at top so it doesnt change position as the legend changes height */
   display: flex;
   min-width: fit-content;
   white-space: nowrap;
@@ -83,10 +83,6 @@ styles.replaceSync(
   /* See: crbug.com/1152736 for color variable migration. */
 }
 
-.pie-chart-swatch.pie-chart-empty-swatch {
-  border: none;
-}
-
 .pie-chart-name {
   display: inline-block;
 }
@@ -109,6 +105,6 @@ styles.replaceSync(
   }
 }
 
-
+/*# sourceURL=pieChart.css */
 `);
 export default styles;

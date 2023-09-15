@@ -46,6 +46,8 @@ const str_ = i18n.i18n.registerUIStrings('panels/sources/components/HeadersView.
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const plusIconUrl = new URL('../../../Images/plus.svg', import.meta.url).toString();
 const trashIconUrl = new URL('../../../Images/bin.svg', import.meta.url).toString();
+const DEFAULT_HEADER_VALUE = 'header value';
+const getDefaultHeaderName = (i) => `header-name-${i}`;
 export class HeadersView extends UI.View.SimpleView {
     #headersViewComponent = new HeadersViewComponent();
     #uiSourceCode;
@@ -95,7 +97,7 @@ export class HeadersView extends UI.View.SimpleView {
         this.#uiSourceCode.removeEventListener(Workspace.UISourceCode.Events.WorkingCopyCommitted, this.#onWorkingCopyCommitted, this);
     }
 }
-class HeadersViewComponent extends HTMLElement {
+export class HeadersViewComponent extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-sources-headers-view`;
     #shadow = this.attachShadow({ mode: 'open' });
     #boundRender = this.#render.bind(this);
@@ -201,10 +203,10 @@ class HeadersViewComponent extends HTMLElement {
     #generateNextHeaderName(headers) {
         const takenNames = new Set(headers.map(header => header.name));
         let idx = 1;
-        while (takenNames.has('header-name-' + idx)) {
+        while (takenNames.has(getDefaultHeaderName(idx))) {
             idx++;
         }
-        return 'header-name-' + idx;
+        return getDefaultHeaderName(idx);
     }
     #onClick(event) {
         const target = event.target;
@@ -212,7 +214,7 @@ class HeadersViewComponent extends HTMLElement {
         const blockIndex = Number(rowElement?.dataset.blockIndex || 0);
         const headerIndex = Number(rowElement?.dataset.headerIndex || 0);
         if (target.matches('.add-header')) {
-            this.#headerOverrides[blockIndex].headers.splice(headerIndex + 1, 0, { name: this.#generateNextHeaderName(this.#headerOverrides[blockIndex].headers), value: 'header value' });
+            this.#headerOverrides[blockIndex].headers.splice(headerIndex + 1, 0, { name: this.#generateNextHeaderName(this.#headerOverrides[blockIndex].headers), value: DEFAULT_HEADER_VALUE });
             this.#focusElement = { blockIndex, headerIndex: headerIndex + 1 };
             this.#onHeadersChanged();
         }
@@ -220,7 +222,7 @@ class HeadersViewComponent extends HTMLElement {
             this.#removeHeader(blockIndex, headerIndex);
         }
         else if (target.matches('.add-block')) {
-            this.#headerOverrides.push({ applyTo: '*', headers: [{ name: 'header-name-1', value: 'header value' }] });
+            this.#headerOverrides.push({ applyTo: '*', headers: [{ name: getDefaultHeaderName(1), value: DEFAULT_HEADER_VALUE }] });
             this.#focusElement = { blockIndex: this.#headerOverrides.length - 1 };
             this.#onHeadersChanged();
         }
@@ -229,10 +231,16 @@ class HeadersViewComponent extends HTMLElement {
             this.#onHeadersChanged();
         }
     }
+    #isDeletable(blockIndex, headerIndex) {
+        const isOnlyDefaultHeader = headerIndex === 0 && this.#headerOverrides[blockIndex].headers.length === 1 &&
+            this.#headerOverrides[blockIndex].headers[headerIndex].name === getDefaultHeaderName(1) &&
+            this.#headerOverrides[blockIndex].headers[headerIndex].value === DEFAULT_HEADER_VALUE;
+        return !isOnlyDefaultHeader;
+    }
     #removeHeader(blockIndex, headerIndex) {
         this.#headerOverrides[blockIndex].headers.splice(headerIndex, 1);
         if (this.#headerOverrides[blockIndex].headers.length === 0) {
-            this.#headerOverrides[blockIndex].headers.push({ name: this.#generateNextHeaderName(this.#headerOverrides[blockIndex].headers), value: 'header value' });
+            this.#headerOverrides[blockIndex].headers.push({ name: this.#generateNextHeaderName(this.#headerOverrides[blockIndex].headers), value: DEFAULT_HEADER_VALUE });
         }
         this.#onHeadersChanged();
     }
@@ -371,6 +379,7 @@ class HeadersViewComponent extends HTMLElement {
           .iconWidth=${'14px'}
           .iconHeight=${'14px'}
           .variant=${"round" /* Buttons.Button.Variant.ROUND */}
+          ?hidden=${!this.#isDeletable(blockIndex, headerIndex)}
           class="remove-header inline-button"
         ></${Buttons.Button.Button.litTagName}>
       </div>
@@ -387,6 +396,5 @@ class HeadersViewComponent extends HTMLElement {
         // clang-format on
     }
 }
-export { HeadersViewComponent };
 ComponentHelpers.CustomElements.defineComponent('devtools-sources-headers-view', HeadersViewComponent);
 //# map=HeadersView.js.map

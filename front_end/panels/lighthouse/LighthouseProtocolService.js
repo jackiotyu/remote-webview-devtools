@@ -45,6 +45,7 @@ let lastId = 1;
 export class ProtocolService {
     mainSessionId;
     mainFrameId;
+    mainTargetId;
     targetInfos;
     parallelConnection;
     lighthouseWorkerPromise;
@@ -92,6 +93,7 @@ export class ProtocolService {
         this.parallelConnection = connection;
         this.targetInfos = childTargetManager.targetInfos();
         this.mainFrameId = mainFrame.id;
+        this.mainTargetId = await childTargetManager.getParentTargetId();
         this.mainSessionId = sessionId;
     }
     getLocales() {
@@ -99,7 +101,7 @@ export class ProtocolService {
     }
     async startTimespan(currentLighthouseRun) {
         const { inspectedURL, categoryIDs, flags } = currentLighthouseRun;
-        if (!this.mainFrameId || !this.mainSessionId || !this.targetInfos) {
+        if (!this.mainFrameId || !this.mainSessionId || !this.mainTargetId || !this.targetInfos) {
             throw new Error('Unable to get target info required for Lighthouse');
         }
         await this.sendWithResponse('startTimespan', {
@@ -110,12 +112,13 @@ export class ProtocolService {
             locales: this.getLocales(),
             mainSessionId: this.mainSessionId,
             mainFrameId: this.mainFrameId,
+            mainTargetId: this.mainTargetId,
             targetInfos: this.targetInfos,
         });
     }
     async collectLighthouseResults(currentLighthouseRun) {
         const { inspectedURL, categoryIDs, flags } = currentLighthouseRun;
-        if (!this.mainFrameId || !this.mainSessionId || !this.targetInfos) {
+        if (!this.mainFrameId || !this.mainSessionId || !this.mainTargetId || !this.targetInfos) {
             throw new Error('Unable to get target info required for Lighthouse');
         }
         let mode = flags.mode;
@@ -130,6 +133,7 @@ export class ProtocolService {
             locales: this.getLocales(),
             mainSessionId: this.mainSessionId,
             mainFrameId: this.mainFrameId,
+            mainTargetId: this.mainTargetId,
             targetInfos: this.targetInfos,
         });
     }

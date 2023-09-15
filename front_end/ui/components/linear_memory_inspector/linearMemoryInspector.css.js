@@ -38,6 +38,6 @@ devtools-linear-memory-inspector-navigator + devtools-linear-memory-inspector-vi
   display: flex;
 }
 
-
+/*# sourceURL=linearMemoryInspector.css */
 `);
 export default styles;

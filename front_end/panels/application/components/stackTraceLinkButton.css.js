@@ -12,7 +12,7 @@ styles.replaceSync(
  */
 
 button.link {
-  color: var(--color-link);
+  color: var(--sys-color-primary);
   text-decoration: underline;
   cursor: pointer;
   outline-offset: 2px;
@@ -22,6 +22,6 @@ button.link {
   font-size: inherit;
 }
 
-
+/*# sourceURL=stackTraceLinkButton.css */
 `);
 export default styles;

@@ -108,14 +108,7 @@ styles.replaceSync(
   overflow: hidden;
   padding-right: 10px;
 }
-/*
- * Always show an outline. Needed because we have a white background here.
- */
 
-.workspace-settings-tab .harmony-input[type="text"]:not(.error-input):not(:invalid) {
-  box-shadow: var(--legacy-focus-ring-inactive-shadow);
-}
-
-
+/*# sourceURL=workspaceSettingsTab.css */
 `);
 export default styles;

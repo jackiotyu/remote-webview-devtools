@@ -241,6 +241,7 @@ export var ActionCategory;
     ActionCategory["DEBUGGER"] = "DEBUGGER";
     ActionCategory["SOURCES"] = "SOURCES";
     ActionCategory["RENDERING"] = "RENDERING";
+    ActionCategory["EXPLAIN"] = "EXPLAIN";
 })(ActionCategory || (ActionCategory = {}));
 export function getLocalizedActionCategory(category) {
     switch (category) {

@@ -37,13 +37,21 @@ const UIStrings = {
      */
     icons: 'Icons',
     /**
-     *@description Text for the name of something
+     *@description Text in App Manifest View of the Application panel
+     */
+    windowControlsOverlay: 'Window Controls Overlay',
+    /**
+     *@description Label in the App Manifest View for the "name" property of web app or shortcut item
      */
     name: 'Name',
     /**
-     *@description Text in App Manifest View of the Application panel
+     *@description Label in the App Manifest View for the "short_name" property of web app or shortcut item
      */
     shortName: 'Short name',
+    /**
+     *@description Label in the App Manifest View for the "url" property of shortcut item
+     */
+    url: 'URL',
     /**
      *@description Label in the App Manifest View for the Computed App Id
      */
@@ -80,7 +88,7 @@ const UIStrings = {
      */
     copiedToClipboard: 'Copied suggested ID {PH1} to clipboard',
     /**
-     *@description Text for the description of something
+     *@description Label in the App Manifest View for the "description" property of web app or shortcut item
      */
     description: 'Description',
     /**
@@ -122,6 +130,10 @@ const UIStrings = {
      *@description Text in App Manifest View of the Application panel
      */
     descriptionMayBeTruncated: 'Description may be truncated.',
+    /**
+     *@description Warning text about too many shortcuts
+     */
+    shortcutsMayBeNotAvailable: 'The maximum number of shortcuts is platform dependent. Some shortcuts may be not available.',
     /**
      *@description Text in App Manifest View of the Application panel
      */
@@ -259,6 +271,18 @@ const UIStrings = {
      */
     screenshot: 'Screenshot',
     /**
+     *@description Label in the App Manifest View for the "form_factor" property of screenshot
+     */
+    formFactor: 'Form factor',
+    /**
+     *@description Label in the App Manifest View for the "label" property of screenshot
+     */
+    label: 'Label',
+    /**
+     *@description Label in the App Manifest View for the "platform" property of screenshot
+     */
+    platform: 'Platform',
+    /**
      *@description Text in App Manifest View of the Application panel
      */
     icon: 'Icon',
@@ -352,10 +376,51 @@ const UIStrings = {
      *@example {https://example.com/image.png} url
      */
     screenshotPixelSize: 'Screenshot {url} should specify a pixel size `[width]x[height]` instead of `"any"` as first size.',
+    /**
+     *@description Warning text about screenshots for Richer PWA Install UI on desktop
+     */
+    noScreenshotsForRicherPWAInstallOnDesktop: 'Richer PWA Install UI won’t be available on desktop. Please add at least one screenshot with the "form_factor" set to "wide".',
+    /**
+     *@description Warning text about screenshots for Richer PWA Install UI on mobile
+     */
+    noScreenshotsForRicherPWAInstallOnMobile: 'Richer PWA Install UI won’t be available on mobile. Please add at least one screenshot for which "form_factor" is not set or set to a value other than "wide".',
+    /**
+     *@description Warning text about too many screenshots for desktop
+     */
+    tooManyScreenshotsForDesktop: 'No more than 8 screenshots will be displayed on desktop. The rest will be ignored.',
+    /**
+     *@description Warning text about too many screenshots for mobile
+     */
+    tooManyScreenshotsForMobile: 'No more than 5 screenshots will be displayed on mobile. The rest will be ignored.',
+    /**
+     *@description Warning text about not all screenshots matching the appropriate form factor have the same aspect ratio
+     */
+    screenshotsMustHaveSameAspectRatio: 'All screenshots with the same "form_factor" must have the same aspect ratio as the first screenshot with that "form_factor". Some screenshots will be ignored.',
+    /**
+     *@description Message for Window Controls Overlay value succsessfully found with links to documnetation
+     *@example {window-controls-overlay} PH1
+     *@example {https://developer.mozilla.org/en-US/docs/Web/Manifest/display_override} PH2
+     *@example {https://developer.mozilla.org/en-US/docs/Web/Manifest} PH3
+     */
+    wcoFound: 'Chrome has successfully found the {PH1} value for the {PH2} field in the {PH3}.',
+    /**
+     *@description Message for Windows Control Overlay value not found with link to documentation
+     *@example {https://developer.mozilla.org/en-US/docs/Web/Manifest/display_override} PH1
+     */
+    wcoNotFound: 'Define {PH1} in the manifest to use the Window Controls Overlay API and customize your app\'s title bar.',
+    /**
+     *@description Link text for more information on customizing Window Controls Overlay title bar in the Application panel
+     */
+    customizePwaTitleBar: 'Customize the window controls overlay of your PWA\'s title bar.',
+    /**
+     *@description Text wrapping link to documentation on how to customize WCO title bar
+     *@example {https://learn.microsoft.com/en-us/microsoft-edge/progressive-web-apps-chromium/how-to/window-controls-overlay} PH1
+     */
+    wcoNeedHelpReadMore: 'Need help? Read {PH1}.',
 };
 const str_ = i18n.i18n.registerUIStrings('panels/application/AppManifestView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-export class AppManifestView extends UI.Widget.VBox {
+export class AppManifestView extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) {
     emptyView;
     reportView;
     errorsSection;
@@ -363,6 +428,7 @@ export class AppManifestView extends UI.Widget.VBox {
     identitySection;
     presentationSection;
     iconsSection;
+    windowsControlsOverlaySection;
     protocolHandlersSection;
     shortcutSections;
     screenshotsSections;
@@ -385,6 +451,7 @@ export class AppManifestView extends UI.Widget.VBox {
     resourceTreeModel;
     serviceWorkerManager;
     protocolHandlersView;
+    manifestLink;
     constructor(emptyView, reportView, throttler) {
         super(true);
         this.contentElement.classList.add('manifest-container');
@@ -407,13 +474,14 @@ export class AppManifestView extends UI.Widget.VBox {
         this.protocolHandlersView = new ApplicationComponents.ProtocolHandlersView.ProtocolHandlersView();
         this.protocolHandlersSection.appendFieldWithCustomView(this.protocolHandlersView);
         this.iconsSection = this.reportView.appendSection(i18nString(UIStrings.icons), 'report-section-icons');
+        this.windowsControlsOverlaySection = this.reportView.appendSection(UIStrings.windowControlsOverlay);
         this.shortcutSections = [];
         this.screenshotsSections = [];
         this.nameField = this.identitySection.appendField(i18nString(UIStrings.name));
         this.shortNameField = this.identitySection.appendField(i18nString(UIStrings.shortName));
         this.descriptionField = this.identitySection.appendFlexedField(i18nString(UIStrings.description));
         this.startURLField = this.presentationSection.appendField(i18nString(UIStrings.startUrl));
-        UI.ARIAUtils.setAccessibleName(this.startURLField, i18nString(UIStrings.startUrl));
+        UI.ARIAUtils.setLabel(this.startURLField, i18nString(UIStrings.startUrl));
         const themeColorField = this.presentationSection.appendField(i18nString(UIStrings.themeColor));
         this.themeColorSwatch = new InlineEditor.ColorSwatch.ColorSwatch();
         themeColorField.appendChild(this.themeColorSwatch);
@@ -434,7 +502,13 @@ export class AppManifestView extends UI.Widget.VBox {
         this.registeredListeners = [];
     }
     getStaticSections() {
-        return [this.identitySection, this.presentationSection, this.protocolHandlersSection, this.iconsSection];
+        return [
+            this.identitySection,
+            this.presentationSection,
+            this.protocolHandlersSection,
+            this.iconsSection,
+            this.windowsControlsOverlaySection,
+        ];
     }
     getManifestElement() {
         return this.reportView.getHeaderElement();
@@ -487,13 +561,14 @@ export class AppManifestView extends UI.Widget.VBox {
         if (!data && !errors.length) {
             this.emptyView.showWidget();
             this.reportView.hideWidget();
-            this.contentElement.dispatchEvent(new CustomEvent('manifestDetection', { detail: false }));
+            this.dispatchEventToListeners(Events.ManifestDetected, false);
             return;
         }
         this.emptyView.hideWidget();
         this.reportView.showWidget();
-        this.contentElement.dispatchEvent(new CustomEvent('manifestDetection', { detail: true }));
+        this.dispatchEventToListeners(Events.ManifestDetected, true);
         const link = Components.Linkifier.Linkifier.linkifyURL(url);
+        this.manifestLink = link;
         link.tabIndex = 0;
         this.reportView.setURL(link);
         this.errorsSection.clearContent();
@@ -518,13 +593,14 @@ export class AppManifestView extends UI.Widget.VBox {
         const warnings = [];
         const description = stringProperty('description');
         this.descriptionField.textContent = description;
-        if (description.length > 324) {
+        // See https://crbug.com/1354304 for details.
+        if (description.length > 300) {
             warnings.push(i18nString(UIStrings.descriptionMayBeTruncated));
         }
         const startURL = stringProperty('start_url');
         if (appId && recommendedId) {
             const appIdField = this.identitySection.appendField(i18nString(UIStrings.computedAppId));
-            UI.ARIAUtils.setAccessibleName(appIdField, 'App Id');
+            UI.ARIAUtils.setLabel(appIdField, 'App Id');
             appIdField.textContent = appId;
             const helpIcon = new IconButton.Icon.Icon();
             helpIcon.data = { iconName: 'help', color: 'var(--icon-default)', width: '16px', height: '16px' };
@@ -532,7 +608,7 @@ export class AppManifestView extends UI.Widget.VBox {
             helpIcon.title = i18nString(UIStrings.appIdExplainer);
             helpIcon.tabIndex = 0;
             appIdField.appendChild(helpIcon);
-            appIdField.appendChild(UI.XLink.XLink.create('https://developer.chrome.com/blog/pwa-manifest-id/', i18nString(UIStrings.learnMore), 'learn-more'));
+            appIdField.appendChild(UI.XLink.XLink.create('https://developer.chrome.com/blog/pwa-manifest-id/', i18nString(UIStrings.learnMore)));
             if (!stringProperty('id')) {
                 const suggestedIdNote = appIdField.createChild('div', 'multiline-value');
                 const noteSpan = document.createElement('b');
@@ -652,18 +728,21 @@ export class AppManifestView extends UI.Widget.VBox {
         if (!squareSizedIconAvailable) {
             imageErrors.push(i18nString(UIStrings.sSShouldHaveSquareIcon));
         }
+        if (shortcuts.length > 4) {
+            warnings.push(i18nString(UIStrings.shortcutsMayBeNotAvailable));
+        }
         let shortcutIndex = 1;
         for (const shortcut of shortcuts) {
             const shortcutSection = this.reportView.appendSection(i18nString(UIStrings.shortcutS, { PH1: shortcutIndex }));
             this.shortcutSections.push(shortcutSection);
-            shortcutSection.appendFlexedField('Name', shortcut.name);
+            shortcutSection.appendFlexedField(i18nString(UIStrings.name), shortcut.name);
             if (shortcut.short_name) {
-                shortcutSection.appendFlexedField('Short name', shortcut.short_name);
+                shortcutSection.appendFlexedField(i18nString(UIStrings.shortName), shortcut.short_name);
             }
             if (shortcut.description) {
-                shortcutSection.appendFlexedField('Description', shortcut.description);
+                shortcutSection.appendFlexedField(i18nString(UIStrings.description), shortcut.description);
             }
-            const urlField = shortcutSection.appendFlexedField('URL');
+            const urlField = shortcutSection.appendFlexedField(i18nString(UIStrings.url));
             const shortcutUrl = Common.ParsedURL.ParsedURL.completeURL(url, shortcut.url);
             const link = Components.Linkifier.Linkifier.linkifyURL(shortcutUrl, { text: shortcut.url });
             link.tabIndex = 0;
@@ -686,12 +765,50 @@ export class AppManifestView extends UI.Widget.VBox {
             shortcutIndex++;
         }
         let screenshotIndex = 1;
+        const formFactorScreenshotDimensions = new Map();
+        let haveScreenshotsDifferentAspectRatio = false;
         for (const screenshot of screenshots) {
             const screenshotSection = this.reportView.appendSection(i18nString(UIStrings.screenshotS, { PH1: screenshotIndex }));
             this.screenshotsSections.push(screenshotSection);
-            const { imageResourceErrors: screenshotErrors } = await this.appendImageResourceToSection(url, screenshot, screenshotSection, /** isScreenshot= */ true);
+            if (screenshot.form_factor) {
+                screenshotSection.appendFlexedField(i18nString(UIStrings.formFactor), screenshot.form_factor);
+            }
+            if (screenshot.label) {
+                screenshotSection.appendFlexedField(i18nString(UIStrings.label), screenshot.label);
+            }
+            if (screenshot.platform) {
+                screenshotSection.appendFlexedField(i18nString(UIStrings.platform), screenshot.platform);
+            }
+            const { imageResourceErrors: screenshotErrors, naturalWidth: width, naturalHeight: height } = await this.appendImageResourceToSection(url, screenshot, screenshotSection, /** isScreenshot= */ true);
             imageErrors.push(...screenshotErrors);
+            if (screenshot.form_factor && width && height) {
+                formFactorScreenshotDimensions.has(screenshot.form_factor) ||
+                    formFactorScreenshotDimensions.set(screenshot.form_factor, { width, height });
+                const formFactorFirstScreenshotDimensions = formFactorScreenshotDimensions.get(screenshot.form_factor);
+                if (formFactorFirstScreenshotDimensions) {
+                    haveScreenshotsDifferentAspectRatio = haveScreenshotsDifferentAspectRatio ||
+                        (width * formFactorFirstScreenshotDimensions.height !==
+                            height * formFactorFirstScreenshotDimensions.width);
+                }
+            }
             screenshotIndex++;
+        }
+        if (haveScreenshotsDifferentAspectRatio) {
+            warnings.push(i18nString(UIStrings.screenshotsMustHaveSameAspectRatio));
+        }
+        const screenshotsForDesktop = screenshots.filter(screenshot => screenshot.form_factor === 'wide');
+        const screenshotsForMobile = screenshots.filter(screenshot => screenshot.form_factor !== 'wide');
+        if (screenshotsForDesktop.length < 1) {
+            warnings.push(i18nString(UIStrings.noScreenshotsForRicherPWAInstallOnDesktop));
+        }
+        if (screenshotsForMobile.length < 1) {
+            warnings.push(i18nString(UIStrings.noScreenshotsForRicherPWAInstallOnMobile));
+        }
+        if (screenshotsForDesktop.length > 8) {
+            warnings.push(i18nString(UIStrings.tooManyScreenshotsForDesktop));
+        }
+        if (screenshotsForMobile.length > 5) {
+            warnings.push(i18nString(UIStrings.tooManyScreenshotsForMobile));
         }
         this.installabilitySection.clearContent();
         this.installabilitySection.element.classList.toggle('hidden', !installabilityErrors.length);
@@ -716,6 +833,36 @@ export class AppManifestView extends UI.Widget.VBox {
             }
             return value;
         }
+        this.windowsControlsOverlaySection.clearContent();
+        const displayOverride = parsedManifest['display_override'] || [];
+        const hasWco = displayOverride.includes('window-controls-overlay');
+        const displayOverrideLink = UI.XLink.XLink.create('https://developer.mozilla.org/en-US/docs/Web/Manifest/display_override', i18n.i18n.lockedString('display-override'));
+        const displayOverrideText = document.createElement('code');
+        displayOverrideText.appendChild(displayOverrideLink);
+        const wcoStatusMessage = this.windowsControlsOverlaySection.appendRow();
+        if (hasWco) {
+            const checkmarkIcon = new IconButton.Icon.Icon();
+            checkmarkIcon
+                .data = { iconName: 'check-circle', color: 'var(--icon-checkmark-green)', width: '16px', height: '16px' };
+            checkmarkIcon.classList.add('inline-icon');
+            checkmarkIcon.tabIndex = 0;
+            wcoStatusMessage.appendChild(checkmarkIcon);
+            const wco = document.createElement('code');
+            wco.classList.add('wco');
+            wco.textContent = 'window-controls-overlay';
+            wcoStatusMessage.appendChild(i18n.i18n.getFormatLocalizedString(str_, UIStrings.wcoFound, { PH1: wco, PH2: displayOverrideText, PH3: this.manifestLink }));
+        }
+        else {
+            const infoIcon = new IconButton.Icon.Icon();
+            infoIcon.data = { iconName: 'info', color: 'var(--icon-default)', width: '16px', height: '16px' };
+            infoIcon.classList.add('inline-icon');
+            infoIcon.tabIndex = 0;
+            wcoStatusMessage.appendChild(infoIcon);
+            wcoStatusMessage.appendChild(i18n.i18n.getFormatLocalizedString(str_, UIStrings.wcoNotFound, { PH1: displayOverrideText }));
+        }
+        const wcoDocumentationLink = UI.XLink.XLink.create('https://learn.microsoft.com/en-us/microsoft-edge/progressive-web-apps-chromium/how-to/window-controls-overlay', i18nString(UIStrings.customizePwaTitleBar));
+        this.windowsControlsOverlaySection.appendRow().appendChild(i18n.i18n.getFormatLocalizedString(str_, UIStrings.wcoNeedHelpReadMore, { PH1: wcoDocumentationLink }));
+        this.dispatchEventToListeners(Events.ManifestRendered);
     }
     getInstallabilityErrorMessages(installabilityErrors) {
         const errorMessages = [];
@@ -832,7 +979,7 @@ export class AppManifestView extends UI.Widget.VBox {
         return null;
     }
     parseSizes(sizes, resourceName, imageUrl, imageResourceErrors) {
-        const rawSizeArray = sizes.split(/\s+/);
+        const rawSizeArray = sizes ? sizes.split(/\s+/) : [];
         const parsedSizes = [];
         for (const size of rawSizeArray) {
             if (size === 'any') {
@@ -907,6 +1054,7 @@ export class AppManifestView extends UI.Widget.VBox {
             return { imageResourceErrors };
         }
         const { wrapper, image } = result;
+        const { naturalWidth, naturalHeight } = image;
         const sizes = this.parseSizes(imageResource['sizes'], resourceName, imageUrl, imageResourceErrors);
         const title = sizes.map(x => x.formatted).join(' ') + '\n' + (imageResource['type'] || '');
         const field = section.appendFlexedField(title);
@@ -948,7 +1096,7 @@ export class AppManifestView extends UI.Widget.VBox {
             imageResourceErrors.push(i18nString(UIStrings.avoidPurposeAnyAndMaskable));
         }
         field.appendChild(wrapper);
-        return { imageResourceErrors, squareSizedIconAvailable };
+        return { imageResourceErrors, squareSizedIconAvailable, naturalWidth, naturalHeight };
     }
     wasShown() {
         super.wasShown();
@@ -956,4 +1104,11 @@ export class AppManifestView extends UI.Widget.VBox {
         this.registerCSSFiles([appManifestViewStyles]);
     }
 }
+// TODO(crbug.com/1167717): Make this a const enum again
+// eslint-disable-next-line rulesdir/const_enum
+export var Events;
+(function (Events) {
+    Events["ManifestDetected"] = "ManifestDetected";
+    Events["ManifestRendered"] = "ManifestRendered";
+})(Events || (Events = {}));
 //# map=AppManifestView.js.map

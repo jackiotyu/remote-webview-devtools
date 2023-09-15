@@ -73,8 +73,8 @@ styles.replaceSync(
   transition: opacity 200ms;
 }
 
-.row:focus-within .inline-button,
-.row:hover .inline-button {
+.row:focus-within .inline-button:not([hidden]),
+.row:hover .inline-button:not([hidden]) {
   opacity: 100%;
   visibility: visible;
 }
@@ -123,6 +123,6 @@ styles.replaceSync(
   line-height: 24px;
 }
 
-
+/*# sourceURL=HeadersView.css */
 `);
 export default styles;

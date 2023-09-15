@@ -31,7 +31,7 @@ code {
 }
 
 .clickable {
-  color: var(--color-link);
+  color: var(--sys-color-primary);
 }
 
 .underlined {
@@ -42,6 +42,6 @@ code {
   white-space: nowrap;
 }
 
-
+/*# sourceURL=cssHintDetailsView.css */
 `);
 export default styles;

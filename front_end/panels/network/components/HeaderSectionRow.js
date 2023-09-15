@@ -68,7 +68,7 @@ export const compareHeaders = (first, second) => {
     // incorrectly marked as being overridden.
     return first?.replaceAll(/\s/g, ' ') === second?.replaceAll(/\s/g, ' ');
 };
-class HeaderEditedEvent extends Event {
+export class HeaderEditedEvent extends Event {
     static eventName = 'headeredited';
     headerName;
     headerValue;
@@ -78,8 +78,7 @@ class HeaderEditedEvent extends Event {
         this.headerValue = headerValue;
     }
 }
-export { HeaderEditedEvent };
-class HeaderRemovedEvent extends Event {
+export class HeaderRemovedEvent extends Event {
     static eventName = 'headerremoved';
     headerName;
     headerValue;
@@ -89,15 +88,13 @@ class HeaderRemovedEvent extends Event {
         this.headerValue = headerValue;
     }
 }
-export { HeaderRemovedEvent };
-class EnableHeaderEditingEvent extends Event {
+export class EnableHeaderEditingEvent extends Event {
     static eventName = 'enableheaderediting';
     constructor() {
         super(EnableHeaderEditingEvent.eventName, {});
     }
 }
-export { EnableHeaderEditingEvent };
-class HeaderSectionRow extends HTMLElement {
+export class HeaderSectionRow extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-header-section-row`;
     #shadow = this.attachShadow({ mode: 'open' });
     #header = null;
@@ -131,6 +128,11 @@ class HeaderSectionRow extends HTMLElement {
         const headerNameClasses = LitHtml.Directives.classMap({
             'header-name': true,
             'pseudo-header': this.#header.name.startsWith(':'),
+        });
+        const headerValueClasses = LitHtml.Directives.classMap({
+            'header-value': true,
+            'header-warning': Boolean(this.#header.headerValueIncorrect),
+            'flex-columns': this.#header.name === 'x-client-data' && !this.#header.isResponseHeader,
         });
         // The header name is only editable when the header value is editable as well.
         // This ensures the header name's editability reacts correctly to enabling or
@@ -169,7 +171,7 @@ class HeaderSectionRow extends HTMLElement {
             this.#header.name}:
         </div>
         <div
-          class="header-value ${this.#header.headerValueIncorrect ? 'header-warning' : ''}"
+          class=${headerValueClasses}
           @copy=${() => Host.userMetrics.actionTaken(Host.UserMetrics.Action.NetworkPanelCopyValue)}
         >
           ${this.#renderHeaderValue()}
@@ -186,10 +188,16 @@ class HeaderSectionRow extends HTMLElement {
       ${this.#maybeRenderBlockedDetails(this.#header.blockedDetails)}
     `, this.#shadow, { host: this });
         // clang-format on
+        if (this.#header.highlight) {
+            this.scrollIntoView({ behavior: 'auto' });
+        }
     }
     #renderHeaderValue() {
         if (!this.#header) {
             return LitHtml.nothing;
+        }
+        if (this.#header.name === 'x-client-data' && !this.#header.isResponseHeader) {
+            return this.#renderXClientDataHeader(this.#header);
         }
         if (this.#header.isDeleted || !this.#header.valueEditable) {
             // clang-format off
@@ -234,6 +242,17 @@ class HeaderSectionRow extends HTMLElement {
     `;
         // clang-format on
     }
+    #renderXClientDataHeader(header) {
+        const data = ClientVariations.parseClientVariations(header.value || '');
+        const output = ClientVariations.formatClientVariations(data, i18nString(UIStrings.activeClientExperimentVariation), i18nString(UIStrings.activeClientExperimentVariationIds));
+        // clang-format off
+        return html `
+      <div>${header.value || ''}</div>
+      <div>${i18nString(UIStrings.decoded)}</div>
+      <code>${output}</code>
+    `;
+        // clang-format on
+    }
     focus() {
         requestAnimationFrame(() => {
             const editableName = this.#shadow.querySelector('.header-name devtools-editable-span');
@@ -255,14 +274,6 @@ class HeaderSectionRow extends HTMLElement {
         </${IconButton.Icon.Icon.litTagName}>
       `;
             // clang-format on
-        }
-        if (header.name === 'x-client-data') {
-            const data = ClientVariations.parseClientVariations(header.value || '');
-            const output = ClientVariations.formatClientVariations(data, i18nString(UIStrings.activeClientExperimentVariation), i18nString(UIStrings.activeClientExperimentVariationIds));
-            return html `
-        <div>${i18nString(UIStrings.decoded)}</div>
-        <code>${output}</code>
-      `;
         }
         return LitHtml.nothing;
     }
@@ -407,6 +418,5 @@ class HeaderSectionRow extends HTMLElement {
         }
     }
 }
-export { HeaderSectionRow };
 ComponentHelpers.CustomElements.defineComponent('devtools-header-section-row', HeaderSectionRow);
 //# map=HeaderSectionRow.js.map

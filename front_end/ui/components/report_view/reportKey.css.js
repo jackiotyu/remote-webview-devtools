@@ -23,6 +23,6 @@ styles.replaceSync(
   white-space: pre;
 }
 
-
+/*# sourceURL=reportKey.css */
 `);
 export default styles;

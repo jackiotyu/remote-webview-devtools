@@ -33,7 +33,7 @@ export const extractShortPath = (path) => {
     return (/[^/]+$/.exec(path) || /[^/]+\/$/.exec(path) || [''])[0];
 };
 const coordinator = Coordinator.RenderCoordinator.RenderCoordinator.instance();
-class IssueLinkIcon extends HTMLElement {
+export class IssueLinkIcon extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-issue-link-icon`;
     #shadow = this.attachShadow({ mode: 'open' });
     // The value `null` indicates that the issue is not available,
@@ -149,6 +149,5 @@ class IssueLinkIcon extends HTMLElement {
         // clang-format on
     }
 }
-export { IssueLinkIcon };
 ComponentHelpers.CustomElements.defineComponent('devtools-issue-link-icon', IssueLinkIcon);
 //# map=IssueLinkIcon.js.map

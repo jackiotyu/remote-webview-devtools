@@ -149,11 +149,18 @@ const UIStrings = {
 const str_ = i18n.i18n.registerUIStrings('panels/elements/elements-meta.ts', UIStrings);
 const i18nLazyString = i18n.i18n.getLazilyComputedLocalizedString.bind(undefined, str_);
 let loadedElementsModule;
+let loadedElementsComponentsModule;
 async function loadElementsModule() {
     if (!loadedElementsModule) {
         loadedElementsModule = await import('./elements.js');
     }
     return loadedElementsModule;
+}
+async function loadElementsComponentsModule() {
+    if (!loadedElementsComponentsModule) {
+        loadedElementsComponentsModule = await import('./components/components.js');
+    }
+    return loadedElementsComponentsModule;
 }
 function maybeRetrieveContextTypes(getClassCallBack) {
     if (loadedElementsModule === undefined) {
@@ -238,8 +245,8 @@ UI.ViewManager.registerViewExtension({
     order: 4,
     persistence: "permanent" /* UI.ViewManager.ViewPersistence.PERMANENT */,
     async loadView() {
-        const Elements = await loadElementsModule();
-        return Elements.LayoutSidebarPane.LayoutSidebarPane.instance();
+        const ElementsComponents = await loadElementsComponentsModule();
+        return ElementsComponents.LayoutPane.LayoutPane.instance().wrapper;
     },
 });
 UI.ActionRegistration.registerActionExtension({

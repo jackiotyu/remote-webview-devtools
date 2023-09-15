@@ -133,16 +133,16 @@ export class IsolatedFileSystemManager extends Common.ObjectWrapper.ObjectWrappe
         }
     }
     addFileSystem(type) {
-        Host.userMetrics.actionTaken(type === 'overrides' ? Host.UserMetrics.Action.AddFileSystemForOverrides :
-            Host.UserMetrics.Action.AddFileSystemToWorkspace);
+        Host.userMetrics.actionTaken(type === 'overrides' ? Host.UserMetrics.Action.OverrideTabAddFolder :
+            Host.UserMetrics.Action.WorkspaceTabAddFolder);
         return new Promise(resolve => {
             this.fileSystemRequestResolve = resolve;
             Host.InspectorFrontendHost.InspectorFrontendHostInstance.addFileSystem(type || '');
         });
     }
     removeFileSystem(fileSystem) {
-        Host.userMetrics.actionTaken(fileSystem.type() === 'overrides' ? Host.UserMetrics.Action.RemoveFileSystemForOverrides :
-            Host.UserMetrics.Action.RemoveFileSystemFromWorkspace);
+        Host.userMetrics.actionTaken(fileSystem.type() === 'overrides' ? Host.UserMetrics.Action.OverrideTabRemoveFolder :
+            Host.UserMetrics.Action.WorkspaceTabRemoveFolder);
         Host.InspectorFrontendHost.InspectorFrontendHostInstance.removeFileSystem(fileSystem.embedderPath());
     }
     waitForFileSystems() {

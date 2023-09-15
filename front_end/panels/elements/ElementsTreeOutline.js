@@ -31,6 +31,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 import * as Common from '../../core/common/common.js';
+import * as Host from '../../core/host/host.js';
 import * as i18n from '../../core/i18n/i18n.js';
 import * as Root from '../../core/root/root.js';
 import * as SDK from '../../core/sdk/sdk.js';
@@ -74,7 +75,7 @@ const str_ = i18n.i18n.registerUIStrings('panels/elements/ElementsTreeOutline.ts
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const elementsTreeOutlineByDOMModel = new WeakMap();
 const populatedTreeElements = new Set();
-class ElementsTreeOutline extends Common.ObjectWrapper.eventMixin(UI.TreeOutline.TreeOutline) {
+export class ElementsTreeOutline extends Common.ObjectWrapper.eventMixin(UI.TreeOutline.TreeOutline) {
     treeElementByNode;
     shadowRoot;
     elementInternal;
@@ -122,7 +123,7 @@ class ElementsTreeOutline extends Common.ObjectWrapper.eventMixin(UI.TreeOutline
         if (hideGutter) {
             this.elementInternal.classList.add('elements-hide-gutter');
         }
-        UI.ARIAUtils.setAccessibleName(this.elementInternal, i18nString(UIStrings.pageDom));
+        UI.ARIAUtils.setLabel(this.elementInternal, i18nString(UIStrings.pageDom));
         this.elementInternal.addEventListener('focusout', this.onfocusout.bind(this), false);
         this.elementInternal.addEventListener('mousedown', this.onmousedown.bind(this), false);
         this.elementInternal.addEventListener('mousemove', this.onmousemove.bind(this), false);
@@ -505,7 +506,9 @@ class ElementsTreeOutline extends Common.ObjectWrapper.eventMixin(UI.TreeOutline
                 this.appendChild(treeElement);
             }
         }
-        void this.createTopLayerContainer(this.rootElement(), this.rootDOMNode.domModel());
+        if (this.rootDOMNode instanceof SDK.DOMModel.DOMDocument) {
+            void this.createTopLayerContainer(this.rootElement(), this.rootDOMNode);
+        }
         if (selectedNode) {
             this.revealAndSelectNode(selectedNode, true);
         }
@@ -1112,11 +1115,11 @@ class ElementsTreeOutline extends Common.ObjectWrapper.eventMixin(UI.TreeOutline
             });
         });
     }
-    async createTopLayerContainer(parent, domModel) {
+    async createTopLayerContainer(parent, document) {
         if (!parent.treeOutline || !(parent.treeOutline instanceof ElementsTreeOutline)) {
             return;
         }
-        const container = new TopLayerContainer(parent.treeOutline, domModel);
+        const container = new TopLayerContainer(parent.treeOutline, document);
         await container.throttledUpdateTopLayerElements();
         if (container.currentTopLayerDOMNodes.size > 0) {
             parent.appendChild(container);
@@ -1250,8 +1253,8 @@ class ElementsTreeOutline extends Common.ObjectWrapper.eventMixin(UI.TreeOutline
     insertChildElement(treeElement, child, index, isClosingTag) {
         const newElement = this.createElementTreeElement(child, isClosingTag);
         treeElement.insertChild(newElement, index);
-        if (child.nodeType() === Node.DOCUMENT_NODE) {
-            void this.createTopLayerContainer(newElement, child.domModel());
+        if (child instanceof SDK.DOMModel.DOMDocument) {
+            void this.createTopLayerContainer(newElement, child);
         }
         return newElement;
     }
@@ -1357,7 +1360,6 @@ class ElementsTreeOutline extends Common.ObjectWrapper.eventMixin(UI.TreeOutline
     }
     static treeOutlineSymbol = Symbol('treeOutline');
 }
-export { ElementsTreeOutline };
 (function (ElementsTreeOutline) {
     // TODO(crbug.com/1167717): Make this a const enum again
     // eslint-disable-next-line rulesdir/const_enum
@@ -1513,6 +1515,7 @@ export class ShortcutTreeElement extends UI.TreeOutline.TreeElement {
         };
         this.listItemElement.appendChild(adorner);
         const onClick = (() => {
+            Host.userMetrics.badgeActivated(8 /* Host.UserMetrics.BadgeType.REVEAL */);
             this.nodeShortcut.deferredNode.resolve(node => {
                 void Common.Revealer.reveal(node);
             });

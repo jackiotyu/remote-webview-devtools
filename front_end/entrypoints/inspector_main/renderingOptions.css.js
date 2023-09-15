@@ -23,7 +23,7 @@ styles.replaceSync(
 .panel-section-separator {
   height: 1px;
   margin-bottom: 10px;
-  background: var(--color-details-hairline);
+  background: var(--sys-color-divider);
   flex: none;
 }
 
@@ -35,6 +35,6 @@ styles.replaceSync(
   margin-bottom: 16px;
 }
 
-
+/*# sourceURL=renderingOptions.css */
 `);
 export default styles;

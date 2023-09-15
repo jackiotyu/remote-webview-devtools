@@ -96,12 +96,11 @@ export class FormatterWorkerPool {
         return this.runTask("format" /* FormatterActions.FormatterActions.FORMAT */, parameters);
     }
     javaScriptSubstitute(expression, mapping) {
-        return this
-            .runTask("javaScriptSubstitute" /* FormatterActions.FormatterActions.JAVASCRIPT_SUBSTITUTE */, { content: expression, mapping: Array.from(mapping.entries()) })
+        return this.runTask("javaScriptSubstitute" /* FormatterActions.FormatterActions.JAVASCRIPT_SUBSTITUTE */, { content: expression, mapping })
             .then(result => result || '');
     }
-    javaScriptScopeTree(expression) {
-        return this.runTask("javaScriptScopeTree" /* FormatterActions.FormatterActions.JAVASCRIPT_SCOPE_TREE */, { content: expression })
+    javaScriptScopeTree(expression, sourceType = 'script') {
+        return this.runTask("javaScriptScopeTree" /* FormatterActions.FormatterActions.JAVASCRIPT_SCOPE_TREE */, { content: expression, sourceType })
             .then(result => result || null);
     }
     evaluatableJavaScriptSubstring(content) {

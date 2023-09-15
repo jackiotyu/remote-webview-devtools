@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 import * as i18n from '../../core/i18n/i18n.js';
 import * as UI from '../../ui/legacy/legacy.js';
+import * as LegacyWrapper from '../../ui/components/legacy_wrapper/legacy_wrapper.js';
 import * as ApplicationComponents from './components/components.js';
 import * as Host from '../../core/host/host.js';
 import { ApplicationPanelTreeElement } from './ApplicationPanelTreeElement.js';
@@ -27,7 +28,7 @@ export class BackForwardCacheTreeElement extends ApplicationPanelTreeElement {
     onselect(selectedByUser) {
         super.onselect(selectedByUser);
         if (!this.view) {
-            this.view = new ApplicationComponents.BackForwardCacheView.BackForwardCacheViewWrapper(new ApplicationComponents.BackForwardCacheView.BackForwardCacheView());
+            this.view = LegacyWrapper.LegacyWrapper.legacyWrapper(UI.Widget.Widget, new ApplicationComponents.BackForwardCacheView.BackForwardCacheView());
         }
         this.showView(this.view);
         Host.userMetrics.panelShown(Host.UserMetrics.PanelCodes[Host.UserMetrics.PanelCodes.back_forward_cache]);

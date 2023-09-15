@@ -16,9 +16,9 @@ styles.replaceSync(
 }
 
 .csp-violations-toolbar {
-  border-bottom: var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
-
+/*# sourceURL=cspViolationsView.css */
 `);
 export default styles;

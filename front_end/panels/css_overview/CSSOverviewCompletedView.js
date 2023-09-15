@@ -174,7 +174,7 @@ function getBorderString(color) {
     l = Math.max(0, l - 15);
     return `1px solid hsl(${h}deg ${s}% ${l}%)`;
 }
-class CSSOverviewCompletedView extends UI.Panel.PanelWithSidebar {
+export class CSSOverviewCompletedView extends UI.Panel.PanelWithSidebar {
     #controller;
     #formatter;
     #mainContainer;
@@ -217,7 +217,7 @@ class CSSOverviewCompletedView extends UI.Panel.PanelWithSidebar {
         this.#sideBar.addItem(i18nString(UIStrings.fontInfo), 'font-info');
         this.#sideBar.addItem(i18nString(UIStrings.unusedDeclarations), 'unused-declarations');
         this.#sideBar.addItem(i18nString(UIStrings.mediaQueries), 'media-queries');
-        this.#sideBar.select('summary');
+        this.#sideBar.select('summary', false);
         this.#sideBar.addEventListener("ItemSelected" /* SidebarEvents.ItemSelected */, this.#sideBarItemSelected, this);
         this.#sideBar.addEventListener("Reset" /* SidebarEvents.Reset */, this.#sideBarReset, this);
         this.#controller.addEventListener("Reset" /* CSSOverViewControllerEvents.Reset */, this.#reset, this);
@@ -246,9 +246,9 @@ class CSSOverviewCompletedView extends UI.Panel.PanelWithSidebar {
         if (!section) {
             return;
         }
-        section.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+        section.scrollIntoView();
         // Set focus for keyboard invoked event
-        if (!data.isMouseEvent) {
+        if (!data.isMouseEvent && data.key === 'Enter') {
             const focusableElement = section.querySelector('button, [tabindex="0"]');
             focusableElement?.focus();
         }
@@ -262,7 +262,7 @@ class CSSOverviewCompletedView extends UI.Panel.PanelWithSidebar {
         this.#elementContainer.closeTabs();
         this.#viewMap = new Map();
         CSSOverviewCompletedView.pushedNodes.clear();
-        this.#sideBar.select('summary');
+        this.#sideBar.select('summary', false);
     }
     #onClick(evt) {
         if (!evt.target) {
@@ -689,7 +689,6 @@ class CSSOverviewCompletedView extends UI.Panel.PanelWithSidebar {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     static pushedNodes = new Set();
 }
-export { CSSOverviewCompletedView };
 export class DetailsView extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) {
     #tabbedPane;
     constructor() {
@@ -901,7 +900,7 @@ export class ElementNode extends DataGrid.SortableDataGrid.SortableDataGridNode 
                 showNodeIcon.classList.add('show-element');
                 UI.Tooltip.Tooltip.install(showNodeIcon, i18nString(UIStrings.showElement));
                 showNodeIcon.tabIndex = 0;
-                showNodeIcon.onclick = () => frontendNode.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+                showNodeIcon.onclick = () => frontendNode.scrollIntoView();
                 cell.appendChild(showNodeIcon);
             });
             return cell;

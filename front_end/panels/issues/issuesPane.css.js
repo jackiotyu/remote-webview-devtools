@@ -17,7 +17,7 @@ styles.replaceSync(
 
 .issues-pane-no-issues {
   align-items: center;
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   display: flex;
   flex: 1 1 auto;
   font-size: 18px;
@@ -31,8 +31,8 @@ styles.replaceSync(
 }
 
 .issues-toolbar-container > .toolbar {
-  background-color: var(--color-background-elevation-1);
-  border-bottom: 1px solid var(--color-details-hairline);
+  background-color: var(--sys-color-cdt-base-container);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .issues-toolbar-left {
@@ -43,6 +43,6 @@ styles.replaceSync(
   padding-right: 6px;
 }
 
-
+/*# sourceURL=issuesPane.css */
 `);
 export default styles;

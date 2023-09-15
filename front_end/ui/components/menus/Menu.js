@@ -11,7 +11,7 @@ import menuGroupStyles from './menuGroup.css.js';
 import menuItemStyles from './menuItem.css.js';
 const coordinator = Coordinator.RenderCoordinator.RenderCoordinator.instance();
 const selectedItemCheckmark = new URL('../../../Images/checkmark.svg', import.meta.url).toString();
-class Menu extends HTMLElement {
+export class Menu extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-menu`;
     #shadow = this.attachShadow({ mode: 'open' });
     #renderBound = this.#render.bind(this);
@@ -328,8 +328,7 @@ class Menu extends HTMLElement {
         // clang-format on
     }
 }
-export { Menu };
-class MenuItem extends HTMLElement {
+export class MenuItem extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-menu-item`;
     #shadow = this.attachShadow({ mode: 'open' });
     #renderBound = this.#render.bind(this);
@@ -382,8 +381,7 @@ class MenuItem extends HTMLElement {
         // clang-format on
     }
 }
-export { MenuItem };
-class MenuGroup extends HTMLElement {
+export class MenuGroup extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-menu-group`;
     #shadow = this.attachShadow({ mode: 'open' });
     #renderBound = this.#render.bind(this);
@@ -414,11 +412,10 @@ class MenuGroup extends HTMLElement {
         // clang-format on
     }
 }
-export { MenuGroup };
 ComponentHelpers.CustomElements.defineComponent('devtools-menu', Menu);
 ComponentHelpers.CustomElements.defineComponent('devtools-menu-item', MenuItem);
 ComponentHelpers.CustomElements.defineComponent('devtools-menu-group', MenuGroup);
-class MenuItemSelectedEvent extends Event {
+export class MenuItemSelectedEvent extends Event {
     itemValue;
     static eventName = 'menuitemselected';
     constructor(itemValue) {
@@ -426,12 +423,10 @@ class MenuItemSelectedEvent extends Event {
         this.itemValue = itemValue;
     }
 }
-export { MenuItemSelectedEvent };
-class MenuCloseRequest extends Event {
+export class MenuCloseRequest extends Event {
     static eventName = 'menucloserequest';
     constructor() {
         super(MenuCloseRequest.eventName, { bubbles: true, composed: true });
     }
 }
-export { MenuCloseRequest };
 //# map=Menu.js.map

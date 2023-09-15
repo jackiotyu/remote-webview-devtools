@@ -25,7 +25,7 @@ styles.replaceSync(
 .row {
   display: flex;
   flex-direction: row;
-  color: var(--color-syntax-1);
+  color: var(--sys-color-token-property-special);
   font-family: var(--monospace-font-family);
   font-size: var(--monospace-font-size);
   align-items: center;
@@ -40,7 +40,7 @@ styles.replaceSync(
 
 .separator {
   margin-right: 0.5em;
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
 }
 
 .padded {
@@ -99,10 +99,10 @@ styles.replaceSync(
 .error {
   margin: 3px 0 6px;
   padding: 8px 12px;
-  background: var(--color-error-background);
-  color: var(--color-error-text);
+  background: var(--sys-color-error-container);
+  color: var(--sys-color-error);
 }
 
-
+/*# sourceURL=stepEditor.css */
 `);
 export default styles;

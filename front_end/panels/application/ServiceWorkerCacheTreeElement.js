@@ -11,7 +11,7 @@ const UIStrings = {
     /**
      *@description Text in Application Panel Sidebar of the Application panel
      */
-    cacheStorage: 'Cache Storage',
+    cacheStorage: 'Cache storage',
     /**
      *@description A context menu item in the Application Panel Sidebar of the Application panel
      */
@@ -26,13 +26,15 @@ const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 export class ServiceWorkerCacheTreeElement extends ExpandableApplicationPanelTreeElement {
     swCacheModels;
     swCacheTreeElements;
-    constructor(resourcesPanel) {
+    storageBucket;
+    constructor(resourcesPanel, storageBucket) {
         super(resourcesPanel, i18nString(UIStrings.cacheStorage), 'CacheStorage');
         const icon = UI.Icon.Icon.create('database', 'resource-tree-item');
         this.setLink('https://developer.chrome.com/docs/devtools/storage/cache/?utm_source=devtools');
         this.setLeadingIcons([icon]);
         this.swCacheModels = new Set();
         this.swCacheTreeElements = new Set();
+        this.storageBucket = storageBucket;
     }
     initialize() {
         this.swCacheModels.clear();
@@ -77,14 +79,24 @@ export class ServiceWorkerCacheTreeElement extends ExpandableApplicationPanelTre
         const { model, cache } = event.data;
         this.addCache(model, cache);
     }
+    cacheInTree(cache) {
+        if (this.storageBucket) {
+            return cache.inBucket(this.storageBucket);
+        }
+        return true;
+    }
     addCache(model, cache) {
-        const swCacheTreeElement = new SWCacheTreeElement(this.resourcesPanel, model, cache);
-        this.swCacheTreeElements.add(swCacheTreeElement);
-        this.appendChild(swCacheTreeElement);
+        if (this.cacheInTree(cache)) {
+            const swCacheTreeElement = new SWCacheTreeElement(this.resourcesPanel, model, cache, this.storageBucket === undefined);
+            this.swCacheTreeElements.add(swCacheTreeElement);
+            this.appendChild(swCacheTreeElement);
+        }
     }
     cacheRemoved(event) {
         const { model, cache } = event.data;
-        this.removeCache(model, cache);
+        if (this.cacheInTree(cache)) {
+            this.removeCache(model, cache);
+        }
     }
     removeCache(model, cache) {
         const swCacheTreeElement = this.cacheTreeElement(model, cache);
@@ -108,8 +120,15 @@ export class SWCacheTreeElement extends ApplicationPanelTreeElement {
     model;
     cache;
     view;
-    constructor(resourcesPanel, model, cache) {
-        super(resourcesPanel, cache.cacheName + ' - ' + cache.storageKey, false);
+    constructor(resourcesPanel, model, cache, appendStorageKey) {
+        let cacheName;
+        if (appendStorageKey) {
+            cacheName = cache.cacheName + ' - ' + cache.storageKey;
+        }
+        else {
+            cacheName = cache.cacheName;
+        }
+        super(resourcesPanel, cacheName, false);
         this.model = model;
         this.cache = cache;
         this.view = null;

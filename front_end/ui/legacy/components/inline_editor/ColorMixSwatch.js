@@ -5,7 +5,7 @@ import * as Platform from '../../../../core/platform/platform.js';
 import * as ComponentHelpers from '../../../components/helpers/helpers.js';
 import * as LitHtml from '../../../lit-html/lit-html.js';
 import colorMixSwatchStyles from './colorMixSwatch.css.js';
-class ColorMixSwatch extends HTMLElement {
+export class ColorMixSwatch extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-color-mix-swatch`;
     shadow = this.attachShadow({ mode: 'open' });
     colorMixText = ''; // color-mix(in srgb, hotpink, white)
@@ -61,6 +61,5 @@ class ColorMixSwatch extends HTMLElement {
         // clang-format on
     }
 }
-export { ColorMixSwatch };
 ComponentHelpers.CustomElements.defineComponent('devtools-color-mix-swatch', ColorMixSwatch);
 //# map=ColorMixSwatch.js.map

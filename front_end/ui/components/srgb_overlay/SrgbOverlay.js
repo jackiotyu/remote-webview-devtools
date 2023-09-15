@@ -19,7 +19,7 @@ function isColorInSrgbGamut(hsv) {
     const srgb = Common.ColorConverter.ColorConverter.xyzd50ToSrgb(xyzd50[0], xyzd50[1], xyzd50[2]);
     return srgb.every(val => val + EPSILON >= 0 && val - EPSILON <= 1);
 }
-class SrgbOverlay extends HTMLElement {
+export class SrgbOverlay extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-spectrum-srgb-overlay`;
     #shadow = this.attachShadow({ mode: 'open' });
     constructor() {
@@ -87,6 +87,5 @@ class SrgbOverlay extends HTMLElement {
         });
     }
 }
-export { SrgbOverlay };
 ComponentHelpers.CustomElements.defineComponent('devtools-spectrum-srgb-overlay', SrgbOverlay);
 //# map=SrgbOverlay.js.map

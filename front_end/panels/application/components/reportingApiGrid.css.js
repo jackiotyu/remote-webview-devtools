@@ -24,7 +24,7 @@ styles.replaceSync(
 
 .reporting-header {
   font-size: 15px;
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-surface2);
   padding: 1px 4px;
 }
 
@@ -34,17 +34,17 @@ styles.replaceSync(
   align-items: center;
   justify-content: center;
   font-size: 13px;
-  color: var(--color-text-secondary);
+  color: var(--sys-color-token-subtle);
 }
 
 devtools-data-grid-controller {
-  border: 1px solid var(--color-details-hairline);
+  border: 1px solid var(--sys-color-divider);
 }
 
 .inline-icon {
   vertical-align: text-bottom;
 }
 
-
+/*# sourceURL=reportingApiGrid.css */
 `);
 export default styles;

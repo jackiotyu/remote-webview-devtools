@@ -22,6 +22,6 @@ styles.replaceSync(
   margin-left: 2px;
 }
 
-
+/*# sourceURL=sharedStorageMetadataView.css */
 `);
 export default styles;

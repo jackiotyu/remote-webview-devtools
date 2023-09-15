@@ -17,7 +17,7 @@ styles.replaceSync(
 
 .header {
   padding: 0 0 6px;
-  border-bottom: var(--legacy-divider-border);
+  border-bottom: 1px solid var(--sys-color-divider);
   font-size: 18px;
   font-weight: normal;
   flex: none;
@@ -126,6 +126,6 @@ styles.replaceSync(
   margin-left: 6px;
 }
 
-
+/*# sourceURL=frameworkIgnoreListSettingsTab.css */
 `);
 export default styles;

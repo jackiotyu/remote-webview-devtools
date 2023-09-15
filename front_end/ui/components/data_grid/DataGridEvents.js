@@ -1,4 +1,4 @@
-class ColumnHeaderClickEvent extends Event {
+export class ColumnHeaderClickEvent extends Event {
     static eventName = 'columnheaderclick';
     data;
     constructor(column, columnIndex) {
@@ -9,8 +9,7 @@ class ColumnHeaderClickEvent extends Event {
         };
     }
 }
-export { ColumnHeaderClickEvent };
-class ContextMenuColumnSortClickEvent extends Event {
+export class ContextMenuColumnSortClickEvent extends Event {
     static eventName = 'contextmenucolumnsortclick';
     data;
     constructor(column) {
@@ -20,15 +19,13 @@ class ContextMenuColumnSortClickEvent extends Event {
         };
     }
 }
-export { ContextMenuColumnSortClickEvent };
-class ContextMenuHeaderResetClickEvent extends Event {
+export class ContextMenuHeaderResetClickEvent extends Event {
     static eventName = 'contextmenuheaderresetclick';
     constructor() {
         super(ContextMenuHeaderResetClickEvent.eventName);
     }
 }
-export { ContextMenuHeaderResetClickEvent };
-class NewUserFilterTextEvent extends Event {
+export class NewUserFilterTextEvent extends Event {
     static eventName = 'newuserfiltertext';
     data;
     constructor(filterText) {
@@ -40,8 +37,7 @@ class NewUserFilterTextEvent extends Event {
         };
     }
 }
-export { NewUserFilterTextEvent };
-class BodyCellFocusedEvent extends Event {
+export class BodyCellFocusedEvent extends Event {
     static eventName = 'cellfocused';
     /**
      * Although the DataGrid cares only about the focused cell, and has no concept
@@ -60,5 +56,4 @@ class BodyCellFocusedEvent extends Event {
         };
     }
 }
-export { BodyCellFocusedEvent };
 //# map=DataGridEvents.js.map

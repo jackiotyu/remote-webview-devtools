@@ -28,6 +28,6 @@ styles.replaceSync(
   color: var(--color-text-primary);
 }
 
-
+/*# sourceURL=reportSectionHeader.css */
 `);
 export default styles;

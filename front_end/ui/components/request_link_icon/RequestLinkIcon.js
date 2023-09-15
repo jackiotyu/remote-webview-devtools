@@ -33,7 +33,7 @@ export const extractShortPath = (path) => {
     return (/[^/]+$/.exec(path) || /[^/]+\/$/.exec(path) || [''])[0];
 };
 const coordinator = Coordinator.RenderCoordinator.RenderCoordinator.instance();
-class RequestLinkIcon extends HTMLElement {
+export class RequestLinkIcon extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-request-link-icon`;
     #shadow = this.attachShadow({ mode: 'open' });
     #linkToPreflight;
@@ -43,6 +43,7 @@ class RequestLinkIcon extends HTMLElement {
     #highlightHeader;
     #requestResolver;
     #displayURL = false;
+    #urlToDisplay;
     #networkTab;
     #affectedRequest;
     #additionalOnClickAction;
@@ -58,6 +59,7 @@ class RequestLinkIcon extends HTMLElement {
         this.#networkTab = data.networkTab;
         this.#requestResolver = data.requestResolver;
         this.#displayURL = data.displayURL ?? false;
+        this.#urlToDisplay = data.urlToDisplay;
         this.#additionalOnClickAction = data.additionalOnClickAction;
         if (data.revealOverride) {
             this.#reveal = data.revealOverride;
@@ -91,6 +93,7 @@ class RequestLinkIcon extends HTMLElement {
             networkTab: this.#networkTab,
             requestResolver: this.#requestResolver,
             displayURL: this.#displayURL,
+            urlToDisplay: this.#urlToDisplay,
             additionalOnClickAction: this.#additionalOnClickAction,
             revealOverride: this.#reveal !== Common.Revealer.reveal ? this.#reveal : undefined,
         };
@@ -150,6 +153,9 @@ class RequestLinkIcon extends HTMLElement {
         if (!url) {
             return LitHtml.nothing;
         }
+        if (this.#urlToDisplay) {
+            return LitHtml.html `<span title=${url}>${this.#urlToDisplay}</span>`;
+        }
         const filename = extractShortPath(url);
         return LitHtml.html `<span aria-label=${i18nString(UIStrings.shortenedURL)} title=${url}>${filename}</span>`;
     }
@@ -175,6 +181,5 @@ class RequestLinkIcon extends HTMLElement {
         // clang-format on
     }
 }
-export { RequestLinkIcon };
 ComponentHelpers.CustomElements.defineComponent('devtools-request-link-icon', RequestLinkIcon);
 //# map=RequestLinkIcon.js.map

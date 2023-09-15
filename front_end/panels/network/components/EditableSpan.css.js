@@ -35,6 +35,11 @@ styles.replaceSync(
   border-radius: 2px;
 }
 
+.editable::selection {
+  color: var(--sys-color-on-tonal-container);
+  background-color: var(--sys-color-tonal-container);
+}
 
+/*# sourceURL=EditableSpan.css */
 `);
 export default styles;

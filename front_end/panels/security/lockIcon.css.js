@@ -50,7 +50,7 @@ styles.replaceSync(
 
 .security-property-secure {
   -webkit-mask-position: 0 -16px;
-  background-color: var(--color-accent-green;);
+  background-color: var(--color-accent-green);
 }
 
 .security-property-neutral {
@@ -119,6 +119,6 @@ styles.replaceSync(
   }
 }
 
-
+/*# sourceURL=lockIcon.css */
 `);
 export default styles;

@@ -28,9 +28,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 import * as Common from '../../../../core/common/common.js';
+import * as TraceEngine from '../../../../models/trace/trace.js';
 import * as UI from '../../legacy.js';
-import * as i18n from '../../../../core/i18n/i18n.js';
 import { Events as OverviewGridEvents, OverviewGrid } from './OverviewGrid.js';
+import { TimelineOverviewCalculator } from './TimelineOverviewCalculator.js';
 import timelineOverviewInfoStyles from './timelineOverviewInfo.css.js';
 export class TimelineOverviewPane extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) {
     overviewCalculator;
@@ -59,6 +60,7 @@ export class TimelineOverviewPane extends Common.ObjectWrapper.eventMixin(UI.Wid
         this.cursorArea.addEventListener('mouseleave', this.hideCursor.bind(this), true);
         this.overviewGrid.setResizeEnabled(false);
         this.overviewGrid.addEventListener(OverviewGridEvents.WindowChangedWithPosition, this.onWindowChanged, this);
+        this.overviewGrid.addEventListener(OverviewGridEvents.BreadcrumbAdded, this.onBreadcrumbAdded, this);
         this.overviewGrid.setClickHandler(this.onClick.bind(this));
         this.overviewControls = [];
         this.markers = new Map();
@@ -70,6 +72,9 @@ export class TimelineOverviewPane extends Common.ObjectWrapper.eventMixin(UI.Wid
         this.windowStartTime = 0;
         this.windowEndTime = Infinity;
         this.muteOnWindowChanged = false;
+    }
+    enableCreateBreadcrumbsButton() {
+        this.overviewGrid.enableCreateBreadcrumbsButton();
     }
     onMouseMove(event) {
         if (!this.cursorEnabled) {
@@ -128,18 +133,18 @@ export class TimelineOverviewPane extends Common.ObjectWrapper.eventMixin(UI.Wid
     setNavStartTimes(navStartTimes) {
         this.overviewCalculator.setNavStartTimes(navStartTimes);
     }
-    scheduleUpdate() {
+    scheduleUpdate(start, end) {
         void this.updateThrottler.schedule(async () => {
-            this.update();
+            this.update(start, end);
         });
     }
-    update() {
+    update(start, end) {
         if (!this.isShowing()) {
             return;
         }
         this.overviewCalculator.setDisplayWidth(this.overviewGrid.clientWidth());
         for (let i = 0; i < this.overviewControls.length; ++i) {
-            this.overviewControls[i].update();
+            this.overviewControls[i].update(start, end);
         }
         this.overviewGrid.updateDividers(this.overviewCalculator);
         this.updateMarkers();
@@ -152,7 +157,7 @@ export class TimelineOverviewPane extends Common.ObjectWrapper.eventMixin(UI.Wid
         const filteredMarkers = new Map();
         for (const time of this.markers.keys()) {
             const marker = this.markers.get(time);
-            const position = Math.round(this.overviewCalculator.computePosition(time));
+            const position = Math.round(this.overviewCalculator.computePosition(TraceEngine.Types.Timing.MilliSeconds(time)));
             // Limit the number of markers to one per pixel.
             if (filteredMarkers.has(position)) {
                 continue;
@@ -181,6 +186,12 @@ export class TimelineOverviewPane extends Common.ObjectWrapper.eventMixin(UI.Wid
     onClick(event) {
         return this.overviewControls.some(control => control.onClick(event));
     }
+    onBreadcrumbAdded() {
+        this.dispatchEventToListeners(Events.BreadcrumbAdded, {
+            startTime: TraceEngine.Types.Timing.MilliSeconds(this.windowStartTime),
+            endTime: TraceEngine.Types.Timing.MilliSeconds(this.windowEndTime),
+        });
+    }
     onWindowChanged(event) {
         if (this.muteOnWindowChanged) {
             return;
@@ -189,8 +200,10 @@ export class TimelineOverviewPane extends Common.ObjectWrapper.eventMixin(UI.Wid
         if (!this.overviewControls.length) {
             return;
         }
-        this.windowStartTime = event.data.rawStartValue;
-        this.windowEndTime = event.data.rawEndValue;
+        this.windowStartTime =
+            event.data.rawStartValue === this.overviewCalculator.minimumBoundary() ? 0 : event.data.rawStartValue;
+        this.windowEndTime =
+            event.data.rawEndValue === this.overviewCalculator.maximumBoundary() ? Infinity : event.data.rawEndValue;
         const windowTimes = { startTime: this.windowStartTime, endTime: this.windowEndTime };
         this.dispatchEventToListeners(Events.WindowChanged, windowTimes);
     }
@@ -222,62 +235,8 @@ export class TimelineOverviewPane extends Common.ObjectWrapper.eventMixin(UI.Wid
 export var Events;
 (function (Events) {
     Events["WindowChanged"] = "WindowChanged";
+    Events["BreadcrumbAdded"] = "BreadcrumbAdded";
 })(Events || (Events = {}));
-export class TimelineOverviewCalculator {
-    minimumBoundaryInternal;
-    maximumBoundaryInternal;
-    workingArea;
-    navStartTimes;
-    constructor() {
-        this.reset();
-    }
-    computePosition(time) {
-        return (time - this.minimumBoundaryInternal) / this.boundarySpan() * this.workingArea;
-    }
-    positionToTime(position) {
-        return position / this.workingArea * this.boundarySpan() + this.minimumBoundaryInternal;
-    }
-    setBounds(minimumBoundary, maximumBoundary) {
-        this.minimumBoundaryInternal = minimumBoundary;
-        this.maximumBoundaryInternal = maximumBoundary;
-    }
-    setNavStartTimes(navStartTimes) {
-        this.navStartTimes = navStartTimes;
-    }
-    setDisplayWidth(clientWidth) {
-        this.workingArea = clientWidth;
-    }
-    reset() {
-        this.setBounds(0, 100);
-    }
-    formatValue(value, precision) {
-        // If there are nav start times the value needs to be remapped.
-        if (this.navStartTimes) {
-            // Find the latest possible nav start time which is considered earlier
-            // than the value passed through.
-            const navStartTimes = Array.from(this.navStartTimes.values());
-            for (let i = navStartTimes.length - 1; i >= 0; i--) {
-                if (value > navStartTimes[i].startTime) {
-                    value -= (navStartTimes[i].startTime - this.zeroTime());
-                    break;
-                }
-            }
-        }
-        return i18n.TimeUtilities.preciseMillisToString(value - this.zeroTime(), precision);
-    }
-    maximumBoundary() {
-        return this.maximumBoundaryInternal;
-    }
-    minimumBoundary() {
-        return this.minimumBoundaryInternal;
-    }
-    zeroTime() {
-        return this.minimumBoundaryInternal;
-    }
-    boundarySpan() {
-        return this.maximumBoundaryInternal - this.minimumBoundaryInternal;
-    }
-}
 export class TimelineOverviewBase extends UI.Widget.VBox {
     calculatorInternal;
     canvas;

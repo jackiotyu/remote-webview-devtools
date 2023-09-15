@@ -23,7 +23,7 @@ styles.replaceSync(
 
 .link,
 .devtools-link {
-  color: var(--color-link);
+  color: var(--sys-color-primary);
   text-decoration: underline;
   cursor: pointer;
   outline-offset: 2px;
@@ -61,6 +61,6 @@ button.link {
   width: 215px;
 }
 
-
+/*# sourceURL=permissionsPolicySection.css */
 `);
 export default styles;

@@ -5,7 +5,7 @@ import * as Platform from '../../../core/platform/platform.js';
 import * as ComponentHelpers from '../../components/helpers/helpers.js';
 import * as LitHtml from '../../lit-html/lit-html.js';
 import textPromptStyles from './textPrompt.css.js';
-class PromptInputEvent extends Event {
+export class PromptInputEvent extends Event {
     static eventName = 'promptinputchanged';
     data;
     constructor(value) {
@@ -13,8 +13,7 @@ class PromptInputEvent extends Event {
         this.data = value;
     }
 }
-export { PromptInputEvent };
-class TextPrompt extends HTMLElement {
+export class TextPrompt extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-text-prompt`;
     #shadow = this.attachShadow({ mode: 'open' });
     #ariaLabelText = '';
@@ -85,7 +84,7 @@ class TextPrompt extends HTMLElement {
         this.#suggestion().value = this.#text();
         if (this.#input().hasFocus()) {
             this.moveCaretToEndOfInput();
-            this.#input().scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+            this.#input().scrollIntoView();
         }
     }
     #suggestion() {
@@ -105,6 +104,5 @@ class TextPrompt extends HTMLElement {
         LitHtml.render(output, this.#shadow, { host: this });
     }
 }
-export { TextPrompt };
 ComponentHelpers.CustomElements.defineComponent('devtools-text-prompt', TextPrompt);
 //# map=TextPrompt.js.map

@@ -8,7 +8,7 @@ import { Capability, Type } from './Target.js';
 import { SDKModel } from './SDKModel.js';
 import { Events as TargetManagerEvents, TargetManager } from './TargetManager.js';
 import { ResourceTreeModel } from './ResourceTreeModel.js';
-class ChildTargetManager extends SDKModel {
+export class ChildTargetManager extends SDKModel {
     #targetManager;
     #parentTarget;
     #targetAgent;
@@ -95,6 +95,9 @@ class ChildTargetManager extends SDKModel {
         }
         return this.#parentTargetId;
     }
+    async getTargetInfo() {
+        return (await this.#parentTarget.targetAgent().invoke_getTargetInfo({})).targetInfo;
+    }
     async attachedToTarget({ sessionId, targetInfo, waitingForDebugger }) {
         if (this.#parentTargetId === targetInfo.targetId) {
             return;
@@ -105,11 +108,21 @@ class ChildTargetManager extends SDKModel {
             targetName = targetInfo.title;
         }
         else if (!['page', 'iframe', 'webview'].includes(targetInfo.type)) {
-            const parsedURL = Common.ParsedURL.ParsedURL.fromString(targetInfo.url);
-            targetName =
-                parsedURL ? parsedURL.lastPathComponentWithFragment() : '#' + (++ChildTargetManager.lastAnonymousTargetId);
-            if (parsedURL?.scheme === 'devtools' && targetInfo.type === 'other') {
+            const KNOWN_FRAME_PATTERNS = [
+                '^chrome://print/$',
+                '^chrome://file-manager/',
+                '^chrome://feedback/',
+                '^chrome://.*\\.top-chrome/$',
+                '^chrome://view-cert/$',
+                '^devtools://',
+            ];
+            if (KNOWN_FRAME_PATTERNS.some(p => targetInfo.url.match(p))) {
                 type = Type.Frame;
+            }
+            else {
+                const parsedURL = Common.ParsedURL.ParsedURL.fromString(targetInfo.url);
+                targetName =
+                    parsedURL ? parsedURL.lastPathComponentWithFragment() : '#' + (++ChildTargetManager.lastAnonymousTargetId);
             }
         }
         if (targetInfo.type === 'iframe' || targetInfo.type === 'webview') {
@@ -127,6 +140,9 @@ class ChildTargetManager extends SDKModel {
         }
         else if (targetInfo.type === 'shared_worker') {
             type = Type.SharedWorker;
+        }
+        else if (targetInfo.type === 'shared_storage_worklet') {
+            type = Type.SharedStorageWorklet;
         }
         else if (targetInfo.type === 'service_worker') {
             type = Type.ServiceWorker;
@@ -189,7 +205,6 @@ class ChildTargetManager extends SDKModel {
     static lastAnonymousTargetId = 0;
     static attachCallback;
 }
-export { ChildTargetManager };
 // TODO(crbug.com/1167717): Make this a const enum again
 // eslint-disable-next-line rulesdir/const_enum
 export var Events;

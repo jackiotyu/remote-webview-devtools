@@ -17,7 +17,7 @@ styles.replaceSync(
 
 .developer-resource-view-toolbar-container {
   display: flex;
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
   flex: 0 0 auto;
 }
 
@@ -27,8 +27,8 @@ styles.replaceSync(
 }
 
 .developer-resource-view-toolbar-summary {
-  background-color: var(--color-background-elevation-2);
-  border-top: 1px solid var(--color-details-hairline);
+  background-color: var(--sys-color-cdt-base-container);
+  border-top: 1px solid var(--sys-color-divider);
   padding-left: 5px;
   flex: 0 0 19px;
   display: flex;
@@ -49,6 +49,6 @@ styles.replaceSync(
   flex: auto;
 }
 
-
+/*# sourceURL=developerResourcesView.css */
 `);
 export default styles;

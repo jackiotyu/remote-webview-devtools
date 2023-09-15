@@ -3,11 +3,11 @@
 // found in the LICENSE file.
 import * as Acorn from '../../third_party/acorn/acorn.js';
 import { ECMA_VERSION } from './AcornTokenizer.js';
-export function parseScopes(expression) {
+export function parseScopes(expression, sourceType = 'script') {
     // Parse the expression and find variables and scopes.
     let root = null;
     try {
-        root = Acorn.parse(expression, { ecmaVersion: ECMA_VERSION, allowAwaitOutsideFunction: true, ranges: false });
+        root = Acorn.parse(expression, { ecmaVersion: ECMA_VERSION, allowAwaitOutsideFunction: true, ranges: false, sourceType });
     }
     catch {
         return null;

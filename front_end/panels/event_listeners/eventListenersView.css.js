@@ -19,14 +19,6 @@ styles.replaceSync(
   align-items: baseline;
 }
 
-.tree-outline-disclosure > li {
-  border-top: 1px solid var(--color-background-elevation-0);
-}
-
-.tree-outline-disclosure > li:first-of-type {
-  border-top: none;
-}
-
 .tree-outline-disclosure {
   padding-left: 0 !important; /* stylelint-disable-line declaration-no-important */
   padding-right: 3px;
@@ -37,7 +29,7 @@ styles.replaceSync(
 }
 
 .tree-outline-disclosure .name {
-  color: var(--color-syntax-2);
+  color: var(--sys-color-token-tag);
 }
 
 .tree-outline-disclosure .object-value-node,
@@ -57,19 +49,22 @@ styles.replaceSync(
 }
 
 .event-listener-button {
-  padding: 0 3px;
-  background-color: var(--color-background-elevation-1);
-  border-radius: 3px;
-  border: 1px solid var(--color-details-hairline);
+  padding: 0 5px;
+  color: var(--sys-color-primary);
+  background-color: var(--sys-color-cdt-base-container);
+  border-radius: 7px;
+  border: 1px solid var(--sys-color-tonal-outline);
   margin-left: 5px;
   display: block;
-  opacity: 80%;
   flex-shrink: 0;
-}
 
-.event-listener-button:hover {
-  background-color: var(--color-background-elevation-2);
-  opacity: 100%;
+  &:hover {
+    background-color: var(--sys-color-state-hover-on-subtle);
+  }
+
+  &:active {
+    background-color: var(--sys-color-state-ripple-neutral-on-subtle);
+  }
 }
 
 .tree-outline-disclosure li:hover .event-listener-button {
@@ -99,6 +94,6 @@ styles.replaceSync(
   }
 }
 
-
+/*# sourceURL=eventListenersView.css */
 `);
 export default styles;

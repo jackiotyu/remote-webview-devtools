@@ -33,7 +33,7 @@ import * as SDK from '../../core/sdk/sdk.js';
 import * as TraceEngine from '../trace/trace.js';
 import { RecordType, EventOnTimelineData } from './TimelineModel.js';
 import { TracingLayerTree } from './TracingLayerTree.js';
-class TimelineFrameModel {
+export class TimelineFrameModel {
     categoryMapper;
     frames;
     frameById;
@@ -254,7 +254,7 @@ class TimelineFrameModel {
             if (event.thread === this.currentProcessMainThread) {
                 this.addMainThreadTraceEvent(event);
             }
-            else if (this.lastFrame && event.selfTime && !SDK.TracingModel.TracingModel.isTopLevelEvent(event)) {
+            else if (this.lastFrame && event.selfTime && !TraceEngine.Legacy.TracingModel.isTopLevelEvent(event)) {
                 this.lastFrame.addTimeForCategory(this.categoryMapper(event), event.selfTime);
             }
         }
@@ -284,7 +284,7 @@ class TimelineFrameModel {
         }
     }
     addMainThreadTraceEvent(event) {
-        if (SDK.TracingModel.TracingModel.isTopLevelEvent(event)) {
+        if (TraceEngine.Legacy.TracingModel.isTopLevelEvent(event)) {
             this.currentTaskTimeByCategory = {};
             this.lastTaskBeginTime = event.startTime;
         }
@@ -325,7 +325,6 @@ class TimelineFrameModel {
         RecordType.ScrollLayer,
     ];
 }
-export { TimelineFrameModel };
 export class TracingFrameLayerTree {
     target;
     snapshot;
@@ -335,7 +334,7 @@ export class TracingFrameLayerTree {
         this.snapshot = snapshot;
     }
     async layerTreePromise() {
-        const result = await this.snapshot.objectPromise();
+        const result = this.snapshot.getSnapshot();
         if (!result) {
             return null;
         }
@@ -383,9 +382,6 @@ export class TimelineFrame {
         this.paints = [];
         this.mainFrameId = undefined;
     }
-    hasWarnings() {
-        return false;
-    }
     setEndTime(endTime) {
         this.endTime = endTime;
         this.duration = this.endTime - this.startTime;
@@ -417,20 +413,15 @@ export class LayerPaintEvent {
         return this.eventInternal;
     }
     picturePromise() {
+        // TODO(crbug.com/1453234): this function does not need to be async now
         const picture = EventOnTimelineData.forEvent(this.eventInternal).picture;
         if (!picture) {
             return Promise.resolve(null);
         }
-        // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return picture.objectPromise().then((result) => {
-            if (!result) {
-                return null;
-            }
-            const rect = result['params'] && result['params']['layer_rect'];
-            const picture = result['skp64'];
-            return rect && picture ? { rect: rect, serializedPicture: picture } : null;
-        });
+        const snapshot = picture.getSnapshot();
+        const rect = snapshot['params'] && snapshot['params']['layer_rect'];
+        const pictureData = snapshot['skp64'];
+        return Promise.resolve(rect && pictureData ? { rect: rect, serializedPicture: pictureData } : null);
     }
     async snapshotPromise() {
         const paintProfilerModel = this.target && this.target.model(SDK.PaintProfiler.PaintProfilerModel);

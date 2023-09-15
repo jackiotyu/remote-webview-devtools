@@ -17,7 +17,7 @@ styles.replaceSync(
 
 .tree-outline > ol {
   padding-bottom: 5px;
-  border-bottom: solid 1px var(--color-details-hairline);
+  border-bottom: solid 1px var(--sys-color-divider);
 }
 
 .tree-outline > .parent {
@@ -107,6 +107,6 @@ styles.replaceSync(
   margin-top: 2px;
 }
 
-
+/*# sourceURL=signedExchangeInfoTree.css */
 `);
 export default styles;

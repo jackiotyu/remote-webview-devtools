@@ -390,7 +390,7 @@ export class ObjectPropertiesSection extends UI.TreeOutline.TreeOutlineInShadow 
         };
         const revealText = i18nString(UIStrings.revealInMemoryInpector);
         UI.Tooltip.Tooltip.install(memoryIcon, revealText);
-        UI.ARIAUtils.setAccessibleName(memoryIcon, revealText);
+        UI.ARIAUtils.setLabel(memoryIcon, revealText);
         // Directly set property on memory icon, so that the memory icon is also
         // styled within the context of code mirror.
         memoryIcon.style.setProperty('vertical-align', 'sub');
@@ -1210,7 +1210,7 @@ export class ObjectPropertyTreeElement extends UI.TreeOutline.TreeElement {
         return this.nameElement.title;
     }
 }
-class ArrayGroupingTreeElement extends UI.TreeOutline.TreeElement {
+export class ArrayGroupingTreeElement extends UI.TreeOutline.TreeElement {
     toggleOnClick;
     fromIndex;
     toIndex;
@@ -1428,7 +1428,6 @@ class ArrayGroupingTreeElement extends UI.TreeOutline.TreeElement {
     static bucketThreshold = 100;
     static sparseIterationThreshold = 250000;
 }
-export { ArrayGroupingTreeElement };
 export class ObjectPropertyPrompt extends UI.TextPrompt.TextPrompt {
     constructor() {
         super();

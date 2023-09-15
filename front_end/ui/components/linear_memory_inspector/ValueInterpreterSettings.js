@@ -28,7 +28,7 @@ function valueTypeGroupToLocalizedString(group) {
     // The remaining group type names should not be localized.
     return group;
 }
-class TypeToggleEvent extends Event {
+export class TypeToggleEvent extends Event {
     static eventName = 'typetoggle';
     data;
     constructor(type, checked) {
@@ -36,8 +36,7 @@ class TypeToggleEvent extends Event {
         this.data = { type, checked };
     }
 }
-export { TypeToggleEvent };
-class ValueInterpreterSettings extends HTMLElement {
+export class ValueInterpreterSettings extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-linear-memory-inspector-interpreter-settings`;
     #shadow = this.attachShadow({ mode: 'open' });
     #valueTypes = new Set();
@@ -84,6 +83,5 @@ class ValueInterpreterSettings extends HTMLElement {
         this.dispatchEvent(new TypeToggleEvent(type, checkbox.checked));
     }
 }
-export { ValueInterpreterSettings };
 ComponentHelpers.CustomElements.defineComponent('devtools-linear-memory-inspector-interpreter-settings', ValueInterpreterSettings);
 //# map=ValueInterpreterSettings.js.map

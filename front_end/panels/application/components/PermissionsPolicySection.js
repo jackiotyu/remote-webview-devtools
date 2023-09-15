@@ -71,7 +71,7 @@ export function renderIconLink(iconName, title, clickHandler) {
   `;
     // clang-format on
 }
-class PermissionsPolicySection extends HTMLElement {
+export class PermissionsPolicySection extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-resources-permissions-policy-section`;
     #shadow = this.attachShadow({ mode: 'open' });
     #permissionsPolicySectionData = { policies: [], showDetails: false };
@@ -196,6 +196,5 @@ class PermissionsPolicySection extends HTMLElement {
         });
     }
 }
-export { PermissionsPolicySection };
 ComponentHelpers.CustomElements.defineComponent('devtools-resources-permissions-policy-section', PermissionsPolicySection);
 //# map=PermissionsPolicySection.js.map

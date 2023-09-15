@@ -27,6 +27,6 @@ styles.replaceSync(
   background-color: var(--icon-css-hover);
 }
 
-
+/*# sourceURL=cssShadowSwatch.css */
 `);
 export default styles;

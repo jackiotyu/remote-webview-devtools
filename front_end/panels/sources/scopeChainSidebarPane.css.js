@@ -39,6 +39,6 @@ styles.replaceSync(
   flex: none;
 }
 
-
+/*# sourceURL=scopeChainSidebarPane.css */
 `);
 export default styles;

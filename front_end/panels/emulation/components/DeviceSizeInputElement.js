@@ -16,7 +16,7 @@ class SizeChangedEvent extends Event {
 function getInputValue(event) {
     return Number(event.target.value);
 }
-class SizeInputElement extends HTMLElement {
+export class SizeInputElement extends HTMLElement {
     #root = this.attachShadow({ mode: 'open' });
     #disabled = false;
     #size = '0';
@@ -61,6 +61,8 @@ class SizeInputElement extends HTMLElement {
            */
           width: calc(4ch + 2ch + 2px);
           max-height: 18px;
+          border: var(--sys-color-neutral-outline);
+          border-radius: 4px;
           margin: 0 2px;
           text-align: center;
           font-size: inherit;
@@ -102,6 +104,5 @@ class SizeInputElement extends HTMLElement {
         this.dispatchEvent(new SizeChangedEvent(modifiedValue));
     }
 }
-export { SizeInputElement };
 ComponentHelpers.CustomElements.defineComponent('device-mode-emulation-size-input', SizeInputElement);
 //# map=DeviceSizeInputElement.js.map

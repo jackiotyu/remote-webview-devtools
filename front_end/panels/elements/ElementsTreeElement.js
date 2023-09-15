@@ -419,6 +419,7 @@ export class ElementsTreeElement extends UI.TreeOutline.TreeElement {
             this.tagTypeContext.slot = this.adornSlot(config, this.tagTypeContext);
             const deferredNode = nodeShortcut.deferredNode;
             this.tagTypeContext.slot.addEventListener('click', () => {
+                Host.userMetrics.badgeActivated(6 /* Host.UserMetrics.BadgeType.SLOT */);
                 deferredNode.resolve(node => {
                     void Common.Revealer.reveal(node);
                 });
@@ -617,7 +618,7 @@ export class ElementsTreeElement extends UI.TreeOutline.TreeElement {
         });
     }
     populateScrollIntoView(contextMenu) {
-        contextMenu.viewSection().appendItem(i18nString(UIStrings.scrollIntoView), () => this.nodeInternal.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' }));
+        contextMenu.viewSection().appendItem(i18nString(UIStrings.scrollIntoView), () => this.nodeInternal.scrollIntoView());
     }
     populateTextContextMenu(contextMenu, textNode) {
         if (!this.editing) {
@@ -716,7 +717,7 @@ export class ElementsTreeElement extends UI.TreeOutline.TreeElement {
         attr.style.marginRight = '2px'; // overrides the .editing margin rule
         const tag = this.listItemElement.getElementsByClassName('webkit-html-tag')[0];
         this.insertInLastAttributePosition(tag, attr);
-        attr.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'start' });
+        attr.scrollIntoViewIfNeeded(true);
         return this.startEditingAttribute(attr, attr);
     }
     triggerEditAttribute(attributeName) {
@@ -1233,7 +1234,7 @@ export class ElementsTreeElement extends UI.TreeOutline.TreeElement {
             this.decorationsElement.removeChildren();
             this.decorationsElement.classList.add('hidden');
             this.gutterContainer.classList.toggle('has-decorations', Boolean(decorations.length || descendantDecorations.length));
-            UI.ARIAUtils.setAccessibleName(this.decorationsElement, '');
+            UI.ARIAUtils.setLabel(this.decorationsElement, '');
             if (!decorations.length && !descendantDecorations.length) {
                 return;
             }
@@ -1264,7 +1265,7 @@ export class ElementsTreeElement extends UI.TreeOutline.TreeElement {
                 processColors.call(this, descendantColors, 'elements-gutter-decoration elements-has-decorated-children');
             }
             UI.Tooltip.Tooltip.install(this.decorationsElement, titles.textContent);
-            UI.ARIAUtils.setAccessibleName(this.decorationsElement, titles.textContent || '');
+            UI.ARIAUtils.setLabel(this.decorationsElement, titles.textContent || '');
             function processColors(colors, className) {
                 for (const color of colors) {
                     const child = this.decorationsElement.createChild('div', className);
@@ -1444,7 +1445,7 @@ export class ElementsTreeElement extends UI.TreeOutline.TreeElement {
         UI.UIUtils.createTextChild(tagElement, '>');
         UI.UIUtils.createTextChild(parentElement, '\u200B');
         if (tagElement.textContent) {
-            UI.ARIAUtils.setAccessibleName(tagElement, tagElement.textContent);
+            UI.ARIAUtils.setLabel(tagElement, tagElement.textContent);
         }
     }
     convertWhitespaceToEntities(text) {
@@ -1846,6 +1847,7 @@ export class ElementsTreeElement extends UI.TreeOutline.TreeElement {
         const onClick = (() => {
             if (adorner.isActive()) {
                 node.domModel().overlayModel().highlightGridInPersistentOverlay(nodeId);
+                Host.userMetrics.badgeActivated(isSubgrid ? 1 /* Host.UserMetrics.BadgeType.SUBGRID */ : 0 /* Host.UserMetrics.BadgeType.GRID */);
             }
             else {
                 node.domModel().overlayModel().hideGridInPersistentOverlay(nodeId);
@@ -1879,6 +1881,7 @@ export class ElementsTreeElement extends UI.TreeOutline.TreeElement {
             const model = node.domModel().overlayModel();
             if (adorner.isActive()) {
                 model.highlightScrollSnapInPersistentOverlay(nodeId);
+                Host.userMetrics.badgeActivated(4 /* Host.UserMetrics.BadgeType.SCROLL_SNAP */);
             }
             else {
                 model.hideScrollSnapInPersistentOverlay(nodeId);
@@ -1912,6 +1915,7 @@ export class ElementsTreeElement extends UI.TreeOutline.TreeElement {
             const model = node.domModel().overlayModel();
             if (adorner.isActive()) {
                 model.highlightFlexContainerInPersistentOverlay(nodeId);
+                Host.userMetrics.badgeActivated(2 /* Host.UserMetrics.BadgeType.FLEX */);
             }
             else {
                 model.hideFlexContainerInPersistentOverlay(nodeId);
@@ -1945,6 +1949,7 @@ export class ElementsTreeElement extends UI.TreeOutline.TreeElement {
             const model = node.domModel().overlayModel();
             if (adorner.isActive()) {
                 model.highlightContainerQueryInPersistentOverlay(nodeId);
+                Host.userMetrics.badgeActivated(5 /* Host.UserMetrics.BadgeType.CONTAINER */);
             }
             else {
                 model.hideContainerQueryInPersistentOverlay(nodeId);

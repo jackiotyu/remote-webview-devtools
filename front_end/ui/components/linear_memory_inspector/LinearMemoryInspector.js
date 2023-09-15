@@ -23,7 +23,7 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('ui/components/linear_memory_inspector/LinearMemoryInspector.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class MemoryRequestEvent extends Event {
+export class MemoryRequestEvent extends Event {
     static eventName = 'memoryrequest';
     data;
     constructor(start, end, address) {
@@ -31,8 +31,7 @@ class MemoryRequestEvent extends Event {
         this.data = { start, end, address };
     }
 }
-export { MemoryRequestEvent };
-class AddressChangedEvent extends Event {
+export class AddressChangedEvent extends Event {
     static eventName = 'addresschanged';
     data;
     constructor(address) {
@@ -40,8 +39,7 @@ class AddressChangedEvent extends Event {
         this.data = address;
     }
 }
-export { AddressChangedEvent };
-class SettingsChangedEvent extends Event {
+export class SettingsChangedEvent extends Event {
     static eventName = 'settingschanged';
     data;
     constructor(settings) {
@@ -49,7 +47,6 @@ class SettingsChangedEvent extends Event {
         this.data = settings;
     }
 }
-export { SettingsChangedEvent };
 class AddressHistoryEntry {
     #address = 0;
     #callback;
@@ -67,7 +64,7 @@ class AddressHistoryEntry {
         this.#callback(this.#address);
     }
 }
-class LinearMemoryInspector extends HTMLElement {
+export class LinearMemoryInspector extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-linear-memory-inspector-inspector`;
     #shadow = this.attachShadow({ mode: 'open' });
     #history = new Common.SimpleHistoryManager.SimpleHistoryManager(10);
@@ -300,6 +297,5 @@ class LinearMemoryInspector extends HTMLElement {
         return smallestEnclosingHighlight;
     }
 }
-export { LinearMemoryInspector };
 ComponentHelpers.CustomElements.defineComponent('devtools-linear-memory-inspector-inspector', LinearMemoryInspector);
 //# map=LinearMemoryInspector.js.map

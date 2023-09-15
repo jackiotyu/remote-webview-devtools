@@ -12,7 +12,7 @@ export default {
 
 .widget {
   box-shadow: var(--drop-shadow);
-  background: var(--color-background);
+  background: var(--sys-color-cdt-base-container);
   justify-content: flex-start;
   align-items: stretch;
   display: flex;

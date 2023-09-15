@@ -19,6 +19,6 @@ styles.replaceSync(
   outline-offset: 2px;
 }
 
-
+/*# sourceURL=linkifierImpl.css */
 `);
 export default styles;

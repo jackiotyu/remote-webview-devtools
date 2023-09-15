@@ -24,9 +24,10 @@ devtools-header-section-row:first-of-type {
 }
 
 .call-to-action {
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-neutral-container);
   padding: 8px;
-  border-radius: 2px;
+  border-radius: 5px;
+  margin: 4px;
 }
 
 .call-to-action-body {
@@ -65,6 +66,6 @@ devtools-header-section-row:first-of-type {
   vertical-align: middle;
 }
 
-
+/*# sourceURL=RequestHeaderSection.css */
 `);
 export default styles;

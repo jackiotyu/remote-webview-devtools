@@ -13,15 +13,15 @@ styles.replaceSync(
 
 .container-link {
   display: inline-block;
-  color: var(--color-text-disabled);
+  color: var(--sys-color-state-disabled);
 }
 
 .container-link:hover {
-  color: var(--color-link);
+  color: var(--sys-color-primary);
 }
 
 .queried-size-details {
-  color: var(--color-text-primary);
+  color: var(--sys-color-on-surface);
 }
 
 .axis-icon {
@@ -39,6 +39,6 @@ styles.replaceSync(
   transform: rotate(90deg);
 }
 
-
+/*# sourceURL=queryContainer.css */
 `);
 export default styles;

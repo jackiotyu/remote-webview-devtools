@@ -212,7 +212,7 @@ export class ComputedStyleWidget extends UI.ThrottledWidget.ThrottledWidget {
         const hbox = this.contentElement.createChild('div', 'hbox styles-sidebar-pane-toolbar');
         const filterContainerElement = hbox.createChild('div', 'styles-sidebar-pane-filter-box');
         const filterInput = StylesSidebarPane.createPropertyFilterElement(i18nString(UIStrings.filter), hbox, this.filterComputedStyles.bind(this));
-        UI.ARIAUtils.setAccessibleName(filterInput, i18nString(UIStrings.filterComputedStyles));
+        UI.ARIAUtils.setLabel(filterInput, i18nString(UIStrings.filterComputedStyles));
         filterContainerElement.appendChild(filterInput);
         this.input = filterInput;
         this.filterRegex = null;
@@ -393,7 +393,7 @@ export class ComputedStyleWidget extends UI.ThrottledWidget.ThrottledWidget {
                 traceElement.addEventListener('contextmenu', this.handleContextMenuEvent.bind(this, matchedStyles, data.property));
                 return LitHtml.html `${traceElement}`;
             }
-            return LitHtml.html `<span style="cursor: text; color: var(--color-text-secondary);">${data.name}</span>`;
+            return LitHtml.html `<span style="cursor: text; color: var(--sys-color-token-subtle);">${data.name}</span>`;
         };
     }
     buildTreeNode(propertyTraces, propertyName, propertyValue, isInherited) {

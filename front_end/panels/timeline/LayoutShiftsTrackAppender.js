@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as TraceEngine from '../../models/trace/trace.js';
-import { EntryType, } from './TimelineFlameChartDataProvider.js';
 import * as i18n from '../../core/i18n/i18n.js';
 import { buildGroupStyle, buildTrackHeader, getFormattedTime } from './AppenderUtils.js';
 const UIStrings = {
@@ -18,33 +17,26 @@ export class LayoutShiftsTrackAppender {
     #compatibilityBuilder;
     #flameChartData;
     #traceParsedData;
-    // TODO(crbug.com/1416533)
-    // This is used only for compatibility with the legacy flame chart
-    // architecture of the panel. Once all tracks have been migrated to
-    // use the new engine and flame chart architecture, the reference can
-    // be removed.
-    #legacyEntryTypeByLevel;
-    constructor(compatibilityBuilder, flameChartData, traceParsedData, legacyEntryTypeByLevel) {
+    constructor(compatibilityBuilder, flameChartData, traceParsedData) {
         this.#compatibilityBuilder = compatibilityBuilder;
         this.#flameChartData = flameChartData;
         this.#traceParsedData = traceParsedData;
-        this.#legacyEntryTypeByLevel = legacyEntryTypeByLevel;
     }
     /**
      * Appends into the flame chart data the data corresponding to the
      * layout shifts track.
-     * @param level the horizontal level of the flame chart events where
+     * @param trackStartLevel the horizontal level of the flame chart events where
      * the track's events will start being appended.
      * @param expanded wether the track should be rendered expanded.
      * @returns the first available level to append more data after having
      * appended the track's events.
      */
-    appendTrackAtLevel(currentLevel, expanded) {
+    appendTrackAtLevel(trackStartLevel, expanded) {
         if (this.#traceParsedData.LayoutShifts.clusters.length === 0) {
-            return currentLevel;
+            return trackStartLevel;
         }
-        this.#appendTrackHeaderAtLevel(currentLevel, expanded);
-        return this.#appendLayoutShiftsAtLevel(currentLevel);
+        this.#appendTrackHeaderAtLevel(trackStartLevel, expanded);
+        return this.#appendLayoutShiftsAtLevel(trackStartLevel);
     }
     /**
      * Adds into the flame chart data the header corresponding to the
@@ -70,40 +62,22 @@ export class LayoutShiftsTrackAppender {
      * layout shifts (the first available level to append more data).
      */
     #appendLayoutShiftsAtLevel(currentLevel) {
-        const allLayoutShifts = this.#traceParsedData.LayoutShifts.clusters.flatMap(cluster => {
-            return cluster.events;
-        });
-        const lastUsedTimeByLevel = [];
-        for (let i = 0; i < allLayoutShifts.length; ++i) {
-            const event = allLayoutShifts[i];
-            const startTime = event.ts;
-            let level;
-            // look vertically for the first level where this event fits,
-            // that is, where it wouldn't overlap with other events.
-            for (level = 0; level < lastUsedTimeByLevel.length && lastUsedTimeByLevel[level] > startTime; ++level) {
-            }
-            this.#appendEventAtLevel(event, currentLevel + level);
-            // End time is the same as the start time as LayoutShifts are instant events.
-            lastUsedTimeByLevel[level] = event.ts;
-        }
-        this.#legacyEntryTypeByLevel.length = currentLevel + lastUsedTimeByLevel.length;
-        this.#legacyEntryTypeByLevel.fill(EntryType.TrackAppender, currentLevel);
-        return currentLevel + lastUsedTimeByLevel.length;
-    }
-    /**
-     * Adds an event to the flame chart data at a defined level.
-     * @returns the position occupied by the new event in the entryData
-     * array, which contains all the events in the timeline.
-     */
-    #appendEventAtLevel(event, level) {
-        const index = this.#compatibilityBuilder.appendEventAtLevel(event, level, this);
+        const allLayoutShifts = this.#traceParsedData.LayoutShifts.clusters.flatMap(cluster => cluster.events);
+        const newLevel = this.#compatibilityBuilder.appendEventsAtLevel(allLayoutShifts, currentLevel, this);
         // Bit of a hack: LayoutShifts are instant events, so have no duration. But
         // OPP doesn't do well at making tiny events easy to spot and click. So we
         // set it to a small duration so that the user is able to see and click
         // them more easily. Long term we will explore a better UI solution to
         // allow us to do this properly and not hack around it.
         const msDuration = TraceEngine.Types.Timing.MicroSeconds(5_000);
-        this.#flameChartData.entryTotalTimes[index] = TraceEngine.Helpers.Timing.microSecondsToMilliseconds(msDuration);
+        for (let i = 0; i < allLayoutShifts.length; ++i) {
+            const index = this.#compatibilityBuilder.indexForEvent(allLayoutShifts[i]);
+            if (index === undefined) {
+                continue;
+            }
+            this.#flameChartData.entryTotalTimes[index] = TraceEngine.Helpers.Timing.microSecondsToMilliseconds(msDuration);
+        }
+        return newLevel;
     }
     /*
       ------------------------------------------------------------------------------------

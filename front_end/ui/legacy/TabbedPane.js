@@ -132,7 +132,7 @@ export class TabbedPane extends Common.ObjectWrapper.eventMixin(VBox) {
         this.makeTabSlider();
     }
     setAccessibleName(name) {
-        ARIAUtils.setAccessibleName(this.tabsElement, name);
+        ARIAUtils.setLabel(this.tabsElement, name);
     }
     setCurrentTabLocked(locked) {
         this.currentTabLocked = locked;
@@ -383,7 +383,7 @@ export class TabbedPane extends Common.ObjectWrapper.eventMixin(VBox) {
         }
         if (tab && tab.title !== tabTitle) {
             tab.title = tabTitle;
-            ARIAUtils.setAccessibleName(tab.tabElement, tabTitle);
+            ARIAUtils.setLabel(tab.tabElement, tabTitle);
             this.updateTabElements();
         }
     }
@@ -528,7 +528,8 @@ export class TabbedPane extends Common.ObjectWrapper.eventMixin(VBox) {
         const moreTabsString = i18nString(UIStrings.moreTabs);
         dropDownContainer.title = moreTabsString;
         ARIAUtils.markAsMenuButton(dropDownContainer);
-        ARIAUtils.setAccessibleName(dropDownContainer, moreTabsString);
+        ARIAUtils.setLabel(dropDownContainer, moreTabsString);
+        ARIAUtils.setExpanded(dropDownContainer, false);
         dropDownContainer.tabIndex = 0;
         dropDownContainer.appendChild(chevronIcon);
         dropDownContainer.addEventListener('click', this.dropDownClicked.bind(this));
@@ -555,6 +556,9 @@ export class TabbedPane extends Common.ObjectWrapper.eventMixin(VBox) {
             useSoftMenu: false,
             x: rect.left,
             y: rect.bottom,
+            onSoftMenuClosed: () => {
+                ARIAUtils.setExpanded(this.dropDownButton, false);
+            },
         });
         for (const tab of this.tabs) {
             if (tab.shown) {
@@ -567,7 +571,7 @@ export class TabbedPane extends Common.ObjectWrapper.eventMixin(VBox) {
                 menu.defaultSection().appendItem(tab.title, this.dropDownMenuItemSelected.bind(this, tab));
             }
         }
-        void menu.show();
+        void menu.show().then(() => ARIAUtils.setExpanded(this.dropDownButton, menu.isHostedMenuOpen()));
     }
     dropDownKeydown(event) {
         if (Platform.KeyboardUtilities.isEnterOrSpaceKey(event)) {
@@ -960,10 +964,22 @@ export class TabbedPaneTab {
         }
         const iconContainer = document.createElement('span');
         iconContainer.classList.add('tabbed-pane-header-tab-icon');
-        const iconNode = measuring ? this.icon.cloneNode(true) : this.icon;
+        const iconNode = measuring ? this.createMeasureClone(this.icon) : this.icon;
         iconContainer.appendChild(iconNode);
         tabElement.insertBefore(iconContainer, titleElement);
         tabIcons.set(tabElement, iconContainer);
+    }
+    createMeasureClone(original) {
+        if ('data' in original && original.data.width && original.data.height) {
+            // Cloning doesn't work for the icon component because the shadow
+            // root isn't copied, but it is sufficient to create a div styled
+            // to be the same size.
+            const fakeClone = document.createElement('div');
+            fakeClone.style.width = original.data.width;
+            fakeClone.style.height = original.data.height;
+            return fakeClone;
+        }
+        return original.cloneNode(true);
     }
     createTabElement(measuring) {
         const tabElement = document.createElement('div');
@@ -971,7 +987,7 @@ export class TabbedPaneTab {
         tabElement.id = 'tab-' + this.idInternal;
         ARIAUtils.markAsTab(tabElement);
         ARIAUtils.setSelected(tabElement, false);
-        ARIAUtils.setAccessibleName(tabElement, this.title);
+        ARIAUtils.setLabel(tabElement, this.title);
         const titleElement = tabElement.createChild('span', 'tabbed-pane-header-tab-title');
         titleElement.textContent = this.title;
         Tooltip.install(titleElement, this.tooltip || '');

@@ -28,10 +28,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 import * as Common from '../../core/common/common.js';
+import * as i18n from '../../core/i18n/i18n.js';
 import * as Platform from '../../core/platform/platform.js';
 import * as PerfUI from '../../ui/legacy/components/perf_ui/perf_ui.js';
 import * as UI from '../../ui/legacy/legacy.js';
-import * as i18n from '../../core/i18n/i18n.js';
 let colorGeneratorInstance = null;
 export class ProfileFlameChartDataProvider {
     colorGeneratorInternal;
@@ -106,9 +106,6 @@ export class ProfileFlameChartDataProvider {
     }
     textColor(_entryIndex) {
         return '#333';
-    }
-    navStartTimes() {
-        return new Map();
     }
     entryNodesLength() {
         return this.entryNodes.length;
@@ -311,7 +308,7 @@ export class OverviewPane extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox
         if (!timelineData) {
             return;
         }
-        this.resetCanvas(this.overviewContainer.clientWidth, this.overviewContainer.clientHeight - PerfUI.FlameChart.HeaderHeight);
+        this.resetCanvas(this.overviewContainer.clientWidth, this.overviewContainer.clientHeight - PerfUI.FlameChart.RulerHeight);
         this.overviewCalculator.updateBoundaries(this);
         this.overviewGrid.updateDividers(this.overviewCalculator);
         this.drawOverviewCanvas();

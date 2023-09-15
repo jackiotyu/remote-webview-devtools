@@ -29,6 +29,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+import * as Common from '../../../../core/common/common.js';
 import * as i18n from '../../../../core/i18n/i18n.js';
 import * as FormatterActions from '../../../../entrypoints/formatter_worker/FormatterActions.js'; // eslint-disable-line rulesdir/es_modules_import
 import * as UI from '../../legacy.js';
@@ -69,9 +70,10 @@ export class SearchableContainer extends UI.Widget.VBox {
     constructor(resource, contentType, autoPrettyPrint) {
         super(true);
         this.registerRequiredCSS(resourceSourceFrameStyles);
-        const sourceFrame = new ResourceSourceFrame(resource, contentType);
+        const simpleContentType = Common.ResourceType.ResourceType.simplifyContentType(contentType);
+        const sourceFrame = new ResourceSourceFrame(resource, simpleContentType);
         this.sourceFrame = sourceFrame;
-        const canPrettyPrint = FormatterActions.FORMATTABLE_MEDIA_TYPES.includes(contentType);
+        const canPrettyPrint = FormatterActions.FORMATTABLE_MEDIA_TYPES.includes(simpleContentType);
         sourceFrame.setCanPrettyPrint(canPrettyPrint, autoPrettyPrint);
         const searchableView = new UI.SearchableView.SearchableView(sourceFrame, sourceFrame);
         searchableView.element.classList.add('searchable-view');
@@ -84,8 +86,8 @@ export class SearchableContainer extends UI.Widget.VBox {
             items.map(item => toolbar.appendToolbarItem(item));
         });
     }
-    async revealPosition(lineNumber, columnNumber) {
-        this.sourceFrame.revealPosition({ lineNumber, columnNumber }, true);
+    async revealPosition(position) {
+        this.sourceFrame.revealPosition(position, true);
     }
 }
 //# map=ResourceSourceFrame.js.map

@@ -77,6 +77,16 @@ export default {
   border-left-style: solid;
 }
 
+.create-breadcrumb-button {
+  display: flex;
+  position: absolute;
+  top: 20px;
+  justify-content: center;
+  z-index: 600;
+  left: 0;
+  right: 0;
+}
+
 @media (forced-colors: active) {
   .overview-grid-cursor-position {
     forced-color-adjust: none;

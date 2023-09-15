@@ -26,6 +26,7 @@ styles.replaceSync(
 
 .inline-icon {
   margin-left: 4px;
+  margin-right: 4px;
   vertical-align: middle;
 }
 
@@ -33,14 +34,10 @@ styles.replaceSync(
   white-space: normal;
 }
 
-.learn-more {
-  margin-left: 4px;
-}
-
 .inline-icon:focus-visible {
   outline-width: unset;
 }
 
-
+/*# sourceURL=appManifestView.css */
 `);
 export default styles;

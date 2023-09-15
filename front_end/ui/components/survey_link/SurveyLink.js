@@ -25,7 +25,7 @@ const str_ = i18n.i18n.registerUIStrings('ui/components/survey_link/SurveyLink.t
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 // A link to a survey. The link is rendered aysnchronously because we need to first check if
 // canShowSurvey succeeds.
-class SurveyLink extends HTMLElement {
+export class SurveyLink extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-survey-link`;
     #shadow = this.attachShadow({ mode: 'open' });
     #trigger = '';
@@ -103,6 +103,5 @@ class SurveyLink extends HTMLElement {
         LitHtml.render(output, this.#shadow, { host: this });
     }
 }
-export { SurveyLink };
 ComponentHelpers.CustomElements.defineComponent('devtools-survey-link', SurveyLink);
 //# map=SurveyLink.js.map

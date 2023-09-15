@@ -9,7 +9,7 @@ import { get2DTranslationsForAngle, getAngleFromRadians, getNewAngleFromEvent, g
 const { render, html } = LitHtml;
 const styleMap = LitHtml.Directives.styleMap;
 const CLOCK_DIAL_LENGTH = 6;
-class CSSAngleEditor extends HTMLElement {
+export class CSSAngleEditor extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-css-angle-editor`;
     shadow = this.attachShadow({ mode: 'open' });
     angle = {
@@ -137,6 +137,5 @@ class CSSAngleEditor extends HTMLElement {
         return this.dialTemplates;
     }
 }
-export { CSSAngleEditor };
 ComponentHelpers.CustomElements.defineComponent('devtools-css-angle-editor', CSSAngleEditor);
 //# map=CSSAngleEditor.js.map

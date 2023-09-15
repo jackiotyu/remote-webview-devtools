@@ -3665,4 +3665,4 @@ if (!bytesToString) {
         return decodeURIComponent(escape(str));
     };
 }
-//# sourceMappingURL=WasmParser.js.map
+//# map=WasmParser.js.map

@@ -32,7 +32,7 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/settings/components/SyncSection.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class SyncSection extends HTMLElement {
+export class SyncSection extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-sync-section`;
     #shadow = this.attachShadow({ mode: 'open' });
     #syncInfo = { isSyncActive: false };
@@ -64,7 +64,6 @@ class SyncSection extends HTMLElement {
         // clang-format on
     }
 }
-export { SyncSection };
 /* x-link doesn't work with custom click/keydown handlers */
 /* eslint-disable rulesdir/ban_a_tags_in_lit_html */
 function renderAccountInfoOrWarning(syncInfo) {

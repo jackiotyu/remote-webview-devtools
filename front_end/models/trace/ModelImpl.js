@@ -4,18 +4,8 @@
 import * as Platform from '../../core/platform/platform.js';
 import * as Handlers from './handlers/handlers.js';
 import * as Helpers from './helpers/helpers.js';
-import { TraceProcessor, TraceParseProgressEvent } from './Processor.js';
-// As we migrate the data engine we are incrementally enabling the new handlers
-// one by one, so we do not waste effort parsing data that we do not use. This
-// object should be updated when we add a new handler to enable it.
-export const ENABLED_TRACE_HANDLERS = {
-    UserTimings: Handlers.ModelHandlers.UserTimings,
-    PageLoadMetrics: Handlers.ModelHandlers.PageLoadMetrics,
-    UserInteractions: Handlers.ModelHandlers.UserInteractions,
-    LayoutShifts: Handlers.ModelHandlers.LayoutShifts,
-    Screenshots: Handlers.ModelHandlers.Screenshots,
-    GPU: Handlers.ModelHandlers.GPU,
-};
+import { TraceParseProgressEvent, TraceProcessor } from './Processor.js';
+import * as Types from './types/types.js';
 /**
  * The new trace engine model we are migrating to. The Model is responsible for
  * parsing arrays of raw trace events and storing the resulting data. It can
@@ -35,15 +25,28 @@ export class Model extends EventTarget {
     #recordingsAvailable = [];
     #lastRecordingIndex = 0;
     #processor;
+    #config = Types.Configuration.DEFAULT;
     static createWithAllHandlers() {
         return new Model(Handlers.ModelHandlers);
     }
-    static createWithRequiredHandlersForMigration() {
-        return new Model(ENABLED_TRACE_HANDLERS);
+    static createWithRequiredHandlersForMigration(config) {
+        return new Model(Handlers.Migration.ENABLED_TRACE_HANDLERS, config);
     }
-    constructor(handlers) {
+    constructor(handlers, config) {
         super();
-        this.#processor = new TraceProcessor(handlers);
+        if (config) {
+            this.#config = config;
+        }
+        this.#processor = new TraceProcessor(handlers, this.#config);
+    }
+    /**
+     * Updates the configuration. Useful if a user changes a setting - this lets
+     * us update the model without having to destroy it and recreate it with the
+     * new settings.
+     */
+    updateConfiguration(config) {
+        this.#config = config;
+        this.#processor.updateConfiguration(config);
     }
     /**
      * Parses an array of trace events into a structured object containing all the
@@ -154,11 +157,11 @@ export class Model extends EventTarget {
     getRecordingsAvailable() {
         return this.#recordingsAvailable;
     }
-    reset() {
+    resetProcessor() {
         this.#processor.reset();
     }
 }
-class ModelUpdateEvent extends Event {
+export class ModelUpdateEvent extends Event {
     data;
     static eventName = 'modelupdate';
     constructor(data) {
@@ -166,7 +169,6 @@ class ModelUpdateEvent extends Event {
         this.data = data;
     }
 }
-export { ModelUpdateEvent };
 export function isModelUpdateDataComplete(eventData) {
     return eventData.type === "COMPLETE" /* ModelUpdateType.COMPLETE */;
 }

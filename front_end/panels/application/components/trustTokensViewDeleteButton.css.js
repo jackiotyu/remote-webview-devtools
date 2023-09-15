@@ -22,11 +22,11 @@ styles.replaceSync(
 }
 
 .delete-button:hover devtools-icon {
-  --icon-color: var(--color-text-primary);
+  --icon-color: var(--sys-color-token-subtle);
 }
 
 .delete-button:focus devtools-icon {
-  --icon-color: var(--color-text-secondary);
+  --icon-color: var(--sys-color-token-subtle);
 }
 
 .button-container {
@@ -34,6 +34,6 @@ styles.replaceSync(
   text-align: center;
 }
 
-
+/*# sourceURL=trustTokensViewDeleteButton.css */
 `);
 export default styles;

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as Common from '../../core/common/common.js';
+import * as Host from '../../core/host/host.js';
 import * as i18n from '../../core/i18n/i18n.js';
 import * as Platform from '../../core/platform/platform.js';
 import * as InlineEditor from '../../ui/legacy/components/inline_editor/inline_editor.js';
@@ -138,7 +139,7 @@ export class AnimationUI {
         circle.style.stroke = this.#color;
         circle.setAttribute('r', (Options.AnimationMargin / 2).toString());
         circle.tabIndex = 0;
-        UI.ARIAUtils.setAccessibleName(circle, keyframeIndex <= 0 ? i18nString(UIStrings.animationEndpointSlider) :
+        UI.ARIAUtils.setLabel(circle, keyframeIndex <= 0 ? i18nString(UIStrings.animationEndpointSlider) :
             i18nString(UIStrings.animationKeyframeSlider));
         if (keyframeIndex <= 0) {
             circle.style.fill = this.#color;
@@ -178,7 +179,7 @@ export class AnimationUI {
         }
         const group = cache[keyframeIndex];
         group.tabIndex = 0;
-        UI.ARIAUtils.setAccessibleName(group, i18nString(UIStrings.sSlider, { PH1: this.#animationInternal.name() }));
+        UI.ARIAUtils.setLabel(group, i18nString(UIStrings.sSlider, { PH1: this.#animationInternal.name() }));
         group.style.transform = 'translateX(' + leftDistance.toFixed(2) + 'px)';
         if (easing === 'linear') {
             group.style.fill = this.#color;
@@ -314,7 +315,12 @@ export class AnimationUI {
         this.#keyframeMoved = keyframeIndex;
         this.#downMouseX = mouseEvent.clientX;
         event.consume(true);
-        if (this.#node) {
+        const viewManagerInstance = UI.ViewManager.ViewManager.instance();
+        const animationLocation = viewManagerInstance.locationNameForViewId('animations');
+        const elementsLocation = viewManagerInstance.locationNameForViewId('elements');
+        // Prevents revealing the node if the animations and elements view share the same view location.
+        // If they share the same view location, the animations view will change to the elements view when editing an animation
+        if (this.#node && animationLocation !== elementsLocation) {
             void Common.Revealer.reveal(this.#node);
         }
         return true;
@@ -342,6 +348,13 @@ export class AnimationUI {
         else {
             this.#animationInternal.setTiming(this.duration(), this.delay());
         }
+        Host.userMetrics.animationPointDragged(this.#mouseEventType === "AnimationDrag" /* Events.AnimationDrag */ ? 0 /* Host.UserMetrics.AnimationPointDragType.AnimationDrag */ :
+            this.#mouseEventType === "KeyframeMove" /* Events.KeyframeMove */ ? 1 /* Host.UserMetrics.AnimationPointDragType.KeyframeMove */ :
+                this.#mouseEventType === "StartEndpointMove" /* Events.StartEndpointMove */ ?
+                    2 /* Host.UserMetrics.AnimationPointDragType.StartEndpointMove */ :
+                    this.#mouseEventType === "FinishEndpointMove" /* Events.FinishEndpointMove */ ?
+                        3 /* Host.UserMetrics.AnimationPointDragType.FinishEndpointMove */ :
+                        4 /* Host.UserMetrics.AnimationPointDragType.Other */);
         this.#movementInMs = 0;
         this.redraw();
         this.#mouseEventType = undefined;

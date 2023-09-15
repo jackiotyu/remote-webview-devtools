@@ -5,7 +5,7 @@ import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
 import adornerStyles from './adorner.css.js';
 const { render, html } = LitHtml;
-class Adorner extends HTMLElement {
+export class Adorner extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-adorner`;
     name = '';
     #shadow = this.attachShadow({ mode: 'open' });
@@ -88,6 +88,5 @@ class Adorner extends HTMLElement {
         });
     }
 }
-export { Adorner };
 ComponentHelpers.CustomElements.defineComponent('devtools-adorner', Adorner);
 //# map=Adorner.js.map

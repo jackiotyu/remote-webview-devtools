@@ -141,7 +141,6 @@ export class StatusView {
     textChangedAt;
     fastFactsQueued;
     currentPhase;
-    scheduledTextChangeTimeout;
     scheduledFastFactTimeout;
     dialog;
     constructor(panel) {
@@ -156,7 +155,6 @@ export class StatusView {
         this.textChangedAt = 0;
         this.fastFactsQueued = FastFacts.map(lazyString => lazyString());
         this.currentPhase = null;
-        this.scheduledTextChangeTimeout = null;
         this.scheduledFastFactTimeout = null;
         this.dialog = new UI.Dialog.Dialog();
         this.dialog.setDimmed(true);
@@ -200,7 +198,6 @@ export class StatusView {
         this.textChangedAt = 0;
         this.fastFactsQueued = FastFacts.map(lazyString => lazyString());
         this.currentPhase = null;
-        this.scheduledTextChangeTimeout = null;
         this.scheduledFastFactTimeout = null;
     }
     show(dialogRenderElement) {
@@ -236,22 +233,20 @@ export class StatusView {
             return;
         }
         const nextPhase = this.getPhaseForMessage(message);
-        // @ts-ignore indexOf null is valid.
-        const nextPhaseIndex = StatusPhases.indexOf(nextPhase);
-        // @ts-ignore indexOf null is valid.
-        const currentPhaseIndex = StatusPhases.indexOf(this.currentPhase);
         if (!nextPhase && !this.currentPhase) {
             this.commitTextChange(i18nString(UIStrings.lighthouseIsWarmingUp));
             clearTimeout(this.scheduledFastFactTimeout);
         }
-        else if (nextPhase && (!this.currentPhase || currentPhaseIndex < nextPhaseIndex)) {
+        else if (nextPhase) {
             this.currentPhase = nextPhase;
             const text = this.getMessageForPhase(nextPhase);
-            this.scheduleTextChange(text);
+            this.commitTextChange(text);
             this.scheduleFastFactCheck();
             this.resetProgressBarClasses();
             if (this.progressBar) {
                 this.progressBar.classList.add(nextPhase.progressBarClass);
+                // @ts-ignore indexOf null is valid.
+                const nextPhaseIndex = StatusPhases.indexOf(nextPhase);
                 UI.ARIAUtils.setProgressBarValue(this.progressBar, nextPhaseIndex, text);
             }
         }
@@ -299,7 +294,7 @@ export class StatusView {
             return;
         }
         const fastFactIndex = Math.floor(Math.random() * this.fastFactsQueued.length);
-        this.scheduleTextChange(i18nString(UIStrings.fastFactMessageWithPlaceholder, { PH1: this.fastFactsQueued[fastFactIndex] }));
+        this.commitTextChange(i18nString(UIStrings.fastFactMessageWithPlaceholder, { PH1: this.fastFactsQueued[fastFactIndex] }));
         this.fastFactsQueued.splice(fastFactIndex, 1);
     }
     commitTextChange(text) {
@@ -309,23 +304,10 @@ export class StatusView {
         this.textChangedAt = performance.now();
         this.statusText.textContent = text;
     }
-    scheduleTextChange(text) {
-        if (this.scheduledTextChangeTimeout) {
-            clearTimeout(this.scheduledTextChangeTimeout);
-        }
-        const msSinceLastChange = performance.now() - this.textChangedAt;
-        const msToTextChange = minimumTextVisibilityDuration - msSinceLastChange;
-        this.scheduledTextChangeTimeout = window.setTimeout(() => {
-            this.commitTextChange(text);
-        }, Math.max(msToTextChange, 0));
-    }
     renderBugReport(err) {
         console.error(err);
         if (this.scheduledFastFactTimeout) {
             window.clearTimeout(this.scheduledFastFactTimeout);
-        }
-        if (this.scheduledTextChangeTimeout) {
-            window.clearTimeout(this.scheduledTextChangeTimeout);
         }
         this.resetProgressBarClasses();
         if (this.progressBar) {
@@ -387,19 +369,19 @@ export const StatusPhases = [
         id: 'loading',
         progressBarClass: 'loading',
         message: i18nLazyString(UIStrings.lighthouseIsLoadingThePage),
-        statusMessageRegex: /^(Loading page|Navigating to)/,
+        statusMessageRegex: /^(Navigating to)/,
     },
     {
         id: 'gathering',
         progressBarClass: 'gathering',
         message: i18nLazyString(UIStrings.lighthouseIsGatheringInformation),
-        statusMessageRegex: /^(Gathering|Computing artifact)/,
+        statusMessageRegex: /(Gather|artifact)/i,
     },
     {
         id: 'auditing',
         progressBarClass: 'auditing',
         message: i18nLazyString(UIStrings.almostThereLighthouseIsNow),
-        statusMessageRegex: /^Auditing/,
+        statusMessageRegex: /^Audit/,
     },
 ];
 const LoadingMessages = [

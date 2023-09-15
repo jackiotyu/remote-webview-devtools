@@ -16,8 +16,8 @@ styles.replaceSync(
 }
 
 .web-audio-toolbar-container {
-  background-color: var(--color-background-elevation-1);
-  border-bottom: var(--color-details-hairline);
+  background-color: var(--sys-color-cdt-base-container);
+  border-bottom: 1px solid var(--sys-color-divider);
   min-height: fit-content;
 }
 
@@ -27,7 +27,7 @@ styles.replaceSync(
 
 .web-audio-landing-page {
   position: absolute;
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   justify-content: center;
   align-items: center;
   overflow: auto;
@@ -65,8 +65,7 @@ styles.replaceSync(
 }
 
 .context-detail-header {
-  border-bottom: 1px solid rgb(230 230 230); /* stylelint-disable-line plugin/use_theme_colors */
-  /* See: crbug.com/1152736 for color variable migration. */
+  border-bottom: 1px solid var(--sys-color-divider);
   padding: 12px 24px;
   margin-bottom: 10px;
 }
@@ -106,8 +105,8 @@ styles.replaceSync(
   flex: 0 0 27px;
   line-height: 27px;
   padding-left: 5px;
-  background-color: var(--color-background-elevation-2);
-  border-top: 1px solid var(--color-details-hairline);
+  background-color: var(--sys-color-cdt-base-container);
+  border-top: 1px solid var(--sys-color-divider);
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -117,6 +116,6 @@ styles.replaceSync(
   margin-right: 6px;
 }
 
-
+/*# sourceURL=webAudio.css */
 `);
 export default styles;

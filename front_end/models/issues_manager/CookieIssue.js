@@ -27,6 +27,10 @@ const UIStrings = {
      * @description Label for a link for SameParty Issues. 'Attribute' refers to a cookie attribute.
      */
     firstPartySetsExplained: '`First-Party Sets` and the `SameParty` attribute',
+    /**
+     * @description Label for a link for third-party cookie Issues.
+     */
+    thirdPartyPhaseoutExplained: 'Prepare for phasing out third-party cookies',
 };
 const str_ = i18n.i18n.registerUIStrings('models/issues_manager/CookieIssue.ts', UIStrings);
 const i18nLazyString = i18n.i18n.getLazilyComputedLocalizedString.bind(undefined, str_);
@@ -223,24 +227,6 @@ function isSubdomainOf(subdomain, superdomain) {
     const subdomainWithoutSuperdomian = subdomain.substr(0, subdomain.length - superdomain.length);
     return subdomainWithoutSuperdomian.endsWith('.');
 }
-const sameSiteUnspecifiedErrorRead = {
-    file: 'SameSiteUnspecifiedTreatedAsLaxRead.md',
-    links: [
-        {
-            link: 'https://web.dev/samesite-cookies-explained/',
-            linkTitle: i18nLazyString(UIStrings.samesiteCookiesExplained),
-        },
-    ],
-};
-const sameSiteUnspecifiedErrorSet = {
-    file: 'SameSiteUnspecifiedTreatedAsLaxSet.md',
-    links: [
-        {
-            link: 'https://web.dev/samesite-cookies-explained/',
-            linkTitle: i18nLazyString(UIStrings.samesiteCookiesExplained),
-        },
-    ],
-};
 const sameSiteUnspecifiedWarnRead = {
     file: 'SameSiteUnspecifiedLaxAllowUnsafeRead.md',
     links: [
@@ -375,9 +361,35 @@ const excludeBlockedWithinFirstPartySet = {
     file: 'cookieExcludeBlockedWithinFirstPartySet.md',
     links: [],
 };
+const cookieWarnThirdPartyPhaseoutSet = {
+    file: 'cookieWarnThirdPartyPhaseoutSet.md',
+    links: [{
+            link: 'https://developer.chrome.com/docs/privacy-sandbox/third-party-cookie-phase-out/',
+            linkTitle: i18nLazyString(UIStrings.thirdPartyPhaseoutExplained),
+        }],
+};
+const cookieWarnThirdPartyPhaseoutRead = {
+    file: 'cookieWarnThirdPartyPhaseoutRead.md',
+    links: [{
+            link: 'https://developer.chrome.com/docs/privacy-sandbox/third-party-cookie-phase-out/',
+            linkTitle: i18nLazyString(UIStrings.thirdPartyPhaseoutExplained),
+        }],
+};
+const cookieExcludeThirdPartyPhaseoutSet = {
+    file: 'cookieExcludeThirdPartyPhaseoutSet.md',
+    links: [{
+            link: 'https://developer.chrome.com/docs/privacy-sandbox/third-party-cookie-phase-out/',
+            linkTitle: i18nLazyString(UIStrings.thirdPartyPhaseoutExplained),
+        }],
+};
+const cookieExcludeThirdPartyPhaseoutRead = {
+    file: 'cookieExcludeThirdPartyPhaseoutRead.md',
+    links: [{
+            link: 'https://developer.chrome.com/docs/privacy-sandbox/third-party-cookie-phase-out/',
+            linkTitle: i18nLazyString(UIStrings.thirdPartyPhaseoutExplained),
+        }],
+};
 const issueDescriptions = new Map([
-    ['CookieIssue::ExcludeSameSiteUnspecifiedTreatedAsLax::ReadCookie', sameSiteUnspecifiedErrorRead],
-    ['CookieIssue::ExcludeSameSiteUnspecifiedTreatedAsLax::SetCookie', sameSiteUnspecifiedErrorSet],
     // These two don't have a deprecation date yet, but they need to be fixed eventually.
     ['CookieIssue::WarnSameSiteUnspecifiedLaxAllowUnsafe::ReadCookie', sameSiteUnspecifiedWarnRead],
     ['CookieIssue::WarnSameSiteUnspecifiedLaxAllowUnsafe::SetCookie', sameSiteUnspecifiedWarnSet],
@@ -418,5 +430,9 @@ const issueDescriptions = new Map([
         'CookieIssue::ExcludeThirdPartyCookieBlockedInFirstPartySet::SetCookie',
         excludeBlockedWithinFirstPartySet,
     ],
+    ['CookieIssue::WarnThirdPartyPhaseout::ReadCookie', cookieWarnThirdPartyPhaseoutRead],
+    ['CookieIssue::WarnThirdPartyPhaseout::SetCookie', cookieWarnThirdPartyPhaseoutSet],
+    ['CookieIssue::ExcludeThirdPartyPhaseout::ReadCookie', cookieExcludeThirdPartyPhaseoutRead],
+    ['CookieIssue::ExcludeThirdPartyPhaseout::SetCookie', cookieExcludeThirdPartyPhaseoutSet],
 ]);
 //# map=CookieIssue.js.map

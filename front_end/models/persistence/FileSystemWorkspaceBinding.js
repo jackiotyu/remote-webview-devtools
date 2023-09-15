@@ -28,6 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 import * as Common from '../../core/common/common.js';
+import * as Host from '../../core/host/host.js';
 import * as Platform from '../../core/platform/platform.js';
 import * as TextUtils from '../text_utils/text_utils.js';
 import * as Workspace from '../workspace/workspace.js';
@@ -240,7 +241,7 @@ export class FileSystem extends Workspace.Workspace.ProjectStore {
         return [];
     }
     async findFilesMatchingSearchRequest(searchConfig, filesMatchingFileQuery, progress) {
-        let result = filesMatchingFileQuery;
+        let workingFileSet = filesMatchingFileQuery.map(uiSoureCode => uiSoureCode.url());
         const queriesToRun = searchConfig.queries().slice();
         if (!queriesToRun.length) {
             queriesToRun.push('');
@@ -249,8 +250,15 @@ export class FileSystem extends Workspace.Workspace.ProjectStore {
         for (const query of queriesToRun) {
             const files = await this.fileSystemInternal.searchInPath(searchConfig.isRegex() ? '' : query, progress);
             files.sort(Platform.StringUtilities.naturalOrderComparator);
-            result = Platform.ArrayUtilities.intersectOrdered(result, files, Platform.StringUtilities.naturalOrderComparator);
+            workingFileSet = Platform.ArrayUtilities.intersectOrdered(workingFileSet, files, Platform.StringUtilities.naturalOrderComparator);
             progress.incrementWorked(1);
+        }
+        const result = new Map();
+        for (const file of workingFileSet) {
+            const uiSourceCode = this.uiSourceCodeForURL(file);
+            if (uiSourceCode) {
+                result.set(uiSourceCode, null);
+            }
         }
         progress.done();
         return result;
@@ -259,8 +267,12 @@ export class FileSystem extends Workspace.Workspace.ProjectStore {
         this.fileSystemInternal.indexContent(progress);
     }
     populate() {
-        const chunkSize = 1000;
         const filePaths = this.fileSystemInternal.initialFilePaths();
+        if (filePaths.length === 0) {
+            return;
+        }
+        const chunkSize = 1000;
+        const startTime = performance.now();
         reportFileChunk.call(this, 0);
         function reportFileChunk(from) {
             const to = Math.min(from + chunkSize, filePaths.length);
@@ -269,6 +281,9 @@ export class FileSystem extends Workspace.Workspace.ProjectStore {
             }
             if (to < filePaths.length) {
                 window.setTimeout(reportFileChunk.bind(this, to), 100);
+            }
+            else if (this.type() === 'filesystem') {
+                Host.userMetrics.workspacesPopulated(performance.now() - startTime);
             }
         }
     }
@@ -312,6 +327,9 @@ export class FileSystem extends Workspace.Workspace.ProjectStore {
                 this.removeUISourceCode(uiSourceCode.url());
             }
         });
+    }
+    deleteDirectoryRecursively(path) {
+        return this.fileSystemInternal.deleteDirectoryRecursively(path);
     }
     remove() {
         this.fileSystemWorkspaceBinding.isolatedFileSystemManager.removeFileSystem(this.fileSystemInternal);

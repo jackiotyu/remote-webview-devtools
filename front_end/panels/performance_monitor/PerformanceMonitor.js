@@ -87,7 +87,7 @@ export class PerformanceMonitorImpl extends UI.Widget.HBox {
         const chartContainer = this.contentElement.createChild('div', 'perfmon-chart-container');
         this.canvas = chartContainer.createChild('canvas');
         this.canvas.tabIndex = -1;
-        UI.ARIAUtils.setAccessibleName(this.canvas, i18nString(UIStrings.graphsDisplayingARealtimeViewOf));
+        UI.ARIAUtils.setLabel(this.canvas, i18nString(UIStrings.graphsDisplayingARealtimeViewOf));
         this.contentElement.createChild('div', 'perfmon-chart-suspend-overlay fill').createChild('div').textContent =
             i18nString(UIStrings.paused);
         this.controlPane.addEventListener("MetricChanged" /* Events.MetricChanged */, this.recalcChartHeight, this);

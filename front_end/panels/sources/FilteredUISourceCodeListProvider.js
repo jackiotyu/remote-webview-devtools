@@ -64,6 +64,9 @@ export class FilteredUISourceCodeListProvider extends QuickOpen.FilteredListWidg
             Bindings.IgnoreListManager.IgnoreListManager.instance().isUserOrSourceMapIgnoreListedUISourceCode(uiSourceCode)) {
             return false;
         }
+        if (uiSourceCode.isFetchXHR()) {
+            return false;
+        }
         const binding = Persistence.Persistence.PersistenceImpl.instance().binding(uiSourceCode);
         return !binding || binding.fileSystem === uiSourceCode;
     }

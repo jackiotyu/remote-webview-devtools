@@ -11,11 +11,11 @@ export default {
  */
 
 :host {
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-cdt-base-container);
 }
 
 .report-content-box {
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   overflow: auto;
 }
 
@@ -24,7 +24,7 @@ export default {
 }
 
 .report-header {
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
   padding: 12px 24px;
 }
 
@@ -51,7 +51,7 @@ export default {
 .report-section {
   display: flex;
   padding: 12px;
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
   flex-direction: column;
 }
 
@@ -114,6 +114,7 @@ export default {
   max-width: 200px;
   max-height: 200px;
   display: block;
+  object-fit: contain;
 }
 
 .image-wrapper {

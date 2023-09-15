@@ -368,7 +368,7 @@ export class AXBreadcrumbsPane extends AccessibilitySubPane {
                 if (!domNode) {
                     return;
                 }
-                void domNode.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+                void domNode.scrollIntoView();
             });
         });
         const deferredNode = axNode.deferredDOMNode();

@@ -1,14 +1,20 @@
 // Copyright (c) 2022 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+import * as Common from '../../../core/common/common.js';
 import * as Host from '../../../core/host/host.js';
 import * as i18n from '../../../core/i18n/i18n.js';
 import * as Platform from '../../../core/platform/platform.js';
 import { assertNotNullOrUndefined } from '../../../core/platform/platform.js';
 import * as SDK from '../../../core/sdk/sdk.js';
+import * as Bindings from '../../../models/bindings/bindings.js';
+import * as Breakpoints from '../../../models/breakpoints/breakpoints.js';
+import * as TextUtils from '../../../models/text_utils/text_utils.js';
+import * as Workspace from '../../../models/workspace/workspace.js';
 import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
 import * as IconButton from '../../../ui/components/icon_button/icon_button.js';
 import * as Input from '../../../ui/components/input/input.js';
+import * as LegacyWrapper from '../../../ui/components/legacy_wrapper/legacy_wrapper.js';
 import * as Coordinator from '../../../ui/components/render_coordinator/render_coordinator.js';
 import * as UI from '../../../ui/legacy/legacy.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
@@ -91,70 +97,341 @@ const str_ = i18n.i18n.registerUIStrings('panels/sources/components/BreakpointsV
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const coordinator = Coordinator.RenderCoordinator.RenderCoordinator.instance();
 const MAX_SNIPPET_LENGTH = 200;
-class CheckboxToggledEvent extends Event {
-    static eventName = 'checkboxtoggled';
-    data;
-    constructor(breakpointItem, checked) {
-        super(CheckboxToggledEvent.eventName);
-        this.data = { breakpointItem: breakpointItem, checked };
+let breakpointsViewInstance;
+let breakpointsViewControllerInstance;
+export class BreakpointsSidebarController {
+    #breakpointManager;
+    #breakpointItemToLocationMap = new WeakMap();
+    #breakpointsActiveSetting;
+    #pauseOnUncaughtExceptionSetting;
+    #pauseOnCaughtExceptionSetting;
+    #collapsedFilesSettings;
+    #collapsedFiles;
+    // This is used to keep track of outstanding edits to breakpoints that were initiated
+    // by the breakpoint edit button (for UMA).
+    #outstandingBreakpointEdited;
+    #updateScheduled = false;
+    #updateRunning = false;
+    constructor(breakpointManager, settings) {
+        this.#collapsedFilesSettings = Common.Settings.Settings.instance().createSetting('collapsedFiles', []);
+        this.#collapsedFiles = new Set(this.#collapsedFilesSettings.get());
+        this.#breakpointManager = breakpointManager;
+        this.#breakpointManager.addEventListener(Breakpoints.BreakpointManager.Events.BreakpointAdded, this.#onBreakpointAdded, this);
+        this.#breakpointManager.addEventListener(Breakpoints.BreakpointManager.Events.BreakpointRemoved, this.#onBreakpointRemoved, this);
+        this.#breakpointsActiveSetting = settings.moduleSetting('breakpointsActive');
+        this.#breakpointsActiveSetting.addChangeListener(this.update, this);
+        this.#pauseOnUncaughtExceptionSetting = settings.moduleSetting('pauseOnUncaughtException');
+        this.#pauseOnUncaughtExceptionSetting.addChangeListener(this.update, this);
+        this.#pauseOnCaughtExceptionSetting = settings.moduleSetting('pauseOnCaughtException');
+        this.#pauseOnCaughtExceptionSetting.addChangeListener(this.update, this);
+    }
+    static instance({ forceNew, breakpointManager, settings } = {
+        forceNew: null,
+        breakpointManager: Breakpoints.BreakpointManager.BreakpointManager.instance(),
+        settings: Common.Settings.Settings.instance(),
+    }) {
+        if (!breakpointsViewControllerInstance || forceNew) {
+            breakpointsViewControllerInstance = new BreakpointsSidebarController(breakpointManager, settings);
+        }
+        return breakpointsViewControllerInstance;
+    }
+    static removeInstance() {
+        breakpointsViewControllerInstance = null;
+    }
+    static targetSupportsIndependentPauseOnExceptionToggles() {
+        const hasNodeTargets = SDK.TargetManager.TargetManager.instance().targets().some(target => target.type() === SDK.Target.Type.Node);
+        return !hasNodeTargets;
+    }
+    flavorChanged(_object) {
+        void this.update();
+    }
+    breakpointEditFinished(breakpoint, edited) {
+        if (this.#outstandingBreakpointEdited && this.#outstandingBreakpointEdited === breakpoint) {
+            if (edited) {
+                Host.userMetrics.actionTaken(Host.UserMetrics.Action.BreakpointConditionEditedFromSidebar);
+            }
+            this.#outstandingBreakpointEdited = undefined;
+        }
+    }
+    breakpointStateChanged(breakpointItem, checked) {
+        const locations = this.#getLocationsForBreakpointItem(breakpointItem);
+        locations.forEach((value) => {
+            const breakpoint = value.breakpoint;
+            breakpoint.setEnabled(checked);
+        });
+    }
+    async breakpointEdited(breakpointItem, editButtonClicked) {
+        const locations = this.#getLocationsForBreakpointItem(breakpointItem);
+        let location;
+        for (const locationCandidate of locations) {
+            if (!location || locationCandidate.uiLocation.compareTo(location.uiLocation) < 0) {
+                location = locationCandidate;
+            }
+        }
+        if (location) {
+            if (editButtonClicked) {
+                this.#outstandingBreakpointEdited = location.breakpoint;
+            }
+            await Common.Revealer.reveal(location);
+        }
+    }
+    breakpointsRemoved(breakpointItems) {
+        const locations = breakpointItems.flatMap(breakpointItem => this.#getLocationsForBreakpointItem(breakpointItem));
+        locations.forEach(location => location?.breakpoint.remove(false /* keepInStorage */));
+    }
+    expandedStateChanged(url, expanded) {
+        if (expanded) {
+            this.#collapsedFiles.delete(url);
+        }
+        else {
+            this.#collapsedFiles.add(url);
+        }
+        this.#saveSettings();
+    }
+    async jumpToSource(breakpointItem) {
+        const uiLocations = this.#getLocationsForBreakpointItem(breakpointItem).map(location => location.uiLocation);
+        let uiLocation;
+        for (const uiLocationCandidate of uiLocations) {
+            if (!uiLocation || uiLocationCandidate.compareTo(uiLocation) < 0) {
+                uiLocation = uiLocationCandidate;
+            }
+        }
+        if (uiLocation) {
+            await Common.Revealer.reveal(uiLocation);
+        }
+    }
+    setPauseOnUncaughtExceptions(value) {
+        this.#pauseOnUncaughtExceptionSetting.set(value);
+    }
+    setPauseOnCaughtExceptions(value) {
+        this.#pauseOnCaughtExceptionSetting.set(value);
+    }
+    async update() {
+        this.#updateScheduled = true;
+        if (this.#updateRunning) {
+            return;
+        }
+        this.#updateRunning = true;
+        while (this.#updateScheduled) {
+            this.#updateScheduled = false;
+            const data = await this.getUpdatedBreakpointViewData();
+            BreakpointsView.instance().data = data;
+        }
+        this.#updateRunning = false;
+    }
+    async getUpdatedBreakpointViewData() {
+        const breakpointsActive = this.#breakpointsActiveSetting.get();
+        const independentPauseToggles = BreakpointsSidebarController.targetSupportsIndependentPauseOnExceptionToggles();
+        const pauseOnUncaughtExceptions = this.#pauseOnUncaughtExceptionSetting.get();
+        const pauseOnCaughtExceptions = this.#pauseOnCaughtExceptionSetting.get();
+        const breakpointLocations = this.#getBreakpointLocations();
+        if (!breakpointLocations.length) {
+            return {
+                breakpointsActive,
+                pauseOnCaughtExceptions,
+                pauseOnUncaughtExceptions,
+                independentPauseToggles,
+                groups: [],
+            };
+        }
+        const locationsGroupedById = this.#groupBreakpointLocationsById(breakpointLocations);
+        const locationIdsByLineId = this.#getLocationIdsByLineId(breakpointLocations);
+        const [content, selectedUILocation] = await Promise.all([
+            this.#getContent(locationsGroupedById),
+            this.#getHitUILocation(),
+        ]);
+        const scriptIdToGroup = new Map();
+        for (let idx = 0; idx < locationsGroupedById.length; idx++) {
+            const locations = locationsGroupedById[idx];
+            const fstLocation = locations[0];
+            const sourceURL = fstLocation.uiLocation.uiSourceCode.url();
+            const scriptId = fstLocation.uiLocation.uiSourceCode.canononicalScriptId();
+            const uiLocation = fstLocation.uiLocation;
+            const isHit = selectedUILocation !== null &&
+                locations.some(location => location.uiLocation.id() === selectedUILocation.id());
+            const numBreakpointsOnLine = locationIdsByLineId.get(uiLocation.lineId()).size;
+            const showColumn = numBreakpointsOnLine > 1;
+            const locationText = uiLocation.lineAndColumnText(showColumn);
+            const text = content[idx];
+            const codeSnippet = text instanceof TextUtils.Text.Text ?
+                text.lineAt(uiLocation.lineNumber) :
+                text.lines[text.bytecodeOffsetToLineNumber(uiLocation.columnNumber ?? 0)] ?? '';
+            if (isHit && this.#collapsedFiles.has(sourceURL)) {
+                this.#collapsedFiles.delete(sourceURL);
+                this.#saveSettings();
+            }
+            const expanded = !this.#collapsedFiles.has(sourceURL);
+            const status = this.#getBreakpointState(locations);
+            const { type, hoverText } = this.#getBreakpointTypeAndDetails(locations);
+            const item = {
+                id: fstLocation.breakpoint.breakpointStorageId(),
+                location: locationText,
+                codeSnippet,
+                isHit,
+                status,
+                type,
+                hoverText,
+            };
+            this.#breakpointItemToLocationMap.set(item, locations);
+            let group = scriptIdToGroup.get(scriptId);
+            if (group) {
+                group.breakpointItems.push(item);
+                group.expanded ||= expanded;
+            }
+            else {
+                const editable = this.#breakpointManager.supportsConditionalBreakpoints(uiLocation.uiSourceCode);
+                group = {
+                    url: sourceURL,
+                    name: uiLocation.uiSourceCode.displayName(),
+                    editable,
+                    expanded,
+                    breakpointItems: [item],
+                };
+                scriptIdToGroup.set(scriptId, group);
+            }
+        }
+        return {
+            breakpointsActive,
+            pauseOnCaughtExceptions,
+            pauseOnUncaughtExceptions,
+            independentPauseToggles,
+            groups: Array.from(scriptIdToGroup.values()),
+        };
+    }
+    #onBreakpointAdded(event) {
+        const breakpoint = event.data.breakpoint;
+        if (breakpoint.origin === "USER_ACTION" /* Breakpoints.BreakpointManager.BreakpointOrigin.USER_ACTION */ &&
+            this.#collapsedFiles.has(breakpoint.url())) {
+            // Auto-expand if a new breakpoint was added to a collapsed group.
+            this.#collapsedFiles.delete(breakpoint.url());
+            this.#saveSettings();
+        }
+        return this.update();
+    }
+    #onBreakpointRemoved(event) {
+        const breakpoint = event.data.breakpoint;
+        if (this.#collapsedFiles.has(breakpoint.url())) {
+            const locations = Breakpoints.BreakpointManager.BreakpointManager.instance().allBreakpointLocations();
+            const otherBreakpointsOnSameFileExist = locations.some(location => location.breakpoint.url() === breakpoint.url());
+            if (!otherBreakpointsOnSameFileExist) {
+                // Clear up the #collapsedFiles set from this url if no breakpoint is left in this group.
+                this.#collapsedFiles.delete(breakpoint.url());
+                this.#saveSettings();
+            }
+        }
+        return this.update();
+    }
+    #saveSettings() {
+        this.#collapsedFilesSettings.set(Array.from(this.#collapsedFiles.values()));
+    }
+    #getBreakpointTypeAndDetails(locations) {
+        const breakpointWithCondition = locations.find(location => Boolean(location.breakpoint.condition()));
+        const breakpoint = breakpointWithCondition?.breakpoint;
+        if (!breakpoint || !breakpoint.condition()) {
+            return { type: "REGULAR_BREAKPOINT" /* SDK.DebuggerModel.BreakpointType.REGULAR_BREAKPOINT */ };
+        }
+        const condition = breakpoint.condition();
+        if (breakpoint.isLogpoint()) {
+            return { type: "LOGPOINT" /* SDK.DebuggerModel.BreakpointType.LOGPOINT */, hoverText: condition };
+        }
+        return { type: "CONDITIONAL_BREAKPOINT" /* SDK.DebuggerModel.BreakpointType.CONDITIONAL_BREAKPOINT */, hoverText: condition };
+    }
+    #getLocationsForBreakpointItem(breakpointItem) {
+        const locations = this.#breakpointItemToLocationMap.get(breakpointItem);
+        assertNotNullOrUndefined(locations);
+        return locations;
+    }
+    async #getHitUILocation() {
+        const details = UI.Context.Context.instance().flavor(SDK.DebuggerModel.DebuggerPausedDetails);
+        if (details && details.callFrames.length) {
+            return await Bindings.DebuggerWorkspaceBinding.DebuggerWorkspaceBinding.instance().rawLocationToUILocation(details.callFrames[0].location());
+        }
+        return null;
+    }
+    #getBreakpointLocations() {
+        const locations = this.#breakpointManager.allBreakpointLocations().filter(breakpointLocation => breakpointLocation.uiLocation.uiSourceCode.project().type() !== Workspace.Workspace.projectTypes.Debugger);
+        locations.sort((item1, item2) => item1.uiLocation.compareTo(item2.uiLocation));
+        const result = [];
+        let lastBreakpoint = null;
+        let lastLocation = null;
+        for (const location of locations) {
+            if (location.breakpoint !== lastBreakpoint || (lastLocation && location.uiLocation.compareTo(lastLocation))) {
+                result.push(location);
+                lastBreakpoint = location.breakpoint;
+                lastLocation = location.uiLocation;
+            }
+        }
+        return result;
+    }
+    #groupBreakpointLocationsById(breakpointLocations) {
+        const map = new Platform.MapUtilities.Multimap();
+        for (const breakpointLocation of breakpointLocations) {
+            const uiLocation = breakpointLocation.uiLocation;
+            map.set(uiLocation.id(), breakpointLocation);
+        }
+        const arr = [];
+        for (const id of map.keysArray()) {
+            const locations = Array.from(map.get(id));
+            if (locations.length) {
+                arr.push(locations);
+            }
+        }
+        return arr;
+    }
+    #getLocationIdsByLineId(breakpointLocations) {
+        const result = new Platform.MapUtilities.Multimap();
+        for (const breakpointLocation of breakpointLocations) {
+            const uiLocation = breakpointLocation.uiLocation;
+            result.set(uiLocation.lineId(), uiLocation.id());
+        }
+        return result;
+    }
+    #getBreakpointState(locations) {
+        const hasEnabled = locations.some(location => location.breakpoint.enabled());
+        const hasDisabled = locations.some(location => !location.breakpoint.enabled());
+        let status;
+        if (hasEnabled) {
+            status = hasDisabled ? "INDETERMINATE" /* BreakpointStatus.INDETERMINATE */ : "ENABLED" /* BreakpointStatus.ENABLED */;
+        }
+        else {
+            status = "DISABLED" /* BreakpointStatus.DISABLED */;
+        }
+        return status;
+    }
+    #getContent(locations) {
+        // Use a cache to share the Text objects between all breakpoints. This way
+        // we share the cached line ending information that Text calculates. This
+        // was very slow to calculate with a lot of breakpoints in the same very
+        // large source file.
+        const contentToTextMap = new Map();
+        return Promise.all(locations.map(async ([{ uiLocation: { uiSourceCode } }]) => {
+            const deferredContent = await uiSourceCode.requestContent({ cachedWasmOnly: true });
+            if ('wasmDisassemblyInfo' in deferredContent && deferredContent.wasmDisassemblyInfo) {
+                return deferredContent.wasmDisassemblyInfo;
+            }
+            const contentText = deferredContent.content || '';
+            if (contentToTextMap.has(contentText)) {
+                return contentToTextMap.get(contentText);
+            }
+            const text = new TextUtils.Text.Text(contentText);
+            contentToTextMap.set(contentText, text);
+            return text;
+        }));
     }
 }
-export { CheckboxToggledEvent };
-class PauseOnUncaughtExceptionsStateChangedEvent extends Event {
-    static eventName = 'pauseonuncaughtexceptionsstatechanged';
-    data;
-    constructor(checked) {
-        super(PauseOnUncaughtExceptionsStateChangedEvent.eventName);
-        this.data = { checked };
+export class BreakpointsView extends LegacyWrapper.LegacyWrapper.WrappableComponent {
+    #controller;
+    static instance({ forceNew } = { forceNew: false }) {
+        if (!breakpointsViewInstance || forceNew) {
+            breakpointsViewInstance = LegacyWrapper.LegacyWrapper.legacyWrapper(UI.Widget.Widget, new BreakpointsView());
+        }
+        return breakpointsViewInstance.getComponent();
     }
-}
-export { PauseOnUncaughtExceptionsStateChangedEvent };
-class PauseOnCaughtExceptionsStateChangedEvent extends Event {
-    static eventName = 'pauseoncaughtexceptionsstatechanged';
-    data;
-    constructor(checked) {
-        super(PauseOnCaughtExceptionsStateChangedEvent.eventName);
-        this.data = { checked };
+    constructor() {
+        super();
+        this.#controller = BreakpointsSidebarController.instance();
+        void this.#controller.update();
     }
-}
-export { PauseOnCaughtExceptionsStateChangedEvent };
-class ExpandedStateChangedEvent extends Event {
-    static eventName = 'expandedstatechanged';
-    data;
-    constructor(url, expanded) {
-        super(ExpandedStateChangedEvent.eventName);
-        this.data = { url, expanded };
-    }
-}
-export { ExpandedStateChangedEvent };
-class BreakpointSelectedEvent extends Event {
-    static eventName = 'breakpointselected';
-    data;
-    constructor(breakpointItem) {
-        super(BreakpointSelectedEvent.eventName);
-        this.data = { breakpointItem: breakpointItem };
-    }
-}
-export { BreakpointSelectedEvent };
-class BreakpointEditedEvent extends Event {
-    static eventName = 'breakpointedited';
-    data;
-    constructor(breakpointItem, editButtonClicked) {
-        super(BreakpointEditedEvent.eventName);
-        this.data = { breakpointItem, editButtonClicked };
-    }
-}
-export { BreakpointEditedEvent };
-class BreakpointsRemovedEvent extends Event {
-    static eventName = 'breakpointsremoved';
-    data;
-    constructor(breakpointItems) {
-        super(BreakpointsRemovedEvent.eventName);
-        this.data = { breakpointItems };
-    }
-}
-export { BreakpointsRemovedEvent };
-class BreakpointsView extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-breakpoint-view`;
     #shadow = this.attachShadow({ mode: 'open' });
     #pauseOnUncaughtExceptions = false;
@@ -164,8 +441,6 @@ class BreakpointsView extends HTMLElement {
     #breakpointsActive = true;
     #breakpointGroups = [];
     #urlToDifferentiatingPath = new Map();
-    #scheduledRender = false;
-    #enqueuedRender = false;
     set data(data) {
         this.#pauseOnUncaughtExceptions = data.pauseOnUncaughtExceptions;
         this.#pauseOnCaughtExceptions = data.pauseOnCaughtExceptions;
@@ -177,19 +452,12 @@ class BreakpointsView extends HTMLElement {
             titleInfos.push({ name: group.name, url: group.url });
         }
         this.#urlToDifferentiatingPath = getDifferentiatingPathMap(titleInfos);
-        void this.#render();
+        void this.render();
     }
     connectedCallback() {
         this.#shadow.adoptedStyleSheets = [Input.checkboxStyles, breakpointsViewStyles];
     }
-    async #render() {
-        if (this.#scheduledRender) {
-            // If we are already rendering, don't render again immediately, but
-            // enqueue it to be run after we're done on our current render.
-            this.#enqueuedRender = true;
-            return;
-        }
-        this.#scheduledRender = true;
+    async render() {
         await coordinator.write('BreakpointsView render', () => {
             const clickHandler = async (event) => {
                 const currentTarget = event.currentTarget;
@@ -228,19 +496,12 @@ class BreakpointsView extends HTMLElement {
         });
         // If no element is tabbable, set the pause-on-exceptions to be tabbable. This can happen
         // if the previously focused element was removed.
-        await coordinator.write('make pause-on-exceptions focusable', () => {
+        await coordinator.write('BreakpointsView make pause-on-exceptions focusable', () => {
             if (this.#shadow.querySelector('[tabindex="0"]') === null) {
                 const element = this.#shadow.querySelector('[data-first-pause]');
                 element?.setAttribute('tabindex', '0');
             }
         });
-        this.#scheduledRender = false;
-        // If render() was called when we were already mid-render, let's re-render
-        // to ensure we're not rendering any stale UI.
-        if (this.#enqueuedRender) {
-            this.#enqueuedRender = false;
-            return this.#render();
-        }
     }
     async #keyDownHandler(event) {
         if (!event.target || !(event.target instanceof HTMLElement)) {
@@ -254,13 +515,22 @@ class BreakpointsView extends HTMLElement {
             event.consume(true);
             return this.#handleArrowKey(event.key, event.target);
         }
+        if (Platform.KeyboardUtilities.isEnterOrSpaceKey(event)) {
+            const currentTarget = event.currentTarget;
+            await this.#setSelected(currentTarget);
+            const inputs = currentTarget.getElementsByTagName('input');
+            if (inputs.length === 1) {
+                inputs[0].checked = !inputs[0].checked;
+            }
+            event.consume();
+        }
         return;
     }
     async #setSelected(element) {
         if (!element) {
             return;
         }
-        void coordinator.write('focus on selected element', () => {
+        void coordinator.write('BreakpointsView focus on selected element', () => {
             const prevSelected = this.#shadow.querySelector('[tabindex="0"]');
             prevSelected?.setAttribute('tabindex', '-1');
             element.setAttribute('tabindex', '0');
@@ -270,11 +540,11 @@ class BreakpointsView extends HTMLElement {
     async #handleArrowKey(key, target) {
         const setGroupExpandedState = (detailsElement, expanded) => {
             if (expanded) {
-                return coordinator.write('expand', () => {
+                return coordinator.write('BreakpointsView expand', () => {
                     detailsElement.setAttribute('open', '');
                 });
             }
-            return coordinator.write('expand', () => {
+            return coordinator.write('BreakpointsView expand', () => {
                 detailsElement.removeAttribute('open');
             });
         };
@@ -306,7 +576,7 @@ class BreakpointsView extends HTMLElement {
     #renderEditBreakpointButton(breakpointItem) {
         const clickHandler = (event) => {
             Host.userMetrics.breakpointEditDialogRevealedFrom(1 /* Host.UserMetrics.BreakpointEditDialogRevealedFrom.BreakpointSidebarEditButton */);
-            this.dispatchEvent(new BreakpointEditedEvent(breakpointItem, true /* editButtonClicked */));
+            void this.#controller.breakpointEdited(breakpointItem, true /* editButtonClicked */);
             event.consume();
         };
         const title = breakpointItem.type === "LOGPOINT" /* SDK.DebuggerModel.BreakpointType.LOGPOINT */ ?
@@ -330,7 +600,7 @@ class BreakpointsView extends HTMLElement {
     #renderRemoveBreakpointButton(breakpointItems, tooltipText, action) {
         const clickHandler = (event) => {
             Host.userMetrics.actionTaken(action);
-            this.dispatchEvent(new BreakpointsRemovedEvent(breakpointItems));
+            void this.#controller.breakpointsRemoved(breakpointItems);
             event.consume();
         };
         // clang-format off
@@ -353,29 +623,29 @@ class BreakpointsView extends HTMLElement {
         const menu = new UI.ContextMenu.ContextMenu(event);
         menu.defaultSection().appendItem(i18nString(UIStrings.removeAllBreakpointsInFile), () => {
             Host.userMetrics.actionTaken(Host.UserMetrics.Action.BreakpointsInFileRemovedFromContextMenu);
-            this.dispatchEvent(new BreakpointsRemovedEvent(breakpointItems));
+            void this.#controller.breakpointsRemoved(breakpointItems);
         });
         const otherGroups = this.#breakpointGroups.filter(group => group !== breakpointGroup);
         menu.defaultSection().appendItem(i18nString(UIStrings.removeOtherBreakpoints), () => {
             const breakpointItems = otherGroups.map(({ breakpointItems }) => breakpointItems).flat();
-            this.dispatchEvent(new BreakpointsRemovedEvent(breakpointItems));
+            void this.#controller.breakpointsRemoved(breakpointItems);
         }, otherGroups.length === 0);
         menu.defaultSection().appendItem(i18nString(UIStrings.removeAllBreakpoints), () => {
             const breakpointItems = this.#breakpointGroups.map(({ breakpointItems }) => breakpointItems).flat();
-            this.dispatchEvent(new BreakpointsRemovedEvent(breakpointItems));
+            void this.#controller.breakpointsRemoved(breakpointItems);
         });
         const notEnabledItems = breakpointItems.filter(breakpointItem => breakpointItem.status !== "ENABLED" /* BreakpointStatus.ENABLED */);
         menu.debugSection().appendItem(i18nString(UIStrings.enableAllBreakpointsInFile), () => {
             Host.userMetrics.actionTaken(Host.UserMetrics.Action.BreakpointsInFileEnabledDisabledFromContextMenu);
             for (const breakpointItem of notEnabledItems) {
-                this.dispatchEvent(new CheckboxToggledEvent(breakpointItem, true));
+                this.#controller.breakpointStateChanged(breakpointItem, true);
             }
         }, notEnabledItems.length === 0);
         const notDisabledItems = breakpointItems.filter(breakpointItem => breakpointItem.status !== "DISABLED" /* BreakpointStatus.DISABLED */);
         menu.debugSection().appendItem(i18nString(UIStrings.disableAllBreakpointsInFile), () => {
             Host.userMetrics.actionTaken(Host.UserMetrics.Action.BreakpointsInFileEnabledDisabledFromContextMenu);
             for (const breakpointItem of notDisabledItems) {
-                this.dispatchEvent(new CheckboxToggledEvent(breakpointItem, false));
+                this.#controller.breakpointStateChanged(breakpointItem, false);
             }
         }, notDisabledItems.length === 0);
         void menu.show();
@@ -388,7 +658,7 @@ class BreakpointsView extends HTMLElement {
         const toggleHandler = (event) => {
             const htmlDetails = event.target;
             group.expanded = htmlDetails.open;
-            this.dispatchEvent(new ExpandedStateChangedEvent(group.url, group.expanded));
+            void this.#controller.expandedStateChanged(group.url, group.expanded);
         };
         const clickHandler = async (event) => {
             const selected = event.currentTarget;
@@ -433,7 +703,7 @@ class BreakpointsView extends HTMLElement {
             const updatedStatus = element.checked ? "ENABLED" /* BreakpointStatus.ENABLED */ : "DISABLED" /* BreakpointStatus.DISABLED */;
             const itemsToUpdate = group.breakpointItems.filter(item => item.status !== updatedStatus);
             itemsToUpdate.forEach(item => {
-                this.dispatchEvent(new CheckboxToggledEvent(item, element.checked));
+                this.#controller.breakpointStateChanged(item, element.checked);
             });
             e.consume();
         };
@@ -458,30 +728,30 @@ class BreakpointsView extends HTMLElement {
             i18nString(UIStrings.editCondition);
         menu.revealSection().appendItem(editBreakpointText, () => {
             Host.userMetrics.breakpointEditDialogRevealedFrom(0 /* Host.UserMetrics.BreakpointEditDialogRevealedFrom.BreakpointSidebarContextMenu */);
-            this.dispatchEvent(new BreakpointEditedEvent(breakpointItem, false /* editButtonClicked */));
+            void this.#controller.breakpointEdited(breakpointItem, false /* editButtonClicked */);
         }, !editable);
         menu.defaultSection().appendItem(i18nString(UIStrings.removeBreakpoint), () => {
             Host.userMetrics.actionTaken(Host.UserMetrics.Action.BreakpointRemovedFromContextMenu);
-            this.dispatchEvent(new BreakpointsRemovedEvent([breakpointItem]));
+            void this.#controller.breakpointsRemoved([breakpointItem]);
         });
         const otherItems = this.#breakpointGroups.map(({ breakpointItems }) => breakpointItems)
             .flat()
             .filter(item => item !== breakpointItem);
         menu.defaultSection().appendItem(i18nString(UIStrings.removeOtherBreakpoints), () => {
-            this.dispatchEvent(new BreakpointsRemovedEvent(otherItems));
+            void this.#controller.breakpointsRemoved(otherItems);
         }, otherItems.length === 0);
         menu.defaultSection().appendItem(i18nString(UIStrings.removeAllBreakpoints), () => {
             const breakpointItems = this.#breakpointGroups.map(({ breakpointItems }) => breakpointItems).flat();
-            this.dispatchEvent(new BreakpointsRemovedEvent(breakpointItems));
+            void this.#controller.breakpointsRemoved(breakpointItems);
         });
         menu.editSection().appendItem(i18nString(UIStrings.revealLocation), () => {
-            this.dispatchEvent(new BreakpointSelectedEvent(breakpointItem));
+            void this.#controller.jumpToSource(breakpointItem);
         });
         void menu.show();
     }
     #renderBreakpointEntry(breakpointItem, editable, groupIndex, breakpointItemIndex) {
         const codeSnippetClickHandler = (event) => {
-            this.dispatchEvent(new BreakpointSelectedEvent(breakpointItem));
+            void this.#controller.jumpToSource(breakpointItem);
             event.consume();
         };
         const breakpointItemClickHandler = async (event) => {
@@ -565,11 +835,11 @@ class BreakpointsView extends HTMLElement {
     }
     #onCheckboxToggled(e, item) {
         const element = e.target;
-        this.dispatchEvent(new CheckboxToggledEvent(item, element.checked));
+        this.#controller.breakpointStateChanged(item, element.checked);
     }
     #onPauseOnCaughtExceptionsStateChanged(e) {
         const { checked } = e.target;
-        this.dispatchEvent(new PauseOnCaughtExceptionsStateChangedEvent(checked));
+        this.#controller.setPauseOnCaughtExceptions(checked);
     }
     #onPauseOnUncaughtExceptionsStateChanged(e) {
         const { checked } = e.target;
@@ -581,7 +851,7 @@ class BreakpointsView extends HTMLElement {
                 // uncheck the pause on caught exception checkbox.
                 pauseOnCaughtCheckbox.click();
             }
-            void coordinator.write('update pause-on-uncaught-exception', () => {
+            void coordinator.write('BreakpointsView update pause-on-uncaught-exception', () => {
                 // Disable/enable the pause on caught exception checkbox depending on whether
                 // or not we are pausing on uncaught exceptions.
                 if (checked) {
@@ -592,9 +862,8 @@ class BreakpointsView extends HTMLElement {
                 }
             });
         }
-        this.dispatchEvent(new PauseOnUncaughtExceptionsStateChangedEvent(checked));
+        this.#controller.setPauseOnUncaughtExceptions(checked);
     }
 }
-export { BreakpointsView };
 ComponentHelpers.CustomElements.defineComponent('devtools-breakpoint-view', BreakpointsView);
 //# map=BreakpointsView.js.map

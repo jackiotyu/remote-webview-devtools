@@ -18,7 +18,7 @@ const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 // immediately, with total=0 and slices=[], so that the chart is rendered with
 // the correct initial size. This avoids a layout shift when the slices are
 // later populated.
-class PieChart extends HTMLElement {
+export class PieChart extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-perf-piechart`;
     shadow = this.attachShadow({ mode: 'open' });
     chartName = '';
@@ -90,7 +90,7 @@ class PieChart extends HTMLElement {
           <div class="pie-chart-legend-row ${this.totalSelected ? 'selected' : ''}"
               @click=${this.selectTotal} tabIndex=${this.totalSelected ? '0' : '-1'}>
             <div class="pie-chart-size">${this.formatter(this.total)}</div>
-            <div class="pie-chart-swatch pie-chart-empty-swatch"></div>
+            <div class="pie-chart-swatch"></div>
             <div class="pie-chart-name">${i18nString(UIStrings.total)}</div>
           </div>
         </div>
@@ -194,6 +194,5 @@ class PieChart extends HTMLElement {
         return pathString;
     }
 }
-export { PieChart };
 ComponentHelpers.CustomElements.defineComponent('devtools-perf-piechart', PieChart);
 //# map=PieChart.js.map

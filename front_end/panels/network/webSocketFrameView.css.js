@@ -36,12 +36,12 @@ styles.replaceSync(
 }
 
 .websocket-frame-view-td {
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .websocket-frame-view .data-grid td,
 .websocket-frame-view .data-grid th {
-  border-left-color: var(--color-details-hairline);
+  border-left-color: 1px solid var(--sys-color-divider);
 }
 
 .websocket-frame-view-row-send td:first-child::before {
@@ -71,9 +71,9 @@ styles.replaceSync(
 }
 
 .websocket-frame-view .toolbar {
-  border-bottom: var(--legacy-divider-border);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
-
+/*# sourceURL=webSocketFrameView.css */
 `);
 export default styles;

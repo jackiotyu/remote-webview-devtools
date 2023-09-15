@@ -16,6 +16,6 @@ styles.replaceSync(
   flex-shrink: 0;
 }
 
-
+/*# sourceURL=sourcesNavigator.css */
 `);
 export default styles;

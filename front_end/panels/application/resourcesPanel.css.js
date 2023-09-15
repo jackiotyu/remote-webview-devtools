@@ -35,13 +35,13 @@ styles.replaceSync(
  */
 
 .resources-toolbar {
-  border-top: 1px solid var(--color-details-hairline);
-  background-color: var(--color-background-elevation-1);
+  border-top: 1px solid var(--sys-color-divider);
+  background-color: var(--sys-color-cdt-base-container);
 }
 
 .top-resources-toolbar {
-  border-bottom: 1px solid var(--color-details-hairline);
-  background-color: var(--color-background-elevation-1);
+  border-bottom: 1px solid var(--sys-color-divider);
+  background-color: var(--sys-color-cdt-base-container);
 }
 
 .resources.panel .status {
@@ -63,7 +63,7 @@ styles.replaceSync(
 }
 
 .storage-view .storage-table-error {
-  color: var(--color-accent-red);
+  color: var(--sys-color-error);
   font-size: 24px;
   font-weight: bold;
   padding: 10px;
@@ -80,7 +80,7 @@ styles.replaceSync(
 
 .storage-view .filter-bar {
   border-top: none;
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .database-query-group-messages {
@@ -116,18 +116,18 @@ styles.replaceSync(
 
 .database-user-query {
   position: relative;
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
   padding: 1px 22px 1px 24px;
   min-height: 16px;
   flex-shrink: 0;
 }
 
 .database-user-query:focus-visible {
-  background-color: var(--color-background-elevation-2);
+  background-color: var(--sys-color-state-focus-highlight);
 }
 
 .database-query-text {
-  color: var(--color-primary-variant);
+  color: var(--sys-color-primary-bright);
   user-select: text;
 }
 
@@ -140,7 +140,7 @@ styles.replaceSync(
 }
 
 .database-query-result.error {
-  color: var(--color-syntax-1);
+  color: var(--sys-color-token-property-special);
   user-select: text;
 }
 
@@ -151,9 +151,9 @@ styles.replaceSync(
 .resources-sidebar {
   padding: 0;
   overflow-x: auto;
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
 }
 
-
+/*# sourceURL=resourcesPanel.css */
 `);
 export default styles;

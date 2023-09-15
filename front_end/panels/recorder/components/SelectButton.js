@@ -8,7 +8,7 @@ import * as Dialogs from '../../../ui/components/dialogs/dialogs.js';
 import * as Menus from '../../../ui/components/menus/menus.js';
 import * as Models from '../models/models.js';
 import selectButtonStyles from './selectButton.css.js';
-class SelectButtonClickEvent extends Event {
+export class SelectButtonClickEvent extends Event {
     value;
     static eventName = 'selectbuttonclick';
     constructor(value) {
@@ -16,8 +16,7 @@ class SelectButtonClickEvent extends Event {
         this.value = value;
     }
 }
-export { SelectButtonClickEvent };
-class SelectButton extends HTMLElement {
+export class SelectButton extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-select-button`;
     #shadow = this.attachShadow({ mode: 'open' });
     #props = {
@@ -142,6 +141,5 @@ class SelectButton extends HTMLElement {
         // clang-format on
     };
 }
-export { SelectButton };
 ComponentHelpers.CustomElements.defineComponent('devtools-select-button', SelectButton);
 //# map=SelectButton.js.map

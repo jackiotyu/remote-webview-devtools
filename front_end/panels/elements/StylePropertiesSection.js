@@ -42,8 +42,8 @@ import { FontEditorSectionManager } from './ColorSwatchPopoverIcon.js';
 import * as ElementsComponents from './components/components.js';
 import { linkifyDeferredNodeReference } from './DOMLinkifier.js';
 import { ElementsPanel } from './ElementsPanel.js';
-import stylesSectionTreeStyles from './stylesSectionTree.css.js';
 import { StylePropertyTreeElement } from './StylePropertyTreeElement.js';
+import stylesSectionTreeStyles from './stylesSectionTree.css.js';
 import { StylesSidebarPane } from './StylesSidebarPane.js';
 const UIStrings = {
     /**
@@ -107,7 +107,7 @@ const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 // Otherwise it complains about: Unknown word CssSyntaxError
 const STYLE_TAG = '<' +
     'style>';
-class StylePropertiesSection {
+export class StylePropertiesSection {
     parentPane;
     styleInternal;
     matchedStyles;
@@ -134,11 +134,15 @@ class StylePropertiesSection {
     selectorRefElement;
     hoverableSelectorsMode;
     isHiddenInternal;
-    queryListElement;
+    ancestorRuleListElement;
     // Used to identify buttons that trigger a flexbox or grid editor.
     nextEditorTriggerButtonIdx = 1;
     sectionIdx = 0;
-    constructor(parentPane, matchedStyles, style, sectionIdx, computedStyles, parentsComputedStyles) {
+    // Used to keep track of Specificity Information
+    static #nodeElementToSpecificity = new WeakMap();
+    #customHeaderText;
+    constructor(parentPane, matchedStyles, style, sectionIdx, computedStyles, parentsComputedStyles, headerText) {
+        this.#customHeaderText = headerText;
         this.parentPane = parentPane;
         this.sectionIdx = sectionIdx;
         this.styleInternal = style;
@@ -155,7 +159,7 @@ class StylePropertiesSection {
         this.element.classList.add('styles-section');
         this.element.classList.add('matched-styles');
         this.element.classList.add('monospace');
-        UI.ARIAUtils.setAccessibleName(this.element, `${this.headerText()}, css selector`);
+        UI.ARIAUtils.setLabel(this.element, `${this.headerText()}, css selector`);
         this.element.tabIndex = -1;
         UI.ARIAUtils.markAsListitem(this.element);
         this.element.addEventListener('keydown', this.onKeyDown.bind(this), false);
@@ -174,7 +178,7 @@ class StylePropertiesSection {
         const selectorContainer = document.createElement('div');
         selectorContainer.classList.add('selector-container');
         this.selectorElement = document.createElement('span');
-        UI.ARIAUtils.setAccessibleName(this.selectorElement, i18nString(UIStrings.cssSelector));
+        UI.ARIAUtils.setLabel(this.selectorElement, i18nString(UIStrings.cssSelector));
         this.selectorElement.classList.add('selector');
         this.selectorElement.textContent = this.headerText();
         selectorContainer.appendChild(this.selectorElement);
@@ -239,7 +243,7 @@ class StylePropertiesSection {
                 }
             }
         }
-        this.queryListElement = this.titleElement.createChild('div', 'query-list query-matches');
+        this.ancestorRuleListElement = this.titleElement.createChild('div', 'ancestor-rule-list');
         this.selectorRefElement = this.titleElement.createChild('div', 'styles-section-subtitle');
         this.updateQueryList();
         this.updateRuleOrigin();
@@ -307,7 +311,7 @@ class StylePropertiesSection {
         if (!rule) {
             return document.createTextNode('');
         }
-        const ruleLocation = this.getRuleLocationFromCSSRule(rule);
+        const ruleLocation = StylePropertiesSection.getRuleLocationFromCSSRule(rule);
         const header = rule.styleSheetId ? matchedStyles.cssModel().styleSheetHeaderForId(rule.styleSheetId) : null;
         function linkifyRuleLocation() {
             if (!rule) {
@@ -359,6 +363,9 @@ class StylePropertiesSection {
             return node;
         }
         return document.createTextNode('');
+    }
+    createRuleOriginNode(matchedStyles, linkifier, rule) {
+        return StylePropertiesSection.createRuleOriginNode(matchedStyles, linkifier, rule);
     }
     static getRuleLocationFromCSSRule(rule) {
         let ruleLocation;
@@ -494,6 +501,9 @@ class StylePropertiesSection {
         return this.styleInternal;
     }
     headerText() {
+        if (this.#customHeaderText) {
+            return this.#customHeaderText;
+        }
         const node = this.matchedStyles.nodeForStyle(this.styleInternal);
         if (this.styleInternal.type === SDK.CSSStyleDeclaration.Type.Inline) {
             return this.matchedStyles.isInherited(this.styleInternal) ? i18nString(UIStrings.styleAttribute) :
@@ -623,109 +633,124 @@ class StylePropertiesSection {
         this.updateQueryList();
         this.updateRuleOrigin();
     }
-    createAtRuleLists(rule) {
-        this.createMediaList(rule.media);
-        this.createContainerQueryList(rule.containerQueries);
-        this.createScopesList(rule.scopes);
-        this.createSupportsList(rule.supports);
-    }
-    createMediaList(mediaRules) {
-        for (let i = mediaRules.length - 1; i >= 0; --i) {
-            const media = mediaRules[i];
-            // Don't display trivial non-print media types.
-            const isMedia = !media.text || !media.text.includes('(') && media.text !== 'print';
-            if (isMedia) {
-                continue;
-            }
-            let queryPrefix = '';
-            let queryText = '';
-            let onQueryTextClick;
-            switch (media.source) {
-                case SDK.CSSMedia.Source.LINKED_SHEET:
-                case SDK.CSSMedia.Source.INLINE_SHEET: {
-                    queryText = `media="${media.text}"`;
+    createAncestorRules(rule) {
+        let mediaIndex = 0;
+        let containerIndex = 0;
+        let scopeIndex = 0;
+        let supportsIndex = 0;
+        let nestingIndex = 0;
+        for (const ruleType of rule.ruleTypes) {
+            let ancestorRuleElement;
+            switch (ruleType) {
+                case "MediaRule" /* Protocol.CSS.CSSRuleType.MediaRule */:
+                    ancestorRuleElement = this.createMediaElement(rule.media[mediaIndex++]);
                     break;
-                }
-                case SDK.CSSMedia.Source.MEDIA_RULE: {
-                    queryPrefix = '@media';
-                    queryText = media.text;
-                    if (media.styleSheetId) {
-                        onQueryTextClick = this.handleQueryRuleClick.bind(this, media);
-                    }
+                case "ContainerRule" /* Protocol.CSS.CSSRuleType.ContainerRule */:
+                    ancestorRuleElement = this.createContainerQueryElement(rule.containerQueries[containerIndex++]);
                     break;
-                }
-                case SDK.CSSMedia.Source.IMPORT_RULE: {
-                    queryText = `@import ${media.text}`;
+                case "ScopeRule" /* Protocol.CSS.CSSRuleType.ScopeRule */:
+                    ancestorRuleElement = this.createScopeElement(rule.scopes[scopeIndex++]);
                     break;
+                case "SupportsRule" /* Protocol.CSS.CSSRuleType.SupportsRule */:
+                    ancestorRuleElement = this.createSupportsElement(rule.supports[supportsIndex++]);
+                    break;
+                case "StyleRule" /* Protocol.CSS.CSSRuleType.StyleRule */:
+                    ancestorRuleElement = this.createNestingElement(rule.nestingSelectors?.[nestingIndex++]);
+                    break;
+            }
+            ancestorRuleElement && this.ancestorRuleListElement.prepend(ancestorRuleElement);
+        }
+    }
+    createMediaElement(media) {
+        // Don't display trivial non-print media types.
+        const isMedia = !media.text || !media.text.includes('(') && media.text !== 'print';
+        if (isMedia) {
+            return;
+        }
+        let queryPrefix = '';
+        let queryText = '';
+        let onQueryTextClick;
+        switch (media.source) {
+            case SDK.CSSMedia.Source.LINKED_SHEET:
+            case SDK.CSSMedia.Source.INLINE_SHEET: {
+                queryText = `media="${media.text}"`;
+                break;
+            }
+            case SDK.CSSMedia.Source.MEDIA_RULE: {
+                queryPrefix = '@media';
+                queryText = media.text;
+                if (media.styleSheetId) {
+                    onQueryTextClick = this.handleQueryRuleClick.bind(this, media);
                 }
+                break;
             }
-            const mediaQueryElement = new ElementsComponents.CSSQuery.CSSQuery();
-            mediaQueryElement.data = {
-                queryPrefix,
-                queryText,
-                onQueryTextClick,
-            };
-            this.queryListElement.append(mediaQueryElement);
+            case SDK.CSSMedia.Source.IMPORT_RULE: {
+                queryText = `@import ${media.text}`;
+                break;
+            }
         }
+        const mediaQueryElement = new ElementsComponents.CSSQuery.CSSQuery();
+        mediaQueryElement.data = {
+            queryPrefix,
+            queryText,
+            onQueryTextClick,
+        };
+        return mediaQueryElement;
     }
-    createContainerQueryList(containerQueries) {
-        for (let i = containerQueries.length - 1; i >= 0; --i) {
-            const containerQuery = containerQueries[i];
-            if (!containerQuery.text) {
-                continue;
-            }
-            let onQueryTextClick;
-            if (containerQuery.styleSheetId) {
-                onQueryTextClick = this.handleQueryRuleClick.bind(this, containerQuery);
-            }
-            const containerQueryElement = new ElementsComponents.CSSQuery.CSSQuery();
-            containerQueryElement.data = {
-                queryPrefix: '@container',
-                queryName: containerQuery.name,
-                queryText: containerQuery.text,
-                onQueryTextClick,
-            };
-            this.queryListElement.append(containerQueryElement);
-            void this.addContainerForContainerQuery(containerQuery);
+    createContainerQueryElement(containerQuery) {
+        if (!containerQuery.text) {
+            return;
         }
+        let onQueryTextClick;
+        if (containerQuery.styleSheetId) {
+            onQueryTextClick = this.handleQueryRuleClick.bind(this, containerQuery);
+        }
+        const containerQueryElement = new ElementsComponents.CSSQuery.CSSQuery();
+        containerQueryElement.data = {
+            queryPrefix: '@container',
+            queryName: containerQuery.name,
+            queryText: containerQuery.text,
+            onQueryTextClick,
+        };
+        void this.addContainerForContainerQuery(containerQuery);
+        return containerQueryElement;
     }
-    createScopesList(scopesList) {
-        for (let i = scopesList.length - 1; i >= 0; --i) {
-            const scope = scopesList[i];
-            if (!scope.text) {
-                continue;
-            }
-            let onQueryTextClick;
-            if (scope.styleSheetId) {
-                onQueryTextClick = this.handleQueryRuleClick.bind(this, scope);
-            }
-            const scopeElement = new ElementsComponents.CSSQuery.CSSQuery();
-            scopeElement.data = {
-                queryPrefix: '@scope',
-                queryText: scope.text,
-                onQueryTextClick,
-            };
-            this.queryListElement.append(scopeElement);
+    createScopeElement(scope) {
+        let onQueryTextClick;
+        if (scope.styleSheetId) {
+            onQueryTextClick = this.handleQueryRuleClick.bind(this, scope);
         }
+        const scopeElement = new ElementsComponents.CSSQuery.CSSQuery();
+        scopeElement.data = {
+            queryPrefix: '@scope',
+            queryText: scope.text,
+            onQueryTextClick,
+        };
+        return scopeElement;
     }
-    createSupportsList(supportsList) {
-        for (let i = supportsList.length - 1; i >= 0; --i) {
-            const supports = supportsList[i];
-            if (!supports.text) {
-                continue;
-            }
-            let onQueryTextClick;
-            if (supports.styleSheetId) {
-                onQueryTextClick = this.handleQueryRuleClick.bind(this, supports);
-            }
-            const supportsElement = new ElementsComponents.CSSQuery.CSSQuery();
-            supportsElement.data = {
-                queryPrefix: '@supports',
-                queryText: supports.text,
-                onQueryTextClick,
-            };
-            this.queryListElement.append(supportsElement);
+    createSupportsElement(supports) {
+        if (!supports.text) {
+            return;
         }
+        let onQueryTextClick;
+        if (supports.styleSheetId) {
+            onQueryTextClick = this.handleQueryRuleClick.bind(this, supports);
+        }
+        const supportsElement = new ElementsComponents.CSSQuery.CSSQuery();
+        supportsElement.data = {
+            queryPrefix: '@supports',
+            queryText: supports.text,
+            onQueryTextClick,
+        };
+        return supportsElement;
+    }
+    createNestingElement(nestingSelector) {
+        if (!nestingSelector) {
+            return;
+        }
+        const nestingElement = document.createElement('div');
+        nestingElement.textContent = nestingSelector;
+        return nestingElement;
     }
     async addContainerForContainerQuery(containerQuery) {
         const container = await containerQuery.getContainerForNode(this.matchedStyles.node().id);
@@ -739,7 +764,7 @@ class StylePropertiesSection {
             onContainerLinkClick: (event) => {
                 event.preventDefault();
                 void ElementsPanel.instance().revealAndSelectNode(container.containerNode, true, true);
-                void container.containerNode.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+                void container.containerNode.scrollIntoView();
             },
         };
         containerElement.addEventListener('queriedsizerequested', async () => {
@@ -748,12 +773,12 @@ class StylePropertiesSection {
                 containerElement.updateContainerQueriedSizeDetails(details);
             }
         });
-        this.queryListElement.prepend(containerElement);
+        this.ancestorRuleListElement.prepend(containerElement);
     }
     updateQueryList() {
-        this.queryListElement.removeChildren();
+        this.ancestorRuleListElement.removeChildren();
         if (this.styleInternal.parentRule && this.styleInternal.parentRule instanceof SDK.CSSRule.CSSStyleRule) {
-            this.createAtRuleLists(this.styleInternal.parentRule);
+            this.createAncestorRules(this.styleInternal.parentRule);
         }
     }
     isPropertyInherited(propertyName) {
@@ -846,7 +871,15 @@ class StylePropertiesSection {
             if (style.parentRule && style.parentRule.isUserAgent() && inherited) {
                 continue;
             }
-            const item = new StylePropertyTreeElement(this.parentPane, this.matchedStyles, property, isShorthand, inherited, overloaded, false);
+            const item = new StylePropertyTreeElement({
+                stylesPane: this.parentPane,
+                matchedStyles: this.matchedStyles,
+                property,
+                isShorthand,
+                inherited,
+                overloaded,
+                newProperty: false,
+            });
             item.setComputedStyles(this.computedStyles);
             item.setParentsComputedStyles(this.parentsComputedStyles);
             this.propertiesTreeOutline.appendChild(item);
@@ -888,24 +921,24 @@ class StylePropertiesSection {
         if (!rule || !(rule instanceof SDK.CSSRule.CSSStyleRule)) {
             return;
         }
-        this.queryListElement.classList.toggle('query-matches', this.matchedStyles.queryMatches(this.styleInternal));
-        const selectorTexts = rule.selectors.map(selector => selector.text);
         const matchingSelectorIndexes = this.matchedStyles.getMatchingSelectors(rule);
-        const matchingSelectors = new Array(selectorTexts.length).fill(false);
+        const matchingSelectors = new Array(rule.selectors.length).fill(false);
         for (const matchingIndex of matchingSelectorIndexes) {
             matchingSelectors[matchingIndex] = true;
         }
         if (this.parentPane.isEditingStyle) {
             return;
         }
-        const fragment = StylePropertiesSection.renderSelectors(selectorTexts, matchingSelectors, this.elementToSelectorIndex, rule.nestingSelectors);
+        const fragment = StylePropertiesSection.renderSelectors(rule.selectors, matchingSelectors, this.elementToSelectorIndex);
         this.selectorElement.removeChildren();
         this.selectorElement.appendChild(fragment);
         this.markSelectorHighlights();
     }
-    static renderSelectors(selectors, matchingSelectors, elementToSelectorIndex, nestingSelectors) {
+    static getSpecificityStoredForNodeElement(element) {
+        return StylePropertiesSection.#nodeElementToSpecificity.get(element);
+    }
+    static renderSelectors(selectors, matchingSelectors, elementToSelectorIndex) {
         const fragment = document.createDocumentFragment();
-        let hasNestingSymbol = false;
         for (const [i, selector] of selectors.entries()) {
             if (i) {
                 UI.UIUtils.createTextChild(fragment, ', ');
@@ -913,39 +946,14 @@ class StylePropertiesSection {
             const selectorElement = document.createElement('span');
             selectorElement.classList.add('simple-selector');
             selectorElement.classList.toggle('selector-matches', matchingSelectors[i]);
+            if (selector.specificity) {
+                StylePropertiesSection.#nodeElementToSpecificity.set(selectorElement, selector.specificity);
+            }
             elementToSelectorIndex.set(selectorElement, i);
-            if (nestingSelectors && selector.includes('&')) {
-                hasNestingSymbol = true;
-                const segments = selector.split('&');
-                for (const [segmentIndex, segment] of segments.entries()) {
-                    if (segment) {
-                        selectorElement.append(segment);
-                    }
-                    if (segmentIndex < segments.length - 1) {
-                        selectorElement.append(this.createNestingSymbol(nestingSelectors));
-                    }
-                }
-            }
-            else {
-                selectorElement.textContent = selectors[i];
-            }
+            selectorElement.textContent = selectors[i].text;
             fragment.append(selectorElement);
         }
-        if (nestingSelectors && !hasNestingSymbol) {
-            const implicitNestingSymbol = this.createNestingSymbol(nestingSelectors);
-            implicitNestingSymbol.classList.add('implicit');
-            fragment.prepend(implicitNestingSymbol, ' ');
-        }
         return fragment;
-    }
-    static createNestingSymbol(nestingSelectors) {
-        const nestingElement = document.createElement('span');
-        nestingElement.textContent = '&';
-        nestingElement.classList.add('nesting-symbol');
-        // Selector list (.cl1, .cl2) is internally treated as :is(...) for specificity calculation.
-        const computedNestingSelectors = nestingSelectors.reverse().map(selector => (selector.includes(',') ? `:is(${selector})` : selector)).join(' ');
-        nestingElement.dataset.nestingSelectors = computedNestingSelectors;
-        return nestingElement;
     }
     markSelectorHighlights() {
         const selectors = this.selectorElement.getElementsByClassName('simple-selector');
@@ -957,7 +965,15 @@ class StylePropertiesSection {
     }
     addNewBlankProperty(index = this.propertiesTreeOutline.rootElement().childCount()) {
         const property = this.styleInternal.newBlankProperty(index);
-        const item = new StylePropertyTreeElement(this.parentPane, this.matchedStyles, property, false, false, false, true);
+        const item = new StylePropertyTreeElement({
+            stylesPane: this.parentPane,
+            matchedStyles: this.matchedStyles,
+            property,
+            isShorthand: false,
+            inherited: false,
+            overloaded: false,
+            newProperty: true,
+        });
         this.propertiesTreeOutline.insertChild(item, property.index);
         return item;
     }
@@ -983,7 +999,7 @@ class StylePropertiesSection {
         }
         const target = event.target;
         if (target.classList.contains('header') || this.element.classList.contains('read-only') ||
-            target.enclosingNodeOrSelfWithClass('query')) {
+            target.enclosingNodeOrSelfWithClass('ancestor-rule-list')) {
             event.consume();
             return;
         }
@@ -1170,7 +1186,7 @@ class StylePropertiesSection {
         if (UI.UIUtils.isBeingEdited(element)) {
             return;
         }
-        element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+        element.scrollIntoViewIfNeeded(false);
         // Reset selector marks in group, and normalize whitespace.
         const textContent = element.textContent;
         if (textContent !== null) {
@@ -1258,13 +1274,14 @@ class StylePropertiesSection {
         if (!oldSelectorRange) {
             return Promise.resolve();
         }
+        this.#customHeaderText = undefined;
         return rule.setSelectorText(newContent).then(onSelectorsUpdated.bind(this, rule, Boolean(oldSelectorRange)));
     }
     editingSelectorCommittedForTest() {
     }
     updateRuleOrigin() {
         this.selectorRefElement.removeChildren();
-        this.selectorRefElement.appendChild(StylePropertiesSection.createRuleOriginNode(this.matchedStyles, this.parentPane.linkifier, this.styleInternal.parentRule));
+        this.selectorRefElement.appendChild(this.createRuleOriginNode(this.matchedStyles, this.parentPane.linkifier, this.styleInternal.parentRule));
     }
     editingSelectorEnded() {
         this.parentPane.setEditingStyle(false);
@@ -1292,7 +1309,6 @@ class StylePropertiesSection {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     static MaxProperties = 50;
 }
-export { StylePropertiesSection };
 export class BlankStylePropertiesSection extends StylePropertiesSection {
     normal;
     ruleLocation;
@@ -1308,7 +1324,7 @@ export class BlankStylePropertiesSection extends StylePropertiesSection {
         this.selectorRefElement.appendChild(StylePropertiesSection.linkifyRuleLocation(cssModel, this.parentPane.linkifier, styleSheetId, this.actualRuleLocation()));
         if (insertAfterStyle && insertAfterStyle.parentRule &&
             insertAfterStyle.parentRule instanceof SDK.CSSRule.CSSStyleRule) {
-            this.createAtRuleLists(insertAfterStyle.parentRule);
+            this.createAncestorRules(insertAfterStyle.parentRule);
         }
         this.element.classList.add('blank-section');
     }
@@ -1379,6 +1395,33 @@ export class BlankStylePropertiesSection extends StylePropertiesSection {
         this.styleInternal = newRule.style;
         // FIXME: replace this instance by a normal StylePropertiesSection.
         this.normal = true;
+    }
+}
+export class RegisteredPropertiesSection extends StylePropertiesSection {
+    constructor(stylesPane, matchedStyles, style, sectionIdx, propertyName, expandedByDefault) {
+        super(stylesPane, matchedStyles, style, sectionIdx, null, null, propertyName);
+        if (!expandedByDefault) {
+            this.element.classList.add('hidden');
+        }
+        this.selectorElement.className = 'property-registration-key';
+    }
+    async setHeaderText(rule, newContent) {
+        if (!(rule instanceof SDK.CSSRule.CSSPropertyRule)) {
+            return;
+        }
+        const oldRange = rule.propertyName().range;
+        if (!oldRange) {
+            return;
+        }
+        if (await rule.setPropertyName(newContent)) {
+            this.parentPane.forceUpdate();
+        }
+    }
+    createRuleOriginNode(matchedStyles, linkifier, rule) {
+        if (rule) {
+            return super.createRuleOriginNode(matchedStyles, linkifier, rule);
+        }
+        return document.createTextNode('CSS.registerProperty');
     }
 }
 export class KeyframePropertiesSection extends StylePropertiesSection {

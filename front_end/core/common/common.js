@@ -39,10 +39,5 @@ import * as Worker from './Worker.js';
  * update all references to `Common.UIString` to `Platform.UIString`.
  */
 export { UIString } from '../platform/platform.js';
-/**
- * @type {!Settings.Settings}
- */
-// @ts-ignore typedef
-export let settings;
 export { App, AppProvider, Base64, CharacterIdMap, Color, ColorUtils, ColorConverter, Console, Debouncer, EventTarget, JavaScriptMetaData, Lazy, Linkifier, Mutex, ObjectWrapper, ParsedURL, Progress, QueryParamHandler, ResolverBase, ResourceType, Revealer, Runnable, SegmentedRange, Settings, SettingRegistration, SimpleHistoryManager, StringOutputStream, TextDictionary, Throttler, Trie, Worker, WasmDisassembly, };
 //# map=common.js.map

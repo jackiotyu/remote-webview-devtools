@@ -263,7 +263,7 @@ export function setProgressBarValue(element, valueNow, valueText) {
         element.setAttribute('aria-valuetext', valueText);
     }
 }
-export function setAccessibleName(element, name) {
+export function setLabel(element, name) {
     element.setAttribute('aria-label', name);
 }
 export function setDescription(element, description) {

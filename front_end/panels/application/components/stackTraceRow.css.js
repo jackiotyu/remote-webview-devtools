@@ -40,12 +40,12 @@ styles.replaceSync(
 
 .link,
 .devtools-link {
-  color: var(--color-link);
+  color: var(--sys-color-primary);
   text-decoration: underline;
   cursor: pointer;
   outline-offset: 2px;
 }
 
-
+/*# sourceURL=stackTraceRow.css */
 `);
 export default styles;

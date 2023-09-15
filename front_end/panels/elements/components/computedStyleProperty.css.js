@@ -31,7 +31,7 @@ styles.replaceSync(
 }
 
 .computed-style-property:hover {
-  background-color: var(--legacy-focus-bg-color);
+  background-color: var(--sys-color-state-hover-on-subtle);
   cursor: text;
 }
 
@@ -52,7 +52,7 @@ styles.replaceSync(
   margin-right: calc(var(--goto-size) / 2);
   display: inline-block;
   vertical-align: text-top;
-  color: var(--webkit-css-property-color, var(--color-syntax-1)); /* stylelint-disable-line plugin/use_theme_colors */ /* See: crbug.com/1152736 for color variable migration. */
+  color: var(--webkit-css-property-color, var(--sys-color-token-property-special)); /* stylelint-disable-line plugin/use_theme_colors */ /* See: crbug.com/1152736 for color variable migration. */
 }
 
 .property-value {
@@ -68,7 +68,7 @@ styles.replaceSync(
   margin: -1px 0 0 calc(-1 * var(--goto-size));
   -webkit-mask-image: var(--image-file-mediumIcons);
   -webkit-mask-position: -32px 48px;
-  background-color: var(--legacy-active-control-bg-color);
+  background-color: var(--sys-color-surface-variant);
 }
 
 .computed-style-property:hover .goto {
@@ -115,6 +115,6 @@ styles.replaceSync(
   }
 }
 
-
+/*# sourceURL=computedStyleProperty.css */
 `);
 export default styles;

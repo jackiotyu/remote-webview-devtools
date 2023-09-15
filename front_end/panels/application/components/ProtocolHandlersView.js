@@ -58,7 +58,7 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/application/components/ProtocolHandlersView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class ProtocolHandlersView extends HTMLElement {
+export class ProtocolHandlersView extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-protocol-handlers-view`;
     #shadow = this.attachShadow({ mode: 'open' });
     #protocolHandlers = [];
@@ -145,6 +145,5 @@ class ProtocolHandlersView extends HTMLElement {
         // clang-format on
     }
 }
-export { ProtocolHandlersView };
 ComponentHelpers.CustomElements.defineComponent('devtools-protocol-handlers-view', ProtocolHandlersView);
 //# map=ProtocolHandlersView.js.map

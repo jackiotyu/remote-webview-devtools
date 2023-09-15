@@ -13,7 +13,7 @@ styles.replaceSync(
 
 .data-grid {
   position: relative;
-  border: 1px solid var(--color-details-hairline-light) !important; /* stylelint-disable-line declaration-no-important */
+  border: 1px solid var(--sys-color-divider) !important; /* stylelint-disable-line declaration-no-important */
   /* See: crbug.com/1152736 for color variable migration. */
   line-height: 120%;
 }
@@ -35,7 +35,7 @@ styles.replaceSync(
   overflow-x: hidden;
   overflow-y: overlay;
   transform: translateZ(0);
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
 }
 
 .data-grid thead {
@@ -101,7 +101,7 @@ styles.replaceSync(
 
 .striped-data-grid .revealed.data-grid-data-grid-node:nth-child(odd):not(.dirty):not(.selected),
 .striped-data-grid-starts-with-odd .revealed.data-grid-data-grid-node:nth-child(even):not(.dirty):not(.selected) {
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-surface1);
 }
 
 .data-grid td,
@@ -111,7 +111,7 @@ styles.replaceSync(
   overflow: hidden;
   line-height: 18px;
   height: 18px;
-  border-left: 1px solid var(--color-details-hairline);
+  border-left: 1px solid var(--sys-color-divider);
   padding: 1px 4px;
 }
 
@@ -122,8 +122,8 @@ styles.replaceSync(
 
 .data-grid th {
   text-align: left;
-  background-color: var(--color-background-elevation-1);
-  border-bottom: 1px solid var(--color-details-hairline);
+  background-color: var(--sys-color-surface1);
+  border-bottom: 1px solid var(--sys-color-divider);
   font-weight: normal;
   vertical-align: middle;
 }
@@ -158,7 +158,7 @@ styles.replaceSync(
 }
 
 .data-grid th .sort-order-icon-container {
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-surface1);
   min-width: 0;
   position: absolute;
   top: 1px;
@@ -224,9 +224,17 @@ styles.replaceSync(
   transform: rotate(90deg);
 }
 
+.data-grid tbody tr.revealed:hover {
+  background-color: var(--sys-color-state-hover-on-subtle);
+}
+
 .data-grid tbody tr.revealed.selected {
-  background-color: var(--color-background-highlight);
+  background-color: var(--sys-color-neutral-container);
   color: inherit;
+}
+
+.data-grid tbody tr.revealed:focus-within {
+  background-color: var(--sys-color-tonal-container);
 }
 
 .data-grid tbody tr.revealed.selected.dirty {
@@ -238,8 +246,8 @@ styles.replaceSync(
 }
 
 .data-grid:focus tbody tr.selected {
-  background-color: var(--color-selected-option-background);
-  color: var(--color-selected-option);
+  background-color: var(--sys-color-tonal-container);
+  color: var(--sys-color-on-tonal-container);
 }
 
 .data-grid tbody tr.selected.dirty {
@@ -253,7 +261,7 @@ styles.replaceSync(
 }
 
 .data-grid:focus tr.selected .devtools-link {
-  color: var(--color-selected-option);
+  color: var(--sys-color-on-tonal-container);
 }
 
 .data-grid:focus tr.parent.selected td.disclosure::before {
@@ -344,6 +352,6 @@ styles.replaceSync(
   }
 }
 
-
+/*# sourceURL=dataGrid.css */
 `);
 export default styles;

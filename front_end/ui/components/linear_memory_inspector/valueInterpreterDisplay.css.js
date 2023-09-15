@@ -65,7 +65,7 @@ styles.replaceSync(
 .signed-divider {
   width: 1px;
   height: 15px;
-  background-color: var(--color-details-hairline);
+  background-color: var(--sys-color-divider);
   margin: 0 4px;
 }
 
@@ -77,6 +77,6 @@ styles.replaceSync(
   background-color: var(--legacy-item-selection-bg-color);
 }
 
-
+/*# sourceURL=valueInterpreterDisplay.css */
 `);
 export default styles;

@@ -130,6 +130,6 @@ styles.replaceSync(
   column-gap: 8px;
 }
 
-
+/*# sourceURL=lighthouseDialog.css */
 `);
 export default styles;

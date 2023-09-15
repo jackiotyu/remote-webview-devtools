@@ -18,8 +18,7 @@ styles.replaceSync(
 .security-main-view {
   overflow-x: hidden;
   overflow-y: auto;
-  /* crbug.com/1152736 Consider moving --toolbar-bg-color to theme colors */
-  background-color: var(--color-background-elevation-1);
+  background-color: var(--sys-color-cdt-base-container);
 }
 
 .security-main-view > div {
@@ -89,8 +88,8 @@ styles.replaceSync(
   transform: rotate(-45deg);
   border-style: solid;
   border-width: 1px 1px 0 0;
-  background: var(--color-background);
-  border-color: var(--color-background-elevation-1);
+  background: var(--sys-color-cdt-base-container);
+  border-color: var(--sys-color-neutral-outline);
 }
 
 .security-summary-secure .triangle-pointer-wrapper {
@@ -114,8 +113,8 @@ styles.replaceSync(
   border-style: solid;
   border-width: 1px 0;
   font-size: 15px;
-  background: var(--color-background);
-  border-color: var(--color-background-elevation-1);
+  background: var(--sys-color-cdt-base-container);
+  border-color: var(--sys-color-neutral-outline);
   user-select: text;
 }
 
@@ -144,8 +143,8 @@ styles.replaceSync(
 
 .security-explanations-main {
   margin-top: -5px;
-  background-color: var(--color-background);
-  border-bottom: 1px solid var(--color-background-elevation-1);
+  background-color: var(--sys-color-cdt-base-container);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .security-explanations-extra {
@@ -191,6 +190,6 @@ styles.replaceSync(
   margin-bottom: 4px;
 }
 
-
+/*# sourceURL=mainView.css */
 `);
 export default styles;

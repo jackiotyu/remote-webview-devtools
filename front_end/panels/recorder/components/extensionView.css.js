@@ -39,7 +39,7 @@ header {
   display: flex;
   padding: 3px 8px;
   justify-content: space-between;
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 header > div {
@@ -56,11 +56,11 @@ header > div {
   display: flex;
   flex-direction: row;
   gap: 6px;
-  color: var(--color-text-secondary);
+  color: var(--sys-color-secondary);
   align-items: center;
   font-weight: 500;
 }
 
-
+/*# sourceURL=extensionView.css */
 `);
 export default styles;

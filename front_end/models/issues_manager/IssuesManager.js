@@ -11,15 +11,16 @@ import { CorsIssue } from './CorsIssue.js';
 import { CrossOriginEmbedderPolicyIssue, isCrossOriginEmbedderPolicyIssue } from './CrossOriginEmbedderPolicyIssue.js';
 import { DeprecationIssue } from './DeprecationIssue.js';
 import { FederatedAuthRequestIssue } from './FederatedAuthRequestIssue.js';
+import { FederatedAuthUserInfoRequestIssue } from './FederatedAuthUserInfoRequestIssue.js';
 import { GenericIssue } from './GenericIssue.js';
 import { HeavyAdIssue } from './HeavyAdIssue.js';
 import { LowTextContrastIssue } from './LowTextContrastIssue.js';
 import { MixedContentIssue } from './MixedContentIssue.js';
-import { NavigatorUserAgentIssue } from './NavigatorUserAgentIssue.js';
 import { QuirksModeIssue } from './QuirksModeIssue.js';
 import { CookieIssue } from './CookieIssue.js';
 import { SharedArrayBufferIssue } from './SharedArrayBufferIssue.js';
 import { SourceFrameIssuesManager } from './SourceFrameIssuesManager.js';
+import { StylesheetLoadingIssue } from './StylesheetLoadingIssue.js';
 let issuesManagerInstance = null;
 function createIssuesForBlockedByResponseIssue(issuesModel, inspectorIssue) {
     const blockedByResponseIssueDetails = inspectorIssue.details.blockedByResponseIssueDetails;
@@ -67,10 +68,6 @@ const issueCodeHandlers = new Map([
         QuirksModeIssue.fromInspectorIssue,
     ],
     [
-        "NavigatorUserAgentIssue" /* Protocol.Audits.InspectorIssueCode.NavigatorUserAgentIssue */,
-        NavigatorUserAgentIssue.fromInspectorIssue,
-    ],
-    [
         "AttributionReportingIssue" /* Protocol.Audits.InspectorIssueCode.AttributionReportingIssue */,
         AttributionReportingIssue.fromInspectorIssue,
     ],
@@ -93,6 +90,14 @@ const issueCodeHandlers = new Map([
     [
         "BounceTrackingIssue" /* Protocol.Audits.InspectorIssueCode.BounceTrackingIssue */,
         BounceTrackingIssue.fromInspectorIssue,
+    ],
+    [
+        "StylesheetLoadingIssue" /* Protocol.Audits.InspectorIssueCode.StylesheetLoadingIssue */,
+        StylesheetLoadingIssue.fromInspectorIssue,
+    ],
+    [
+        "FederatedAuthUserInfoRequestIssue" /* Protocol.Audits.InspectorIssueCode.FederatedAuthUserInfoRequestIssue */,
+        FederatedAuthUserInfoRequestIssue.fromInspectorIssue,
     ],
 ]);
 /**
@@ -182,14 +187,20 @@ export class IssuesManager extends Common.ObjectWrapper.ObjectWrapper {
         return !this.#hasSeenPrimaryPageChanged;
     }
     #onPrimaryPageChanged(event) {
-        const { frame } = event.data;
+        const { frame, type } = event.data;
         const keptIssues = new Map();
         for (const [key, issue] of this.#allIssues.entries()) {
             if (issue.isAssociatedWithRequestId(frame.loaderId)) {
                 keptIssues.set(key, issue);
+                // Keep issues for prerendered target alive in case of prerender-activation.
             }
-            // Keep BounceTrackingIssues alive for non-user-initiated navigations.
-            if (issue.code() === "BounceTrackingIssue" /* Protocol.Audits.InspectorIssueCode.BounceTrackingIssue */) {
+            else if ((type === "Activation" /* SDK.ResourceTreeModel.PrimaryPageChangeType.Activation */) &&
+                (frame.resourceTreeModel().target() === issue.model()?.target())) {
+                keptIssues.set(key, issue);
+                // Keep BounceTrackingIssues alive for non-user-initiated navigations.
+            }
+            else if (issue.code() === "BounceTrackingIssue" /* Protocol.Audits.InspectorIssueCode.BounceTrackingIssue */ ||
+                issue.code() === "CookieIssue" /* Protocol.Audits.InspectorIssueCode.CookieIssue */) {
                 const networkManager = frame.resourceTreeModel().target().model(SDK.NetworkManager.NetworkManager);
                 if (networkManager?.requestForLoaderId(frame.loaderId)?.hasUserGesture() ===
                     false) {

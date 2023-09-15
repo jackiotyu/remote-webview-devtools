@@ -10,6 +10,7 @@ import * as IconButton from '../../ui/components/icon_button/icon_button.js';
 import * as PerfUI from '../../ui/legacy/components/perf_ui/perf_ui.js';
 import * as Components from '../../ui/legacy/components/utils/utils.js';
 import * as UI from '../../ui/legacy/legacy.js';
+import * as CPUProfile from '../../models/cpu_profile/cpu_profile.js';
 import { ProfileFlameChartDataProvider } from './CPUProfileFlameChart.js';
 import { HeapTimelineOverview } from './HeapTimelineOverview.js';
 import { ProfileEvents, ProfileType } from './ProfileHeader.js';
@@ -298,7 +299,7 @@ export class SamplingHeapProfileTypeBase extends Common.ObjectWrapper.eventMixin
     }
 }
 let samplingHeapProfileTypeInstance;
-class SamplingHeapProfileType extends SamplingHeapProfileTypeBase {
+export class SamplingHeapProfileType extends SamplingHeapProfileTypeBase {
     updateTimer;
     updateIntervalMs;
     constructor() {
@@ -378,7 +379,6 @@ class SamplingHeapProfileType extends SamplingHeapProfileTypeBase {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     static TypeId = 'SamplingHeap';
 }
-export { SamplingHeapProfileType };
 export class SamplingHeapProfileHeader extends WritableProfileHeader {
     heapProfilerModelInternal;
     protocolProfileInternal;
@@ -417,9 +417,9 @@ export class SamplingHeapProfileHeader extends WritableProfileHeader {
         return super.profileType();
     }
 }
-export class SamplingHeapProfileNode extends SDK.ProfileTreeModel.ProfileNode {
+export class SamplingHeapProfileNode extends CPUProfile.ProfileTreeModel.ProfileNode {
     self;
-    constructor(node, target) {
+    constructor(node) {
         const callFrame = node.callFrame || {
             // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
             // @ts-expect-error
@@ -437,11 +437,11 @@ export class SamplingHeapProfileNode extends SDK.ProfileTreeModel.ProfileNode {
             // @ts-expect-error
             columnNumber: node['columnNumber'] - 1,
         };
-        super(callFrame, target);
+        super(callFrame);
         this.self = node.selfSize;
     }
 }
-export class SamplingHeapProfileModel extends SDK.ProfileTreeModel.ProfileTreeModel {
+export class SamplingHeapProfileModel extends CPUProfile.ProfileTreeModel.ProfileTreeModel {
     // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     modules;
@@ -463,16 +463,16 @@ export class SamplingHeapProfileModel extends SDK.ProfileTreeModel.ProfileTreeMo
                 nodeIdToSizeMap.set(sample.nodeId, size + sample.size);
             }
         }
-        this.initialize(translateProfileTree(profile.head, this.target()));
-        function translateProfileTree(root, target) {
-            const resultRoot = new SamplingHeapProfileNode(root, target);
+        this.initialize(translateProfileTree(profile.head));
+        function translateProfileTree(root) {
+            const resultRoot = new SamplingHeapProfileNode(root);
             const sourceNodeStack = [root];
             const targetNodeStack = [resultRoot];
             while (sourceNodeStack.length) {
                 const sourceNode = sourceNodeStack.pop();
                 const targetNode = targetNodeStack.pop();
                 targetNode.children = sourceNode.children.map(child => {
-                    const targetChild = new SamplingHeapProfileNode(child, target);
+                    const targetChild = new SamplingHeapProfileNode(child);
                     if (nodeIdToSizeMap) {
                         targetChild.self = nodeIdToSizeMap.get(child.id) || 0;
                     }

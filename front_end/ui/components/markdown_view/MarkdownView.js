@@ -8,7 +8,7 @@ import { MarkdownLink } from './MarkdownLink.js';
 import { MarkdownImage } from './MarkdownImage.js';
 const html = LitHtml.html;
 const render = LitHtml.render;
-class MarkdownView extends HTMLElement {
+export class MarkdownView extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-markdown-view`;
     #shadow = this.attachShadow({ mode: 'open' });
     #tokenData = [];
@@ -33,7 +33,6 @@ class MarkdownView extends HTMLElement {
         // clang-format on
     }
 }
-export { MarkdownView };
 ComponentHelpers.CustomElements.defineComponent('devtools-markdown-view', MarkdownView);
 const renderChildTokens = (token) => {
     if ('tokens' in token && token.tokens) {
@@ -92,6 +91,8 @@ function templateForToken(token) {
         case 'text':
             return renderText(token);
         case 'codespan':
+            return html `<code>${unescape(token.text)}</code>`;
+        case 'code':
             return html `<code>${unescape(token.text)}</code>`;
         case 'space':
             return html ``;

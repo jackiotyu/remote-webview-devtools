@@ -7,7 +7,7 @@ import * as Coordinator from '../render_coordinator/render_coordinator.js';
 import iconStyles from './icon.css.js';
 const isString = (value) => value !== undefined;
 const coordinator = Coordinator.RenderCoordinator.RenderCoordinator.instance();
-class Icon extends HTMLElement {
+export class Icon extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-icon`;
     #shadow = this.attachShadow({ mode: 'open' });
     #iconPath = '';
@@ -92,6 +92,5 @@ class Icon extends HTMLElement {
         });
     }
 }
-export { Icon };
 ComponentHelpers.CustomElements.defineComponent('devtools-icon', Icon);
 //# map=Icon.js.map

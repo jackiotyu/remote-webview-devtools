@@ -222,6 +222,9 @@ export class SoftDropDown {
         }
         this.updateGlasspaneSize();
     }
+    getSelectedItem() {
+        return this.selectedItem;
+    }
     selectItem(item) {
         this.selectedItem = item;
         if (this.selectedItem) {

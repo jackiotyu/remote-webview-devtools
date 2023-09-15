@@ -22,7 +22,7 @@ const UIStrings = {
 const str_ = i18n.i18n.registerUIStrings('ui/components/linear_memory_inspector/LinearMemoryHighlightChipList.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const { render, html } = LitHtml;
-class DeleteMemoryHighlightEvent extends Event {
+export class DeleteMemoryHighlightEvent extends Event {
     static eventName = 'deletememoryhighlight';
     data;
     constructor(highlightInfo) {
@@ -30,8 +30,7 @@ class DeleteMemoryHighlightEvent extends Event {
         this.data = highlightInfo;
     }
 }
-export { DeleteMemoryHighlightEvent };
-class JumpToHighlightedMemoryEvent extends Event {
+export class JumpToHighlightedMemoryEvent extends Event {
     static eventName = 'jumptohighlightedmemory';
     data;
     constructor(address) {
@@ -39,8 +38,7 @@ class JumpToHighlightedMemoryEvent extends Event {
         this.data = address;
     }
 }
-export { JumpToHighlightedMemoryEvent };
-class LinearMemoryHighlightChipList extends HTMLElement {
+export class LinearMemoryHighlightChipList extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-linear-memory-highlight-chip-list`;
     #shadow = this.attachShadow({ mode: 'open' });
     #highlightedAreas = [];
@@ -107,6 +105,5 @@ class LinearMemoryHighlightChipList extends HTMLElement {
         this.dispatchEvent(new DeleteMemoryHighlightEvent(highlight));
     }
 }
-export { LinearMemoryHighlightChipList };
 ComponentHelpers.CustomElements.defineComponent('devtools-linear-memory-highlight-chip-list', LinearMemoryHighlightChipList);
 //# map=LinearMemoryHighlightChipList.js.map

@@ -6,32 +6,59 @@ import * as TraceHelpers from '../../../../../test/unittests/front_end/helpers/T
 import * as PerfUI from '../../../legacy/components/perf_ui/perf_ui.js';
 import * as ComponentSetup from '../../helpers/helpers.js';
 import * as TraceEngine from '../../../../models/trace/trace.js';
-import { FakeProvider } from './FlameChartHelpers.js';
 await EnvironmentHelpers.initializeGlobalVars();
 await ComponentSetup.ComponentServerSetup.setup();
 /**
  * Render a basic flame chart with 3 events on the same level
  **/
 function renderExample1() {
-    class FakeProviderWithBasicEvents extends FakeProvider {
+    class FakeProviderWithBasicEvents extends TraceHelpers.FakeFlameChartProvider {
         timelineData() {
             return PerfUI.FlameChart.FlameChartTimelineData.create({
-                entryLevels: [1, 1, 1],
-                entryStartTimes: [5, 60, 80],
-                entryTotalTimes: [50, 10, 10],
-                groups: [{
+                entryLevels: [0, 0, 0, 1, 1, 1, 2, 2, 2],
+                entryStartTimes: [5, 60, 80, 5, 60, 80, 5, 60, 80],
+                entryTotalTimes: [50, 10, 10, 50, 10, 10, 50, 10, 10],
+                groups: [
+                    {
                         name: 'Test Group',
-                        startLevel: 1,
+                        startLevel: 0,
                         style: {
                             height: 17,
                             padding: 4,
-                            collapsible: false,
+                            collapsible: true,
                             color: 'black',
                             backgroundColor: 'grey',
                             nestingLevel: 0,
                             itemsHeight: 17,
                         },
-                    }],
+                    },
+                    {
+                        name: 'Test Group 2',
+                        startLevel: 1,
+                        style: {
+                            height: 17,
+                            padding: 4,
+                            collapsible: true,
+                            color: 'red',
+                            backgroundColor: 'green',
+                            nestingLevel: 0,
+                            itemsHeight: 17,
+                        },
+                    },
+                    {
+                        name: 'Test Group 3',
+                        startLevel: 2,
+                        style: {
+                            height: 17,
+                            padding: 4,
+                            collapsible: true,
+                            color: 'blue',
+                            backgroundColor: 'yellow',
+                            nestingLevel: 0,
+                            itemsHeight: 17,
+                        },
+                    },
+                ],
             });
         }
     }
@@ -46,23 +73,34 @@ function renderExample1() {
     flameChart.setWindowTimes(0, 100);
     flameChart.show(container);
     flameChart.update();
+    const buttonHide = document.querySelector('#hide');
+    buttonHide?.addEventListener('click', () => {
+        flameChart.hideGroup(1);
+    });
+    const buttonUnhide = document.querySelector('#unhide');
+    buttonUnhide?.addEventListener('click', () => {
+        flameChart.showGroup(1);
+    });
 }
 /**
- * Render a flame chart with main thread long events to stripe.
+ * Render a flame chart with main thread long events to stripe and a warning triangle.
  **/
 function renderExample2() {
-    class FakeProviderWithLongTasksForStriping extends FakeProvider {
+    class FakeProviderWithLongTasksForStriping extends TraceHelpers.FakeFlameChartProvider {
         timelineData() {
             return PerfUI.FlameChart.FlameChartTimelineData.create({
                 entryLevels: [1, 1, 2],
                 entryStartTimes: [5, 80, 5],
                 entryTotalTimes: [70, 10, 80],
                 entryDecorations: [
-                    [{
+                    [
+                        {
                             type: 'CANDY',
                             startAtTime: TraceEngine.Types.Timing.MicroSeconds(50_000),
-                        }],
-                    [ /* No decorations for the event with index 1 */],
+                        },
+                        { type: 'WARNING_TRIANGLE' },
+                    ],
+                    [{ type: 'WARNING_TRIANGLE' }],
                     [
                         {
                             type: 'CANDY',
@@ -71,8 +109,8 @@ function renderExample2() {
                     ],
                 ],
                 groups: [{
-                        name: 'Testing Candy Stripe decorations',
-                        startLevel: 1,
+                        name: 'Testing Candy Stripe decorations and warning triangles',
+                        startLevel: 0,
                         style: {
                             height: 17,
                             padding: 4,
@@ -98,6 +136,73 @@ function renderExample2() {
     flameChart.show(container);
     flameChart.update();
 }
+/**
+ * Render a flame chart with nested track.
+ **/
+function renderExample3() {
+    class FakeProviderWithNestedGroup extends TraceHelpers.FakeFlameChartProvider {
+        timelineData() {
+            return PerfUI.FlameChart.FlameChartTimelineData.create({
+                entryLevels: [0, 1, 2],
+                entryStartTimes: [5, 5, 5],
+                entryTotalTimes: [50, 50, 50],
+                groups: [
+                    {
+                        name: 'Test Group',
+                        startLevel: 0,
+                        style: {
+                            height: 17,
+                            padding: 4,
+                            collapsible: true,
+                            color: 'black',
+                            backgroundColor: 'grey',
+                            nestingLevel: 0,
+                            itemsHeight: 17,
+                        },
+                    },
+                    {
+                        name: 'Test Nested Group',
+                        startLevel: 0,
+                        style: {
+                            height: 17,
+                            padding: 4,
+                            collapsible: true,
+                            color: 'red',
+                            backgroundColor: 'green',
+                            nestingLevel: 1,
+                            itemsHeight: 17,
+                        },
+                    },
+                    {
+                        name: 'Test Group 3',
+                        startLevel: 2,
+                        style: {
+                            height: 17,
+                            padding: 4,
+                            collapsible: true,
+                            color: 'blue',
+                            backgroundColor: 'yellow',
+                            nestingLevel: 0,
+                            itemsHeight: 17,
+                        },
+                    },
+                ],
+            });
+        }
+    }
+    const container = document.querySelector('div#container3');
+    if (!container) {
+        throw new Error('No container');
+    }
+    const delegate = new TraceHelpers.MockFlameChartDelegate();
+    const dataProvider = new FakeProviderWithNestedGroup();
+    const flameChart = new PerfUI.FlameChart.FlameChart(dataProvider, delegate);
+    flameChart.markAsRoot();
+    flameChart.setWindowTimes(0, 100);
+    flameChart.show(container);
+    flameChart.update();
+}
 renderExample1();
 renderExample2();
+renderExample3();
 //# map=flamechart.js.map

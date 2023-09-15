@@ -14,7 +14,7 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('ui/legacy/components/object_ui/CustomPreviewComponent.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class CustomPreviewSection {
+export class CustomPreviewSection {
     sectionElement;
     object;
     expanded;
@@ -156,7 +156,6 @@ class CustomPreviewSection {
     }
     static allowedTags = new Set(['span', 'div', 'ol', 'li', 'table', 'tr', 'td']);
 }
-export { CustomPreviewSection };
 export class CustomPreviewComponent {
     object;
     customPreviewSection;

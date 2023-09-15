@@ -272,16 +272,28 @@ export class IssueView extends UI.TreeOutline.TreeElement {
         this.#appendHeader();
         this.#createBody();
         this.appendChild(this.affectedResources);
+        const visibleAffectedResource = [];
         for (const view of this.#affectedResourceViews) {
             this.appendAffectedResource(view);
             view.update();
+            if (!view.isEmpty()) {
+                visibleAffectedResource.push(view);
+            }
         }
+        this.#updateAffectedResourcesPositionAndSize(visibleAffectedResource);
         this.#createReadMoreLinks();
         this.updateAffectedResourceVisibility();
         this.#contentCreated = true;
     }
     appendAffectedResource(resource) {
         this.affectedResources.appendChild(resource);
+    }
+    #updateAffectedResourcesPositionAndSize(visibleAffectedResource) {
+        for (let i = 0; i < visibleAffectedResource.length; i++) {
+            const element = visibleAffectedResource[i].listItemElement;
+            UI.ARIAUtils.setPositionInSet(element, i + 1);
+            UI.ARIAUtils.setSetSize(element, visibleAffectedResource.length);
+        }
     }
     #appendHeader() {
         const header = document.createElement('div');
@@ -357,6 +369,8 @@ export class IssueView extends UI.TreeOutline.TreeElement {
         wrapper.listItemElement.classList.add('affected-resources-label');
         wrapper.listItemElement.textContent = i18nString(UIStrings.affectedResources);
         wrapper.childrenListElement.classList.add('affected-resources');
+        UI.ARIAUtils.setPositionInSet(wrapper.listItemElement, 2);
+        UI.ARIAUtils.setSetSize(wrapper.listItemElement, this.#description.links.length === 0 ? 2 : 3);
         return wrapper;
     }
     #createBody() {
@@ -366,6 +380,8 @@ export class IssueView extends UI.TreeOutline.TreeElement {
         const markdownComponent = new MarkdownView.MarkdownView.MarkdownView();
         markdownComponent.data = { tokens: this.#description.markdown };
         messageElement.listItemElement.appendChild(markdownComponent);
+        UI.ARIAUtils.setPositionInSet(messageElement.listItemElement, 1);
+        UI.ARIAUtils.setSetSize(messageElement.listItemElement, this.#description.links.length === 0 ? 2 : 3);
         this.appendChild(messageElement);
     }
     #createReadMoreLinks() {
@@ -375,6 +391,8 @@ export class IssueView extends UI.TreeOutline.TreeElement {
         const linkWrapper = new UI.TreeOutline.TreeElement();
         linkWrapper.setCollapsible(false);
         linkWrapper.listItemElement.classList.add('link-wrapper');
+        UI.ARIAUtils.setPositionInSet(linkWrapper.listItemElement, 3);
+        UI.ARIAUtils.setSetSize(linkWrapper.listItemElement, 3);
         const linkList = linkWrapper.listItemElement.createChild('ul', 'link-list');
         for (const description of this.#description.links) {
             const link = UI.Fragment.html `<x-link class="link devtools-link" tabindex="0" href=${description.link}>${i18nString(UIStrings.learnMoreS, { PH1: description.linkTitle })}</x-link>`;

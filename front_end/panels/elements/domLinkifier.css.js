@@ -26,14 +26,14 @@ styles.replaceSync(
 }
 
 .node-label-name {
-  color: var(--color-syntax-1);
+  color: var(--sys-color-token-property-special);
 }
 
 .node-label-class,
 .node-label-pseudo {
-  color: var(--color-syntax-4);
+  color: var(--sys-color-token-attribute);
 }
 
-
+/*# sourceURL=domLinkifier.css */
 `);
 export default styles;

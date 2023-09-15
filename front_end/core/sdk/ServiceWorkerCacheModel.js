@@ -5,7 +5,7 @@ import * as Common from '../common/common.js';
 import * as i18n from '../i18n/i18n.js';
 import { Capability } from './Target.js';
 import { SDKModel } from './SDKModel.js';
-import { Events as StorageKeyManagerEvents, StorageKeyManager } from './StorageKeyManager.js';
+import { StorageBucketsModel } from './StorageBucketsModel.js';
 const UIStrings = {
     /**
      *@description Text in Service Worker Cache Model
@@ -19,9 +19,10 @@ const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 export class ServiceWorkerCacheModel extends SDKModel {
     cacheAgent;
     #storageAgent;
-    #storageKeyManager;
+    #storageBucketModel;
     #cachesInternal = new Map();
-    #storageKeysUpdated = new Set();
+    #storageKeysTracked = new Set();
+    #storageBucketsUpdated = new Set();
     #throttler = new Common.Throttler.Throttler(2000);
     #enabled = false;
     // Used by tests to remove the Throttler timeout.
@@ -34,31 +35,38 @@ export class ServiceWorkerCacheModel extends SDKModel {
         target.registerStorageDispatcher(this);
         this.cacheAgent = target.cacheStorageAgent();
         this.#storageAgent = target.storageAgent();
-        this.#storageKeyManager = target.model(StorageKeyManager);
+        this.#storageBucketModel = target.model(StorageBucketsModel);
     }
     enable() {
         if (this.#enabled) {
             return;
         }
-        this.#storageKeyManager.addEventListener(StorageKeyManagerEvents.StorageKeyAdded, this.storageKeyAdded, this);
-        this.#storageKeyManager.addEventListener(StorageKeyManagerEvents.StorageKeyRemoved, this.storageKeyRemoved, this);
-        for (const storageKey of this.#storageKeyManager.storageKeys()) {
-            this.addStorageKey(storageKey);
+        this.#storageBucketModel.addEventListener("BucketAdded" /* StorageBucketsModelEvents.BucketAdded */, this.storageBucketAdded, this);
+        this.#storageBucketModel.addEventListener("BucketRemoved" /* StorageBucketsModelEvents.BucketRemoved */, this.storageBucketRemoved, this);
+        for (const storageBucket of this.#storageBucketModel.getBuckets()) {
+            this.addStorageBucket(storageBucket.bucket);
         }
         this.#enabled = true;
     }
     clearForStorageKey(storageKey) {
-        this.removeStorageKey(storageKey);
-        this.addStorageKey(storageKey);
+        for (const [opaqueId, cache] of this.#cachesInternal.entries()) {
+            if (cache.storageKey === storageKey) {
+                this.#cachesInternal.delete(opaqueId);
+                this.cacheRemoved(cache);
+            }
+        }
+        for (const storageBucket of this.#storageBucketModel.getBucketsForStorageKey(storageKey)) {
+            void this.loadCacheNames(storageBucket.bucket);
+        }
     }
     refreshCacheNames() {
         for (const cache of this.#cachesInternal.values()) {
             this.cacheRemoved(cache);
         }
         this.#cachesInternal.clear();
-        const storageKeys = this.#storageKeyManager.storageKeys();
-        for (const storageKey of storageKeys) {
-            void this.loadCacheNames(storageKey);
+        const storageBuckets = this.#storageBucketModel.getBuckets();
+        for (const storageBucket of storageBuckets) {
+            void this.loadCacheNames(storageBucket.bucket);
         }
     }
     async deleteCache(cache) {
@@ -96,33 +104,44 @@ export class ServiceWorkerCacheModel extends SDKModel {
         }
         this.#cachesInternal.clear();
         if (this.#enabled) {
-            this.#storageKeyManager.removeEventListener(StorageKeyManagerEvents.StorageKeyAdded, this.storageKeyAdded, this);
-            this.#storageKeyManager.removeEventListener(StorageKeyManagerEvents.StorageKeyRemoved, this.storageKeyRemoved, this);
+            this.#storageBucketModel.removeEventListener("BucketAdded" /* StorageBucketsModelEvents.BucketAdded */, this.storageBucketAdded, this);
+            this.#storageBucketModel.removeEventListener("BucketRemoved" /* StorageBucketsModelEvents.BucketRemoved */, this.storageBucketRemoved, this);
         }
     }
-    addStorageKey(storageKey) {
-        void this.loadCacheNames(storageKey);
-        void this.#storageAgent.invoke_trackCacheStorageForStorageKey({ storageKey });
+    addStorageBucket(storageBucket) {
+        void this.loadCacheNames(storageBucket);
+        if (!this.#storageKeysTracked.has(storageBucket.storageKey)) {
+            this.#storageKeysTracked.add(storageBucket.storageKey);
+            void this.#storageAgent.invoke_trackCacheStorageForStorageKey({ storageKey: storageBucket.storageKey });
+        }
     }
-    removeStorageKey(storageKey) {
+    removeStorageBucket(storageBucket) {
+        let storageKeyCount = 0;
         for (const [opaqueId, cache] of this.#cachesInternal.entries()) {
-            if (cache.storageKey === storageKey) {
+            if (storageBucket.storageKey === cache.storageKey) {
+                storageKeyCount++;
+            }
+            if (cache.inBucket(storageBucket)) {
+                storageKeyCount--;
                 this.#cachesInternal.delete(opaqueId);
                 this.cacheRemoved(cache);
             }
         }
-        void this.#storageAgent.invoke_untrackCacheStorageForStorageKey({ storageKey });
+        if (storageKeyCount === 0) {
+            this.#storageKeysTracked.delete(storageBucket.storageKey);
+            void this.#storageAgent.invoke_untrackCacheStorageForStorageKey({ storageKey: storageBucket.storageKey });
+        }
     }
-    async loadCacheNames(storageKey) {
-        const response = await this.cacheAgent.invoke_requestCacheNames({ storageKey });
+    async loadCacheNames(storageBucket) {
+        const response = await this.cacheAgent.invoke_requestCacheNames({ storageBucket });
         if (response.getError()) {
             return;
         }
-        this.updateCacheNames(storageKey, response.caches);
+        this.updateCacheNames(storageBucket, response.caches);
     }
-    updateCacheNames(storageKey, cachesJson) {
+    updateCacheNames(storageBucket, cachesJson) {
         function deleteAndSaveOldCaches(cache) {
-            if (cache.storageKey === storageKey && !updatingCachesIds.has(cache.cacheId)) {
+            if (cache.inBucket(storageBucket) && !updatingCachesIds.has(cache.cacheId)) {
                 oldCaches.set(cache.cacheId, cache);
                 this.#cachesInternal.delete(cache.cacheId);
             }
@@ -131,7 +150,12 @@ export class ServiceWorkerCacheModel extends SDKModel {
         const newCaches = new Map();
         const oldCaches = new Map();
         for (const cacheJson of cachesJson) {
-            const cache = new Cache(this, cacheJson.storageKey, cacheJson.cacheName, cacheJson.cacheId);
+            const storageBucket = cacheJson.storageBucket ??
+                this.#storageBucketModel.getDefaultBucketForStorageKey(cacheJson.storageKey)?.bucket;
+            if (!storageBucket) {
+                continue;
+            }
+            const cache = new Cache(this, storageBucket, cacheJson.cacheName, cacheJson.cacheId);
             updatingCachesIds.add(cache.cacheId);
             if (this.#cachesInternal.has(cache.cacheId)) {
                 continue;
@@ -143,11 +167,11 @@ export class ServiceWorkerCacheModel extends SDKModel {
         newCaches.forEach(this.cacheAdded, this);
         oldCaches.forEach(this.cacheRemoved, this);
     }
-    storageKeyAdded(event) {
-        this.addStorageKey(event.data);
+    storageBucketAdded({ data: { bucketInfo: { bucket } } }) {
+        this.addStorageBucket(bucket);
     }
-    storageKeyRemoved(event) {
-        this.removeStorageKey(event.data);
+    storageBucketRemoved({ data: { bucketInfo: { bucket } } }) {
+        this.removeStorageBucket(bucket);
     }
     cacheAdded(cache) {
         this.dispatchEventToListeners(Events.CacheAdded, { model: this, cache: cache });
@@ -171,16 +195,22 @@ export class ServiceWorkerCacheModel extends SDKModel {
         }
         callback(response.cacheDataEntries, response.returnCount);
     }
-    cacheStorageListUpdated({ storageKey }) {
-        this.#storageKeysUpdated.add(storageKey);
-        void this.#throttler.schedule(() => {
-            const promises = Array.from(this.#storageKeysUpdated, key => this.loadCacheNames(key));
-            this.#storageKeysUpdated.clear();
-            return Promise.all(promises);
-        }, this.#scheduleAsSoonAsPossible);
+    cacheStorageListUpdated({ bucketId }) {
+        const storageBucket = this.#storageBucketModel.getBucketById(bucketId)?.bucket;
+        if (storageBucket) {
+            this.#storageBucketsUpdated.add(storageBucket);
+            void this.#throttler.schedule(() => {
+                const promises = Array.from(this.#storageBucketsUpdated, storageBucket => this.loadCacheNames(storageBucket));
+                this.#storageBucketsUpdated.clear();
+                return Promise.all(promises);
+            }, this.#scheduleAsSoonAsPossible);
+        }
     }
-    cacheStorageContentUpdated({ storageKey, cacheName }) {
-        this.dispatchEventToListeners(Events.CacheStorageContentUpdated, { storageKey, cacheName });
+    cacheStorageContentUpdated({ bucketId, cacheName }) {
+        const storageBucket = this.#storageBucketModel.getBucketById(bucketId)?.bucket;
+        if (storageBucket) {
+            this.dispatchEventToListeners(Events.CacheStorageContentUpdated, { storageBucket, cacheName });
+        }
     }
     indexedDBListUpdated(_event) {
     }
@@ -197,6 +227,8 @@ export class ServiceWorkerCacheModel extends SDKModel {
     setThrottlerSchedulesAsSoonAsPossibleForTest() {
         this.#scheduleAsSoonAsPossible = true;
     }
+    attributionReportingSourceRegistered(_event) {
+    }
 }
 // TODO(crbug.com/1167717): Make this a const enum again
 // eslint-disable-next-line rulesdir/const_enum
@@ -209,13 +241,18 @@ export var Events;
 export class Cache {
     #model;
     storageKey;
+    storageBucket;
     cacheName;
     cacheId;
-    constructor(model, storageKey, cacheName, cacheId) {
+    constructor(model, storageBucket, cacheName, cacheId) {
         this.#model = model;
-        this.storageKey = storageKey;
+        this.storageBucket = storageBucket;
+        this.storageKey = storageBucket.storageKey;
         this.cacheName = cacheName;
         this.cacheId = cacheId;
+    }
+    inBucket(storageBucket) {
+        return this.storageKey === storageBucket.storageKey && this.storageBucket.name === storageBucket.name;
     }
     equals(cache) {
         return this.cacheId === cache.cacheId;

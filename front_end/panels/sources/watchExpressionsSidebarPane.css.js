@@ -160,6 +160,6 @@ li.watch-expression-editing::before {
   }
 }
 
-
+/*# sourceURL=watchExpressionsSidebarPane.css */
 `);
 export default styles;

@@ -26,6 +26,6 @@ styles.replaceSync(
   transition: opacity 1s;
 }
 
-
+/*# sourceURL=binaryResourceView.css */
 `);
 export default styles;

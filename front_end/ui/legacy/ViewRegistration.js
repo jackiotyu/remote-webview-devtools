@@ -73,6 +73,7 @@ export function resetViewRegistration() {
     registeredViewExtensions.length = 0;
     registeredLocationResolvers.length = 0;
     viewLocationNameSet.clear();
+    viewIdSet.clear();
 }
 // eslint-disable-next-line rulesdir/const_enum
 export var ViewLocationCategory;

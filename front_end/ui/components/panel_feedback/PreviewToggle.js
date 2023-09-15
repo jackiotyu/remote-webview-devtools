@@ -25,7 +25,7 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('ui/components/panel_feedback/PreviewToggle.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class PreviewToggle extends HTMLElement {
+export class PreviewToggle extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-preview-toggle`;
     #shadow = this.attachShadow({ mode: 'open' });
     #name = '';
@@ -85,6 +85,5 @@ class PreviewToggle extends HTMLElement {
         this.#onChangeCallback?.(checked);
     }
 }
-export { PreviewToggle };
 ComponentHelpers.CustomElements.defineComponent('devtools-preview-toggle', PreviewToggle);
 //# map=PreviewToggle.js.map

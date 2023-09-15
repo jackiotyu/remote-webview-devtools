@@ -63,7 +63,7 @@ styles.replaceSync(
   line-height: 16px;
   border: 1px solid var(--divider-line);
   color: var(--color-text-primary);
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   text-align: center;
   font-weight: 500;
 }
@@ -119,6 +119,6 @@ styles.replaceSync(
   }
 }
 
-
+/*# sourceURL=cssShadowEditor.css */
 `);
 export default styles;

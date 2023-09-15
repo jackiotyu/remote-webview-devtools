@@ -44,6 +44,6 @@ styles.replaceSync(
   -webkit-mask: radial-gradient(circle at 0% center, rgb(0 0 0) 50%, rgb(0 0 0 / 0%) calc(50% + 0.5px));
 }
 
-
+/*# sourceURL=colorMixSwatch.css */
 `);
 export default styles;

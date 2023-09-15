@@ -32,6 +32,7 @@ import * as SDK from '../../core/sdk/sdk.js';
 import * as PerfUI from '../../ui/legacy/components/perf_ui/perf_ui.js';
 import * as Components from '../../ui/legacy/components/utils/utils.js';
 import * as UI from '../../ui/legacy/legacy.js';
+import * as CPUProfile from '../../models/cpu_profile/cpu_profile.js';
 import { ProfileFlameChartDataProvider } from './CPUProfileFlameChart.js';
 import { ProfileEvents, ProfileType } from './ProfileHeader.js';
 import { ProfileView, WritableProfileHeader } from './ProfileView.js';
@@ -116,7 +117,7 @@ export class CPUProfileView extends ProfileView {
     wasShown() {
         super.wasShown();
         PerfUI.LineLevelProfile.Performance.instance().reset();
-        PerfUI.LineLevelProfile.Performance.instance().appendCPUProfile(this.profileHeader.profileModel());
+        PerfUI.LineLevelProfile.Performance.instance().appendCPUProfile(this.profileHeader.profileModel(), this.profileHeader.target);
     }
     columnHeader(columnId) {
         switch (columnId) {
@@ -131,7 +132,7 @@ export class CPUProfileView extends ProfileView {
         return new CPUFlameChartDataProvider(this.profileHeader.profileModel(), this.profileHeader.cpuProfilerModel);
     }
 }
-class CPUProfileType extends ProfileType {
+export class CPUProfileType extends ProfileType {
     recording;
     constructor() {
         super(CPUProfileType.TypeId, i18nString(UIStrings.recordJavascriptCpuProfile));
@@ -218,13 +219,14 @@ class CPUProfileType extends ProfileType {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     static TypeId = 'CPU';
 }
-export { CPUProfileType };
 export class CPUProfileHeader extends WritableProfileHeader {
     cpuProfilerModel;
     profileModelInternal;
+    target;
     constructor(cpuProfilerModel, type, title) {
         super(cpuProfilerModel && cpuProfilerModel.debuggerModel(), type, title);
         this.cpuProfilerModel = cpuProfilerModel;
+        this.target = this.cpuProfilerModel && this.cpuProfilerModel.target() || null;
     }
     createView() {
         return new CPUProfileView(this);
@@ -242,8 +244,7 @@ export class CPUProfileHeader extends WritableProfileHeader {
         return this.profileModelInternal;
     }
     setProfile(profile) {
-        const target = this.cpuProfilerModel && this.cpuProfilerModel.target() || null;
-        this.profileModelInternal = new SDK.CPUProfileDataModel.CPUProfileDataModel(profile, target);
+        this.profileModelInternal = new CPUProfile.CPUProfileDataModel.CPUProfileDataModel(profile);
     }
 }
 export class NodeFormatter {

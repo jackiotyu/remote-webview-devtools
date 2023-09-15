@@ -273,7 +273,7 @@ export class NetworkWaterfallColumn extends UI.Widget.VBox {
         return this.nodes[Math.floor((this.scrollTop + y - this.headerHeight) / this.rowHeight)];
     }
     scheduleDraw() {
-        void coordinator.write(() => this.update());
+        void coordinator.write('NetworkWaterfallColumn.render', () => this.update());
     }
     update(scrollTop, eventDividers, nodes) {
         if (scrollTop !== undefined && this.scrollTop !== scrollTop) {

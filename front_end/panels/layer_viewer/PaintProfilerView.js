@@ -385,7 +385,7 @@ export class PaintProfilerCommandLogView extends UI.ThrottledWidget.ThrottledWid
         this.setMinimumSize(100, 25);
         this.element.classList.add('overflow-auto');
         this.treeOutline = new UI.TreeOutline.TreeOutlineInShadow();
-        UI.ARIAUtils.setAccessibleName(this.treeOutline.contentElement, i18nString(UIStrings.commandLog));
+        UI.ARIAUtils.setLabel(this.treeOutline.contentElement, i18nString(UIStrings.commandLog));
         this.element.appendChild(this.treeOutline.element);
         this.setDefaultFocusedElement(this.treeOutline.contentElement);
         this.log = [];

@@ -273,7 +273,7 @@ export class ProfileDataGridNode extends DataGrid.DataGrid.DataGridNode {
         ProfileDataGridNode.merge(this, child, shouldAbsorb);
     }
 }
-class ProfileDataGridTree {
+export class ProfileDataGridTree {
     tree;
     self;
     children;
@@ -546,5 +546,4 @@ class ProfileDataGridTree {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     static propertyComparators = [{}, {}];
 }
-export { ProfileDataGridTree };
 //# map=ProfileDataGrid.js.map

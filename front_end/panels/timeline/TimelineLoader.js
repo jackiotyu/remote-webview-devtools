@@ -4,10 +4,10 @@
 import * as Common from '../../core/common/common.js';
 import * as Host from '../../core/host/host.js';
 import * as i18n from '../../core/i18n/i18n.js';
-import * as SDK from '../../core/sdk/sdk.js';
 import * as Bindings from '../../models/bindings/bindings.js';
 import * as TextUtils from '../../models/text_utils/text_utils.js';
 import * as TimelineModel from '../../models/timeline_model/timeline_model.js';
+import * as TraceEngine from '../../models/trace/trace.js';
 const UIStrings = {
     /**
      *@description Text in Timeline Loader of the Performance panel
@@ -42,7 +42,6 @@ const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
  */
 export class TimelineLoader {
     client;
-    backingStorage;
     tracingModel;
     canceledCallback;
     state;
@@ -53,10 +52,11 @@ export class TimelineLoader {
     totalSize;
     jsonTokenizer;
     filter;
-    constructor(client, shouldSaveTraceEventsToFile, title) {
+    #traceFinalizedCallbackForTest;
+    #traceFinalizedPromiseForTest;
+    constructor(client, title) {
         this.client = client;
-        this.backingStorage = new Bindings.TempFile.TempFileBackingStorage();
-        this.tracingModel = new SDK.TracingModel.TracingModel(this.backingStorage, shouldSaveTraceEventsToFile, title);
+        this.tracingModel = new TraceEngine.Legacy.TracingModel(title);
         this.canceledCallback = null;
         this.state = State.Initial;
         this.buffer = '';
@@ -65,22 +65,28 @@ export class TimelineLoader {
         this.loadedBytes = 0;
         this.jsonTokenizer = new TextUtils.TextUtils.BalancedJSONTokenizer(this.writeBalancedJSON.bind(this), true);
         this.filter = null;
+        this.#traceFinalizedPromiseForTest = new Promise(resolve => {
+            this.#traceFinalizedCallbackForTest = resolve;
+        });
     }
     static async loadFromFile(file, client) {
-        const loader = new TimelineLoader(client, /* shouldSaveTraceEventsToFile= */ true);
+        const loader = new TimelineLoader(client);
         const fileReader = new Bindings.FileUtils.ChunkedFileReader(file, TransferChunkLengthBytes);
         loader.canceledCallback = fileReader.cancel.bind(fileReader);
         loader.totalSize = file.size;
-        const success = await fileReader.read(loader);
-        if (!success && fileReader.error()) {
-            // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            loader.reportErrorAndCancelLoading(fileReader.error().message);
-        }
+        // We'll resolve and return the loader instance before finalizing the trace.
+        setTimeout(async () => {
+            const success = await fileReader.read(loader);
+            if (!success && fileReader.error()) {
+                // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                loader.reportErrorAndCancelLoading(fileReader.error().message);
+            }
+        });
         return loader;
     }
     static loadFromEvents(events, client) {
-        const loader = new TimelineLoader(client, /* shouldSaveTraceEventsToFile= */ true);
+        const loader = new TimelineLoader(client);
         window.setTimeout(async () => {
             void loader.addEvents(events);
         });
@@ -94,11 +100,10 @@ export class TimelineLoader {
         return new TimelineModel.TimelineModelFilter.TimelineVisibleEventsFilter(visibleTypes);
     }
     static loadFromCpuProfile(profile, client, title) {
-        const loader = new TimelineLoader(client, /* shouldSaveTraceEventsToFile= */ false, title);
+        const loader = new TimelineLoader(client, title);
+        loader.state = State.LoadingCPUProfileFromRecording;
         try {
             const events = TimelineModel.TimelineJSProfile.TimelineJSProfileProcessor.createFakeTraceFromCpuProfile(profile, /* tid */ 1, /* injectPageEvent */ true);
-            loader.backingStorage.appendString(JSON.stringify(profile));
-            loader.backingStorage.finishWriting();
             loader.filter = TimelineLoader.getCpuProfileFilter();
             window.setTimeout(async () => {
                 void loader.addEvents(events);
@@ -109,10 +114,10 @@ export class TimelineLoader {
         }
         return loader;
     }
-    static loadFromURL(url, client) {
-        const loader = new TimelineLoader(client, /* shouldSaveTraceEventsToFile= */ true);
+    static async loadFromURL(url, client) {
+        const loader = new TimelineLoader(client);
         const stream = new Common.StringOutputStream.StringOutputStream();
-        client.loadingStarted();
+        await client.loadingStarted();
         const allowRemoteFilePaths = Common.Settings.Settings.instance().moduleSetting('network.enable-remote-file-loading').get();
         Host.ResourceLoader.loadAsStream(url, null, stream, finishedCallback, allowRemoteFilePaths);
         async function finishedCallback(success, _headers, errorDescription) {
@@ -122,7 +127,7 @@ export class TimelineLoader {
             const txt = stream.data();
             const trace = JSON.parse(txt);
             if (Array.isArray(trace.nodes)) {
-                loader.state = State.LoadingCPUProfileFormat;
+                loader.state = State.LoadingCPUProfileFromFile;
                 loader.buffer = txt;
                 await loader.close();
                 return;
@@ -133,21 +138,21 @@ export class TimelineLoader {
         return loader;
     }
     async addEvents(events) {
-        this.client?.loadingStarted();
+        await this.client?.loadingStarted();
         const eventsPerChunk = 15_000;
         for (let i = 0; i < events.length; i += eventsPerChunk) {
             const chunk = events.slice(i, i + eventsPerChunk);
             this.tracingModel.addEvents(chunk);
-            this.client?.loadingProgress((i + chunk.length) / events.length);
+            await this.client?.loadingProgress((i + chunk.length) / events.length);
             await new Promise(r => window.setTimeout(r)); // Yield event loop to paint.
         }
         void this.close();
     }
-    cancel() {
+    async cancel() {
         this.tracingModel = null;
-        this.backingStorage.reset();
         if (this.client) {
-            this.client.loadingComplete(null, null);
+            await this.client.loadingComplete(
+            /* tracingModel= */ null, /* exclusiveFilter= */ null, /* isCpuProfile= */ false);
             this.client = null;
         }
         if (this.canceledCallback) {
@@ -176,7 +181,7 @@ export class TimelineLoader {
         this.firstRawChunk = false;
         if (this.state === State.Initial) {
             if (chunk.match(/^{(\s)*"nodes":(\s)*\[/)) {
-                this.state = State.LoadingCPUProfileFormat;
+                this.state = State.LoadingCPUProfileFromFile;
             }
             else if (chunk[0] === '{') {
                 this.state = State.LookingForEvents;
@@ -189,7 +194,7 @@ export class TimelineLoader {
                 return Promise.resolve();
             }
         }
-        if (this.state === State.LoadingCPUProfileFormat) {
+        if (this.state === State.LoadingCPUProfileFromFile) {
             this.buffer += chunk;
             return Promise.resolve();
         }
@@ -207,6 +212,11 @@ export class TimelineLoader {
         if (this.state !== State.ReadingEvents) {
             return Promise.resolve();
         }
+        // This is where we actually do the loading of events from JSON: the JSON
+        // Tokenizer writes the JSON to a buffer, and then as a callback the
+        // writeBalancedJSON method below is invoked. It then parses this chunk
+        // of JSON as a set of events, and adds them to the TracingModel via
+        // addEvents()
         if (this.jsonTokenizer.write(chunk)) {
             return Promise.resolve();
         }
@@ -251,7 +261,7 @@ export class TimelineLoader {
         if (message) {
             Common.Console.Console.instance().error(message);
         }
-        this.cancel();
+        void this.cancel();
     }
     // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -262,16 +272,23 @@ export class TimelineLoader {
         if (!this.client) {
             return;
         }
-        this.client.processingStarted();
+        await this.client.processingStarted();
         await this.finalizeTrace();
     }
+    isCpuProfile() {
+        return this.state === State.LoadingCPUProfileFromFile || this.state === State.LoadingCPUProfileFromRecording;
+    }
     async finalizeTrace() {
-        if (this.state === State.LoadingCPUProfileFormat) {
+        if (this.state === State.LoadingCPUProfileFromFile) {
             this.parseCPUProfileFormat(this.buffer);
             this.buffer = '';
         }
         this.tracingModel.tracingComplete();
-        await this.client.loadingComplete(this.tracingModel, this.filter);
+        await this.client.loadingComplete(this.tracingModel, this.filter, this.isCpuProfile());
+        this.#traceFinalizedCallbackForTest?.();
+    }
+    traceFinalizedForTest() {
+        return this.#traceFinalizedPromiseForTest;
     }
     parseCPUProfileFormat(text) {
         let traceEvents;
@@ -296,6 +313,7 @@ export var State;
     State["LookingForEvents"] = "LookingForEvents";
     State["ReadingEvents"] = "ReadingEvents";
     State["SkippingTail"] = "SkippingTail";
-    State["LoadingCPUProfileFormat"] = "LoadingCPUProfileFormat";
+    State["LoadingCPUProfileFromFile"] = "LoadingCPUProfileFromFile";
+    State["LoadingCPUProfileFromRecording"] = "LoadingCPUProfileFromRecording";
 })(State || (State = {}));
 //# map=TimelineLoader.js.map

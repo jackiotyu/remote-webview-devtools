@@ -13,7 +13,7 @@ styles.replaceSync(
 
 .list {
   border: none !important; /* stylelint-disable-line declaration-no-important */
-  border-top: 1px solid var(--color-details-hairline) !important; /* stylelint-disable-line declaration-no-important */
+  border-top: 1px solid var(--sys-color-divider) !important; /* stylelint-disable-line declaration-no-important */
 }
 
 .blocking-disabled {
@@ -88,6 +88,6 @@ styles.replaceSync(
   height: 22px;
 }
 
-
+/*# sourceURL=blockedURLsPane.css */
 `);
 export default styles;

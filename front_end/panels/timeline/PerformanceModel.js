@@ -13,7 +13,6 @@ export class PerformanceModel extends Common.ObjectWrapper.ObjectWrapper {
     filtersInternal;
     timelineModelInternal;
     frameModelInternal;
-    filmStripModelInternal;
     windowInternal;
     willResolveNames = false;
     recordStartTimeInternal;
@@ -24,7 +23,6 @@ export class PerformanceModel extends Common.ObjectWrapper.ObjectWrapper {
         this.filtersInternal = [];
         this.timelineModelInternal = new TimelineModel.TimelineModel.TimelineModelImpl();
         this.frameModelInternal = new TimelineModel.TimelineFrameModel.TimelineFrameModel(event => TimelineUIUtils.eventStyle(event).category.name);
-        this.filmStripModelInternal = null;
         this.windowInternal = { left: 0, right: Infinity };
         this.recordStartTimeInternal = undefined;
     }
@@ -49,10 +47,14 @@ export class PerformanceModel extends Common.ObjectWrapper.ObjectWrapper {
     isVisible(event) {
         return this.filtersInternal.every(f => f.accept(event));
     }
-    async setTracingModel(model, isFreshRecording = false) {
+    async setTracingModel(model, isFreshRecording = false, options = {
+        resolveSourceMaps: true,
+    }) {
         this.tracingModelInternal = model;
         this.timelineModelInternal.setEvents(model, isFreshRecording);
-        await this.addSourceMapListeners();
+        if (options.resolveSourceMaps) {
+            await this.addSourceMapListeners();
+        }
         const mainTracks = this.timelineModelInternal.tracks().filter(track => track.type === TimelineModel.TimelineModel.TrackType.MainThread && track.forMainFrame &&
             track.events.length);
         const threadData = mainTracks.map(track => {
@@ -62,20 +64,19 @@ export class PerformanceModel extends Common.ObjectWrapper.ObjectWrapper {
         this.frameModelInternal.addTraceEvents(this.mainTargetInternal, this.timelineModelInternal.inspectedTargetEvents(), threadData);
         this.autoWindowTimes();
     }
-    #cpuProfileNodes() {
-        return this.timelineModel().cpuProfiles().flatMap(p => p.nodes() || []);
-    }
     async addSourceMapListeners() {
         const debuggerModelsToListen = new Set();
-        for (const node of this.#cpuProfileNodes()) {
-            if (!node) {
-                continue;
+        for (const profile of this.timelineModel().cpuProfiles()) {
+            for (const node of profile.cpuProfileData.nodes() || []) {
+                if (!node) {
+                    continue;
+                }
+                const debuggerModelToListen = this.#maybeGetDebuggerModelForNode(node, profile.target);
+                if (!debuggerModelToListen) {
+                    continue;
+                }
+                debuggerModelsToListen.add(debuggerModelToListen);
             }
-            const debuggerModelToListen = this.#maybeGetDebuggerModelForNode(node);
-            if (!debuggerModelToListen) {
-                continue;
-            }
-            debuggerModelsToListen.add(debuggerModelToListen);
         }
         for (const debuggerModel of debuggerModelsToListen) {
             debuggerModel.sourceMapManager().addEventListener(SDK.SourceMapManager.Events.SourceMapAttached, this.#onAttachedSourceMap, this);
@@ -85,8 +86,7 @@ export class PerformanceModel extends Common.ObjectWrapper.ObjectWrapper {
     // If a node corresponds to a script that has not been parsed or a script
     // that has a source map, we should listen to SourceMapAttached events to
     // attempt a function name resolving.
-    #maybeGetDebuggerModelForNode(node) {
-        const target = node.target();
+    #maybeGetDebuggerModelForNode(node, target) {
         const debuggerModel = target?.model(SDK.DebuggerModel.DebuggerModel);
         if (!debuggerModel) {
             return null;
@@ -99,9 +99,15 @@ export class PerformanceModel extends Common.ObjectWrapper.ObjectWrapper {
         return null;
     }
     async #resolveNamesFromCPUProfile() {
-        for (const node of this.#cpuProfileNodes()) {
-            const resolvedFunctionName = await SourceMapScopes.NamesResolver.resolveProfileFrameFunctionName(node.callFrame, node.target());
-            node.setFunctionName(resolvedFunctionName);
+        for (const profile of this.timelineModel().cpuProfiles()) {
+            const target = profile.target;
+            if (!target) {
+                continue;
+            }
+            for (const node of profile.cpuProfileData.nodes() || []) {
+                const resolvedFunctionName = await SourceMapScopes.NamesResolver.resolveProfileFrameFunctionName(node.callFrame, target);
+                node.setFunctionName(resolvedFunctionName);
+            }
         }
     }
     async #onAttachedSourceMap() {
@@ -129,33 +135,11 @@ export class PerformanceModel extends Common.ObjectWrapper.ObjectWrapper {
     timelineModel() {
         return this.timelineModelInternal;
     }
-    filmStripModel() {
-        if (this.filmStripModelInternal) {
-            return this.filmStripModelInternal;
-        }
-        if (!this.tracingModelInternal) {
-            throw 'call setTracingModel before accessing PerformanceModel';
-        }
-        this.filmStripModelInternal = new SDK.FilmStripModel.FilmStripModel(this.tracingModelInternal);
-        return this.filmStripModelInternal;
-    }
     frames() {
         return this.frameModelInternal.getFrames();
     }
     frameModel() {
         return this.frameModelInternal;
-    }
-    dispose() {
-        if (this.tracingModelInternal) {
-            this.tracingModelInternal.dispose();
-        }
-    }
-    filmStripModelFrame(frame) {
-        // For idle frames, look at the state at the beginning of the frame.
-        const screenshotTime = frame.idle ? frame.startTime : frame.endTime;
-        const filmStripModel = this.filmStripModelInternal;
-        const filmStripFrame = filmStripModel.frameByTimestamp(screenshotTime);
-        return filmStripFrame && filmStripFrame.timestamp - frame.endTime < 10 ? filmStripFrame : null;
     }
     setWindow(window, animate) {
         this.windowInternal = window;
@@ -163,6 +147,12 @@ export class PerformanceModel extends Common.ObjectWrapper.ObjectWrapper {
     }
     window() {
         return this.windowInternal;
+    }
+    minimumRecordTime() {
+        return this.timelineModelInternal.minimumRecordTime();
+    }
+    maximumRecordTime() {
+        return this.timelineModelInternal.maximumRecordTime();
     }
     autoWindowTimes() {
         const timelineModel = this.timelineModelInternal;
@@ -177,6 +167,10 @@ export class PerformanceModel extends Common.ObjectWrapper.ObjectWrapper {
             this.setWindow({ left: timelineModel.minimumRecordTime(), right: timelineModel.maximumRecordTime() });
             return;
         }
+        /**
+         * Calculates regions of low utilization and returns the index of the event
+         * that is the first event that should be included.
+         **/
         function findLowUtilizationRegion(startIndex, stopIndex) {
             const threshold = 0.1;
             let cutIndex = startIndex;
@@ -200,15 +194,23 @@ export class PerformanceModel extends Common.ObjectWrapper.ObjectWrapper {
         const leftIndex = findLowUtilizationRegion(0, rightIndex);
         let leftTime = tasks[leftIndex].startTime;
         let rightTime = tasks[rightIndex].endTime;
-        const span = rightTime - leftTime;
-        const totalSpan = timelineModel.maximumRecordTime() - timelineModel.minimumRecordTime();
-        if (span < totalSpan * 0.1) {
+        const zoomedInSpan = rightTime - leftTime;
+        const entireTraceSpan = timelineModel.maximumRecordTime() - timelineModel.minimumRecordTime();
+        if (zoomedInSpan < entireTraceSpan * 0.1) {
+            // If the area we have chosen to zoom into is less than 10% of the entire
+            // span, we bail and show the entire trace. It would not be so useful to
+            // the user to zoom in on such a small area; we assume they have
+            // purposefully recorded a trace that contains empty periods of time.
             leftTime = timelineModel.minimumRecordTime();
             rightTime = timelineModel.maximumRecordTime();
         }
         else {
-            leftTime = Math.max(leftTime - 0.05 * span, timelineModel.minimumRecordTime());
-            rightTime = Math.min(rightTime + 0.05 * span, timelineModel.maximumRecordTime());
+            // Adjust the left time down by 5%, and the right time up by 5%, so that
+            // we give the range we want to zoom a bit of breathing space. At the
+            // same time, ensure that we do not stray beyond the bounds of the
+            // min/max time of the entire trace.
+            leftTime = Math.max(leftTime - 0.05 * zoomedInSpan, timelineModel.minimumRecordTime());
+            rightTime = Math.min(rightTime + 0.05 * zoomedInSpan, timelineModel.maximumRecordTime());
         }
         this.setWindow({ left: leftTime, right: rightTime });
     }

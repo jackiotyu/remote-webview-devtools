@@ -84,8 +84,7 @@ styles.replaceSync(
 }
 
 .heap-snapshot-view .heap-snapshot-view-resizer {
-  background-color: var(--color-background-elevation-1);
-  border-bottom: 1px solid var(--color-details-hairline);
+  background-color: var(--sys-color-surface1);
   display: flex;
   flex: 0 0 21px;
 }
@@ -237,6 +236,6 @@ styles.replaceSync(
   }
 }
 
-
+/*# sourceURL=heapProfiler.css */
 `);
 export default styles;

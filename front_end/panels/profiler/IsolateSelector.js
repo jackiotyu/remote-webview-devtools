@@ -67,7 +67,7 @@ export class IsolateSelector extends UI.Widget.VBox {
         this.items = new UI.ListModel.ListModel();
         this.list = new UI.ListControl.ListControl(this.items, this, UI.ListControl.ListMode.NonViewport);
         this.list.element.classList.add('javascript-vm-instances-list');
-        UI.ARIAUtils.setAccessibleName(this.list.element, i18nString(UIStrings.javascriptVmInstances));
+        UI.ARIAUtils.setLabel(this.list.element, i18nString(UIStrings.javascriptVmInstances));
         this.contentElement.appendChild(this.list.element);
         this.itemByIsolate = new Map();
         this.totalElement = document.createElement('div');
@@ -171,7 +171,7 @@ export class IsolateSelector extends UI.Widget.VBox {
             changeLabel = i18nString(UIStrings.decreasingBySPerSecond, { PH1: changeRateText });
         }
         element.textContent = changeText;
-        UI.ARIAUtils.setAccessibleName(element, changeLabel);
+        UI.ARIAUtils.setLabel(element, changeLabel);
     }
     totalMemoryElement() {
         return this.totalElement;

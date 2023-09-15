@@ -6,7 +6,7 @@ import * as Host from '../../core/host/host.js';
 import * as i18n from '../../core/i18n/i18n.js';
 import * as Root from '../../core/root/root.js';
 import * as SDK from '../../core/sdk/sdk.js';
-import * as Bindings from '../../models/bindings/bindings.js';
+import * as Breakpoints from '../../models/breakpoints/breakpoints.js';
 import * as Workspace from '../../models/workspace/workspace.js';
 import * as ObjectUI from '../../ui/legacy/components/object_ui/object_ui.js';
 import * as QuickOpen from '../../ui/legacy/components/quick_open/quick_open.js';
@@ -21,13 +21,13 @@ const UIStrings = {
      */
     sources: 'Sources',
     /**
-     *@description Command for showing the 'Filesystem' tool
+     *@description Command for showing the 'Workspace' tool
      */
-    showFilesystem: 'Show Filesystem',
+    showWorkspace: 'Show Workspace',
     /**
      *@description Title of the 'Filesystem' tool in the Files Navigator View, which is part of the Sources tool
      */
-    filesystem: 'Filesystem',
+    workspace: 'Workspace',
     /**
      *@description Command for showing the 'Snippets' tool
      */
@@ -188,6 +188,10 @@ const UIStrings = {
      *@description Title of an action in the sources tool to add folder to workspace
      */
     addFolderToWorkspace: 'Add folder to workspace',
+    /**
+     *@description Title of an action in the sources tool to add folder to workspace
+     */
+    addFolder: 'Add folder',
     /**
      *@description Title of an action in the debugger tool to previous call frame
      */
@@ -407,11 +411,18 @@ const UIStrings = {
 const str_ = i18n.i18n.registerUIStrings('panels/sources/sources-meta.ts', UIStrings);
 const i18nLazyString = i18n.i18n.getLazilyComputedLocalizedString.bind(undefined, str_);
 let loadedSourcesModule;
+let loadedSourcesComponentsModule;
 async function loadSourcesModule() {
     if (!loadedSourcesModule) {
         loadedSourcesModule = await import('./sources.js');
     }
     return loadedSourcesModule;
+}
+async function loadSourcesComponentsModule() {
+    if (!loadedSourcesComponentsModule) {
+        loadedSourcesComponentsModule = await import('./components/components.js');
+    }
+    return loadedSourcesComponentsModule;
 }
 function maybeRetrieveContextTypes(getClassCallBack) {
     if (loadedSourcesModule === undefined) {
@@ -433,8 +444,8 @@ UI.ViewManager.registerViewExtension({
 UI.ViewManager.registerViewExtension({
     location: "navigator-view" /* UI.ViewManager.ViewLocationValues.NAVIGATOR_VIEW */,
     id: 'navigator-files',
-    commandPrompt: i18nLazyString(UIStrings.showFilesystem),
-    title: i18nLazyString(UIStrings.filesystem),
+    commandPrompt: i18nLazyString(UIStrings.showWorkspace),
+    title: i18nLazyString(UIStrings.workspace),
     order: 3,
     persistence: "permanent" /* UI.ViewManager.ViewPersistence.PERMANENT */,
     async loadView() {
@@ -516,8 +527,8 @@ UI.ViewManager.registerViewExtension({
     title: i18nLazyString(UIStrings.breakpoints),
     persistence: "permanent" /* UI.ViewManager.ViewPersistence.PERMANENT */,
     async loadView() {
-        const Sources = await loadSourcesModule();
-        return Sources.BreakpointsSidebarPane.BreakpointsSidebarPane.instance();
+        const SourcesComponents = await loadSourcesComponentsModule();
+        return SourcesComponents.BreakpointsView.BreakpointsView.instance().wrapper;
     },
 });
 UI.ActionRegistration.registerActionExtension({
@@ -1384,7 +1395,7 @@ Common.Settings.registerSettingExtension({
     title: i18nLazyString(UIStrings.automaticallyRevealFilesIn),
     settingName: 'autoRevealInNavigator',
     settingType: Common.Settings.SettingType.BOOLEAN,
-    defaultValue: false,
+    defaultValue: true,
     options: [
         {
             value: true,
@@ -1491,7 +1502,7 @@ Common.Settings.registerSettingExtension({
     title: i18nLazyString(UIStrings.codeFolding),
     settingName: 'textEditorCodeFolding',
     settingType: Common.Settings.SettingType.BOOLEAN,
-    defaultValue: false,
+    defaultValue: true,
     options: [
         {
             value: true,
@@ -1715,6 +1726,18 @@ Common.Revealer.registerRevealer({
 Common.Revealer.registerRevealer({
     contextTypes() {
         return [
+            Workspace.UISourceCode.UILocationRange,
+        ];
+    },
+    destination: Common.Revealer.RevealerDestination.SOURCES_PANEL,
+    async loadRevealer() {
+        const Sources = await loadSourcesModule();
+        return Sources.SourcesPanel.UILocationRangeRevealer.instance();
+    },
+});
+Common.Revealer.registerRevealer({
+    contextTypes() {
+        return [
             SDK.DebuggerModel.Location,
         ];
     },
@@ -1751,7 +1774,7 @@ Common.Revealer.registerRevealer({
 Common.Revealer.registerRevealer({
     contextTypes() {
         return [
-            Bindings.BreakpointManager.BreakpointLocation,
+            Breakpoints.BreakpointManager.BreakpointLocation,
         ];
     },
     destination: Common.Revealer.RevealerDestination.SOURCES_PANEL,
@@ -1763,6 +1786,7 @@ Common.Revealer.registerRevealer({
 UI.Toolbar.registerToolbarItem({
     actionId: 'sources.add-folder-to-workspace',
     location: UI.Toolbar.ToolbarItemLocation.FILES_NAVIGATION_TOOLBAR,
+    label: i18nLazyString(UIStrings.addFolder),
     showLabel: true,
     condition: Root.Runtime.ConditionName.NOT_SOURCES_HIDE_ADD_FOLDER,
     loadItem: undefined,
@@ -1774,8 +1798,8 @@ UI.Context.registerListener({
         return [SDK.DebuggerModel.DebuggerPausedDetails];
     },
     async loadListener() {
-        const Sources = await loadSourcesModule();
-        return Sources.BreakpointsSidebarPane.BreakpointsSidebarController.instance();
+        const SourcesComponents = await loadSourcesComponentsModule();
+        return SourcesComponents.BreakpointsView.BreakpointsSidebarController.instance();
     },
 });
 UI.Context.registerListener({

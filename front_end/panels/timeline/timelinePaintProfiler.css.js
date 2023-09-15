@@ -20,7 +20,7 @@ styles.replaceSync(
 }
 
 .paint-profiler-image-view .paint-profiler-image-container div {
-  border-color: var(--color-details-hairline);
+  border-color: 1px solid var(--sys-color-divider);
   border-style: solid;
   z-index: 100;
   position: absolute;
@@ -29,9 +29,9 @@ styles.replaceSync(
 }
 
 .paint-profiler-image-view img {
-  border: solid 1px var(--color-background-inverted);
+  border: solid 1px var(--sys-color-inverse-surface);
 }
 
-
+/*# sourceURL=timelinePaintProfiler.css */
 `);
 export default styles;

@@ -2,10 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as TraceEngine from '../../models/trace/trace.js';
-import { EntryType, } from './TimelineFlameChartDataProvider.js';
 import * as i18n from '../../core/i18n/i18n.js';
-import * as Common from '../../core/common/common.js';
-import { buildGroupStyle, buildTrackHeader, getAsyncEventLevel, getFormattedTime } from './AppenderUtils.js';
+import { buildGroupStyle, buildTrackHeader, getFormattedTime } from './AppenderUtils.js';
 const UIStrings = {
     /**
      *@description Text in Timeline Flame Chart Data Provider of the Performance panel
@@ -14,45 +12,33 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/timeline/InteractionsTrackAppender.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-const LONG_INTERACTION_THRESHOLD = TraceEngine.Helpers.Timing.millisecondsToMicroseconds(TraceEngine.Types.Timing.MilliSeconds(200));
 export class InteractionsTrackAppender {
     appenderName = 'Interactions';
     #colorGenerator;
     #compatibilityBuilder;
     #flameChartData;
     #traceParsedData;
-    // TODO(crbug.com/1416533)
-    // This is used only for compatibility with the legacy flame chart
-    // architecture of the panel. Once all tracks have been migrated to
-    // use the new engine and flame chart architecture, the reference can
-    // be removed.
-    #legacyEntryTypeByLevel;
-    constructor(compatibilityBuilder, flameChartData, traceParsedData, legacyEntryTypeByLevel) {
+    constructor(compatibilityBuilder, flameChartData, traceParsedData, colorGenerator) {
         this.#compatibilityBuilder = compatibilityBuilder;
-        this.#colorGenerator = new Common.Color.Generator({
-            min: 30,
-            max: 55,
-            count: undefined,
-        }, { min: 70, max: 100, count: 6 }, 50, 0.7);
+        this.#colorGenerator = colorGenerator;
         this.#flameChartData = flameChartData;
         this.#traceParsedData = traceParsedData;
-        this.#legacyEntryTypeByLevel = legacyEntryTypeByLevel;
     }
     /**
      * Appends into the flame chart data the data corresponding to the
      * interactions track.
-     * @param level the horizontal level of the flame chart events where
+     * @param trackStartLevel the horizontal level of the flame chart events where
      * the track's events will start being appended.
      * @param expanded wether the track should be rendered expanded.
      * @returns the first available level to append more data after having
      * appended the track's events.
      */
-    appendTrackAtLevel(currentLevel, expanded) {
+    appendTrackAtLevel(trackStartLevel, expanded) {
         if (this.#traceParsedData.UserInteractions.interactionEvents.length === 0) {
-            return currentLevel;
+            return trackStartLevel;
         }
-        this.#appendTrackHeaderAtLevel(currentLevel, expanded);
-        return this.#appendInteractionsAtLevel(currentLevel);
+        this.#appendTrackHeaderAtLevel(trackStartLevel, expanded);
+        return this.#appendInteractionsAtLevel(trackStartLevel);
     }
     /**
      * Adds into the flame chart data the header corresponding to the
@@ -79,35 +65,28 @@ export class InteractionsTrackAppender {
      * interactions (the first available level to append more data).
      */
     #appendInteractionsAtLevel(trackStartLevel) {
-        const interactions = this.#traceParsedData.UserInteractions.interactionEventsWithNoNesting;
-        const lastUsedTimeByLevel = [];
-        for (let i = 0; i < interactions.length; ++i) {
-            const event = interactions[i];
-            const level = getAsyncEventLevel(event, lastUsedTimeByLevel);
-            this.#appendEventAtLevel(event, trackStartLevel + level);
+        const { interactionEventsWithNoNesting, interactionsOverThreshold } = this.#traceParsedData.UserInteractions;
+        // Render all top level interactions (see UserInteractionsHandler for an explanation on the nesting) onto the track.
+        const newLevel = this.#compatibilityBuilder.appendEventsAtLevel(interactionEventsWithNoNesting, trackStartLevel, this);
+        // Each interaction that we drew that is over the INP threshold needs to be
+        // candy-striped.
+        for (const interaction of interactionEventsWithNoNesting) {
+            const overThreshold = interactionsOverThreshold.has(interaction);
+            if (!overThreshold) {
+                continue;
+            }
+            const index = this.#compatibilityBuilder.indexForEvent(interaction);
+            if (index !== undefined) {
+                this.#addCandyStripingForLongInteraction(index);
+            }
         }
-        this.#legacyEntryTypeByLevel.length = trackStartLevel + lastUsedTimeByLevel.length;
-        // Set the entry type to TrackAppender for all the levels occupied by the appended timings.
-        this.#legacyEntryTypeByLevel.fill(EntryType.TrackAppender, trackStartLevel);
-        return trackStartLevel + lastUsedTimeByLevel.length;
-    }
-    /**
-     * Adds an event to the flame chart data at a defined level.
-     * @returns the position occupied by the new event in the entryData
-     * array, which contains all the events in the timeline.
-     */
-    #appendEventAtLevel(syntheticEvent, level) {
-        const index = this.#compatibilityBuilder.appendEventAtLevel(syntheticEvent, level, this);
-        const eventDurationMicroSeconds = syntheticEvent.dur || TraceEngine.Types.Timing.MicroSeconds(0);
-        if (eventDurationMicroSeconds > LONG_INTERACTION_THRESHOLD) {
-            this.#addCandyStripingForLongInteraction(index);
-        }
+        return newLevel;
     }
     #addCandyStripingForLongInteraction(eventIndex) {
         const decorationsForEvent = this.#flameChartData.entryDecorations[eventIndex] || [];
         decorationsForEvent.push({
             type: 'CANDY',
-            startAtTime: LONG_INTERACTION_THRESHOLD,
+            startAtTime: TraceEngine.Handlers.ModelHandlers.UserInteractions.LONG_INTERACTION_THRESHOLD,
         });
         this.#flameChartData.entryDecorations[eventIndex] = decorationsForEvent;
     }

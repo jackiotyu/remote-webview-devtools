@@ -68,7 +68,7 @@ styles.replaceSync(
 }
 
 .font-section {
-  border-top: 1px solid var(--color-details-hairline);
+  border-top: 1px solid var(--sys-color-divider);
 }
 
 .chrome-select.font-editor-select {
@@ -143,7 +143,7 @@ input::-webkit-inner-spin-button {
   line-height: 16px;
   border: 1px solid var(--divider-line);
   color: var(--color-text-primary);
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
   text-align: center;
   font-weight: 500;
 }
@@ -190,6 +190,6 @@ input::-webkit-inner-spin-button {
   background-color: var(--legacy-focus-bg-color);
 }
 
-
+/*# sourceURL=fontEditor.css */
 `);
 export default styles;

@@ -1,7 +1,7 @@
 // Copyright 2016 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import * as SDK from '../../core/sdk/sdk.js';
+import * as TraceEngine from '../../models/trace/trace.js';
 import { TimelineJSProfileProcessor } from './TimelineJSProfile.js';
 import { RecordType, EventOnTimelineData, TimelineModelImpl } from './TimelineModel.js';
 export class Node {
@@ -97,7 +97,7 @@ export class TopDownNode extends Node {
         // Walk on the full event tree to find this node's children.
         TimelineModelImpl.forEachEvent(root.events, onStartEvent, onEndEvent, instantEventCallback, startTime, endTime, root.filter, false);
         function onStartEvent(e) {
-            const { startTime: currentStartTime, endTime: currentEndTime } = SDK.TracingModel.timesForEventInMilliseconds(e);
+            const { startTime: currentStartTime, endTime: currentEndTime } = TraceEngine.Legacy.timesForEventInMilliseconds(e);
             ++depth;
             if (depth > path.length + 2) {
                 return;
@@ -160,7 +160,7 @@ export class TopDownNode extends Node {
          * is cached on `matchedDepth`, for future checks.
          */
         function matchPath(e) {
-            const { endTime } = SDK.TracingModel.timesForEventInMilliseconds(e);
+            const { endTime } = TraceEngine.Legacy.timesForEventInMilliseconds(e);
             if (matchedDepth === path.length) {
                 return true;
             }
@@ -295,7 +295,7 @@ export class BottomUpRootNode extends Node {
         const totalTimeById = new Map();
         TimelineModelImpl.forEachEvent(this.events, onStartEvent, onEndEvent, undefined, startTime, endTime, this.filter, false);
         function onStartEvent(e) {
-            const { startTime: currentStartTime, endTime: currentEndTime } = SDK.TracingModel.timesForEventInMilliseconds(e);
+            const { startTime: currentStartTime, endTime: currentEndTime } = TraceEngine.Legacy.timesForEventInMilliseconds(e);
             const actualEndTime = currentEndTime !== undefined ? Math.min(currentEndTime, endTime) : endTime;
             const duration = actualEndTime - Math.max(currentStartTime, startTime);
             selfTimeStack[selfTimeStack.length - 1] -= duration;
@@ -405,7 +405,7 @@ export class BottomUpNode extends Node {
         const self = this;
         TimelineModelImpl.forEachEvent(this.root.events, onStartEvent, onEndEvent, undefined, startTime, endTime, this.root.filter, false);
         function onStartEvent(e) {
-            const { startTime: currentStartTime, endTime: currentEndTime } = SDK.TracingModel.timesForEventInMilliseconds(e);
+            const { startTime: currentStartTime, endTime: currentEndTime } = TraceEngine.Legacy.timesForEventInMilliseconds(e);
             const actualEndTime = currentEndTime !== undefined ? Math.min(currentEndTime, endTime) : endTime;
             const duration = actualEndTime - Math.max(currentStartTime, startTime);
             if (duration < 0) {
@@ -418,7 +418,7 @@ export class BottomUpNode extends Node {
             eventStack.push(e);
         }
         function onEndEvent(e) {
-            const { startTime: currentStartTime, endTime: currentEndTime } = SDK.TracingModel.timesForEventInMilliseconds(e);
+            const { startTime: currentStartTime, endTime: currentEndTime } = TraceEngine.Legacy.timesForEventInMilliseconds(e);
             const selfTime = selfTimeStack.pop();
             const id = eventIdStack.pop();
             eventStack.pop();

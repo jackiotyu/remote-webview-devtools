@@ -13,7 +13,7 @@ styles.replaceSync(
 
 .title-section {
   padding: 16px 0 24px;
-  border-bottom: 1px solid var(--color-background-elevation-2);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .title-section-header {
@@ -30,7 +30,7 @@ styles.replaceSync(
 }
 
 .security-origin-view .origin-view-section {
-  border-bottom: 1px solid var(--color-background-elevation-2);
+  border-bottom: 1px solid var(--sys-color-divider);
   padding: 12px 6px 12px  24px;
   font-size: 12px;
 }
@@ -139,6 +139,6 @@ styles.replaceSync(
   display: inline-flex;
 }
 
-
+/*# sourceURL=originView.css */
 `);
 export default styles;

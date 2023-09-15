@@ -11,7 +11,7 @@ import { getMarkdownLink } from './MarkdownLinksMap.js';
  * Parsed links from markdown are not directly rendered, instead they have to be added to the <key, link> map in MarkdownLinksMap.ts.
  * This makes sure that all links are accounted for and no bad links are introduced to devtools via markdown.
  */
-class MarkdownLink extends HTMLElement {
+export class MarkdownLink extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-markdown-link`;
     #shadow = this.attachShadow({ mode: 'open' });
     #linkText = '';
@@ -35,6 +35,5 @@ class MarkdownLink extends HTMLElement {
         // clang-format on
     }
 }
-export { MarkdownLink };
 ComponentHelpers.CustomElements.defineComponent('devtools-markdown-link', MarkdownLink);
 //# map=MarkdownLink.js.map

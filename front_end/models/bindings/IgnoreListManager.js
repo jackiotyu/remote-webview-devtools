@@ -103,36 +103,34 @@ export class IgnoreListManager {
         }
         return debuggerModel.setBlackboxPatterns(patterns);
     }
-    isUserOrSourceMapIgnoreListedUISourceCode(uiSourceCode) {
+    getGeneralRulesForUISourceCode(uiSourceCode) {
         const projectType = uiSourceCode.project().type();
         const isContentScript = projectType === Workspace.Workspace.projectTypes.ContentScripts;
-        if (this.skipContentScripts && isContentScript) {
-            return true;
-        }
+        const isKnownThirdParty = uiSourceCode.isKnownThirdParty();
+        return { isContentScript, isKnownThirdParty };
+    }
+    isUserOrSourceMapIgnoreListedUISourceCode(uiSourceCode) {
         if (uiSourceCode.isUnconditionallyIgnoreListed()) {
             return true;
         }
         const url = this.uiSourceCodeURL(uiSourceCode);
-        return url ? this.isUserOrSourceMapIgnoreListedURL(url, uiSourceCode.isKnownThirdParty()) : false;
+        return this.isUserIgnoreListedURL(url, this.getGeneralRulesForUISourceCode(uiSourceCode));
     }
-    isUserOrSourceMapIgnoreListedURL(url, isKnownThirdParty) {
-        if (this.isUserIgnoreListedURL(url)) {
-            return true;
-        }
-        if (this.automaticallyIgnoreListKnownThirdPartyScripts && isKnownThirdParty) {
-            return true;
-        }
-        return false;
-    }
-    isUserIgnoreListedURL(url, isContentScript) {
+    isUserIgnoreListedURL(url, options) {
         if (!this.enableIgnoreListing) {
+            return false;
+        }
+        if (options?.isContentScript && this.skipContentScripts) {
+            return true;
+        }
+        if (options?.isKnownThirdParty && this.automaticallyIgnoreListKnownThirdPartyScripts) {
+            return true;
+        }
+        if (!url) {
             return false;
         }
         if (this.#isIgnoreListedURLCache.has(url)) {
             return Boolean(this.#isIgnoreListedURLCache.get(url));
-        }
-        if (isContentScript && this.skipContentScripts) {
-            return true;
         }
         const regex = this.getSkipStackFramesPatternSetting().asRegExp();
         const isIgnoreListed = (regex && regex.test(url)) || false;
@@ -150,9 +148,9 @@ export class IgnoreListManager {
     }
     async updateScriptRanges(script, sourceMap) {
         let hasIgnoreListedMappings = false;
-        if (!IgnoreListManager.instance().isUserIgnoreListedURL(script.sourceURL, script.isContentScript())) {
+        if (!IgnoreListManager.instance().isUserIgnoreListedURL(script.sourceURL, { isContentScript: script.isContentScript() })) {
             hasIgnoreListedMappings =
-                sourceMap?.sourceURLs().some(url => this.isUserOrSourceMapIgnoreListedURL(url, sourceMap.hasIgnoreListHint(url))) ??
+                sourceMap?.sourceURLs().some(url => this.isUserIgnoreListedURL(url, { isKnownThirdParty: sourceMap.hasIgnoreListHint(url) })) ??
                     false;
         }
         if (!hasIgnoreListedMappings) {
@@ -166,7 +164,7 @@ export class IgnoreListManager {
             return;
         }
         const newRanges = sourceMap
-            .findRanges(srcURL => this.isUserOrSourceMapIgnoreListedURL(srcURL, sourceMap.hasIgnoreListHint(srcURL)), { isStartMatching: true })
+            .findRanges(srcURL => this.isUserIgnoreListedURL(srcURL, { isKnownThirdParty: sourceMap.hasIgnoreListHint(srcURL) }), { isStartMatching: true })
             .flatMap(range => [range.start, range.end]);
         const oldRanges = scriptToRange.get(script) || [];
         if (!isEqual(oldRanges, newRanges) && await script.setBlackboxedRanges(newRanges)) {
@@ -199,16 +197,7 @@ export class IgnoreListManager {
         }
     }
     unIgnoreListUISourceCode(uiSourceCode) {
-        if (uiSourceCode.project().type() === Workspace.Workspace.projectTypes.ContentScripts) {
-            this.unIgnoreListContentScripts();
-        }
-        if (uiSourceCode.isKnownThirdParty()) {
-            this.unIgnoreListThirdParty();
-        }
-        const url = this.uiSourceCodeURL(uiSourceCode);
-        if (url) {
-            this.unIgnoreListURL(url);
-        }
+        this.unIgnoreListURL(this.uiSourceCodeURL(uiSourceCode), this.getGeneralRulesForUISourceCode(uiSourceCode));
     }
     get enableIgnoreListing() {
         return Common.Settings.Settings.instance().moduleSetting('enableIgnoreListing').get();
@@ -267,7 +256,16 @@ export class IgnoreListManager {
         }
         this.getSkipStackFramesPatternSetting().setAsArray(regexPatterns);
     }
-    unIgnoreListURL(url) {
+    unIgnoreListURL(url, options) {
+        if (options?.isContentScript) {
+            this.unIgnoreListContentScripts();
+        }
+        if (options?.isKnownThirdParty) {
+            this.unIgnoreListThirdParty();
+        }
+        if (!url) {
+            return;
+        }
         let regexPatterns = this.getSkipStackFramesPatternSetting().getAsArray();
         const regexValue = IgnoreListManager.instance().urlToRegExpString(url);
         if (!regexValue) {
@@ -363,8 +361,7 @@ export class IgnoreListManager {
         const menuItems = [];
         const canIgnoreList = this.canIgnoreListUISourceCode(uiSourceCode);
         const isIgnoreListed = this.isUserOrSourceMapIgnoreListedUISourceCode(uiSourceCode);
-        const isContentScript = uiSourceCode.project().type() === Workspace.Workspace.projectTypes.ContentScripts;
-        const isKnownThirdParty = uiSourceCode.isKnownThirdParty();
+        const { isContentScript, isKnownThirdParty } = this.getGeneralRulesForUISourceCode(uiSourceCode);
         if (isIgnoreListed) {
             if (canIgnoreList || isContentScript || isKnownThirdParty) {
                 menuItems.push({
@@ -380,22 +377,27 @@ export class IgnoreListManager {
                     callback: this.ignoreListUISourceCode.bind(this, uiSourceCode),
                 });
             }
-            if (isContentScript) {
-                menuItems.push({
-                    text: i18nString(UIStrings.addAllContentScriptsToIgnoreList),
-                    callback: this.ignoreListContentScripts.bind(this),
-                });
-            }
-            if (isKnownThirdParty) {
-                menuItems.push({
-                    text: i18nString(UIStrings.addAllThirdPartyScriptsToIgnoreList),
-                    callback: this.ignoreListThirdParty.bind(this),
-                });
-            }
+            menuItems.push(...this.getIgnoreListGeneralContextMenuItems({ isContentScript, isKnownThirdParty }));
         }
         return menuItems;
     }
-    getIgnoreListFolderContextMenuItems(url) {
+    getIgnoreListGeneralContextMenuItems(options) {
+        const menuItems = [];
+        if (options?.isContentScript) {
+            menuItems.push({
+                text: i18nString(UIStrings.addAllContentScriptsToIgnoreList),
+                callback: this.ignoreListContentScripts.bind(this),
+            });
+        }
+        if (options?.isKnownThirdParty) {
+            menuItems.push({
+                text: i18nString(UIStrings.addAllThirdPartyScriptsToIgnoreList),
+                callback: this.ignoreListThirdParty.bind(this),
+            });
+        }
+        return menuItems;
+    }
+    getIgnoreListFolderContextMenuItems(url, options) {
         const menuItems = [];
         const regexValue = '^' + Platform.StringUtilities.escapeForRegExp(url) + '/';
         if (this.ignoreListHasPattern(regexValue, true)) {
@@ -404,11 +406,19 @@ export class IgnoreListManager {
                 callback: this.removeIgnoreListPattern.bind(this, regexValue),
             });
         }
+        else if (this.isUserIgnoreListedURL(url, options)) {
+            // This specific url isn't on the ignore list, but there are rules that match it.
+            menuItems.push({
+                text: i18nString(UIStrings.removeFromIgnoreList),
+                callback: this.unIgnoreListURL.bind(this, url, options),
+            });
+        }
         else {
             menuItems.push({
                 text: i18nString(UIStrings.addDirectoryToIgnoreList),
                 callback: this.ignoreListRegex.bind(this, regexValue),
             });
+            menuItems.push(...this.getIgnoreListGeneralContextMenuItems(options));
         }
         return menuItems;
     }

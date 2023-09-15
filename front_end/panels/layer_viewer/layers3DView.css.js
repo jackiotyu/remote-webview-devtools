@@ -17,8 +17,8 @@ styles.replaceSync(
 }
 
 .toolbar {
-  background-color: var(--color-background-elevation-1);
-  border-bottom: var(--legacy-divider-border);
+  background-color: var(--sys-color-cdt-base-container);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 canvas {
@@ -29,6 +29,6 @@ canvas {
   outline: auto 5px -webkit-focus-ring-color;
 }
 
-
+/*# sourceURL=layers3DView.css */
 `);
 export default styles;

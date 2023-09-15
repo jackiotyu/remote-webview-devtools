@@ -293,9 +293,11 @@ fieldset.device-orientation-override-section {
 }
 
 .panel-section-separator {
-  height: 2px;
-  margin-bottom: 8px;
-  background: var(--color-background-elevation-2);
+  height: 1px;
+  margin-bottom: 20px;
+  margin-left: -12px;
+  margin-right: -12px;
+  background: var(--sys-color-divider);
 }
 
 button.text-button {
@@ -312,6 +314,6 @@ button.text-button {
   margin-bottom: 16px;
 }
 
-
+/*# sourceURL=sensors.css */
 `);
 export default styles;

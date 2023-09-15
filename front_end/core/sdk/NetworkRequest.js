@@ -5,6 +5,7 @@ import * as TextUtils from '../../models/text_utils/text_utils.js';
 import * as Common from '../common/common.js';
 import * as i18n from '../i18n/i18n.js';
 import * as Platform from '../platform/platform.js';
+import * as HttpReasonPhraseStrings from './HttpReasonPhraseStrings.js';
 import { Attributes } from './Cookie.js';
 import { CookieParser } from './CookieParser.js';
 import { NetworkManager, Events as NetworkManagerEvents } from './NetworkManager.js';
@@ -80,6 +81,10 @@ const UIStrings = {
      *@description Tooltip to explain why an attempt to set a cookie via `Set-Cookie` HTTP header on a request's response was blocked.
      */
     thisSetcookieHadInvalidSyntax: 'This `Set-Cookie` header had invalid syntax.',
+    /**
+     *@description Tooltip to explain why a cookie was blocked
+     */
+    thisSetcookieHadADisallowedCharacter: 'This `Set-Cookie` header contained a disallowed character (a forbidden ASCII control character, or the tab character if it appears in the middle of the cookie name, value, an attribute name, or an attribute value).',
     /**
      *@description Tooltip to explain why a cookie was blocked
      */
@@ -259,6 +264,7 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
     #isSameSiteInternal;
     #wasIntercepted;
     #associatedData = new Map();
+    #hasOverriddenContent;
     constructor(requestId, backendRequestId, url, documentURL, frameId, loaderId, initiator, hasUserGesture) {
         super();
         this.#requestIdInternal = requestId;
@@ -322,6 +328,7 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
         this.localizedFailDescription = null;
         this.#isSameSiteInternal = null;
         this.#wasIntercepted = false;
+        this.#hasOverriddenContent = false;
     }
     static create(backendRequestId, url, documentURL, frameId, loaderId, initiator, hasUserGesture) {
         return new NetworkRequest(backendRequestId, backendRequestId, url, documentURL, frameId, loaderId, initiator, hasUserGesture);
@@ -690,6 +697,9 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
     get scheme() {
         return this.#parsedURLInternal.scheme;
     }
+    getInferredStatusText() {
+        return this.statusText || HttpReasonPhraseStrings.getStatusText(this.statusCode);
+    }
     redirectSource() {
         return this.#redirectSourceInternal;
     }
@@ -819,6 +829,22 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
             return Platform.StringUtilities.compare(a.name.toLowerCase(), b.name.toLowerCase()) ||
                 Platform.StringUtilities.compare(a.value, b.value);
         });
+    }
+    get overrideTypes() {
+        const types = [];
+        if (this.hasOverriddenContent) {
+            types.push('content');
+        }
+        if (this.hasOverriddenHeaders()) {
+            types.push('headers');
+        }
+        return types;
+    }
+    get hasOverriddenContent() {
+        return this.#hasOverriddenContent;
+    }
+    set hasOverriddenContent(value) {
+        this.#hasOverriddenContent = value;
     }
     hasOverriddenHeaders() {
         if (!this.#originalResponseHeaders.length) {
@@ -1405,6 +1431,8 @@ export const setCookieBlockedReasonToUiString = function (blockedReason) {
             return i18nString(UIStrings.thisSetcookieWasBlockedBecauseItHadTheSamepartyAttribute);
         case "NameValuePairExceedsMaxSize" /* Protocol.Network.SetCookieBlockedReason.NameValuePairExceedsMaxSize */:
             return i18nString(UIStrings.thisSetcookieWasBlockedBecauseTheNameValuePairExceedsMaxSize);
+        case "DisallowedCharacter" /* Protocol.Network.SetCookieBlockedReason.DisallowedCharacter */:
+            return i18nString(UIStrings.thisSetcookieHadADisallowedCharacter);
     }
     return '';
 };
@@ -1456,6 +1484,7 @@ export const setCookieBlockedReasonToAttribute = function (blockedReason) {
         case "SyntaxError" /* Protocol.Network.SetCookieBlockedReason.SyntaxError */:
         case "SchemeNotSupported" /* Protocol.Network.SetCookieBlockedReason.SchemeNotSupported */:
         case "UnknownError" /* Protocol.Network.SetCookieBlockedReason.UnknownError */:
+        case "DisallowedCharacter" /* Protocol.Network.SetCookieBlockedReason.DisallowedCharacter */:
             return null;
     }
     return null;

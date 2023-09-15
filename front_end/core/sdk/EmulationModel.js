@@ -55,6 +55,7 @@ export class EmulationModel extends SDKModel {
         const mediaFeatureForcedColorsSetting = Common.Settings.Settings.instance().moduleSetting('emulatedCSSMediaFeatureForcedColors');
         const mediaFeaturePrefersContrastSetting = Common.Settings.Settings.instance().moduleSetting('emulatedCSSMediaFeaturePrefersContrast');
         const mediaFeaturePrefersReducedDataSetting = Common.Settings.Settings.instance().moduleSetting('emulatedCSSMediaFeaturePrefersReducedData');
+        const mediaFeaturePrefersReducedTransparencySetting = Common.Settings.Settings.instance().moduleSetting('emulatedCSSMediaFeaturePrefersReducedTransparency');
         const mediaFeaturePrefersReducedMotionSetting = Common.Settings.Settings.instance().moduleSetting('emulatedCSSMediaFeaturePrefersReducedMotion');
         // Note: this uses a different format than what the CDP API expects,
         // because we want to update these values per media type/feature
@@ -68,6 +69,7 @@ export class EmulationModel extends SDKModel {
             ['prefers-contrast', mediaFeaturePrefersContrastSetting.get()],
             ['prefers-reduced-data', mediaFeaturePrefersReducedDataSetting.get()],
             ['prefers-reduced-motion', mediaFeaturePrefersReducedMotionSetting.get()],
+            ['prefers-reduced-transparency', mediaFeaturePrefersReducedTransparencySetting.get()],
         ]);
         mediaTypeSetting.addChangeListener(() => {
             this.#mediaConfiguration.set('type', mediaTypeSetting.get());
@@ -95,6 +97,10 @@ export class EmulationModel extends SDKModel {
         });
         mediaFeaturePrefersReducedMotionSetting.addChangeListener(() => {
             this.#mediaConfiguration.set('prefers-reduced-motion', mediaFeaturePrefersReducedMotionSetting.get());
+            void this.updateCssMedia();
+        });
+        mediaFeaturePrefersReducedTransparencySetting.addChangeListener(() => {
+            this.#mediaConfiguration.set('prefers-reduced-transparency', mediaFeaturePrefersReducedTransparencySetting.get());
             void this.updateCssMedia();
         });
         void this.updateCssMedia();
@@ -329,11 +335,15 @@ export class EmulationModel extends SDKModel {
                 name: 'prefers-reduced-motion',
                 value: this.#mediaConfiguration.get('prefers-reduced-motion') ?? '',
             },
+            {
+                name: 'prefers-reduced-transparency',
+                value: this.#mediaConfiguration.get('prefers-reduced-transparency') ?? '',
+            },
         ];
         return this.emulateCSSMedia(type, features);
     }
 }
-class Location {
+export class Location {
     latitude;
     longitude;
     timezoneId;
@@ -402,7 +412,6 @@ class Location {
     }
     static defaultGeoMockAccuracy = 150;
 }
-export { Location };
 export class DeviceOrientation {
     alpha;
     beta;

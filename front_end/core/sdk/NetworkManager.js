@@ -1,14 +1,15 @@
 // Copyright 2021 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+import * as TextUtils from '../../models/text_utils/text_utils.js';
 import * as Common from '../common/common.js';
 import * as Host from '../host/host.js';
 import * as i18n from '../i18n/i18n.js';
 import * as Platform from '../platform/platform.js';
 import { Cookie } from './Cookie.js';
 import { Events as NetworkRequestEvents, NetworkRequest, } from './NetworkRequest.js';
-import { Capability } from './Target.js';
 import { SDKModel } from './SDKModel.js';
+import { Capability } from './Target.js';
 import { TargetManager } from './TargetManager.js';
 const UIStrings = {
     /**
@@ -44,12 +45,6 @@ const UIStrings = {
      *@example {https://example.com} PH1
      */
     requestWasBlockedByDevtoolsS: 'Request was blocked by DevTools: "{PH1}"',
-    /**
-     *@description Text in Network Manager
-     *@example {https://example.com} PH1
-     *@example {application} PH2
-     */
-    crossoriginReadBlockingCorb: 'Cross-Origin Read Blocking (CORB) blocked cross-origin response {PH1} with MIME type {PH2}. See https://www.chromestatus.com/feature/5629709824032768 for more details.',
     /**
      *@description Message in Network Manager
      *@example {XHR} PH1
@@ -125,7 +120,7 @@ export class NetworkManager extends SDKModel {
             return [];
         }
         const response = await manager.#networkAgent.invoke_searchInResponseBody({ requestId, query: query, caseSensitive: caseSensitive, isRegex: isRegex });
-        return response.result || [];
+        return TextUtils.TextUtils.performSearchInSearchMatches(response.result || [], query, caseSensitive, isRegex);
     }
     static async requestContentData(request) {
         if (request.resourceType() === Common.ResourceType.resourceTypes.WebSocket) {
@@ -535,7 +530,7 @@ export class NetworkDispatcher {
         networkRequest.endTime = timestamp;
         this.updateNetworkRequest(networkRequest);
     }
-    loadingFinished({ requestId, timestamp: finishTime, encodedDataLength, shouldReportCorbBlocking }) {
+    loadingFinished({ requestId, timestamp: finishTime, encodedDataLength }) {
         let networkRequest = this.#requestsById.get(requestId);
         if (!networkRequest) {
             networkRequest = this.maybeAdoptMainResourceRequest(requestId);
@@ -544,7 +539,7 @@ export class NetworkDispatcher {
             return;
         }
         this.getExtraInfoBuilder(requestId).finished();
-        this.finishNetworkRequest(networkRequest, finishTime, encodedDataLength, shouldReportCorbBlocking);
+        this.finishNetworkRequest(networkRequest, finishTime, encodedDataLength);
         this.#manager.dispatchEventToListeners(Events.LoadingFinished, networkRequest);
     }
     loadingFailed({ requestId, timestamp: time, type: resourceType, errorText: localizedDescription, canceled, blockedReason, corsErrorStatus, }) {
@@ -756,7 +751,7 @@ export class NetworkDispatcher {
     updateNetworkRequest(networkRequest) {
         this.#manager.dispatchEventToListeners(Events.RequestUpdated, networkRequest);
     }
-    finishNetworkRequest(networkRequest, finishTime, encodedDataLength, shouldReportCorbBlocking) {
+    finishNetworkRequest(networkRequest, finishTime, encodedDataLength) {
         networkRequest.endTime = finishTime;
         networkRequest.finished = true;
         if (encodedDataLength >= 0) {
@@ -772,10 +767,6 @@ export class NetworkDispatcher {
         }
         this.#manager.dispatchEventToListeners(Events.RequestFinished, networkRequest);
         MultitargetNetworkManager.instance().inflightMainResourceRequests.delete(networkRequest.requestId());
-        if (shouldReportCorbBlocking) {
-            const message = i18nString(UIStrings.crossoriginReadBlockingCorb, { PH1: networkRequest.url(), PH2: networkRequest.mimeType });
-            this.#manager.dispatchEventToListeners(Events.MessageGenerated, { message: message, requestId: networkRequest.requestId(), warning: true });
-        }
         if (Common.Settings.Settings.instance().moduleSetting('monitoringXHREnabled').get() &&
             networkRequest.resourceType().category() === Common.ResourceType.resourceCategories.XHR) {
             let message;
@@ -1160,7 +1151,7 @@ export class MultitargetNetworkManager extends Common.ObjectWrapper.ObjectWrappe
         return Boolean(this.#urlsForRequestInterceptor.size);
     }
     setInterceptionHandlerForPatterns(patterns, requestInterceptor) {
-        // Note: requestInterceptors may recieve interception #requests for patterns they did not subscribe to.
+        // Note: requestInterceptors may receive interception #requests for patterns they did not subscribe to.
         this.#urlsForRequestInterceptor.deleteAll(requestInterceptor);
         for (const newPattern of patterns) {
             this.#urlsForRequestInterceptor.set(requestInterceptor, newPattern);
@@ -1337,6 +1328,7 @@ export class InterceptedRequest {
             const setCookieHeadersFromOverrides = responseHeaders.filter(header => header.name === 'set-cookie');
             this.networkRequest.setCookieHeaders =
                 InterceptedRequest.mergeSetCookieHeaders(originalSetCookieHeaders, setCookieHeadersFromOverrides);
+            this.networkRequest.hasOverriddenContent = isBodyOverridden;
         }
         void this.#fetchAgent.invoke_fulfillRequest({ requestId: this.requestId, responseCode, body, responseHeaders });
         MultitargetNetworkManager.instance().dispatchEventToListeners(MultitargetNetworkManager.Events.RequestFulfilled, this.request.url);

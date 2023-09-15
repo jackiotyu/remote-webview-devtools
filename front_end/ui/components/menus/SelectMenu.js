@@ -11,7 +11,7 @@ import selectMenuStyles from './selectMenu.css.js';
 import selectMenuButtonStyles from './selectMenuButton.css.js';
 const coordinator = Coordinator.RenderCoordinator.RenderCoordinator.instance();
 const deployMenuArrow = new URL('../../../Images/triangle-down.svg', import.meta.url).toString();
-class SelectMenu extends HTMLElement {
+export class SelectMenu extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-select-menu`;
     #shadow = this.attachShadow({ mode: 'open' });
     #renderBound = this.#render.bind(this);
@@ -197,8 +197,7 @@ class SelectMenu extends HTMLElement {
         // clang-format on
     }
 }
-export { SelectMenu };
-class SelectMenuButton extends HTMLElement {
+export class SelectMenuButton extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-select-menu-button`;
     #shadow = this.attachShadow({ mode: 'open' });
     #renderBound = this.#render.bind(this);
@@ -303,10 +302,9 @@ class SelectMenuButton extends HTMLElement {
         // clang-format on
     }
 }
-export { SelectMenuButton };
 ComponentHelpers.CustomElements.defineComponent('devtools-select-menu', SelectMenu);
 ComponentHelpers.CustomElements.defineComponent('devtools-select-menu-button', SelectMenuButton);
-class SelectMenuItemSelectedEvent extends Event {
+export class SelectMenuItemSelectedEvent extends Event {
     itemValue;
     static eventName = 'selectmenuselected';
     constructor(itemValue) {
@@ -314,20 +312,17 @@ class SelectMenuItemSelectedEvent extends Event {
         this.itemValue = itemValue;
     }
 }
-export { SelectMenuItemSelectedEvent };
-class SelectMenuSideButtonClickEvent extends Event {
+export class SelectMenuSideButtonClickEvent extends Event {
     static eventName = 'selectmenusidebuttonclick';
     constructor() {
         super(SelectMenuSideButtonClickEvent.eventName, { bubbles: true, composed: true });
     }
 }
-export { SelectMenuSideButtonClickEvent };
-class SelectMenuButtonTriggerEvent extends Event {
+export class SelectMenuButtonTriggerEvent extends Event {
     static eventName = 'selectmenubuttontrigger';
     constructor() {
         super(SelectMenuButtonTriggerEvent.eventName, { bubbles: true, composed: true });
     }
 }
-export { SelectMenuButtonTriggerEvent };
 export { MenuGroup as SelectMenuGroup };
 //# map=SelectMenu.js.map

@@ -12,8 +12,20 @@ export function isAsyncPhase(phase) {
 export function isFlowPhase(phase) {
     return phase === "s" /* Phase.FLOW_START */ || phase === "t" /* Phase.FLOW_STEP */ || phase === "f" /* Phase.FLOW_END */;
 }
+export function isTraceEventAuctionWorkletRunningInProcess(event) {
+    return event.name === 'AuctionWorkletRunningInProcess';
+}
+export function isTraceEventAuctionWorkletDoneWithProcess(event) {
+    return event.name === 'AuctionWorkletDoneWithProcess';
+}
+export function isTraceEventTracingSessionIdForWorker(event) {
+    return event.name === 'TracingSessionIdForWorker';
+}
 export function isSyntheticInteractionEvent(event) {
     return Boolean('interactionId' in event && event.args?.data && 'beginEvent' in event.args.data && 'endEvent' in event.args.data);
+}
+export function isRendererEvent(event) {
+    return isTraceEventRendererEvent(event) || isProfileCall(event);
 }
 class ProfileIdTag {
     #profileIdTag;
@@ -43,8 +55,21 @@ class ThreadIdTag {
 export function ThreadID(value) {
     return value;
 }
+class WorkerIdTag {
+    #workerIdTag;
+}
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export function WorkerId(value) {
+    return value;
+}
 export function isTraceEventComplete(event) {
     return event.ph === "X" /* Phase.COMPLETE */;
+}
+export function isTraceEventBegin(event) {
+    return event.ph === "B" /* Phase.BEGIN */;
+}
+export function isTraceEventEnd(event) {
+    return event.ph === "E" /* Phase.END */;
 }
 export function isTraceEventDispatch(event) {
     return event.name === 'EventDispatch';
@@ -54,6 +79,12 @@ export function isTraceEventInstant(event) {
 }
 export function isTraceEventRendererEvent(event) {
     return isTraceEventInstant(event) || isTraceEventComplete(event);
+}
+export function isTraceEventFireIdleCallback(event) {
+    return event.name === 'FireIdleCallback';
+}
+export function isTraceEventUpdateCounters(event) {
+    return event.name === 'UpdateCounters';
 }
 export function isThreadName(traceEventData) {
     return traceEventData.name === 'thread_name';
@@ -111,7 +142,7 @@ export function isTraceEventInteractiveTime(traceEventData) {
     return traceEventData.name === 'InteractiveTime';
 }
 export function isTraceEventEventTiming(traceEventData) {
-    return traceEventData.name === 'EventTiming';
+    return traceEventData.name === "EventTiming" /* KnownEventName.EventTiming */;
 }
 export function isTraceEventEventTimingEnd(traceEventData) {
     return isTraceEventEventTiming(traceEventData) && traceEventData.ph === "e" /* Phase.ASYNC_NESTABLE_END */;
@@ -128,11 +159,17 @@ export function isTraceEventProfile(traceEventData) {
 export function isTraceEventProfileChunk(traceEventData) {
     return traceEventData.name === 'ProfileChunk';
 }
+export function isTraceEventResourceChangePriority(traceEventData) {
+    return traceEventData.name === 'ResourceChangePriority';
+}
 export function isTraceEventResourceSendRequest(traceEventData) {
     return traceEventData.name === 'ResourceSendRequest';
 }
 export function isTraceEventResourceReceiveResponse(traceEventData) {
     return traceEventData.name === 'ResourceReceiveResponse';
+}
+export function isTraceEventResourceMarkAsCached(traceEventData) {
+    return traceEventData.name === 'ResourceMarkAsCached';
 }
 export function isTraceEventResourceFinish(traceEventData) {
     return traceEventData.name === 'ResourceFinish';
@@ -176,16 +213,20 @@ export function isSyntheticConsoleTimingTraceEvent(traceEventData) {
     return 'beginEvent' in data && 'endEvent' in data;
 }
 export function isTraceEventPerformanceMeasure(traceEventData) {
-    return isTraceEventAsyncPhase(traceEventData) && traceEventData.cat === 'blink.user_timing';
+    return traceEventData.cat === 'blink.user_timing' && isTraceEventAsyncPhase(traceEventData);
 }
 export function isTraceEventPerformanceMark(traceEventData) {
-    return traceEventData.ph === "R" /* Phase.MARK */ && traceEventData.cat === 'blink.user_timing';
+    return traceEventData.cat === 'blink.user_timing' &&
+        (traceEventData.ph === "R" /* Phase.MARK */ || traceEventData.ph === "I" /* Phase.INSTANT */);
 }
 export function isTraceEventConsoleTime(traceEventData) {
-    return isTraceEventAsyncPhase(traceEventData) && traceEventData.cat === 'blink.console';
+    return traceEventData.cat === 'blink.console' && isTraceEventAsyncPhase(traceEventData);
 }
 export function isTraceEventTimeStamp(traceEventData) {
     return traceEventData.ph === "I" /* Phase.INSTANT */ && traceEventData.name === 'TimeStamp';
+}
+export function isTraceEventParseHTML(traceEventData) {
+    return traceEventData.name === 'ParseHTML';
 }
 export function isTraceEventAsyncPhase(traceEventData) {
     const asyncPhases = new Set([
@@ -204,5 +245,8 @@ export function isSyntheticLayoutShift(traceEventData) {
         return false;
     }
     return 'rawEvent' in traceEventData.args.data;
+}
+export function isProfileCall(event) {
+    return 'callFrame' in event;
 }
 //# map=TraceEvents.js.map

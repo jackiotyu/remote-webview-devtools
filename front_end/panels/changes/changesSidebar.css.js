@@ -40,10 +40,6 @@ styles.replaceSync(
   --icon-color: var(--icon-file-font);
 }
 
-.force-white-icons {
-  --icon-color: var(--icon-force-white);
-}
-
 @media (forced-colors: active) {
   li,
   .navigator-sm-script-tree-item,
@@ -59,6 +55,6 @@ styles.replaceSync(
   }
 }
 
-
+/*# sourceURL=changesSidebar.css */
 `);
 export default styles;

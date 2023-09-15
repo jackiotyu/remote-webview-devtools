@@ -6,17 +6,13 @@ import * as SearchModule from './search.js';
 self.Search = self.Search || {};
 Search = Search || {};
 /**
- * @constructor
+ * @interface
  */
-Search.SearchConfig = SearchModule.SearchConfig.SearchConfig;
+Search.SearchResult = SearchModule.SearchScope.SearchResult;
 /**
  * @interface
  */
-Search.SearchResult = SearchModule.SearchConfig.SearchResult;
-/**
- * @interface
- */
-Search.SearchScope = SearchModule.SearchConfig.SearchScope;
+Search.SearchScope = SearchModule.SearchScope.SearchScope;
 /**
  * @constructor
  */

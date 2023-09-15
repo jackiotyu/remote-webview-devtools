@@ -34,7 +34,7 @@ import * as Platform from '../platform/platform.js';
 import { FrontendMessageSource, FrontendMessageType } from './ConsoleModelTypes.js';
 export { FrontendMessageSource, FrontendMessageType } from './ConsoleModelTypes.js';
 import { CPUProfilerModel, Events as CPUProfilerModelEvents } from './CPUProfilerModel.js';
-import { Events as DebuggerModelEvents } from './DebuggerModel.js';
+import { Events as DebuggerModelEvents, COND_BREAKPOINT_SOURCE_URL, LOGPOINT_SOURCE_URL, } from './DebuggerModel.js';
 import { LogModel } from './LogModel.js';
 import { RemoteObject } from './RemoteObject.js';
 import { Events as ResourceTreeModelEvents, ResourceTreeModel, } from './ResourceTreeModel.js';
@@ -42,7 +42,6 @@ import { Events as RuntimeModelEvents, RuntimeModel, } from './RuntimeModel.js';
 import { Capability, Type } from './Target.js';
 import { TargetManager } from './TargetManager.js';
 import { SDKModel } from './SDKModel.js';
-import { COND_BREAKPOINT_SOURCE_URL, LOGPOINT_SOURCE_URL } from './DebuggerModel.js';
 const UIStrings = {
     /**
      *@description Text shown when the main frame (page) of the website was navigated to a different URL.

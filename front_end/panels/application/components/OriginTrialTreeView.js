@@ -58,7 +58,7 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/application/components/OriginTrialTreeView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class Badge extends HTMLElement {
+export class Badge extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-resources-origin-trial-tree-view-badge`;
     #shadow = this.attachShadow({ mode: 'open' });
     #adorner = new Adorners.Adorner.Adorner();
@@ -81,7 +81,6 @@ class Badge extends HTMLElement {
     `, this.#shadow, { host: this });
     }
 }
-export { Badge };
 ComponentHelpers.CustomElements.defineComponent('devtools-resources-origin-trial-tree-view-badge', Badge);
 function constructOriginTrialTree(originTrial) {
     return {
@@ -164,7 +163,7 @@ function constructRawTokenTextNode(tokenText) {
 function defaultRenderer(node) {
     return LitHtml.html `${String(node.treeNodeData)}`;
 }
-class OriginTrialTokenRows extends HTMLElement {
+export class OriginTrialTokenRows extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-resources-origin-trial-token-rows`;
     #shadow = this.attachShadow({ mode: 'open' });
     #tokenWithStatus = null;
@@ -246,9 +245,8 @@ class OriginTrialTokenRows extends HTMLElement {
     `, this.#shadow, { host: this });
     }
 }
-export { OriginTrialTokenRows };
 ComponentHelpers.CustomElements.defineComponent('devtools-resources-origin-trial-token-rows', OriginTrialTokenRows);
-class OriginTrialTreeView extends HTMLElement {
+export class OriginTrialTreeView extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-resources-origin-trial-tree-view`;
     #shadow = this.attachShadow({ mode: 'open' });
     set data(data) {
@@ -267,6 +265,5 @@ class OriginTrialTreeView extends HTMLElement {
     `, this.#shadow, { host: this });
     }
 }
-export { OriginTrialTreeView };
 ComponentHelpers.CustomElements.defineComponent('devtools-resources-origin-trial-tree-view', OriginTrialTreeView);
 //# map=OriginTrialTreeView.js.map

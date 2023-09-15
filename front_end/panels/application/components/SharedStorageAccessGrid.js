@@ -11,7 +11,7 @@ const UIStrings = {
     /**
      *@description Text in Shared Storage Events View of the Application panel
      */
-    sharedStorage: 'Shared Storage',
+    sharedStorage: 'Shared storage',
     /**
      *@description Hover text for an info icon in the Shared Storage Events panel
      */
@@ -50,7 +50,7 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/application/components/SharedStorageAccessGrid.ts', UIStrings);
 export const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class SharedStorageAccessGrid extends HTMLElement {
+export class SharedStorageAccessGrid extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-shared-storage-access-grid`;
     #shadow = this.attachShadow({ mode: 'open' });
     #datastores = [];
@@ -154,6 +154,5 @@ class SharedStorageAccessGrid extends HTMLElement {
         return LitHtml.html `${date.toLocaleString()}`;
     }
 }
-export { SharedStorageAccessGrid };
 ComponentHelpers.CustomElements.defineComponent('devtools-shared-storage-access-grid', SharedStorageAccessGrid);
 //# map=SharedStorageAccessGrid.js.map

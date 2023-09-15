@@ -48,14 +48,9 @@ styles.replaceSync(
   --override-network-overview-waiting: #00a846;
   --override-network-overview-receiving: #0299de;
   --override-network-overview-queueing: #fff;
-  --network-grid-default-color: rgb(255 255 255 / 100%);
-  --network-grid-stripe-color: rgb(245 245 245 / 100%);
   --network-grid-navigation-color: rgb(221 238 255 / 100%);
-  --network-grid-hovered-color: rgb(235 242 252 / 70%);
   --network-grid-initiator-path-color: rgb(58 217 58 / 40%);
   --network-grid-initiated-path-color: rgb(217 58 58 / 40%);
-  --network-grid-selected-color: #dadce0;
-  --network-grid-focus-selected-color: var(--legacy-selection-bg-color);
   --network-grid-focus-selected-color-has-error: #fad2cf;
   --network-grid-from-frame-color: rgb(224 247 250 / 40%);
   --network-grid-is-product-color: rgb(255 252 225 / 60%);
@@ -63,14 +58,9 @@ styles.replaceSync(
 }
 
 .-theme-with-dark-background {
-  --network-grid-default-color: rgb(36 36 36 / 100%);
-  --network-grid-stripe-color: rgb(41 41 41 / 100%);
   --network-grid-navigation-color: rgb(221 238 255 / 100%);
-  --network-grid-hovered-color: rgb(20 37 63 / 70%);
   --network-grid-initiator-path-color: rgb(58 217 58 / 40%);
   --network-grid-initiated-path-color: rgb(217 58 58 / 40%);
-  --network-grid-selected-color: #454545;
-  --network-grid-focus-selected-color: var(--legacy-selection-bg-color);
   --network-grid-focus-selected-color-has-error: #482422;
   --network-grid-from-frame-color: rgb(224 247 250 / 40%);
   --network-grid-is-product-color: rgb(255 252 225 / 60%);
@@ -87,11 +77,11 @@ styles.replaceSync(
 
 .network-item-view {
   display: flex;
-  background: var(--color-background);
+  background: var(--sys-color-cdt-base-container);
 }
 
 .network-item-preview-toolbar {
-  border-top: 1px solid var(--color-details-hairline);
+  border-top: 1px solid var(--sys-color-divider);
   background-color: var(--color-background-elevation-1);
 }
 
@@ -100,7 +90,7 @@ styles.replaceSync(
   margin: 6px;
   color: var(--color-text-primary);
   overflow: auto;
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
 }
 
 .resource-timing-table {
@@ -118,7 +108,7 @@ styles.replaceSync(
   display: flex;
   flex-direction: column;
   position: relative;
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 #network-overview-container canvas {
@@ -127,7 +117,7 @@ styles.replaceSync(
 }
 
 .resources-dividers-label-bar {
-  background-color: var(--color-background);
+  background-color: var(--sys-color-cdt-base-container);
 }
 
 #network-overview-grid .resources-dividers-label-bar {
@@ -153,7 +143,7 @@ styles.replaceSync(
 }
 
 .network-film-strip {
-  border-bottom: solid 1px var(--color-details-hairline);
+  border-bottom: solid 1px var(--sys-color-divider);
   flex: none !important; /* stylelint-disable-line declaration-no-important */
 }
 
@@ -184,8 +174,8 @@ styles.replaceSync(
 }
 
 .panel.network .toolbar {
-  background-color: var(--color-background-elevation-1);
-  border-bottom: var(--legacy-divider-border);
+  background-color: var(--sys-color-cdt-base-container);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 @media (forced-colors: active) {
@@ -198,6 +188,6 @@ devtools-request-headers {
   min-width: 360px;
 }
 
-
+/*# sourceURL=networkPanel.css */
 `);
 export default styles;

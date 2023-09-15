@@ -162,7 +162,7 @@ export class ProfileLauncherView extends Common.ObjectWrapper.eventMixin(UI.Widg
         const headerText = this.typeIdToOptionElementAndProfileType.size > 1 ? i18nString(UIStrings.selectProfilingType) :
             profileType.name;
         this.profileTypeHeaderElement.textContent = headerText;
-        UI.ARIAUtils.setAccessibleName(this.profileTypeSelectorForm, headerText);
+        UI.ARIAUtils.setLabel(this.profileTypeSelectorForm, headerText);
     }
     restoreSelectedProfileType() {
         let typeId = this.selectedProfileTypeSetting.get();

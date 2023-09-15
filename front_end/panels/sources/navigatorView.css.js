@@ -12,10 +12,10 @@ styles.replaceSync(
  */
 
 .navigator-toolbar {
-  border-bottom: 1px solid var(--color-details-hairline);
+  border-bottom: 1px solid var(--sys-color-divider);
   padding-left: 8px;
 }
 
-
+/*# sourceURL=navigatorView.css */
 `);
 export default styles;

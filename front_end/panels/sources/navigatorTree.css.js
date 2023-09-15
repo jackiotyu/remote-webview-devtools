@@ -76,16 +76,7 @@ styles.replaceSync(
 
 .tree-outline li:hover:not(.selected) .selection {
   display: block;
-  background-color: var(--item-hover-color);
-}
-
-.navigator-file-tree-item.force-white-icons,
-.navigator-folder-tree-item.force-white-icons {
-  --icon-color: var(--icon-force-white);
-}
-
-.navigator-sm-folder-tree-item .icons-container {
-  --override-folder-tree-item-color: var(--icon-folder-authored);
+  background-color: var(--sys-color-state-hover-on-subtle);
 }
 
 .navigator-fs-folder-tree-item .icons-container {
@@ -113,13 +104,16 @@ styles.replaceSync(
   left: 11px;
 }
 
+.navigator-file-tree-item:hover:not(.force-white-icons) devtools-icon.dot::before {
+  outline-color: var(--icon-gap-hover);
+}
+
 .navigator-file-tree-item.selected:not(.force-white-icons) devtools-icon.dot::before {
   outline-color: var(--icon-gap-inactive);
 }
 
 .navigator-file-tree-item.selected.force-white-icons devtools-icon.dot::before {
-  background-color: var(--icon-force-white);
-  outline-color: var(--icon-gap-force-white);
+  outline-color: var(--icon-gap-focus-selected);
 }
 
 .navigator-sm-stylesheet-tree-item .icons-container,
@@ -130,6 +124,10 @@ styles.replaceSync(
 .navigator-image-tree-item .icons-container,
 .navigator-font-tree-item .icons-container {
   --override-file-tree-item-color: var(--icon-file-image);
+}
+
+.navigator-nw-folder-tree-item.is-from-source-map .icons-container {
+  --override-folder-tree-item-color: var(--icon-folder-authored);
 }
 
 .tree-outline:not(:has(.navigator-deployed-tree-item)) .navigator-sm-folder-tree-item .tree-element-title,
@@ -159,6 +157,6 @@ styles.replaceSync(
   }
 }
 
-
+/*# sourceURL=navigatorTree.css */
 `);
 export default styles;

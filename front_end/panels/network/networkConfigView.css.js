@@ -36,7 +36,7 @@ styles.replaceSync(
 .panel-section-separator {
   height: 1px;
   margin-bottom: 10px;
-  background: var(--color-details-hairline);
+  background: var(--sys-color-divider);
 }
 /* Disable cache */
 
@@ -112,6 +112,6 @@ styles.replaceSync(
   color: var(--color-accent-green);
 }
 
-
+/*# sourceURL=networkConfigView.css */
 `);
 export default styles;

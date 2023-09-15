@@ -20,6 +20,6 @@ styles.replaceSync(
   display: block;
 }
 
-
+/*# sourceURL=menuGroup.css */
 `);
 export default styles;

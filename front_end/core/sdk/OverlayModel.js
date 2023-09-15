@@ -18,7 +18,7 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('core/sdk/OverlayModel.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-class OverlayModel extends SDKModel {
+export class OverlayModel extends SDKModel {
     #domModel;
     overlayAgent;
     #debuggerModel;
@@ -155,6 +155,7 @@ class OverlayModel extends SDKModel {
             this.updatePausedInDebuggerMessage();
         }
         await this.overlayAgent.invoke_setShowViewportSizeOnResize({ show: this.#showViewportSizeOnResize });
+        this.#persistentHighlighter?.resetOverlay();
     }
     async suspendModel() {
         Common.EventTarget.removeEventListeners(this.#registeredListeners);
@@ -630,7 +631,6 @@ class OverlayModel extends SDKModel {
         return this.overlayAgent;
     }
 }
-export { OverlayModel };
 // TODO(crbug.com/1167717): Make this a const enum again
 // eslint-disable-next-line rulesdir/const_enum
 export var Events;

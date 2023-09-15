@@ -22,7 +22,7 @@ const UIStrings = {
 const str_ = i18n.i18n.registerUIStrings('ui/components/linear_memory_inspector/LinearMemoryValueInterpreter.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const { render, html } = LitHtml;
-class EndiannessChangedEvent extends Event {
+export class EndiannessChangedEvent extends Event {
     static eventName = 'endiannesschanged';
     data;
     constructor(endianness) {
@@ -30,8 +30,7 @@ class EndiannessChangedEvent extends Event {
         this.data = endianness;
     }
 }
-export { EndiannessChangedEvent };
-class ValueTypeToggledEvent extends Event {
+export class ValueTypeToggledEvent extends Event {
     static eventName = 'valuetypetoggled';
     data;
     constructor(type, checked) {
@@ -39,8 +38,7 @@ class ValueTypeToggledEvent extends Event {
         this.data = { type, checked };
     }
 }
-export { ValueTypeToggledEvent };
-class LinearMemoryValueInterpreter extends HTMLElement {
+export class LinearMemoryValueInterpreter extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-linear-memory-inspector-interpreter`;
     #shadow = this.attachShadow({ mode: 'open' });
     #endianness = "Little Endian" /* Endianness.Little */;
@@ -127,6 +125,5 @@ class LinearMemoryValueInterpreter extends HTMLElement {
         this.dispatchEvent(new ValueTypeToggledEvent(e.data.type, e.data.checked));
     }
 }
-export { LinearMemoryValueInterpreter };
 ComponentHelpers.CustomElements.defineComponent('devtools-linear-memory-inspector-interpreter', LinearMemoryValueInterpreter);
 //# map=LinearMemoryValueInterpreter.js.map

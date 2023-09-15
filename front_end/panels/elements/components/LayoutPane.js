@@ -2,8 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as Common from '../../../core/common/common.js';
+import * as SDK from '../../../core/sdk/sdk.js';
 import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
 import * as IconButton from '../../../ui/components/icon_button/icon_button.js';
+import * as LegacyWrapper from '../../../ui/components/legacy_wrapper/legacy_wrapper.js';
+import * as Coordinator from '../../../ui/components/render_coordinator/render_coordinator.js';
 import * as UI from '../../../ui/legacy/legacy.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
 import layoutPaneStyles from '../layoutPane.css.js';
@@ -57,40 +60,214 @@ const UIStrings = {
 const str_ = i18n.i18n.registerUIStrings('panels/elements/components/LayoutPane.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const { render, html } = LitHtml;
-class SettingChangedEvent extends Event {
-    static eventName = 'settingchanged';
-    data;
-    constructor(setting, value) {
-        super(SettingChangedEvent.eventName, {});
-        this.data = { setting, value };
-    }
-}
-export { SettingChangedEvent };
+const nodeToLayoutElement = (node) => {
+    const className = node.getAttribute('class');
+    const nodeId = node.id;
+    return {
+        id: nodeId,
+        color: 'var(--sys-color-inverse-surface)',
+        name: node.localName(),
+        domId: node.getAttribute('id'),
+        domClasses: className ? className.split(/\s+/).filter(s => Boolean(s)) : undefined,
+        enabled: false,
+        reveal: () => {
+            void Common.Revealer.reveal(node);
+            void node.scrollIntoView();
+        },
+        highlight: () => {
+            node.highlight();
+        },
+        hideHighlight: () => {
+            SDK.OverlayModel.OverlayModel.hideDOMNodeHighlight();
+        },
+        toggle: (_value) => {
+            throw new Error('Not implemented');
+        },
+        setColor(_value) {
+            throw new Error('Not implemented');
+        },
+    };
+};
+const gridNodesToElements = (nodes) => {
+    return nodes.map(node => {
+        const layoutElement = nodeToLayoutElement(node);
+        const nodeId = node.id;
+        return {
+            ...layoutElement,
+            color: node.domModel().overlayModel().colorOfGridInPersistentOverlay(nodeId) || 'var(--sys-color-inverse-surface)',
+            enabled: node.domModel().overlayModel().isHighlightedGridInPersistentOverlay(nodeId),
+            toggle: (value) => {
+                if (value) {
+                    node.domModel().overlayModel().highlightGridInPersistentOverlay(nodeId);
+                }
+                else {
+                    node.domModel().overlayModel().hideGridInPersistentOverlay(nodeId);
+                }
+            },
+            setColor(value) {
+                this.color = value;
+                node.domModel().overlayModel().setColorOfGridInPersistentOverlay(nodeId, value);
+            },
+        };
+    });
+};
+const flexContainerNodesToElements = (nodes) => {
+    return nodes.map(node => {
+        const layoutElement = nodeToLayoutElement(node);
+        const nodeId = node.id;
+        return {
+            ...layoutElement,
+            color: node.domModel().overlayModel().colorOfFlexInPersistentOverlay(nodeId) || 'var(--sys-color-inverse-surface)',
+            enabled: node.domModel().overlayModel().isHighlightedFlexContainerInPersistentOverlay(nodeId),
+            toggle: (value) => {
+                if (value) {
+                    node.domModel().overlayModel().highlightFlexContainerInPersistentOverlay(nodeId);
+                }
+                else {
+                    node.domModel().overlayModel().hideFlexContainerInPersistentOverlay(nodeId);
+                }
+            },
+            setColor(value) {
+                this.color = value;
+                node.domModel().overlayModel().setColorOfFlexInPersistentOverlay(nodeId, value);
+            },
+        };
+    });
+};
 function isEnumSetting(setting) {
     return setting.type === Common.Settings.SettingType.ENUM;
 }
 function isBooleanSetting(setting) {
     return setting.type === Common.Settings.SettingType.BOOLEAN;
 }
-class LayoutPane extends HTMLElement {
+const coordinator = Coordinator.RenderCoordinator.RenderCoordinator.instance();
+let layoutPaneWrapperInstance;
+export class LayoutPane extends LegacyWrapper.LegacyWrapper.WrappableComponent {
     static litTagName = LitHtml.literal `devtools-layout-pane`;
     #shadow = this.attachShadow({ mode: 'open' });
     #settings = [];
-    #gridElements = [];
-    #flexContainerElements = [];
+    #uaShadowDOMSetting;
+    #domModels;
     constructor() {
         super();
+        this.#settings = this.#makeSettings();
+        this.#uaShadowDOMSetting = Common.Settings.Settings.instance().moduleSetting('showUAShadowDOM');
+        this.#domModels = [];
         this.#shadow.adoptedStyleSheets = [
             Input.checkboxStyles,
             layoutPaneStyles,
             inspectorCommonStyles,
         ];
     }
-    set data(data) {
-        this.#settings = data.settings;
-        this.#gridElements = data.gridElements;
-        this.#flexContainerElements = data.flexContainerElements;
-        this.#render();
+    static instance() {
+        if (!layoutPaneWrapperInstance) {
+            layoutPaneWrapperInstance = LegacyWrapper.LegacyWrapper.legacyWrapper(UI.Widget.Widget, new LayoutPane());
+        }
+        return layoutPaneWrapperInstance.getComponent();
+    }
+    modelAdded(domModel) {
+        const overlayModel = domModel.overlayModel();
+        overlayModel.addEventListener(SDK.OverlayModel.Events.PersistentGridOverlayStateChanged, this.render, this);
+        overlayModel.addEventListener(SDK.OverlayModel.Events.PersistentFlexContainerOverlayStateChanged, this.render, this);
+        this.#domModels.push(domModel);
+    }
+    modelRemoved(domModel) {
+        const overlayModel = domModel.overlayModel();
+        overlayModel.removeEventListener(SDK.OverlayModel.Events.PersistentGridOverlayStateChanged, this.render, this);
+        overlayModel.removeEventListener(SDK.OverlayModel.Events.PersistentFlexContainerOverlayStateChanged, this.render, this);
+        this.#domModels = this.#domModels.filter(model => model !== domModel);
+    }
+    async #fetchNodesByStyle(style) {
+        const showUAShadowDOM = this.#uaShadowDOMSetting.get();
+        const nodes = [];
+        for (const domModel of this.#domModels) {
+            try {
+                const nodeIds = await domModel.getNodesByStyle(style, true /* pierce */);
+                for (const nodeId of nodeIds) {
+                    const node = domModel.nodeForId(nodeId);
+                    if (node !== null && (showUAShadowDOM || !node.ancestorUserAgentShadowRoot())) {
+                        nodes.push(node);
+                    }
+                }
+            }
+            catch (error) {
+                // TODO(crbug.com/1167706): Sometimes in E2E tests the layout panel is updated after a DOM node
+                // has been removed. This causes an error that a node has not been found.
+                // We can skip nodes that resulted in an error.
+                console.warn(error);
+            }
+        }
+        return nodes;
+    }
+    async #fetchGridNodes() {
+        return await this.#fetchNodesByStyle([{ name: 'display', value: 'grid' }, { name: 'display', value: 'inline-grid' }]);
+    }
+    async #fetchFlexContainerNodes() {
+        return await this.#fetchNodesByStyle([{ name: 'display', value: 'flex' }, { name: 'display', value: 'inline-flex' }]);
+    }
+    #makeSettings() {
+        const settings = [];
+        for (const settingName of ['showGridLineLabels', 'showGridTrackSizes', 'showGridAreas', 'extendGridLines']) {
+            const setting = Common.Settings.Settings.instance().moduleSetting(settingName);
+            const settingValue = setting.get();
+            const settingType = setting.type();
+            if (!settingType) {
+                throw new Error('A setting provided to LayoutSidebarPane does not have a setting type');
+            }
+            if (settingType !== Common.Settings.SettingType.BOOLEAN && settingType !== Common.Settings.SettingType.ENUM) {
+                throw new Error('A setting provided to LayoutSidebarPane does not have a supported setting type');
+            }
+            const mappedSetting = {
+                type: settingType,
+                name: setting.name,
+                title: setting.title(),
+            };
+            if (typeof settingValue === 'boolean') {
+                settings.push({
+                    ...mappedSetting,
+                    value: settingValue,
+                    options: setting.options().map(opt => ({
+                        ...opt,
+                        value: opt.value,
+                    })),
+                });
+            }
+            else if (typeof settingValue === 'string') {
+                settings.push({
+                    ...mappedSetting,
+                    value: settingValue,
+                    options: setting.options().map(opt => ({
+                        ...opt,
+                        value: opt.value,
+                    })),
+                });
+            }
+        }
+        return settings;
+    }
+    onSettingChanged(setting, value) {
+        Common.Settings.Settings.instance().moduleSetting(setting).set(value);
+    }
+    wasShown() {
+        for (const setting of this.#settings) {
+            Common.Settings.Settings.instance().moduleSetting(setting.name).addChangeListener(this.render, this);
+        }
+        for (const domModel of this.#domModels) {
+            this.modelRemoved(domModel);
+        }
+        this.#domModels = [];
+        SDK.TargetManager.TargetManager.instance().observeModels(SDK.DOMModel.DOMModel, this, { scoped: true });
+        UI.Context.Context.instance().addFlavorChangeListener(SDK.DOMModel.DOMNode, this.render, this);
+        this.#uaShadowDOMSetting.addChangeListener(this.render, this);
+        void this.render();
+    }
+    willHide() {
+        for (const setting of this.#settings) {
+            Common.Settings.Settings.instance().moduleSetting(setting.name).removeChangeListener(this.render, this);
+        }
+        SDK.TargetManager.TargetManager.instance().unobserveModels(SDK.DOMModel.DOMModel, this);
+        UI.Context.Context.instance().removeFlavorChangeListener(SDK.DOMModel.DOMNode, this.render, this);
+        this.#uaShadowDOMSetting.removeChangeListener(this.render, this);
     }
     #onSummaryKeyDown(event) {
         if (!event.target) {
@@ -110,57 +287,61 @@ class LayoutPane extends HTMLElement {
                 break;
         }
     }
-    #render() {
-        // Disabled until https://crbug.com/1079231 is fixed.
-        // clang-format off
-        render(html `
-      <details open>
-        <summary class="header" @keydown=${this.#onSummaryKeyDown}>
-          ${i18nString(UIStrings.grid)}
-        </summary>
-        <div class="content-section">
-          <h3 class="content-section-title">${i18nString(UIStrings.overlayDisplaySettings)}</h3>
-          <div class="select-settings">
-            ${this.#getEnumSettings().map(setting => this.#renderEnumSetting(setting))}
-          </div>
-          <div class="checkbox-settings">
-            ${this.#getBooleanSettings().map(setting => this.#renderBooleanSetting(setting))}
-          </div>
-        </div>
-        ${this.#gridElements ?
-            html `<div class="content-section">
-            <h3 class="content-section-title">
-              ${this.#gridElements.length ? i18nString(UIStrings.gridOverlays) : i18nString(UIStrings.noGridLayoutsFoundOnThisPage)}
-            </h3>
-            ${this.#gridElements.length ?
-                html `<div class="elements">
-                ${this.#gridElements.map(element => this.#renderElement(element))}
-              </div>` : ''}
-          </div>` : ''}
-      </details>
-      ${this.#flexContainerElements !== undefined ?
-            html `
+    async render() {
+        const gridElements = gridNodesToElements(await this.#fetchGridNodes());
+        const flexContainerElements = flexContainerNodesToElements(await this.#fetchFlexContainerNodes());
+        await coordinator.write('LayoutPane render', () => {
+            // Disabled until https://crbug.com/1079231 is fixed.
+            // clang-format off
+            render(html `
         <details open>
           <summary class="header" @keydown=${this.#onSummaryKeyDown}>
-            ${i18nString(UIStrings.flexbox)}
+            ${i18nString(UIStrings.grid)}
           </summary>
-          ${this.#flexContainerElements ?
+          <div class="content-section">
+            <h3 class="content-section-title">${i18nString(UIStrings.overlayDisplaySettings)}</h3>
+            <div class="select-settings">
+              ${this.#getEnumSettings().map(setting => this.#renderEnumSetting(setting))}
+            </div>
+            <div class="checkbox-settings">
+              ${this.#getBooleanSettings().map(setting => this.#renderBooleanSetting(setting))}
+            </div>
+          </div>
+          ${gridElements ?
                 html `<div class="content-section">
               <h3 class="content-section-title">
-                ${this.#flexContainerElements.length ? i18nString(UIStrings.flexboxOverlays) : i18nString(UIStrings.noFlexboxLayoutsFoundOnThisPage)}
+                ${gridElements.length ? i18nString(UIStrings.gridOverlays) : i18nString(UIStrings.noGridLayoutsFoundOnThisPage)}
               </h3>
-              ${this.#flexContainerElements.length ?
+              ${gridElements.length ?
                     html `<div class="elements">
-                  ${this.#flexContainerElements.map(element => this.#renderElement(element))}
+                  ${gridElements.map(element => this.#renderElement(element))}
                 </div>` : ''}
             </div>` : ''}
         </details>
-        `
-            : ''}
-    `, this.#shadow, {
-            host: this,
+        ${flexContainerElements !== undefined ?
+                html `
+          <details open>
+            <summary class="header" @keydown=${this.#onSummaryKeyDown}>
+              ${i18nString(UIStrings.flexbox)}
+            </summary>
+            ${flexContainerElements ?
+                    html `<div class="content-section">
+                <h3 class="content-section-title">
+                  ${flexContainerElements.length ? i18nString(UIStrings.flexboxOverlays) : i18nString(UIStrings.noFlexboxLayoutsFoundOnThisPage)}
+                </h3>
+                ${flexContainerElements.length ?
+                        html `<div class="elements">
+                    ${flexContainerElements.map(element => this.#renderElement(element))}
+                  </div>` : ''}
+              </div>` : ''}
+          </details>
+          `
+                : ''}
+      `, this.#shadow, {
+                host: this,
+            });
+            // clang-format on
         });
-        // clang-format on
     }
     #getEnumSettings() {
         return this.#settings.filter(isEnumSetting);
@@ -170,11 +351,11 @@ class LayoutPane extends HTMLElement {
     }
     #onBooleanSettingChange(setting, event) {
         event.preventDefault();
-        this.dispatchEvent(new SettingChangedEvent(setting.name, event.target.checked));
+        this.onSettingChanged(setting.name, event.target.checked);
     }
     #onEnumSettingChange(setting, event) {
         event.preventDefault();
-        this.dispatchEvent(new SettingChangedEvent(setting.name, event.target.value));
+        this.onSettingChanged(setting.name, event.target.value);
     }
     #onElementToggle(element, event) {
         event.preventDefault();
@@ -187,7 +368,7 @@ class LayoutPane extends HTMLElement {
     #onColorChange(element, event) {
         event.preventDefault();
         element.setColor(event.target.value);
-        this.#render();
+        void this.render();
     }
     #onElementMouseEnter(element, event) {
         event.preventDefault();
@@ -261,6 +442,5 @@ class LayoutPane extends HTMLElement {
     </label>`;
     }
 }
-export { LayoutPane };
 ComponentHelpers.CustomElements.defineComponent('devtools-layout-pane', LayoutPane);
 //# map=LayoutPane.js.map

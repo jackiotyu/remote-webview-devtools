@@ -649,13 +649,13 @@ self.injectedExtensionAPI = function (extensionInfo, inspectedTabId, themeName, 
                 return new (Constructor(Resource))(resourceData);
             }
             function callbackWrapper(resources) {
-                callback && callback(resources.map(wrapResource).filter(canAccessResource));
+                callback && callback(resources.filter(canAccessResource).map(wrapResource));
             }
             extensionServer.sendRequest({ command: "getPageResources" /* PrivateAPI.Commands.GetPageResources */ }, callback && callbackWrapper);
         },
     };
     function ResourceImpl(resourceData) {
-        if (!canAccessResource) {
+        if (!canAccessResource(resourceData)) {
             throw new Error('Resource access not allowed');
         }
         this._url = resourceData.url;

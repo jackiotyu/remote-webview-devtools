@@ -25,11 +25,11 @@ export const DIALOG_VERTICAL_PADDING = 3;
 // content (20 px) and a 5px gap left on each extreme of the dialog from the viewport.
 export const DIALOG_PADDING_FROM_WINDOW = 3 * CONNECTOR_HEIGHT;
 export const MODAL = 'MODAL';
-class Dialog extends HTMLElement {
+export class Dialog extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-dialog`;
     #shadow = this.attachShadow({ mode: 'open' });
     #renderBound = this.#render.bind(this);
-    #forceDialogCloseInDevToolsBound = this.#forceDialogCloseInDevTools.bind(this);
+    #forceDialogCloseInDevToolsBound = this.#forceDialogCloseInDevToolsMutation.bind(this);
     #handleScrollAttemptBound = this.#handleScrollAttempt.bind(this);
     #props = {
         origin: MODAL,
@@ -470,7 +470,15 @@ class Dialog extends HTMLElement {
         this.#closeDialog();
         this.dispatchEvent(new ForcedDialogClose());
     }
-    #forceDialogCloseInDevTools() {
+    #onCancel(event) {
+        event.stopPropagation();
+        event.preventDefault();
+        if (!this.#getDialog().hasAttribute('open') || !this.#props.closeOnESC) {
+            return;
+        }
+        this.dispatchEvent(new ForcedDialogClose());
+    }
+    #forceDialogCloseInDevToolsMutation() {
         if (!this.#dialog?.hasAttribute('open')) {
             return;
         }
@@ -478,8 +486,8 @@ class Dialog extends HTMLElement {
             // Do not close if running in test environment.
             return;
         }
-        this.dispatchEvent(new ForcedDialogClose());
         this.#closeDialog();
+        this.dispatchEvent(new ForcedDialogClose());
     }
     #closeDialog() {
         if (this.#isPendingCloseDialog || !this.#getDialog().hasAttribute('open')) {
@@ -513,7 +521,7 @@ class Dialog extends HTMLElement {
         }
         // clang-format off
         LitHtml.render(LitHtml.html `
-      <dialog @click=${this.#handlePointerEvent} @pointermove=${this.#handlePointerEvent}>
+      <dialog @click=${this.#handlePointerEvent} @pointermove=${this.#handlePointerEvent} @cancel=${this.#onCancel}>
         <div id="content-wrap">
           <div id="content">
             <slot></slot>
@@ -524,27 +532,23 @@ class Dialog extends HTMLElement {
         // clang-format on
     }
 }
-export { Dialog };
 ComponentHelpers.CustomElements.defineComponent('devtools-dialog', Dialog);
-class PointerLeftDialogEvent extends Event {
+export class PointerLeftDialogEvent extends Event {
     static eventName = 'pointerleftdialog';
     constructor() {
         super(PointerLeftDialogEvent.eventName, { bubbles: true, composed: true });
     }
 }
-export { PointerLeftDialogEvent };
-class ClickOutsideDialogEvent extends Event {
+export class ClickOutsideDialogEvent extends Event {
     static eventName = 'clickoutsidedialog';
     constructor() {
         super(ClickOutsideDialogEvent.eventName, { bubbles: true, composed: true });
     }
 }
-export { ClickOutsideDialogEvent };
-class ForcedDialogClose extends Event {
+export class ForcedDialogClose extends Event {
     static eventName = 'forceddialogclose';
     constructor() {
         super(ForcedDialogClose.eventName, { bubbles: true, composed: true });
     }
 }
-export { ForcedDialogClose };
 //# map=Dialog.js.map

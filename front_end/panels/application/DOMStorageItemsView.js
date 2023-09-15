@@ -83,6 +83,9 @@ export class DOMStorageItemsView extends StorageItemsView {
     constructor(domStorage) {
         super(i18nString(UIStrings.domStorage), 'domStoragePanel');
         this.domStorage = domStorage;
+        if (domStorage.storageKey) {
+            this.setStorageKey(domStorage.storageKey);
+        }
         this.element.classList.add('storage-view', 'table');
         const columns = [
             { id: 'key', title: i18nString(UIStrings.key), sortable: false, editable: true, longText: true, weight: 50 },
@@ -123,6 +126,9 @@ export class DOMStorageItemsView extends StorageItemsView {
     setStorage(domStorage) {
         Common.EventTarget.removeEventListeners(this.eventListeners);
         this.domStorage = domStorage;
+        if (domStorage.storageKey) {
+            this.setStorageKey(domStorage.storageKey);
+        }
         this.eventListeners = [
             this.domStorage.addEventListener(DOMStorage.Events.DOMStorageItemsCleared, this.domStorageItemsCleared, this),
             this.domStorage.addEventListener(DOMStorage.Events.DOMStorageItemRemoved, this.domStorageItemRemoved, this),
@@ -177,15 +183,19 @@ export class DOMStorageItemsView extends StorageItemsView {
         }
         const storageData = event.data;
         const childNode = this.dataGrid.rootNode().children.find((child) => child.data.key === storageData.key);
-        if (!childNode || childNode.data.value === storageData.value) {
+        if (!childNode) {
             return;
         }
-        childNode.data.value = storageData.value;
-        childNode.refresh();
+        if (childNode.data.value !== storageData.value) {
+            childNode.data.value = storageData.value;
+            childNode.refresh();
+        }
         if (!childNode.selected) {
             return;
         }
-        void this.previewEntry(childNode);
+        if (this.previewValue !== storageData.value) {
+            void this.previewEntry(childNode);
+        }
         this.setCanDeleteSelected(true);
     }
     showDOMStorageItems(items) {

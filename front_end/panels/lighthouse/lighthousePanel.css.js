@@ -12,8 +12,8 @@ styles.replaceSync(
  */
 
 .toolbar {
-  background-color: var(--color-background-elevation-1);
-  border-bottom: var(--legacy-divider-border);
+  background-color: var(--sys-color-cdt-base-container);
+  border-bottom: 1px solid var(--sys-color-divider);
 }
 
 .lh-root {
@@ -62,6 +62,6 @@ button.view-trace {
   position: absolute;
 }
 
-
+/*# sourceURL=lighthousePanel.css */
 `);
 export default styles;

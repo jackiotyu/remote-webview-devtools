@@ -253,13 +253,13 @@ export class DatabaseQueryView extends Common.ObjectWrapper.eventMixin(UI.Widget
     }
     scrollResultIntoView() {
         this.queryResults[this.queryResults.length - 1].scrollIntoView(false);
-        this.promptElement.scrollIntoView(false);
+        this.promptElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
     }
     appendQueryResult(query) {
         const element = document.createElement('div');
         element.className = 'database-user-query';
         element.tabIndex = -1;
-        UI.ARIAUtils.setAccessibleName(element, i18nString(UIStrings.queryS, { PH1: query }));
+        UI.ARIAUtils.setLabel(element, i18nString(UIStrings.queryS, { PH1: query }));
         this.queryResults.push(element);
         this.updateFocusedItem();
         const userCommandIcon = new IconButton.Icon.Icon();

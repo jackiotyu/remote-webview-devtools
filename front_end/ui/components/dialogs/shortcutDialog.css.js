@@ -80,6 +80,6 @@ styles.replaceSync(
   padding-top: 2px;
 }
 
-
+/*# sourceURL=shortcutDialog.css */
 `);
 export default styles;

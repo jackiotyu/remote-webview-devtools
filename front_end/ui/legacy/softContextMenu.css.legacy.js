@@ -11,15 +11,13 @@ export default {
  */
 
 .soft-context-menu {
-  --override-context-menu-seperator-color: var(--color-details-hairline);
-  --override-context-menu-hover-text-color: rgb(255 255 255);
-
   overflow-y: auto;
   min-width: 160px !important; /* stylelint-disable-line declaration-no-important */
   /* NOTE: Keep padding in sync with padding adjustment in SoftContextMenu.js */
   padding: 4px 0;
-  border: 1px solid var(--color-details-hairline);
-  background-color: var(--color-background);
+  border: 1px solid var(--sys-color-neutral-outline);
+  border-radius: 7px;
+  background-color: var(--sys-color-cdt-base-container);
   box-shadow: var(--drop-shadow);
 }
 
@@ -32,7 +30,6 @@ export default {
   --override-mac-specific-border-top-color: rgb(196 196 196 / 50%);
   --override-mac-specific-background-color: rgb(240 240 240);
   --override-mac-specific-box-shadow: 0 5px 10px rgb(0 0 0 25%);
-  --override-context-menu-seperator-color: rgb(222 222 222);
 
   border: 1px solid var(--override-mac-specific-border-color);
   border-top: 1px solid var(--override-mac-specific-border-top-color);
@@ -52,6 +49,14 @@ export default {
   padding: 3px 7px 3px 8px;
   white-space: nowrap;
   align-items: center;
+
+  &:hover {
+    background-color: var(--sys-color-state-hover-on-subtle);
+
+    [is="ui-icon"] {
+      background: var(--icon-default) !important; /* stylelint-disable-line declaration-no-important */
+    }
+  }
 }
 
 .soft-context-menu-item devtools-icon {
@@ -71,24 +76,8 @@ export default {
 .soft-context-menu-separator > .separator-line {
   margin: 0;
   height: 5px;
-  border-bottom: 1px solid var(--override-context-menu-seperator-color);
+  border-bottom: 1px solid var(--sys-color-divider);
   pointer-events: none;
-}
-
-.soft-context-menu-item-mouse-over {
-  background-color: var(--color-primary-old);
-  color: var(--override-context-menu-hover-text-color);
-}
-
-.soft-context-menu-item-mouse-over devtools-icon {
-  --icon-color: var(--override-context-menu-hover-text-color);
-}
-
-.-theme-with-dark-background .soft-context-menu-item-mouse-over,
-:host-context(.-theme-with-dark-background) .soft-context-menu-item-mouse-over {
-  --override-dark-mode-focus-color: #1a73e8;
-
-  background-color: var(--override-dark-mode-focus-color);
 }
 
 :host:host-context(.platform-mac):host-context(html:not(.-theme-with-dark-background)) .soft-context-menu-item-mouse-over {
@@ -107,10 +96,6 @@ export default {
   text-align: right;
   align-self: center;
   margin-left: auto;
-}
-
-.soft-context-menu-item-mouse-over .soft-context-menu-item-checkmark {
-  color: var(--legacy-selection-fg-color);
 }
 
 .soft-context-menu-custom-item {

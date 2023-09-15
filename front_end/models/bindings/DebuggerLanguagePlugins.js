@@ -176,8 +176,6 @@ export class SourceScope {
     #typeNameInternal;
     #iconInternal;
     #objectInternal;
-    #startLocationInternal;
-    #endLocationInternal;
     constructor(callFrame, stopId, type, typeName, icon, plugin) {
         if (icon && new URL(icon).protocol !== 'data:') {
             throw new Error('The icon must be a data:-URL');
@@ -187,8 +185,6 @@ export class SourceScope {
         this.#typeNameInternal = typeName;
         this.#iconInternal = icon;
         this.#objectInternal = new SourceScopeRemoteObject(callFrame, stopId, plugin);
-        this.#startLocationInternal = null;
-        this.#endLocationInternal = null;
     }
     async getVariableValue(name) {
         for (let v = 0; v < this.#objectInternal.variables.length; ++v) {
@@ -218,11 +214,8 @@ export class SourceScope {
     name() {
         return undefined;
     }
-    startLocation() {
-        return this.#startLocationInternal;
-    }
-    endLocation() {
-        return this.#endLocationInternal;
+    range() {
+        return null;
     }
     object() {
         return this.#objectInternal;

@@ -129,14 +129,14 @@ export class FilteredListWidget extends Common.ObjectWrapper.eventMixin(UI.Widge
      * Sets the text prompt's accessible title. By default, it is "Quick open prompt".
      */
     setPromptTitle(title) {
-        UI.ARIAUtils.setAccessibleName(this.inputBoxElement, title);
+        UI.ARIAUtils.setLabel(this.inputBoxElement, title);
     }
     showAsDialog(dialogTitle) {
         if (!dialogTitle) {
             dialogTitle = i18nString(UIStrings.quickOpen);
         }
         this.dialog = new UI.Dialog.Dialog();
-        UI.ARIAUtils.setAccessibleName(this.dialog.contentElement, dialogTitle);
+        UI.ARIAUtils.setLabel(this.dialog.contentElement, dialogTitle);
         this.dialog.setMaxContentSize(new UI.Geometry.Size(504, 340));
         this.dialog.setSizeBehavior("SetExactWidthMaxHeight" /* UI.GlassPane.SizeBehavior.SetExactWidthMaxHeight */);
         this.dialog.setContentPosition(null, 22);

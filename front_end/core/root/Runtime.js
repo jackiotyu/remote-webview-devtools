@@ -101,9 +101,6 @@ export class ExperimentsSupport {
         }
         return result;
     }
-    enabledExperiments() {
-        return this.#experiments.filter(experiment => experiment.isEnabled());
-    }
     setExperimentsSetting(value) {
         if (!self.localStorage) {
             return;
@@ -244,6 +241,11 @@ export var ExperimentName;
     ExperimentName["OUTERMOST_TARGET_SELECTOR"] = "outermostTargetSelector";
     ExperimentName["JS_PROFILER_TEMP_ENABLE"] = "jsProfilerTemporarilyEnable";
     ExperimentName["HIGHLIGHT_ERRORS_ELEMENTS_PANEL"] = "highlightErrorsElementsPanel";
+    ExperimentName["SET_ALL_BREAKPOINTS_EAGERLY"] = "setAllBreakpointsEagerly";
+    ExperimentName["SELF_XSS_WARNING"] = "selfXssWarning";
+    ExperimentName["USE_SOURCE_MAP_SCOPES"] = "useSourceMapScopes";
+    ExperimentName["STORAGE_BUCKETS_TREE"] = "storageBucketsTree";
+    ExperimentName["DELETE_OVERRIDES_TEMP_ENABLE"] = "deleteOverridesTemporarilyEnable";
 })(ExperimentName || (ExperimentName = {}));
 // TODO(crbug.com/1167717): Make this a const enum again
 // eslint-disable-next-line rulesdir/const_enum

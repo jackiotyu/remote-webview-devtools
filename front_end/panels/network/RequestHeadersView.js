@@ -174,7 +174,7 @@ const UIStrings = {
     /**
      *@description Text in Headers View of the Network panel
      */
-    thisDocumentWasBlockedFrom: 'This document was blocked from loading in an `iframe` with a `sandbox` attribute because this document specified a cross-origin opener policy.',
+    thisDocumentWasBlockedFrom: 'The document was blocked from loading in a popup opened by a sandboxed iframe because this document specified a cross-origin opener policy.',
     /**
      *@description Text in Headers View of the Network panel
      */
@@ -183,11 +183,6 @@ const UIStrings = {
      *@description Text in Headers View of the Network panel
      */
     toUseThisResourceFromADifferentOrigin: 'To use this resource from a different origin, the server may relax the cross-origin resource policy response header:',
-    /**
-     *@description Label for a link from the network panel's headers view to the file in which
-     * header overrides are defined in the sources panel.
-     */
-    headerOverrides: 'Header overrides',
 };
 const str_ = i18n.i18n.registerUIStrings('panels/network/RequestHeadersView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
@@ -455,7 +450,7 @@ export class RequestHeadersView extends UI.Widget.VBox {
             statusCodeFragment.createChild('div', 'header-name').textContent = i18nString(UIStrings.statusCode) + ': ';
             statusCodeFragment.createChild('span', 'header-separator');
             const statusCodeImage = statusCodeFragment.createChild('span', 'resource-status-image', 'dt-icon-label');
-            UI.Tooltip.Tooltip.install(statusCodeImage, this.request.statusCode + ' ' + this.request.statusText);
+            UI.Tooltip.Tooltip.install(statusCodeImage, this.request.statusCode + ' ' + this.request.getInferredStatusText());
             if (this.request.statusCode < 300 || this.request.statusCode === 304) {
                 statusCodeImage
                     .data = { iconName: 'checkmark', color: 'var(--icon-checkmark-green)', width: '14px', height: '14px' };
@@ -470,7 +465,7 @@ export class RequestHeadersView extends UI.Widget.VBox {
             }
             requestMethodElement.title = this.formatHeader(i18nString(UIStrings.requestMethod), this.request.requestMethod);
             const statusTextElement = statusCodeFragment.createChild('div', 'header-value source-code');
-            let statusText = this.request.statusCode + ' ' + this.request.statusText;
+            let statusText = this.request.statusCode + ' ' + this.request.getInferredStatusText();
             if (this.request.cachedInMemory()) {
                 statusText += ' ' + i18nString(UIStrings.fromMemoryCache);
                 statusTextElement.classList.add('status-from-cache');
@@ -518,7 +513,7 @@ export class RequestHeadersView extends UI.Widget.VBox {
             button.appendChild(icon);
             button.addEventListener('click', this.#revealHeadersFile.bind(this));
             const span = document.createElement('span');
-            span.textContent = i18nString(UIStrings.headerOverrides);
+            span.textContent = Persistence.NetworkPersistenceManager.HEADERS_FILENAME;
             button.appendChild(span);
         }
     }
