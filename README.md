@@ -4,9 +4,9 @@
 
 - 预览
 
-![Tux, the Linux mascot](/images/devtools-preview.png)
+![devtools-preview](https://cdn.jsdelivr.net/gh/jackiotyu/remote-webview-devtools@0.2.13/images/devtools-preview.png)
 
-- `adb`连接，调试微信webview需要先用微信访问 [http://debugxweb.qq.com/?inspector=true](http://debugxweb.qq.com/?inspector=true)
+- `adb`连接，调试微信webview需要先用微信访问 [http://debugxweb.qq.com/?inspector=true](http://debugxweb.qq.com/?inspector=true), 可以通过侧栏的二维码面板快速扫描
 - 自定义端口搜索可用连接
 - 自定义拦截流程
 
