@@ -246,7 +246,7 @@ export class CSSOverviewCompletedView extends UI.Panel.PanelWithSidebar {
         if (!section) {
             return;
         }
-        section.scrollIntoView();
+        section.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
         // Set focus for keyboard invoked event
         if (!data.isMouseEvent && data.key === 'Enter') {
             const focusableElement = section.querySelector('button, [tabindex="0"]');
@@ -900,7 +900,7 @@ export class ElementNode extends DataGrid.SortableDataGrid.SortableDataGridNode 
                 showNodeIcon.classList.add('show-element');
                 UI.Tooltip.Tooltip.install(showNodeIcon, i18nString(UIStrings.showElement));
                 showNodeIcon.tabIndex = 0;
-                showNodeIcon.onclick = () => frontendNode.scrollIntoView();
+                showNodeIcon.onclick = () => frontendNode.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
                 cell.appendChild(showNodeIcon);
             });
             return cell;

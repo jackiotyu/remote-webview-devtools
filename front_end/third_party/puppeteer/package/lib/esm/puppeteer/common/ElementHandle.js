@@ -82,7 +82,7 @@ export class CDPElementHandle extends ElementHandle {
         catch (error) {
             debugError(error);
             // Fallback to Element.scrollIntoView if DOM.scrollIntoViewIfNeeded is not supported
-            await super.scrollIntoView();
+            await super.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
         }
     }
     /**

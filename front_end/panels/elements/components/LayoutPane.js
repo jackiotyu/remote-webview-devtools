@@ -72,7 +72,7 @@ const nodeToLayoutElement = (node) => {
         enabled: false,
         reveal: () => {
             void Common.Revealer.reveal(node);
-            void node.scrollIntoView();
+            void node.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
         },
         highlight: () => {
             node.highlight();

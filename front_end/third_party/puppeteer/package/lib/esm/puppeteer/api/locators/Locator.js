@@ -221,7 +221,7 @@ export class Locator extends EventEmitter {
         return from(handle.isIntersectingViewport({ threshold: 0 })).pipe(filter(isIntersectingViewport => {
             return !isIntersectingViewport;
         }), mergeMap(() => {
-            return from(handle.scrollIntoView());
+            return from(handle.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' }));
         }), mergeMap(() => {
             return defer(() => {
                 return from(handle.isIntersectingViewport({ threshold: 0 }));

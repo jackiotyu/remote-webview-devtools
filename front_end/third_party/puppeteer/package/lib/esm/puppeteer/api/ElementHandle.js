@@ -878,7 +878,7 @@ export class ElementHandle extends JSHandle {
         })) {
             return;
         }
-        await this.scrollIntoView();
+        await this.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
     }
     /**
      * Resolves to true if the element is visible in the current viewport. If an

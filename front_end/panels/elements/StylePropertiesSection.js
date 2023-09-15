@@ -764,7 +764,7 @@ export class StylePropertiesSection {
             onContainerLinkClick: (event) => {
                 event.preventDefault();
                 void ElementsPanel.instance().revealAndSelectNode(container.containerNode, true, true);
-                void container.containerNode.scrollIntoView();
+                void container.containerNode.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
             },
         };
         containerElement.addEventListener('queriedsizerequested', async () => {

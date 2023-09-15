@@ -618,7 +618,7 @@ export class ElementsTreeElement extends UI.TreeOutline.TreeElement {
         });
     }
     populateScrollIntoView(contextMenu) {
-        contextMenu.viewSection().appendItem(i18nString(UIStrings.scrollIntoView), () => this.nodeInternal.scrollIntoView());
+        contextMenu.viewSection().appendItem(i18nString(UIStrings.scrollIntoView), () => this.nodeInternal.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' }));
     }
     populateTextContextMenu(contextMenu, textNode) {
         if (!this.editing) {

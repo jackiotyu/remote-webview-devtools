@@ -628,7 +628,7 @@ export class ElementsPanel extends UI.Panel.Panel {
             return;
         }
         const treeElement = this.treeElementForNode(searchResult.node);
-        void searchResult.node.scrollIntoView();
+        void searchResult.node.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
         if (treeElement) {
             this.searchConfig && treeElement.highlightSearchResults(this.searchConfig.query);
             treeElement.reveal();
