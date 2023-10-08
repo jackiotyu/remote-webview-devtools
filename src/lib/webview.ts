@@ -47,6 +47,7 @@ export class FrontEndWebviewProvider {
         this.frontEndPath = `${address}/inspector.html`;
         this.tunnel = new CDPTunnel(this.options.ws);
         this.panel.webview.html = this.getWebviewContent();
+        this.panel.webview.onDidReceiveMessage(this.onDidReceiveMessage, this)
 
         webviewMap.set(options.ws, this.panel);
         let dispose = this.panel.onDidDispose(() => {
@@ -58,6 +59,15 @@ export class FrontEndWebviewProvider {
 
     get panelInstance() {
         return this.panel;
+    }
+
+    onDidReceiveMessage(e: any) {
+        if(!e?.command) return;
+        switch(e.command) {
+            case 'openInNewTab':
+                vscode.env.openExternal(vscode.Uri.parse(e.data));
+                break;
+        }
     }
 
     getWebviewContent() {

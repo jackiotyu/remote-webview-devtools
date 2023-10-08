@@ -120,7 +120,11 @@ export class InspectorFrontendHostStub {
         }
     }
     openInNewTab(url) {
-        window.open(url, '_blank');
+        if(!window.isTop) {
+            window.parent.postMessage({ command: 'openInNewTab', data: url }, '*');
+        } else {
+            window.open(url, '_blank');
+        }
     }
     showItemInFolder(fileSystemPath) {
         Common.Console.Console.instance().error('Show item in folder is not enabled in hosted mode. Please inspect using chrome://inspect');
