@@ -3,7 +3,7 @@
   "name": "RemoteWebviewDevtools",
   "displayName": "Remote Webview Devtools/移动端webview调试",
   "description": "快速调试移动端webview",
-  "version": "0.2.14",
+  "version": "0.2.15",
   "engines": {
     "vscode": "^1.63.0"
   },
