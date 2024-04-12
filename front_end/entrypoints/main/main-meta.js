@@ -556,7 +556,7 @@ Common.Settings.registerSettingExtension({
     title: i18nLazyString(UIStrings.theme),
     settingName: 'ui-theme',
     settingType: "enum" /* Common.Settings.SettingType.ENUM */,
-    defaultValue: 'systemPreferred',
+    defaultValue: 'dark',
     reloadRequired: false,
     options: [
         {

@@ -194,7 +194,7 @@ export class ScreencastView extends UI.Widget.VBox {
             return;
         }
         this.isCasting = true;
-        const maxImageDimension = 2048;
+        const maxImageDimension = 8192;
         const dimensions = this.viewportDimensions();
         if (dimensions.width < 0 || dimensions.height < 0) {
             this.isCasting = false;
@@ -203,7 +203,7 @@ export class ScreencastView extends UI.Widget.VBox {
         dimensions.width *= window.devicePixelRatio;
         dimensions.height *= window.devicePixelRatio;
         // Note: startScreencast width and height are expected to be integers so must be floored.
-        this.screenCaptureModel.startScreencast("jpeg" /* Protocol.Page.StartScreencastRequestFormat.Jpeg */, 80, Math.floor(Math.min(maxImageDimension, dimensions.width)), Math.floor(Math.min(maxImageDimension, dimensions.height)), undefined, this.screencastFrame.bind(this), this.screencastVisibilityChanged.bind(this));
+        this.screenCaptureModel.startScreencast("jpeg" /* Protocol.Page.StartScreencastRequestFormat.Jpeg */, 100, Math.floor(Math.min(maxImageDimension, dimensions.width)), Math.floor(Math.min(maxImageDimension, dimensions.height)), undefined, this.screencastFrame.bind(this), this.screencastVisibilityChanged.bind(this));
         if (this.overlayModel) {
             this.overlayModel.setHighlighter(this);
         }

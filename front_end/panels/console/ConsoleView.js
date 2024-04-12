@@ -407,7 +407,7 @@ export class ConsoleView extends UI.Widget.VBox {
         this.timestampsSetting = Common.Settings.Settings.instance().moduleSetting('console-timestamps-enabled');
         this.consoleHistoryAutocompleteSetting =
             Common.Settings.Settings.instance().moduleSetting('console-history-autocomplete');
-        this.selfXssWarningDisabledSetting = Common.Settings.Settings.instance().createSetting('disable-self-xss-warning', false, "Synced" /* Common.Settings.SettingStorageType.Synced */);
+        this.selfXssWarningDisabledSetting = Common.Settings.Settings.instance().createSetting('disable-self-xss-warning', true, "Synced" /* Common.Settings.SettingStorageType.Synced */);
         const settingsPane = new UI.Widget.HBox();
         settingsPane.show(this.contentsElement);
         settingsPane.element.classList.add('console-settings-pane');

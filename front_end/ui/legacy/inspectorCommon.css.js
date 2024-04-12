@@ -125,17 +125,17 @@ body {
 .platform-mac,
 :host-context(.platform-mac) {
   --monospace-font-size: 11px;
-  --monospace-font-family: monospace;
+  --monospace-font-family: menlo, monospace;
   --source-code-font-size: 11px;
-  --source-code-font-family: monospace;
+  --source-code-font-family: menlo, monospace;
 }
 
 .platform-windows,
 :host-context(.platform-windows) {
   --monospace-font-size: 12px;
-  --monospace-font-family: monospace;
+  --monospace-font-family: consolas, lucida console, courier new, monospace;
   --source-code-font-size: 12px;
-  --source-code-font-family: monospace;
+  --source-code-font-family: consolas, lucida console, courier new, monospace;
 }
 
 .platform-linux,
