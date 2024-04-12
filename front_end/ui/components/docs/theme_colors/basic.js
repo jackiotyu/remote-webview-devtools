@@ -83,4 +83,4 @@ function appendStyles(mode) {
 }
 appendStyles('light');
 appendStyles('dark');
-//# map=basic.js.map
+//# sourceMappingURL=basic.js.map

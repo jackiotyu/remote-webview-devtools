@@ -1,8 +1,8 @@
 // Copyright 2020 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import * as FrontendHelpers from '../../../../../test/unittests/front_end/helpers/EnvironmentHelpers.js';
 import * as Common from '../../../../core/common/common.js';
+import * as FrontendHelpers from '../../../../testing/EnvironmentHelpers.js';
 import * as ComponentHelpers from '../../helpers/helpers.js';
 import * as SurveyLink from '../../survey_link/survey_link.js';
 await ComponentHelpers.ComponentServerSetup.setup();
@@ -21,4 +21,4 @@ link.data = {
         setTimeout(callback.bind(undefined, { surveyShown: true }), 1500);
     },
 };
-//# map=basic.js.map
+//# sourceMappingURL=basic.js.map

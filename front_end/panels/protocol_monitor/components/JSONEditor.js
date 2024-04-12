@@ -17,6 +17,7 @@ import * as Menus from '../../../ui/components/menus/menus.js';
 import * as SuggestionInput from '../../../ui/components/suggestion_input/suggestion_input.js';
 import * as UI from '../../../ui/legacy/legacy.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
+import * as VisualLogging from '../../../ui/visual_logging/visual_logging.js';
 import * as ElementsComponents from '../../elements/components/components.js';
 import editorWidgetStyles from './JSONEditor.css.js';
 const { html, Decorators, LitElement, Directives, nothing } = LitHtml;
@@ -76,7 +77,7 @@ const EMPTY_STRING = '<empty_string>';
 export function suggestionFilter(option, query) {
     return option.toLowerCase().includes(query.toLowerCase());
 }
-export let JSONEditor = class JSONEditor extends LitElement {
+let JSONEditor = class JSONEditor extends LitElement {
     static styles = [editorWidgetStyles];
     command = '';
     targetId;
@@ -98,12 +99,12 @@ export let JSONEditor = class JSONEditor extends LitElement {
     }
     connectedCallback() {
         super.connectedCallback();
-        this.#hintPopoverHelper = new UI.PopoverHelper.PopoverHelper(this, event => this.#handlePopoverDescriptions(event));
+        this.#hintPopoverHelper = new UI.PopoverHelper.PopoverHelper(this, event => this.#handlePopoverDescriptions(event), 'protocol-monitor.hint');
         this.#hintPopoverHelper.setDisableOnClick(true);
         this.#hintPopoverHelper.setTimeout(300);
         this.#hintPopoverHelper.setHasPadding(true);
         const targetManager = SDK.TargetManager.TargetManager.instance();
-        targetManager.addEventListener(SDK.TargetManager.Events.AvailableTargetsChanged, this.#handleAvailableTargetsChanged, this);
+        targetManager.addEventListener("AvailableTargetsChanged" /* SDK.TargetManager.Events.AvailableTargetsChanged */, this.#handleAvailableTargetsChanged, this);
         this.#handleAvailableTargetsChanged();
     }
     disconnectedCallback() {
@@ -111,7 +112,7 @@ export let JSONEditor = class JSONEditor extends LitElement {
         this.#hintPopoverHelper?.hidePopover();
         this.#hintPopoverHelper?.dispose();
         const targetManager = SDK.TargetManager.TargetManager.instance();
-        targetManager.removeEventListener(SDK.TargetManager.Events.AvailableTargetsChanged, this.#handleAvailableTargetsChanged, this);
+        targetManager.removeEventListener("AvailableTargetsChanged" /* SDK.TargetManager.Events.AvailableTargetsChanged */, this.#handleAvailableTargetsChanged, this);
     }
     #handleAvailableTargetsChanged() {
         this.targets = SDK.TargetManager.TargetManager.instance().targets();
@@ -149,7 +150,7 @@ export let JSONEditor = class JSONEditor extends LitElement {
                     for (const subParameter of parameter.value) {
                         nestedArrayParameters.push(formatParameterValue(subParameter));
                     }
-                    return nestedArrayParameters.length === 0 ? undefined : nestedArrayParameters;
+                    return nestedArrayParameters.length === 0 ? [] : nestedArrayParameters;
                 }
                 default: {
                     return parameter.value;
@@ -391,7 +392,8 @@ export let JSONEditor = class JSONEditor extends LitElement {
         if (parameter.type === "array" /* ParameterType.Array */) {
             return {
                 ...parameter,
-                value: parameter.value?.map(param => this.#populateParameterDefaults(param)) || [],
+                value: parameter?.optional ? undefined :
+                    parameter.value?.map(param => this.#populateParameterDefaults(param)) || [],
                 isCorrectType: true,
             };
         }
@@ -543,7 +545,7 @@ export let JSONEditor = class JSONEditor extends LitElement {
             optional: type.optional,
             isCorrectType: true,
             typeRef: type.typeRef,
-            value: defaultValueByType.get(type.type),
+            value: type.optional ? undefined : defaultValueByType.get(type.type),
             description: type.description,
         };
     }
@@ -567,6 +569,11 @@ export let JSONEditor = class JSONEditor extends LitElement {
                     if (this.enumsByName.get(typeRef)) {
                         type = "string" /* ParameterType.String */;
                     }
+                }
+                // In case the parameter is an optional array, its value will be undefined so before pushing new value inside,
+                // we reset it to empty array
+                if (!parameter.value) {
+                    parameter.value = [];
                 }
                 parameter.value.push({
                     type: type,
@@ -645,7 +652,7 @@ export let JSONEditor = class JSONEditor extends LitElement {
                 }
                 break;
             case "array" /* ParameterType.Array */:
-                parameter.value = [];
+                parameter.value = parameter.optional ? undefined : [];
                 break;
             default:
                 parameter.value = parameter.optional ? undefined : defaultValueByType.get(parameter.type);
@@ -686,6 +693,7 @@ export let JSONEditor = class JSONEditor extends LitElement {
             .showConnector=${false}
             .position=${"bottom" /* Dialogs.Dialog.DialogVerticalPosition.BOTTOM */}
             .buttonTitle=${targetLabel}
+            jslog=${VisualLogging.dropDown('targets').track({ click: true })}
           >
           ${repeat(this.targets, target => {
             return LitHtml.html `
@@ -724,6 +732,7 @@ export let JSONEditor = class JSONEditor extends LitElement {
             .variant=${"round" /* Buttons.Button.Variant.ROUND */}
             class=${classMap(opts.classMap)}
             @click=${opts.onClick}
+            .jslogContext=${opts.jslogContext}
           ></devtools-button>
         `;
     }
@@ -777,7 +786,7 @@ export let JSONEditor = class JSONEditor extends LitElement {
             const hasNoKeys = parameter.isKeyEditable;
             const isCustomEditorDisplayed = isObject && !hasTypeRef;
             const hasOptions = parameter.type === "string" /* ParameterType.String */ || parameter.type === "boolean" /* ParameterType.Boolean */;
-            const canClearParameter = (isArray && !isParamValueUndefined && parameter.value.length !== 0) || (isObject && !isParamValueUndefined);
+            const canClearParameter = (isArray && !isParamValueUndefined && parameter.value?.length !== 0) || (isObject && !isParamValueUndefined);
             const parametersClasses = {
                 'optional-parameter': parameter.optional,
                 'parameter': true,
@@ -816,6 +825,7 @@ export let JSONEditor = class JSONEditor extends LitElement {
                 iconName: 'plus',
                 onClick: () => this.#handleAddParameter(parameterId),
                 classMap: { 'add-button': true },
+                jslogContext: 'protocol-monitor.add-parameter',
             })}
                       ` : nothing}
 
@@ -826,6 +836,7 @@ export let JSONEditor = class JSONEditor extends LitElement {
                     iconName: 'clear',
                     onClick: () => this.#handleClearParameter(parameter, isParentArray),
                     classMap: { 'clear-button': true },
+                    jslogContext: 'protocol-monitor.reset-to-default-value',
                 }) : nothing}
 
                       <!-- Render the buttons to change the value from undefined to empty string for optional primitive parameters -->
@@ -835,6 +846,7 @@ export let JSONEditor = class JSONEditor extends LitElement {
                     iconName: 'plus',
                     onClick: () => this.#handleAddParameter(parameterId),
                     classMap: { 'add-button': true },
+                    jslogContext: 'protocol-monitor.add-parameter',
                 })}` : nothing}
 
                       <!-- Render the buttons to change the value from undefined to populate the values inside object with their default values -->
@@ -844,6 +856,7 @@ export let JSONEditor = class JSONEditor extends LitElement {
                     iconName: 'plus',
                     onClick: () => this.#handleAddParameter(parameterId),
                     classMap: { 'add-button': true },
+                    jslogContext: 'protocol-monitor.add-parameter',
                 })}` : nothing}
                   </div>
 
@@ -857,6 +870,7 @@ export let JSONEditor = class JSONEditor extends LitElement {
                           .autocomplete=${false}
                           .value=${live(parameter.value ?? '')}
                           .placeholder=${parameter.value === '' ? EMPTY_STRING : `<${defaultValueByType.get(parameter.type)}>`}
+                          .jslogContext=${'parameter-value'}
                           @blur=${handleInputOnBlur}
                           @focus=${handleFocus}
                           @keydown=${handleKeydown}
@@ -867,6 +881,7 @@ export let JSONEditor = class JSONEditor extends LitElement {
                 iconName: 'bin',
                 onClick: () => this.#handleDeleteParameter(parameter, parentParameter),
                 classMap: { deleteButton: true, deleteIcon: true },
+                jslogContext: 'protocol-monitor.delete-parameter',
             })}` : nothing}
 
                     <!-- In case  the parameter is not optional or its value is not undefined render the input -->
@@ -879,6 +894,7 @@ export let JSONEditor = class JSONEditor extends LitElement {
                           .autocomplete=${false}
                           .value=${live(parameter.value ?? '')}
                           .placeholder=${parameter.value === '' ? EMPTY_STRING : `<${defaultValueByType.get(parameter.type)}>`}
+                          .jslogContext=${'parameter-value'}
                           @blur=${handleInputOnBlur}
                           @focus=${handleFocus}
                           @keydown=${handleKeydown}
@@ -891,6 +907,7 @@ export let JSONEditor = class JSONEditor extends LitElement {
                     iconName: 'clear',
                     onClick: () => this.#handleClearParameter(parameter),
                     classMap: { 'clear-button': true },
+                    jslogContext: 'protocol-monitor.reset-to-default-value',
                 })}` : nothing}
 
                     <!-- If the parameter is an object with no predefined keys, renders a button to add key/value pairs to it's value -->
@@ -899,7 +916,8 @@ export let JSONEditor = class JSONEditor extends LitElement {
                 title: i18nString(UIStrings.addCustomProperty),
                 iconName: 'plus',
                 onClick: () => this.#handleAddParameter(parameterId),
-                classMap: { deleteButton: true },
+                classMap: { 'add-button': true },
+                jslogContext: 'protocol-monitor.add-custom-property',
             })}
                     ` : nothing}
 
@@ -913,6 +931,7 @@ export let JSONEditor = class JSONEditor extends LitElement {
                       .autocomplete=${false}
                       .value=${live(parameter.value ?? '')}
                       .placeholder=${parameter.value === '' ? EMPTY_STRING : `<${defaultValueByType.get(parameter.type)}>`}
+                      .jslogContext=${'parameter'}
                       @blur=${handleInputOnBlur}
                       @keydown=${handleKeydown}
                       class=${classMap(inputClasses)}
@@ -923,6 +942,7 @@ export let JSONEditor = class JSONEditor extends LitElement {
                 iconName: 'bin',
                 onClick: () => this.#handleDeleteParameter(parameter, parentParameter),
                 classMap: { 'delete-button': true },
+                jslogContext: 'protocol-monitor.delete-parameter',
             })}` : nothing}
                   </div>
                 </li>
@@ -945,6 +965,7 @@ export let JSONEditor = class JSONEditor extends LitElement {
           .value=${this.command}
           .placeholder=${'Enter your command...'}
           .suggestionFilter=${suggestionFilter}
+          .jslogContext=${'command'}
           @blur=${this.#handleCommandInputBlur}
           class=${classMap({ 'json-input': true })}
         ></devtools-suggestion-input>
@@ -984,4 +1005,5 @@ __decorate([
 JSONEditor = __decorate([
     customElement('devtools-json-editor')
 ], JSONEditor);
-//# map=JSONEditor.js.map
+export { JSONEditor };
+//# sourceMappingURL=JSONEditor.js.map

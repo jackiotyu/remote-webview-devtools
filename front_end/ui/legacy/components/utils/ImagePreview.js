@@ -141,8 +141,6 @@ export class ImagePreview {
         if (!object) {
             return;
         }
-        // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
-        // @ts-expect-error
         const featuresObject = await object.callFunctionJSON(features, undefined);
         object.release();
         return featuresObject;
@@ -160,4 +158,4 @@ export class ImagePreview {
         return i18nString(UIStrings.imageFromS, { PH1: imageSourceText });
     }
 }
-//# map=ImagePreview.js.map
+//# sourceMappingURL=ImagePreview.js.map

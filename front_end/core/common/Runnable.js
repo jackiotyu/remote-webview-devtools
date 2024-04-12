@@ -22,4 +22,4 @@ export function registerEarlyInitializationRunnable(runnable) {
 export function earlyInitializationRunnables() {
     return registeredEarlyInitializationRunnables;
 }
-//# map=Runnable.js.map
+//# sourceMappingURL=Runnable.js.map

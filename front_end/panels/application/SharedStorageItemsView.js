@@ -3,12 +3,12 @@
 // found in the LICENSE file.
 import * as Common from '../../core/common/common.js';
 import * as i18n from '../../core/i18n/i18n.js';
+import * as LegacyWrapper from '../../ui/components/legacy_wrapper/legacy_wrapper.js';
 import * as DataGrid from '../../ui/legacy/components/data_grid/data_grid.js';
 import * as SourceFrame from '../../ui/legacy/components/source_frame/source_frame.js';
 import * as UI from '../../ui/legacy/legacy.js';
-import * as LegacyWrapper from '../../ui/components/legacy_wrapper/legacy_wrapper.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import * as ApplicationComponents from './components/components.js';
-import { SharedStorageForOrigin } from './SharedStorageModel.js';
 import { StorageItemsView } from './StorageItemsView.js';
 const UIStrings = {
     /**
@@ -61,19 +61,6 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/application/SharedStorageItemsView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-export var SharedStorageItemsDispatcher;
-(function (SharedStorageItemsDispatcher) {
-    // TODO(crbug.com/1167717): Make this a const enum.
-    // eslint-disable-next-line rulesdir/const_enum
-    let Events;
-    (function (Events) {
-        Events["FilteredItemsCleared"] = "FilteredItemsCleared";
-        Events["ItemDeleted"] = "ItemDeleted";
-        Events["ItemEdited"] = "ItemEdited";
-        Events["ItemsCleared"] = "ItemsCleared";
-        Events["ItemsRefreshed"] = "ItemsRefreshed";
-    })(Events = SharedStorageItemsDispatcher.Events || (SharedStorageItemsDispatcher.Events = {}));
-})(SharedStorageItemsDispatcher || (SharedStorageItemsDispatcher = {}));
 export class SharedStorageItemsView extends StorageItemsView {
     #sharedStorage;
     outerSplitWidget;
@@ -98,29 +85,30 @@ export class SharedStorageItemsView extends StorageItemsView {
             deleteCallback: this.#deleteCallback.bind(this),
             refreshCallback: this.refreshItems.bind(this),
         });
-        this.dataGrid.addEventListener(DataGrid.DataGrid.Events.SelectedNode, event => {
+        this.dataGrid.addEventListener("SelectedNode" /* DataGrid.DataGrid.Events.SelectedNode */, event => {
             void this.#previewEntry(event.data);
         });
-        this.dataGrid.addEventListener(DataGrid.DataGrid.Events.DeselectedNode, () => {
+        this.dataGrid.addEventListener("DeselectedNode" /* DataGrid.DataGrid.Events.DeselectedNode */, () => {
             void this.#previewEntry(null);
         });
         this.dataGrid.setStriped(true);
-        this.dataGrid.setName('SharedStorageItemsView');
+        this.dataGrid.setName('shared-storage-items-view');
         const dataGridWidget = this.dataGrid.asWidget();
         dataGridWidget.setMinimumSize(0, 100);
         this.#metadataView = LegacyWrapper.LegacyWrapper.legacyWrapper(UI.Widget.VBox, new ApplicationComponents.SharedStorageMetadataView.SharedStorageMetadataView(sharedStorage, sharedStorage.securityOrigin));
         this.#metadataView.setMinimumSize(0, 275);
         const innerResizer = this.#metadataView.element.createChild('div', 'metadata-view-resizer');
         this.innerSplitWidget = new UI.SplitWidget.SplitWidget(
-        /* isVertical: */ false, /* secondIsSidebar: */ false, 'sharedStorageInnerSplitViewState');
+        /* isVertical: */ false, /* secondIsSidebar: */ false, 'shared-storage-inner-split-view-state');
         this.innerSplitWidget.setSidebarWidget(this.#metadataView);
         this.innerSplitWidget.setMainWidget(dataGridWidget);
         this.innerSplitWidget.installResizer(innerResizer);
         this.#noDisplayView = new UI.Widget.VBox();
         this.#noDisplayView.setMinimumSize(0, 25);
+        this.#noDisplayView.element.setAttribute('jslog', `${VisualLogging.pane('preview').track({ resize: true })}`);
         const outerResizer = this.#noDisplayView.element.createChild('div', 'preview-panel-resizer');
         this.outerSplitWidget = new UI.SplitWidget.SplitWidget(
-        /* isVertical: */ false, /* secondIsSidebar: */ true, 'sharedStorageOuterSplitViewState');
+        /* isVertical: */ false, /* secondIsSidebar: */ true, 'shared-storage-outer-split-view-state');
         this.outerSplitWidget.show(this.element);
         this.outerSplitWidget.setMainWidget(this.innerSplitWidget);
         this.outerSplitWidget.setSidebarWidget(this.#noDisplayView);
@@ -132,7 +120,7 @@ export class SharedStorageItemsView extends StorageItemsView {
         Common.EventTarget.removeEventListeners(this.#eventListeners);
         this.#sharedStorage = sharedStorage;
         this.#eventListeners = [
-            this.#sharedStorage.addEventListener(SharedStorageForOrigin.Events.SharedStorageChanged, this.#sharedStorageChanged, this),
+            this.#sharedStorage.addEventListener("SharedStorageChanged" /* SharedStorageForOrigin.Events.SharedStorageChanged */, this.#sharedStorageChanged, this),
         ];
         this.sharedStorageItemsDispatcher =
             new Common.ObjectWrapper.ObjectWrapper();
@@ -161,7 +149,7 @@ export class SharedStorageItemsView extends StorageItemsView {
         }
         await this.#metadataView.getComponent().render();
         await this.updateEntriesOnly();
-        this.sharedStorageItemsDispatcher.dispatchEventToListeners(SharedStorageItemsDispatcher.Events.ItemsRefreshed);
+        this.sharedStorageItemsDispatcher.dispatchEventToListeners("ItemsRefreshed" /* SharedStorageItemsDispatcher.Events.ItemsRefreshed */);
     }
     async deleteSelectedItem() {
         if (!this.dataGrid.selectedNode) {
@@ -173,7 +161,7 @@ export class SharedStorageItemsView extends StorageItemsView {
         if (!this.hasFilter()) {
             await this.#sharedStorage.clear();
             await this.refreshItems();
-            this.sharedStorageItemsDispatcher.dispatchEventToListeners(SharedStorageItemsDispatcher.Events.ItemsCleared);
+            this.sharedStorageItemsDispatcher.dispatchEventToListeners("ItemsCleared" /* SharedStorageItemsDispatcher.Events.ItemsCleared */);
             UI.ARIAUtils.alert(i18nString(UIStrings.sharedStorageItemsCleared));
             return;
         }
@@ -181,7 +169,7 @@ export class SharedStorageItemsView extends StorageItemsView {
             .children.filter(node => node.data.key)
             .map(node => this.#sharedStorage.deleteEntry(node.data.key)));
         await this.refreshItems();
-        this.sharedStorageItemsDispatcher.dispatchEventToListeners(SharedStorageItemsDispatcher.Events.FilteredItemsCleared);
+        this.sharedStorageItemsDispatcher.dispatchEventToListeners("FilteredItemsCleared" /* SharedStorageItemsDispatcher.Events.FilteredItemsCleared */);
         UI.ARIAUtils.alert(i18nString(UIStrings.sharedStorageFilteredItemsCleared));
     }
     async #editingCallback(editingNode, columnIdentifier, oldText, newText) {
@@ -200,7 +188,7 @@ export class SharedStorageItemsView extends StorageItemsView {
             await this.#sharedStorage.setEntry(editingNode.data.key || ' ', newText, false);
         }
         await this.refreshItems();
-        this.sharedStorageItemsDispatcher.dispatchEventToListeners(SharedStorageItemsDispatcher.Events.ItemEdited, { columnIdentifier, oldText, newText });
+        this.sharedStorageItemsDispatcher.dispatchEventToListeners("ItemEdited" /* SharedStorageItemsDispatcher.Events.ItemEdited */, { columnIdentifier, oldText, newText });
         UI.ARIAUtils.alert(i18nString(UIStrings.sharedStorageItemEdited));
     }
     #showSharedStorageItems(items) {
@@ -232,7 +220,7 @@ export class SharedStorageItemsView extends StorageItemsView {
         const key = node.data.key;
         await this.#sharedStorage.deleteEntry(key);
         await this.refreshItems();
-        this.sharedStorageItemsDispatcher.dispatchEventToListeners(SharedStorageItemsDispatcher.Events.ItemDeleted, { key });
+        this.sharedStorageItemsDispatcher.dispatchEventToListeners("ItemDeleted" /* SharedStorageItemsDispatcher.Events.ItemDeleted */, { key });
         UI.ARIAUtils.alert(i18nString(UIStrings.sharedStorageItemDeleted));
     }
     async #previewEntry(entry) {
@@ -244,6 +232,7 @@ export class SharedStorageItemsView extends StorageItemsView {
             // Selection could've changed while the preview was loaded
             if (entry.selected) {
                 this.outerSplitWidget.setSidebarWidget(preview);
+                preview.element.setAttribute('jslog', `${VisualLogging.pane('preview').track({ resize: true })}`);
             }
         }
         else {
@@ -256,4 +245,4 @@ export class SharedStorageItemsView extends StorageItemsView {
             .map(node => node.data);
     }
 }
-//# map=SharedStorageItemsView.js.map
+//# sourceMappingURL=SharedStorageItemsView.js.map

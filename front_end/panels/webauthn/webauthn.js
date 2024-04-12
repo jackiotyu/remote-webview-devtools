@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as WebauthnPane from './WebauthnPane.js';
 export { WebauthnPane };
-//# map=webauthn.js.map
+//# sourceMappingURL=webauthn.js.map

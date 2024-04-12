@@ -7,11 +7,12 @@ import * as i18n from '../../core/i18n/i18n.js';
 import * as SDK from '../../core/sdk/sdk.js';
 import * as NetworkForward from '../../panels/network/forward/forward.js';
 import * as UI from '../../ui/legacy/legacy.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import lockIconStyles from './lockIcon.css.js';
 import mainViewStyles from './mainView.css.js';
 import originViewStyles from './originView.css.js';
+import { Events, SecurityModel, securityStateCompare, SecurityStyleExplanation, SummaryMessages, } from './SecurityModel.js';
 import sidebarStyles from './sidebar.css.js';
-import { Events, SecurityModel, SecurityStyleExplanation, SummaryMessages, } from './SecurityModel.js';
 const UIStrings = {
     /**
      *@description Title text content in Security Panel of the Security panel
@@ -503,7 +504,7 @@ export class SecurityPanel extends UI.Panel.PanelWithSidebar {
             if (names.length > 0) {
                 Host.InspectorFrontendHost.InspectorFrontendHostInstance.showCertificateViewer(names);
             }
-        }, 'origin-button');
+        }, { className: 'origin-button', jslogContext: 'security.view-certificate-for-origin' });
         UI.ARIAUtils.markAsButton(certificateButton);
         return certificateButton;
     }
@@ -511,7 +512,7 @@ export class SecurityPanel extends UI.Panel.PanelWithSidebar {
         const certificateButton = UI.UIUtils.createTextButton(text, e => {
             e.consume();
             Host.InspectorFrontendHost.InspectorFrontendHostInstance.showCertificateViewer(names);
-        }, 'origin-button');
+        }, { className: 'origin-button', jslogContext: 'security.view-certificate' });
         UI.ARIAUtils.markAsButton(certificateButton);
         return certificateButton;
     }
@@ -593,9 +594,8 @@ export class SecurityPanel extends UI.Panel.PanelWithSidebar {
         }
         const originState = this.origins.get(origin);
         if (originState) {
-            const oldSecurityState = originState.securityState;
-            originState.securityState = this.securityStateMin(oldSecurityState, securityState);
-            if (oldSecurityState !== originState.securityState) {
+            if (securityStateCompare(securityState, originState.securityState) < 0) {
+                originState.securityState = securityState;
                 const securityDetails = request.securityDetails();
                 if (securityDetails) {
                     originState.securityDetails = securityDetails;
@@ -630,15 +630,15 @@ export class SecurityPanel extends UI.Panel.PanelWithSidebar {
         if (request.mixedContentType === "none" /* Protocol.Security.MixedContentType.None */) {
             return;
         }
-        let filterKey = NetworkForward.UIFilter.MixedContentFilterValues.All;
+        let filterKey = "all" /* NetworkForward.UIFilter.MixedContentFilterValues.All */;
         if (request.wasBlocked()) {
-            filterKey = NetworkForward.UIFilter.MixedContentFilterValues.Blocked;
+            filterKey = "blocked" /* NetworkForward.UIFilter.MixedContentFilterValues.Blocked */;
         }
         else if (request.mixedContentType === "blockable" /* Protocol.Security.MixedContentType.Blockable */) {
-            filterKey = NetworkForward.UIFilter.MixedContentFilterValues.BlockOverridden;
+            filterKey = "block-overridden" /* NetworkForward.UIFilter.MixedContentFilterValues.BlockOverridden */;
         }
         else if (request.mixedContentType === "optionally-blockable" /* Protocol.Security.MixedContentType.OptionallyBlockable */) {
-            filterKey = NetworkForward.UIFilter.MixedContentFilterValues.Displayed;
+            filterKey = "displayed" /* NetworkForward.UIFilter.MixedContentFilterValues.Displayed */;
         }
         const currentCount = this.filterRequestCounts.get(filterKey);
         if (!currentCount) {
@@ -651,9 +651,6 @@ export class SecurityPanel extends UI.Panel.PanelWithSidebar {
     }
     filterRequestCount(filterKey) {
         return this.filterRequestCounts.get(filterKey) || 0;
-    }
-    securityStateMin(stateA, stateB) {
-        return SecurityModel.SecurityStateComparator(stateA, stateB) < 0 ? stateA : stateB;
     }
     modelAdded(securityModel) {
         if (securityModel.target() !== securityModel.target().outermostTarget()) {
@@ -839,8 +836,6 @@ export class SecurityPanelSidebarTree extends UI.TreeOutline.TreeOutlineInShadow
     wasShown() {
     }
 }
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
 export var OriginGroup;
 (function (OriginGroup) {
     OriginGroup["MainOrigin"] = "MainOrigin";
@@ -890,6 +885,7 @@ export class SecurityMainView extends UI.Widget.VBox {
     securityState;
     constructor(panel) {
         super(true);
+        this.element.setAttribute('jslog', `${VisualLogging.pane('security.main-view')}`);
         this.setMinimumSize(200, 100);
         this.contentElement.classList.add('security-main-view');
         this.panel = panel;
@@ -1164,10 +1160,10 @@ export class SecurityMainView extends UI.Widget.VBox {
             else {
                 switch (explanation.mixedContentType) {
                     case "blockable" /* Protocol.Security.MixedContentType.Blockable */:
-                        this.addMixedContentExplanation(this.securityExplanationsMain, explanation, NetworkForward.UIFilter.MixedContentFilterValues.BlockOverridden);
+                        this.addMixedContentExplanation(this.securityExplanationsMain, explanation, "block-overridden" /* NetworkForward.UIFilter.MixedContentFilterValues.BlockOverridden */);
                         break;
                     case "optionally-blockable" /* Protocol.Security.MixedContentType.OptionallyBlockable */:
-                        this.addMixedContentExplanation(this.securityExplanationsMain, explanation, NetworkForward.UIFilter.MixedContentFilterValues.Displayed);
+                        this.addMixedContentExplanation(this.securityExplanationsMain, explanation, "displayed" /* NetworkForward.UIFilter.MixedContentFilterValues.Displayed */);
                         break;
                     default:
                         this.addExplanation(this.securityExplanationsMain, explanation);
@@ -1175,7 +1171,7 @@ export class SecurityMainView extends UI.Widget.VBox {
                 }
             }
         }
-        if (this.panel.filterRequestCount(NetworkForward.UIFilter.MixedContentFilterValues.Blocked) > 0) {
+        if (this.panel.filterRequestCount("blocked" /* NetworkForward.UIFilter.MixedContentFilterValues.Blocked */) > 0) {
             const explanation = {
                 securityState: "info" /* Protocol.Security.SecurityState.Info */,
                 summary: i18nString(UIStrings.blockedMixedContent),
@@ -1184,7 +1180,7 @@ export class SecurityMainView extends UI.Widget.VBox {
                 certificate: [],
                 title: '',
             };
-            this.addMixedContentExplanation(this.securityExplanationsMain, explanation, NetworkForward.UIFilter.MixedContentFilterValues.Blocked);
+            this.addMixedContentExplanation(this.securityExplanationsMain, explanation, "blocked" /* NetworkForward.UIFilter.MixedContentFilterValues.Blocked */);
         }
     }
     addMixedContentExplanation(parent, explanation, filterKey) {
@@ -1200,16 +1196,11 @@ export class SecurityMainView extends UI.Widget.VBox {
             refreshPrompt.textContent = i18nString(UIStrings.reloadThePageToRecordRequestsFor);
             return;
         }
-        const requestsAnchor = element.createChild('div', 'security-mixed-content devtools-link');
+        const requestsAnchor = element.createChild('button', 'security-mixed-content devtools-link text-button link-style');
         UI.ARIAUtils.markAsLink(requestsAnchor);
         requestsAnchor.tabIndex = 0;
         requestsAnchor.textContent = i18nString(UIStrings.viewDRequestsInNetworkPanel, { n: filterRequestCount });
         requestsAnchor.addEventListener('click', this.showNetworkFilter.bind(this, filterKey));
-        requestsAnchor.addEventListener('keydown', event => {
-            if (event.key === 'Enter') {
-                this.showNetworkFilter(filterKey, event);
-            }
-        });
     }
     showNetworkFilter(filterKey, e) {
         e.consume();
@@ -1225,6 +1216,7 @@ export class SecurityOriginView extends UI.Widget.VBox {
     originLockIcon;
     constructor(panel, origin, originState) {
         super();
+        this.element.setAttribute('jslog', `${VisualLogging.pane('security.origin-view')}`);
         this.panel = panel;
         this.setMinimumSize(200, 100);
         this.element.classList.add('security-origin-view');
@@ -1244,7 +1236,7 @@ export class SecurityOriginView extends UI.Widget.VBox {
                 { filterType: NetworkForward.UIFilter.FilterType.Domain, filterValue: parsedURL.host },
                 { filterType: NetworkForward.UIFilter.FilterType.Scheme, filterValue: parsedURL.scheme },
             ]));
-        });
+        }, { jslogContext: 'reveal-in-network' });
         originNetworkDiv.appendChild(originNetworkButton);
         UI.ARIAUtils.markAsLink(originNetworkButton);
         if (originState.securityDetails) {
@@ -1364,7 +1356,7 @@ export class SecurityOriginView extends UI.Widget.VBox {
                     sctSummaryTable.element().classList.toggle('hidden');
                     sctTableWrapper.classList.toggle('hidden');
                 }
-                const toggleSctsDetailsLink = UI.UIUtils.createTextButton(i18nString(UIStrings.showFullDetails), toggleSctDetailsDisplay, 'details-toggle');
+                const toggleSctsDetailsLink = UI.UIUtils.createTextButton(i18nString(UIStrings.showFullDetails), toggleSctDetailsDisplay, { className: 'details-toggle', jslogContext: 'security.toggle-scts-details' });
                 sctSection.appendChild(toggleSctsDetailsLink);
             }
             switch (ctCompliance) {
@@ -1442,7 +1434,7 @@ export class SecurityOriginView extends UI.Widget.VBox {
                     UI.ARIAUtils.setLabel(truncatedSANToggle, buttonText);
                     UI.ARIAUtils.setExpanded(truncatedSANToggle, isTruncated);
                 }
-                const truncatedSANToggle = UI.UIUtils.createTextButton(i18nString(UIStrings.showMoreSTotal, { PH1: sanList.length }), toggleSANTruncation);
+                const truncatedSANToggle = UI.UIUtils.createTextButton(i18nString(UIStrings.showMoreSTotal, { PH1: sanList.length }), toggleSANTruncation, { jslogContext: 'security.toggle-san-truncation' });
                 sanDiv.appendChild(truncatedSANToggle);
                 toggleSANTruncation();
             }
@@ -1483,4 +1475,4 @@ export class SecurityDetailsTable {
         }
     }
 }
-//# map=SecurityPanel.js.map
+//# sourceMappingURL=SecurityPanel.js.map

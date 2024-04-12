@@ -27,4 +27,4 @@ export function init() {
         document.body.appendChild(button);
     });
 }
-//# map=toggle_dark_mode.js.map
+//# sourceMappingURL=toggle_dark_mode.js.map

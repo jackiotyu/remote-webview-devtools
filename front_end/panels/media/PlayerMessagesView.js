@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 import * as i18n from '../../core/i18n/i18n.js';
 import * as UI from '../../ui/legacy/legacy.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import playerMessagesViewStyles from './playerMessagesView.css.js';
 const UIStrings = {
     /**
@@ -177,7 +178,7 @@ class MessageLevelSelector {
     }
     createElementForItem(item) {
         const element = document.createElement('div');
-        const shadowRoot = UI.Utils.createShadowRootWithCoreStyles(element, { cssFile: [playerMessagesViewStyles], delegatesFocus: undefined });
+        const shadowRoot = UI.UIUtils.createShadowRootWithCoreStyles(element, { cssFile: [playerMessagesViewStyles], delegatesFocus: undefined });
         const container = shadowRoot.createChild('div', 'media-messages-level-dropdown-element');
         const checkBox = container.createChild('div', 'media-messages-level-dropdown-checkbox');
         const text = container.createChild('span', 'media-messages-level-dropdown-text');
@@ -204,6 +205,7 @@ export class PlayerMessagesView extends UI.Widget.VBox {
     messageLevelSelector;
     constructor() {
         super();
+        this.element.setAttribute('jslog', `${VisualLogging.pane('messages')}`);
         this.headerPanel = this.contentElement.createChild('div', 'media-messages-header');
         this.bodyPanel = this.contentElement.createChild('div', 'media-messages-body');
         this.buildToolbar();
@@ -218,7 +220,7 @@ export class PlayerMessagesView extends UI.Widget.VBox {
     createDropdown() {
         const items = new UI.ListModel.ListModel();
         this.messageLevelSelector = new MessageLevelSelector(items, this);
-        const dropDown = new UI.SoftDropDown.SoftDropDown(items, this.messageLevelSelector);
+        const dropDown = new UI.SoftDropDown.SoftDropDown(items, this.messageLevelSelector, 'log-level');
         dropDown.setRowHeight(18);
         this.messageLevelSelector.populate();
         this.messageLevelSelector.setDefault(dropDown);
@@ -231,7 +233,7 @@ export class PlayerMessagesView extends UI.Widget.VBox {
     }
     createFilterInput() {
         const filterInput = new UI.Toolbar.ToolbarInput(i18nString(UIStrings.filterLogMessages));
-        filterInput.addEventListener(UI.Toolbar.ToolbarInput.Event.TextChanged, (data) => {
+        filterInput.addEventListener("TextChanged" /* UI.Toolbar.ToolbarInput.Event.TextChanged */, (data) => {
             this.filterByString(data);
         }, this);
         return filterInput;
@@ -328,4 +330,4 @@ export class PlayerMessagesView extends UI.Widget.VBox {
         this.registerCSSFiles([playerMessagesViewStyles]);
     }
 }
-//# map=PlayerMessagesView.js.map
+//# sourceMappingURL=PlayerMessagesView.js.map

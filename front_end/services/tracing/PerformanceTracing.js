@@ -72,4 +72,4 @@ export class RawTraceEvents {
         return this.events;
     }
 }
-//# map=PerformanceTracing.js.map
+//# sourceMappingURL=PerformanceTracing.js.map

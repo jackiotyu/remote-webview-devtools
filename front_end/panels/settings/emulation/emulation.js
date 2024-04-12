@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as DevicesSettingsTab from './DevicesSettingsTab.js';
 export { DevicesSettingsTab, };
-//# map=emulation.js.map
+//# sourceMappingURL=emulation.js.map

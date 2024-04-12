@@ -77,4 +77,4 @@ export const secondsToString = function (seconds, higherResolution) {
     }
     return millisToString(seconds * 1000, higherResolution);
 };
-//# map=time-utilities.js.map
+//# sourceMappingURL=time-utilities.js.map

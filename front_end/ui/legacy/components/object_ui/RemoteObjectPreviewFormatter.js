@@ -303,4 +303,4 @@ export const createSpanForTrustedType = function (span, description, className) 
     UI.UIUtils.createTextChildren(trustedContentSpan, '"', description.replace(/\n/g, '\u21B5'), '"');
     span.appendChild(trustedContentSpan);
 };
-//# map=RemoteObjectPreviewFormatter.js.map
+//# sourceMappingURL=RemoteObjectPreviewFormatter.js.map

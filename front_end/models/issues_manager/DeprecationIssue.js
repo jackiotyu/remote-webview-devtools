@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 import * as i18n from '../../core/i18n/i18n.js';
 import * as Deprecation from '../../generated/Deprecation.js';
-import { Issue, IssueCategory, IssueKind } from './Issue.js';
+import { Issue } from './Issue.js';
 import { resolveLazyDescription } from './MarkdownIssueDescription.js';
 const UIStrings = {
     /**
@@ -18,7 +18,7 @@ const UIStrings = {
     /**
      * @description Title of issue raised when a deprecated feature is used
      */
-    title: 'Deprecated Feature Used',
+    title: 'Deprecated feature used',
 };
 const str_ = i18n.i18n.registerUIStrings('models/issues_manager/DeprecationIssue.ts', UIStrings);
 const i18nLazyString = i18n.i18n.getLazilyComputedLocalizedString.bind(undefined, str_);
@@ -36,7 +36,7 @@ export class DeprecationIssue extends Issue {
         this.#issueDetails = issueDetails;
     }
     getCategory() {
-        return IssueCategory.Other;
+        return "Other" /* IssueCategory.Other */;
     }
     details() {
         return this.#issueDetails;
@@ -82,7 +82,7 @@ export class DeprecationIssue extends Issue {
         return JSON.stringify(this.#issueDetails);
     }
     getKind() {
-        return IssueKind.BreakingChange;
+        return "BreakingChange" /* IssueKind.BreakingChange */;
     }
     static fromInspectorIssue(issuesModel, inspectorIssue) {
         const details = inspectorIssue.details.deprecationIssueDetails;
@@ -93,4 +93,4 @@ export class DeprecationIssue extends Issue {
         return [new DeprecationIssue(details, issuesModel)];
     }
 }
-//# map=DeprecationIssue.js.map
+//# sourceMappingURL=DeprecationIssue.js.map

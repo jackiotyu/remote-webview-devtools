@@ -31,9 +31,9 @@ const UIStrings = {
      */
     error: 'Error',
     /**
-     *@description Title for the developer resources tab
+     *@description Title for the Developer resources tab
      */
-    developerResources: 'Developer Resources',
+    developerResources: 'Developer resources',
     /**
      *@description Text for a context menu entry
      */
@@ -82,10 +82,10 @@ export class DeveloperResourcesListView extends UI.Widget.VBox {
                 width: '80px',
                 fixedWidth: true,
                 sortable: true,
-                align: DataGrid.DataGrid.Align.Right,
+                align: "right" /* DataGrid.DataGrid.Align.Right */,
             },
             {
-                id: 'errorMessage',
+                id: 'error-message',
                 title: i18nString(UIStrings.error),
                 width: '200px',
                 fixedWidth: false,
@@ -99,23 +99,36 @@ export class DeveloperResourcesListView extends UI.Widget.VBox {
             refreshCallback: undefined,
             deleteCallback: undefined,
         });
-        this.dataGrid.setResizeMethod(DataGrid.DataGrid.ResizeMethod.Last);
+        this.dataGrid.setResizeMethod("last" /* DataGrid.DataGrid.ResizeMethod.Last */);
+        this.dataGrid.setStriped(true);
         this.dataGrid.element.classList.add('flex-auto');
-        this.dataGrid.addEventListener(DataGrid.DataGrid.Events.SortingChanged, this.sortingChanged, this);
+        this.dataGrid.addEventListener("SortingChanged" /* DataGrid.DataGrid.Events.SortingChanged */, this.sortingChanged, this);
         this.dataGrid.setRowContextMenuCallback(this.populateContextMenu.bind(this));
         const dataGridWidget = this.dataGrid.asWidget();
         dataGridWidget.show(this.contentElement);
         this.setDefaultFocusedChild(dataGridWidget);
     }
+    select(item) {
+        const node = this.nodeForItem.get(item);
+        if (node) {
+            node.select();
+        }
+    }
+    selectedItem() {
+        if (!this.dataGrid.selectedNode) {
+            return null;
+        }
+        return this.dataGrid.selectedNode.item;
+    }
     populateContextMenu(contextMenu, gridNode) {
         const item = gridNode.item;
         contextMenu.clipboardSection().appendItem(i18nString(UIStrings.copyUrl), () => {
             Host.InspectorFrontendHost.InspectorFrontendHostInstance.copyText(item.url);
-        });
+        }, { jslogContext: 'copy-url' });
         if (item.initiator.initiatorUrl) {
             contextMenu.clipboardSection().appendItem(i18nString(UIStrings.copyInitiatorUrl), () => {
                 Host.InspectorFrontendHost.InspectorFrontendHostInstance.copyText(item.initiator.initiatorUrl);
-            });
+            }, { jslogContext: 'copy-initiator-url' });
         }
     }
     update(items) {
@@ -253,7 +266,7 @@ class GridNode extends DataGrid.SortableDataGrid.SortableDataGridNode {
                 }
                 break;
             }
-            case 'errorMessage': {
+            case 'error-message': {
                 cell.classList.add('error-message');
                 if (this.item.errorMessage) {
                     cell.textContent = this.item.errorMessage;
@@ -290,7 +303,7 @@ class GridNode extends DataGrid.SortableDataGrid.SortableDataGridNode {
                 return (a, b) => nullToNegative(a.item.size) - nullToNegative(b.item.size);
             case 'initiator':
                 return (a, b) => (a.item.initiator.initiatorUrl || '').localeCompare(b.item.initiator.initiatorUrl || '');
-            case 'errorMessage':
+            case 'error-message':
                 return (a, b) => (a.item.errorMessage || '').localeCompare(b.item.errorMessage || '');
             default:
                 console.assert(false, 'Unknown sort field: ' + columnId);
@@ -298,4 +311,4 @@ class GridNode extends DataGrid.SortableDataGrid.SortableDataGridNode {
         }
     }
 }
-//# map=DeveloperResourcesListView.js.map
+//# sourceMappingURL=DeveloperResourcesListView.js.map

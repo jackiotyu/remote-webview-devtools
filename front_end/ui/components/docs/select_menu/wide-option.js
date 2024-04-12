@@ -33,4 +33,4 @@ function makeMenu(id) {
 }
 makeMenu('width-150');
 makeMenu('width-400');
-//# map=wide-option.js.map
+//# sourceMappingURL=wide-option.js.map

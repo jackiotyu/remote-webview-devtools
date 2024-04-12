@@ -36,4 +36,4 @@ window.setInterval(() => {
         rows: [...component.data.rows, randomDataRow],
     };
 }, 2000);
-//# map=sticky-headers.js.map
+//# sourceMappingURL=sticky-headers.js.map

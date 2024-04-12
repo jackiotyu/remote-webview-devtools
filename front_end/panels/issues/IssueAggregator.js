@@ -19,8 +19,9 @@ export class AggregatedIssue extends IssuesManager.Issue.Issue {
     #corsIssues = new Set();
     #cspIssues = new Set();
     #deprecationIssues = new Set();
-    #issueKind = IssuesManager.Issue.IssueKind.Improvement;
+    #issueKind = "Improvement" /* IssuesManager.Issue.IssueKind.Improvement */;
     #lowContrastIssues = new Set();
+    #metadataAllowedSites = new Set();
     #mixedContentIssues = new Set();
     #sharedArrayBufferIssues = new Set();
     #quirksModeIssues = new Set();
@@ -59,6 +60,9 @@ export class AggregatedIssue extends IssuesManager.Issue.Issue {
     }
     getHeavyAdIssues() {
         return this.#heavyAdIssues;
+    }
+    getMetadataAllowedSites() {
+        return this.#metadataAllowedSites.values();
     }
     getMixedContentIssues() {
         return this.#mixedContentIssues;
@@ -100,7 +104,7 @@ export class AggregatedIssue extends IssuesManager.Issue.Issue {
         if (this.#representative) {
             return this.#representative.getCategory();
         }
-        return IssuesManager.Issue.IssueCategory.Other;
+        return "Other" /* IssuesManager.Issue.IssueCategory.Other */;
     }
     getAggregatedIssuesCount() {
         return this.#aggregatedIssuesCount;
@@ -146,6 +150,11 @@ export class AggregatedIssue extends IssuesManager.Issue.Issue {
             const key = JSON.stringify(location);
             if (!this.#affectedLocations.has(key)) {
                 this.#affectedLocations.set(key, location);
+            }
+        }
+        for (const site of issue.metadataAllowedSites()) {
+            if (!this.#metadataAllowedSites.has(site)) {
+                this.#metadataAllowedSites.add(site);
             }
         }
         if (issue instanceof IssuesManager.MixedContentIssue.MixedContentIssue) {
@@ -266,4 +275,4 @@ export class IssueAggregator extends Common.ObjectWrapper.ObjectWrapper {
         return issue.code();
     }
 }
-//# map=IssueAggregator.js.map
+//# sourceMappingURL=IssueAggregator.js.map

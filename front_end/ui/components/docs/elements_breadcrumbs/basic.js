@@ -1,8 +1,8 @@
 // Copyright 2020 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import * as FrontendHelpers from '../../../../../test/unittests/front_end/helpers/EnvironmentHelpers.js';
 import * as Elements from '../../../../panels/elements/components/components.js';
+import * as FrontendHelpers from '../../../../testing/EnvironmentHelpers.js';
 import * as ComponentHelpers from '../../helpers/helpers.js';
 import { makeCrumb } from './helpers.js';
 await ComponentHelpers.ComponentServerSetup.setup();
@@ -44,4 +44,4 @@ component.addEventListener('breadcrumbsnodeselected', ({ legacyDomNode }) => {
     // eslint-disable-next-line no-console
     console.log('node selected', legacyDomNode);
 });
-//# map=basic.js.map
+//# sourceMappingURL=basic.js.map

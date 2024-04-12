@@ -10,4 +10,4 @@ import * as CoverageListView from './CoverageListView.js';
 import * as CoverageModel from './CoverageModel.js';
 import * as CoverageView from './CoverageView.js';
 export { CoverageDecorationManager, CoverageListView, CoverageModel, CoverageView, };
-//# map=coverage.js.map
+//# sourceMappingURL=coverage.js.map

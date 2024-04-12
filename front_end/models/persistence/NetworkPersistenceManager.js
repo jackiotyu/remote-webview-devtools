@@ -4,10 +4,10 @@
 import * as Common from '../../core/common/common.js';
 import * as Host from '../../core/host/host.js';
 import * as Platform from '../../core/platform/platform.js';
-import * as Root from '../../core/root/root.js';
 import * as SDK from '../../core/sdk/sdk.js';
 import * as UI from '../../ui/legacy/legacy.js';
 import * as Breakpoints from '../breakpoints/breakpoints.js';
+import * as TextUtils from '../text_utils/text_utils.js';
 import * as Workspace from '../workspace/workspace.js';
 import { FileSystemWorkspaceBinding } from './FileSystemWorkspaceBinding.js';
 import { IsolatedFileSystemManager } from './IsolatedFileSystemManager.js';
@@ -38,7 +38,7 @@ export class NetworkPersistenceManager extends Common.ObjectWrapper.ObjectWrappe
         this.originalResponseContentPromises = new WeakMap();
         this.savingForOverrides = new WeakSet();
         this.savingSymbol = Symbol('SavingForOverrides');
-        this.enabledSetting = Common.Settings.Settings.instance().moduleSetting('persistenceNetworkOverridesEnabled');
+        this.enabledSetting = Common.Settings.Settings.instance().moduleSetting('persistence-network-overrides-enabled');
         this.enabledSetting.addChangeListener(this.enabledChanged, this);
         this.workspace = workspace;
         this.networkUISourceCodeForEncodedPath = new Map();
@@ -118,7 +118,7 @@ export class NetworkPersistenceManager extends Common.ObjectWrapper.ObjectWrappe
             Common.EventTarget.removeEventListeners(this.eventDescriptors);
             await this.updateActiveProject();
         }
-        this.dispatchEventToListeners(Events.LocalOverridesProjectUpdated, this.enabled);
+        this.dispatchEventToListeners("LocalOverridesProjectUpdated" /* Events.LocalOverridesProjectUpdated */, this.enabled);
     }
     async uiSourceCodeRenamedListener(event) {
         const uiSourceCode = event.data.uiSourceCode;
@@ -256,7 +256,7 @@ export class NetworkPersistenceManager extends Common.ObjectWrapper.ObjectWrappe
             await mutex.run(this.#innerUnbind.bind(this, binding));
         }
         else if (headerBinding) {
-            this.dispatchEventToListeners(Events.RequestsForHeaderOverridesFileChanged, uiSourceCode);
+            this.dispatchEventToListeners("RequestsForHeaderOverridesFileChanged" /* Events.RequestsForHeaderOverridesFileChanged */, uiSourceCode);
         }
     }
     async #unbindUnguarded(uiSourceCode) {
@@ -343,7 +343,7 @@ export class NetworkPersistenceManager extends Common.ObjectWrapper.ObjectWrappe
         if (!this.enabledSetting.get()) {
             Host.userMetrics.actionTaken(Host.UserMetrics.Action.OverrideContentContextMenuActivateDisabled);
             this.enabledSetting.set(true);
-            await this.once(Events.LocalOverridesProjectUpdated);
+            await this.once("LocalOverridesProjectUpdated" /* Events.LocalOverridesProjectUpdated */);
         }
         // Save new file
         if (!this.#isUISourceCodeAlreadyOverridden(uiSourceCode)) {
@@ -411,7 +411,7 @@ export class NetworkPersistenceManager extends Common.ObjectWrapper.ObjectWrappe
         await this.filesystemUISourceCodeAdded(uiSourceCode);
     }
     canHandleNetworkUISourceCode(uiSourceCode) {
-        return this.activeInternal && !uiSourceCode.url().startsWith('snippet://');
+        return this.activeInternal && !Common.ParsedURL.schemeIs(uiSourceCode.url(), 'snippet:');
     }
     async networkUISourceCodeAdded(uiSourceCode) {
         if (uiSourceCode.project().type() !== Workspace.Workspace.projectTypes.Network ||
@@ -568,8 +568,7 @@ export class NetworkPersistenceManager extends Common.ObjectWrapper.ObjectWrappe
                 continue;
             }
             const pattern = this.patternForFileSystemUISourceCode(uiSourceCode);
-            if (Root.Runtime.experiments.isEnabled(Root.Runtime.ExperimentName.HEADER_OVERRIDES) &&
-                uiSourceCode.name() === HEADERS_FILENAME) {
+            if (uiSourceCode.name() === HEADERS_FILENAME) {
                 const { headerPatterns, path, overridesWithRegex } = await this.generateHeaderPatterns(uiSourceCode);
                 if (headerPatterns.size > 0) {
                     patterns = new Set([...patterns, ...headerPatterns]);
@@ -635,7 +634,7 @@ export class NetworkPersistenceManager extends Common.ObjectWrapper.ObjectWrappe
     }
     #dispatchRequestsForHeaderOverridesFileChanged() {
         for (const headersFileUiSourceCode of this.#headerOverridesForEventDispatch) {
-            this.dispatchEventToListeners(Events.RequestsForHeaderOverridesFileChanged, headersFileUiSourceCode);
+            this.dispatchEventToListeners("RequestsForHeaderOverridesFileChanged" /* Events.RequestsForHeaderOverridesFileChanged */, headersFileUiSourceCode);
         }
         this.#headerOverridesForEventDispatch.clear();
         return Promise.resolve();
@@ -670,7 +669,7 @@ export class NetworkPersistenceManager extends Common.ObjectWrapper.ObjectWrappe
             await Promise.all([...this.projectInternal.uiSourceCodes()].map(uiSourceCode => this.filesystemUISourceCodeAdded(uiSourceCode)));
         }
         await this.updateActiveProject();
-        this.dispatchEventToListeners(Events.ProjectChanged, this.projectInternal);
+        this.dispatchEventToListeners("ProjectChanged" /* Events.ProjectChanged */, this.projectInternal);
     }
     async onProjectAdded(project) {
         if (project.type() !== Workspace.Workspace.projectTypes.FileSystem ||
@@ -755,25 +754,14 @@ export class NetworkPersistenceManager extends Common.ObjectWrapper.ObjectWrappe
         const proj = this.projectInternal;
         const path = this.fileUrlFromNetworkUrl(interceptedRequest.request.url);
         const fileSystemUISourceCode = proj.uiSourceCodeForURL(path);
-        let responseHeaders = [];
-        if (Root.Runtime.experiments.isEnabled(Root.Runtime.ExperimentName.HEADER_OVERRIDES)) {
-            responseHeaders = this.handleHeaderInterception(interceptedRequest);
-        }
+        let responseHeaders = this.handleHeaderInterception(interceptedRequest);
         if (!fileSystemUISourceCode && !responseHeaders.length) {
             return;
         }
         if (!responseHeaders.length) {
             responseHeaders = interceptedRequest.responseHeaders || [];
         }
-        let mimeType = '';
-        if (interceptedRequest.responseHeaders) {
-            for (const header of interceptedRequest.responseHeaders) {
-                if (header.name.toLowerCase() === 'content-type') {
-                    mimeType = header.value;
-                    break;
-                }
-            }
-        }
+        let { mimeType } = interceptedRequest.getMimeTypeAndCharset();
         if (!mimeType) {
             const expectedResourceType = Common.ResourceType.resourceTypes[interceptedRequest.resourceType] || Common.ResourceType.resourceTypes.Other;
             mimeType = fileSystemUISourceCode?.mimeType() || '';
@@ -783,18 +771,10 @@ export class NetworkPersistenceManager extends Common.ObjectWrapper.ObjectWrappe
         }
         if (fileSystemUISourceCode) {
             this.originalResponseContentPromises.set(fileSystemUISourceCode, interceptedRequest.responseBody().then(response => {
-                if (response.error || response.content === null) {
+                if (TextUtils.ContentData.ContentData.isError(response) || !response.isTextContent) {
                     return null;
                 }
-                if (response.encoded) {
-                    const text = atob(response.content);
-                    const data = new Uint8Array(text.length);
-                    for (let i = 0; i < text.length; ++i) {
-                        data[i] = text.charCodeAt(i);
-                    }
-                    return new TextDecoder('utf-8').decode(data);
-                }
-                return response.content;
+                return response.text;
             }));
             const project = fileSystemUISourceCode.project();
             const blob = await project.requestFileBlob(fileSystemUISourceCode);
@@ -807,8 +787,9 @@ export class NetworkPersistenceManager extends Common.ObjectWrapper.ObjectWrappe
         }
         else {
             const responseBody = await interceptedRequest.responseBody();
-            if (!responseBody.error && responseBody.content) {
-                void interceptedRequest.continueRequestWithContent(new Blob([responseBody.content], { type: mimeType }), /* encoded */ true, responseHeaders,
+            if (!TextUtils.ContentData.ContentData.isError(responseBody)) {
+                const content = responseBody.isTextContent ? responseBody.text : responseBody.base64;
+                void interceptedRequest.continueRequestWithContent(new Blob([content], { type: mimeType }), /* encoded */ !responseBody.isTextContent, responseHeaders, 
                 /* isBodyOverridden */ false);
             }
         }
@@ -819,14 +800,6 @@ const RESERVED_FILENAMES = new Set([
     'com8', 'com9', 'lpt1', 'lpt2', 'lpt3', 'lpt4', 'lpt5', 'lpt6', 'lpt7', 'lpt8', 'lpt9',
 ]);
 export const HEADERS_FILENAME = '.headers';
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
-export var Events;
-(function (Events) {
-    Events["ProjectChanged"] = "ProjectChanged";
-    Events["RequestsForHeaderOverridesFileChanged"] = "RequestsForHeaderOverridesFileChanged";
-    Events["LocalOverridesProjectUpdated"] = "LocalOverridesProjectUpdated";
-})(Events || (Events = {}));
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isHeaderOverride(arg) {
     if (!(arg && typeof arg.applyTo === 'string' && arg.headers && arg.headers.length && Array.isArray(arg.headers))) {
@@ -847,4 +820,4 @@ export function extractDirectoryIndex(pattern) {
     }
     return { head: pattern };
 }
-//# map=NetworkPersistenceManager.js.map
+//# sourceMappingURL=NetworkPersistenceManager.js.map

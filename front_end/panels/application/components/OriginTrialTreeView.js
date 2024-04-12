@@ -3,11 +3,12 @@
 // found in the LICENSE file.
 import * as i18n from '../../../core/i18n/i18n.js';
 import * as Adorners from '../../../ui/components/adorners/adorners.js';
-import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
+import * as IconButton from '../../../ui/components/icon_button/icon_button.js';
 import * as TreeOutline from '../../../ui/components/tree_outline/tree_outline.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
 import badgeStyles from './badge.css.js';
 import originTrialTokenRowsStyles from './originTrialTokenRows.css.js';
+import originTrialTreeViewStyles from './originTrialTreeView.css.js';
 const UIStrings = {
     /**
      *@description Label for the 'origin' field in a parsed Origin Trial Token.
@@ -55,6 +56,10 @@ const UIStrings = {
      *@example {2} PH1
      */
     tokens: '{PH1} tokens',
+    /**
+     *@description Label shown when there are no Origin Trial Tokens in the Frame view of the Application panel.
+     */
+    noTrialTokens: 'No trial tokens',
 };
 const str_ = i18n.i18n.registerUIStrings('panels/application/components/OriginTrialTreeView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
@@ -81,7 +86,7 @@ export class Badge extends HTMLElement {
     `, this.#shadow, { host: this });
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-resources-origin-trial-tree-view-badge', Badge);
+customElements.define('devtools-resources-origin-trial-tree-view-badge', Badge);
 function constructOriginTrialTree(originTrial) {
     return {
         treeNodeData: originTrial,
@@ -245,15 +250,31 @@ export class OriginTrialTokenRows extends HTMLElement {
     `, this.#shadow, { host: this });
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-resources-origin-trial-token-rows', OriginTrialTokenRows);
+customElements.define('devtools-resources-origin-trial-token-rows', OriginTrialTokenRows);
 export class OriginTrialTreeView extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-resources-origin-trial-tree-view`;
     #shadow = this.attachShadow({ mode: 'open' });
     set data(data) {
         this.#render(data.trials);
     }
+    connectedCallback() {
+        this.#shadow.adoptedStyleSheets = [originTrialTreeViewStyles];
+    }
     #render(trials) {
         if (!trials.length) {
+            LitHtml.render(LitHtml.html `
+    <span class="status-badge">
+      <${IconButton.Icon.Icon.litTagName}
+          .data=${{
+                iconName: 'clear',
+                color: 'var(--icon-default)',
+                width: '16px',
+                height: '16px',
+            }}
+        >
+      </${IconButton.Icon.Icon.litTagName}>
+      <span>${i18nString(UIStrings.noTrialTokens)}</span>
+    </span>`, this.#shadow, { host: this });
             return;
         }
         LitHtml.render(LitHtml.html `
@@ -265,5 +286,5 @@ export class OriginTrialTreeView extends HTMLElement {
     `, this.#shadow, { host: this });
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-resources-origin-trial-tree-view', OriginTrialTreeView);
-//# map=OriginTrialTreeView.js.map
+customElements.define('devtools-resources-origin-trial-tree-view', OriginTrialTreeView);
+//# sourceMappingURL=OriginTrialTreeView.js.map

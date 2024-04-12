@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as Common from '../../core/common/common.js';
-const MAX_WORKERS = Math.min(2, navigator.hardwareConcurrency - 1);
+const MAX_WORKERS = Math.max(2, navigator.hardwareConcurrency - 1);
 let formatterWorkerPoolInstance;
 export class FormatterWorkerPool {
     taskQueue;
@@ -40,8 +40,6 @@ export class FormatterWorkerPool {
             freeWorker.postMessage({ method: task.method, params: task.params });
         }
     }
-    // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onWorkerMessage(worker, event) {
         const task = this.workerTasks.get(worker);
         if (!task) {
@@ -67,7 +65,7 @@ export class FormatterWorkerPool {
             task.callback(null);
         }
     }
-    runChunkedTask(methodName, params,
+    runChunkedTask(methodName, params, 
     // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     callback) {
@@ -132,4 +130,4 @@ class Task {
 export function formatterWorkerPool() {
     return FormatterWorkerPool.instance();
 }
-//# map=FormatterWorkerPool.js.map
+//# sourceMappingURL=FormatterWorkerPool.js.map

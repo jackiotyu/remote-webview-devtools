@@ -40,4 +40,4 @@ import * as Worker from './Worker.js';
  */
 export { UIString } from '../platform/platform.js';
 export { App, AppProvider, Base64, CharacterIdMap, Color, ColorUtils, ColorConverter, Console, Debouncer, EventTarget, JavaScriptMetaData, Lazy, Linkifier, Mutex, ObjectWrapper, ParsedURL, Progress, QueryParamHandler, ResolverBase, ResourceType, Revealer, Runnable, SegmentedRange, Settings, SettingRegistration, SimpleHistoryManager, StringOutputStream, TextDictionary, Throttler, Trie, Worker, WasmDisassembly, };
-//# map=common.js.map
+//# sourceMappingURL=common.js.map

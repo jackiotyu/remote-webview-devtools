@@ -167,4 +167,4 @@ export class HostUrlPattern {
         return this.pattern.port === '*' || this.pattern.port === port;
     }
 }
-//# map=HostUrlPattern.js.map
+//# sourceMappingURL=HostUrlPattern.js.map

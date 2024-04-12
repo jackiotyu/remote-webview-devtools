@@ -31,6 +31,7 @@ import * as Common from '../../core/common/common.js';
 import * as i18n from '../../core/i18n/i18n.js';
 import * as SDK from '../../core/sdk/sdk.js';
 import * as UI from '../../ui/legacy/legacy.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import * as Sources from '../sources/sources.js';
 import domBreakpointsSidebarPaneStyles from './domBreakpointsSidebarPane.css.js';
 const UIStrings = {
@@ -126,6 +127,7 @@ export class DOMBreakpointsSidebarPane extends UI.Widget.VBox {
     constructor() {
         super(true);
         this.elementToCheckboxes = new WeakMap();
+        this.contentElement.setAttribute('jslog', `${VisualLogging.section('sources.dom-breakpoints').track({ resize: true })}`);
         this.#emptyElement = this.contentElement.createChild('div', 'gray-info-message');
         this.#emptyElement.textContent = i18nString(UIStrings.noBreakpoints);
         this.#breakpoints = new UI.ListModel.ListModel();
@@ -135,9 +137,9 @@ export class DOMBreakpointsSidebarPane extends UI.Widget.VBox {
         UI.ARIAUtils.markAsList(this.#list.element);
         UI.ARIAUtils.setLabel(this.#list.element, i18nString(UIStrings.domBreakpointsList));
         this.#emptyElement.tabIndex = -1;
-        SDK.TargetManager.TargetManager.instance().addModelListener(SDK.DOMDebuggerModel.DOMDebuggerModel, SDK.DOMDebuggerModel.Events.DOMBreakpointAdded, this.breakpointAdded, this);
-        SDK.TargetManager.TargetManager.instance().addModelListener(SDK.DOMDebuggerModel.DOMDebuggerModel, SDK.DOMDebuggerModel.Events.DOMBreakpointToggled, this.breakpointToggled, this);
-        SDK.TargetManager.TargetManager.instance().addModelListener(SDK.DOMDebuggerModel.DOMDebuggerModel, SDK.DOMDebuggerModel.Events.DOMBreakpointsRemoved, this.breakpointsRemoved, this);
+        SDK.TargetManager.TargetManager.instance().addModelListener(SDK.DOMDebuggerModel.DOMDebuggerModel, "DOMBreakpointAdded" /* SDK.DOMDebuggerModel.Events.DOMBreakpointAdded */, this.breakpointAdded, this);
+        SDK.TargetManager.TargetManager.instance().addModelListener(SDK.DOMDebuggerModel.DOMDebuggerModel, "DOMBreakpointToggled" /* SDK.DOMDebuggerModel.Events.DOMBreakpointToggled */, this.breakpointToggled, this);
+        SDK.TargetManager.TargetManager.instance().addModelListener(SDK.DOMDebuggerModel.DOMDebuggerModel, "DOMBreakpointsRemoved" /* SDK.DOMDebuggerModel.Events.DOMBreakpointsRemoved */, this.breakpointsRemoved, this);
         for (const domDebuggerModel of SDK.TargetManager.TargetManager.instance().models(SDK.DOMDebuggerModel.DOMDebuggerModel)) {
             domDebuggerModel.retrieveDOMBreakpoints();
             for (const breakpoint of domDebuggerModel.domBreakpoints()) {
@@ -156,6 +158,7 @@ export class DOMBreakpointsSidebarPane extends UI.Widget.VBox {
     createElementForItem(item) {
         const element = document.createElement('div');
         element.classList.add('breakpoint-entry');
+        element.setAttribute('jslog', `${VisualLogging.domBreakpoint().context(item.type).track({ keydown: 'ArrowUp|ArrowDown|PageUp|PageDown' })}`);
         element.addEventListener('contextmenu', this.contextMenu.bind(this, item), true);
         UI.ARIAUtils.markAsListitem(element);
         element.tabIndex = -1;
@@ -179,6 +182,7 @@ export class DOMBreakpointsSidebarPane extends UI.Widget.VBox {
         description.textContent = breakpointTypeLabel ? breakpointTypeLabel() : null;
         const breakpointTypeText = breakpointTypeLabel ? breakpointTypeLabel() : '';
         UI.ARIAUtils.setLabel(checkboxElement, breakpointTypeText);
+        checkboxElement.setAttribute('jslog', `${VisualLogging.toggle().track({ click: true })}`);
         const checkedStateText = item.enabled ? i18nString(UIStrings.checked) : i18nString(UIStrings.unchecked);
         const linkifiedNode = document.createElement('monospace');
         linkifiedNode.style.display = 'block';
@@ -279,13 +283,13 @@ export class DOMBreakpointsSidebarPane extends UI.Widget.VBox {
     }
     contextMenu(breakpoint, event) {
         const contextMenu = new UI.ContextMenu.ContextMenu(event);
-        contextMenu.defaultSection().appendItem(i18nString(UIStrings.revealDomNodeInElementsPanel), () => Common.Revealer.reveal(breakpoint.node));
+        contextMenu.defaultSection().appendItem(i18nString(UIStrings.revealDomNodeInElementsPanel), () => Common.Revealer.reveal(breakpoint.node), { jslogContext: 'reveal-in-elements' });
         contextMenu.defaultSection().appendItem(i18nString(UIStrings.removeBreakpoint), () => {
             breakpoint.domDebuggerModel.removeDOMBreakpoint(breakpoint.node, breakpoint.type);
-        });
+        }, { jslogContext: 'remove-breakpoint' });
         contextMenu.defaultSection().appendItem(i18nString(UIStrings.removeAllDomBreakpoints), () => {
             breakpoint.domDebuggerModel.removeAllDOMBreakpoints();
-        });
+        }, { jslogContext: 'remove-all-dom-breakpoints' });
         void contextMenu.show();
     }
     checkboxClicked(breakpoint, event) {
@@ -322,7 +326,7 @@ export class DOMBreakpointsSidebarPane extends UI.Widget.VBox {
         if (this.#highlightedBreakpoint) {
             this.#list.refreshItem(this.#highlightedBreakpoint);
         }
-        void UI.ViewManager.ViewManager.instance().showView('sources.domBreakpoints');
+        void UI.ViewManager.ViewManager.instance().showView('sources.dom-breakpoints');
     }
     wasShown() {
         super.wasShown();
@@ -334,17 +338,8 @@ const BreakpointTypeLabels = new Map([
     ["attribute-modified" /* Protocol.DOMDebugger.DOMBreakpointType.AttributeModified */, i18nLazyString(UIStrings.attributeModified)],
     ["node-removed" /* Protocol.DOMDebugger.DOMBreakpointType.NodeRemoved */, i18nLazyString(UIStrings.nodeRemoved)],
 ]);
-let contextMenuProviderInstance;
 export class ContextMenuProvider {
-    static instance(opts = { forceNew: null }) {
-        const { forceNew } = opts;
-        if (!contextMenuProviderInstance || forceNew) {
-            contextMenuProviderInstance = new ContextMenuProvider();
-        }
-        return contextMenuProviderInstance;
-    }
-    appendApplicableItems(event, contextMenu, object) {
-        const node = object;
+    appendApplicableItems(event, contextMenu, node) {
         if (node.pseudoType()) {
             return;
         }
@@ -367,7 +362,7 @@ export class ContextMenuProvider {
                 UI.ARIAUtils.alert(`${i18nString(UIStrings.breakpointSet)}: ${labelString}`);
             }
         }
-        const breakpointsMenu = contextMenu.debugSection().appendSubMenuItem(i18nString(UIStrings.breakOn));
+        const breakpointsMenu = contextMenu.debugSection().appendSubMenuItem(i18nString(UIStrings.breakOn), false, 'break-on');
         const allBreakpointTypes = {
             SubtreeModified: "subtree-modified" /* Protocol.DOMDebugger.DOMBreakpointType.SubtreeModified */,
             AttributeModified: "attribute-modified" /* Protocol.DOMDebugger.DOMBreakpointType.AttributeModified */,
@@ -376,9 +371,9 @@ export class ContextMenuProvider {
         for (const type of Object.values(allBreakpointTypes)) {
             const label = Sources.DebuggerPausedMessage.BreakpointTypeNouns.get(type);
             if (label) {
-                breakpointsMenu.defaultSection().appendCheckboxItem(label(), toggleBreakpoint.bind(null, type), domDebuggerModel.hasDOMBreakpoint(node, type));
+                breakpointsMenu.defaultSection().appendCheckboxItem(label(), toggleBreakpoint.bind(null, type), { checked: domDebuggerModel.hasDOMBreakpoint(node, type), jslogContext: type });
             }
         }
     }
 }
-//# map=DOMBreakpointsSidebarPane.js.map
+//# sourceMappingURL=DOMBreakpointsSidebarPane.js.map

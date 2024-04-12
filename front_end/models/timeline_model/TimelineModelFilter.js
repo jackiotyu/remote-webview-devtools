@@ -12,6 +12,12 @@ export class TimelineVisibleEventsFilter extends TimelineModelFilter {
         this.visibleTypes = new Set(visibleTypes);
     }
     accept(event) {
+        if (TraceEngine.Legacy.eventIsFromNewEngine(event)) {
+            if (TraceEngine.Types.Extensions.isSyntheticExtensionEntry(event) ||
+                TraceEngine.Types.TraceEvents.isSyntheticTraceEntry(event)) {
+                return true;
+            }
+        }
         return this.visibleTypes.has(TimelineVisibleEventsFilter.eventType(event));
     }
     static eventType(event) {
@@ -44,4 +50,4 @@ export class ExclusiveNameFilter extends TimelineModelFilter {
         return !this.excludeNames.has(event.name);
     }
 }
-//# map=TimelineModelFilter.js.map
+//# sourceMappingURL=TimelineModelFilter.js.map

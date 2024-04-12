@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import IntlMessageFormat from './package/intl-messageformat.esm.js';
 export { IntlMessageFormat };
-//# map=intl-messageformat.js.map
+//# sourceMappingURL=intl-messageformat.js.map

@@ -1,12 +1,12 @@
 // Copyright 2022 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+import * as Platform from '../../core/platform/platform.js';
 import * as SDK from '../../core/sdk/sdk.js';
 import * as Bindings from '../bindings/bindings.js';
 import * as Formatter from '../formatter/formatter.js';
 import * as TextUtils from '../text_utils/text_utils.js';
-import * as Platform from '../../core/platform/platform.js';
-import { ScopeTreeCache } from './ScopeTreeCache.js';
+import { scopeTreeForScript } from './ScopeTreeCache.js';
 const scopeToCachedIdentifiersMap = new WeakMap();
 const cachedMapByCallFrame = new WeakMap();
 const cachedTextByDeferredContent = new WeakMap();
@@ -43,7 +43,7 @@ const computeScopeTree = async function (script) {
     if (!text) {
         return null;
     }
-    const scopeTree = await ScopeTreeCache.instance().scopeTreeForScript(script);
+    const scopeTree = await scopeTreeForScript(script);
     if (!scopeTree) {
         return null;
     }
@@ -313,11 +313,9 @@ export const resolveScopeChain = async function (callFrame) {
         return null;
     }
     const { pluginManager } = Bindings.DebuggerWorkspaceBinding.DebuggerWorkspaceBinding.instance();
-    if (pluginManager) {
-        const scopeChain = await pluginManager.resolveScopeChain(callFrame);
-        if (scopeChain) {
-            return scopeChain;
-        }
+    const scopeChain = await pluginManager.resolveScopeChain(callFrame);
+    if (scopeChain) {
+        return scopeChain;
     }
     return callFrame.scopeChain();
 };
@@ -502,8 +500,6 @@ export class RemoteObject extends SDK.RemoteObject.RemoteObject {
     get subtype() {
         return this.object.subtype;
     }
-    // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     get value() {
         return this.object.value;
     }
@@ -626,7 +622,7 @@ export async function resolveProfileFrameFunctionName({ scriptId, lineNumber, co
     }
     const debuggerWorkspaceBinding = Bindings.DebuggerWorkspaceBinding.DebuggerWorkspaceBinding.instance();
     const location = new SDK.DebuggerModel.Location(debuggerModel, scriptId, lineNumber, columnNumber);
-    const functionInfoFromPlugin = await debuggerWorkspaceBinding.pluginManager?.getFunctionInfo(script, location);
+    const functionInfoFromPlugin = await debuggerWorkspaceBinding.pluginManager.getFunctionInfo(script, location);
     if (functionInfoFromPlugin && 'frames' in functionInfoFromPlugin) {
         const last = functionInfoFromPlugin.frames.at(-1);
         if (last?.name) {
@@ -635,13 +631,11 @@ export async function resolveProfileFrameFunctionName({ scriptId, lineNumber, co
     }
     return await getFunctionNameFromScopeStart(script, lineNumber, columnNumber);
 }
-// TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
-// eslint-disable-next-line @typescript-eslint/naming-convention
-let _scopeResolvedForTest = function () { };
+let scopeResolvedForTest = function () { };
 export const getScopeResolvedForTest = () => {
-    return _scopeResolvedForTest;
+    return scopeResolvedForTest;
 };
 export const setScopeResolvedForTest = (scope) => {
-    _scopeResolvedForTest = scope;
+    scopeResolvedForTest = scope;
 };
-//# map=NamesResolver.js.map
+//# sourceMappingURL=NamesResolver.js.map

@@ -164,4 +164,4 @@ export class SelectorPicker {
         model.removeEventListener(SDK.RuntimeModel.Events.BindingCalled, this.#handleBindingCalledEvent);
     }
 }
-//# map=SelectorPicker.js.map
+//# sourceMappingURL=SelectorPicker.js.map

@@ -9,7 +9,7 @@ let performanceInstance;
 export class Performance {
     helper;
     constructor() {
-        this.helper = new Helper(SourceFrame.SourceFrame.DecoratorType.PERFORMANCE);
+        this.helper = new Helper("performance" /* SourceFrame.SourceFrame.DecoratorType.PERFORMANCE */);
     }
     static instance(opts = { forceNew: null }) {
         const { forceNew } = opts;
@@ -25,7 +25,7 @@ export class Performance {
         const nodesToGo = [profile.profileHead];
         const sampleDuration = (profile.profileEndTime - profile.profileStartTime) / profile.totalHitCount;
         while (nodesToGo.length) {
-            const nodes =
+            const nodes = 
             // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             nodesToGo.pop().children; // Cast to any because runtime checks assert the props.
@@ -76,7 +76,7 @@ let memoryInstance;
 export class Memory {
     helper;
     constructor() {
-        this.helper = new Helper(SourceFrame.SourceFrame.DecoratorType.MEMORY);
+        this.helper = new Helper("memory" /* SourceFrame.SourceFrame.DecoratorType.MEMORY */);
     }
     static instance(opts = { forceNew: null }) {
         const { forceNew } = opts;
@@ -164,7 +164,7 @@ export class Helper {
                             debuggerModel.createRawLocationByURL(scriptIdOrUrl, line, 0) :
                             debuggerModel.createRawLocationByScriptId(String(scriptIdOrUrl), line, 0);
                         if (rawLocation) {
-                            pending.push(workspaceBinding.rawLocationToUILocation(rawLocation).then((uiLocation) => {
+                            pending.push(workspaceBinding.rawLocationToUILocation(rawLocation).then(uiLocation => {
                                 if (uiLocation) {
                                     let lineMap = decorationsBySource.get(uiLocation.uiSourceCode);
                                     if (!lineMap) {
@@ -196,4 +196,4 @@ export class Helper {
         }
     }
 }
-//# map=LineLevelProfile.js.map
+//# sourceMappingURL=LineLevelProfile.js.map

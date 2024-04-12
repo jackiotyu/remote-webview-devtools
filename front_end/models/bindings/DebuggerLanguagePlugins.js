@@ -3,11 +3,11 @@
 // found in the LICENSE file.
 import * as Common from '../../core/common/common.js';
 import * as i18n from '../../core/i18n/i18n.js';
+import { assertNotNullOrUndefined } from '../../core/platform/platform.js';
 import * as SDK from '../../core/sdk/sdk.js';
 import * as TextUtils from '../text_utils/text_utils.js';
 import * as Workspace from '../workspace/workspace.js';
 import { ContentProviderBasedProject } from './ContentProviderBasedProject.js';
-import { assertNotNullOrUndefined } from '../../core/platform/platform.js';
 import { NetworkProject } from './NetworkProject.js';
 const UIStrings = {
     /**
@@ -101,8 +101,6 @@ class FormattingError extends Error {
     }
 }
 class NamespaceObject extends SDK.RemoteObject.LocalJSONObject {
-    // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(value) {
         super(value);
     }
@@ -132,7 +130,7 @@ class SourceScopeRemoteObject extends SDK.RemoteObject.RemoteObjectImpl {
         const properties = [];
         const namespaces = {};
         function makeProperty(name, obj) {
-            return new SDK.RemoteObject.RemoteObjectProperty(name, obj,
+            return new SDK.RemoteObject.RemoteObjectProperty(name, obj, 
             /* enumerable=*/ false, /* writable=*/ false, /* isOwn=*/ true, /* wasThrown=*/ false);
         }
         for (const variable of this.variables) {
@@ -310,6 +308,9 @@ export class ExtensionRemoteObject extends SDK.RemoteObject.RemoteObject {
     runtimeModel() {
         return this.callFrame.debuggerModel.runtimeModel();
     }
+    isLinearMemoryInspectable() {
+        return this.extensionObject.linearMemoryAddress !== undefined;
+    }
 }
 export class DebuggerLanguagePluginManager {
     #workspace;
@@ -386,13 +387,13 @@ export class DebuggerLanguagePluginManager {
                 if ('missingSymbolFiles' in functionInfo && functionInfo.missingSymbolFiles.length) {
                     const resources = functionInfo.missingSymbolFiles;
                     const details = i18nString(UIStrings.debugSymbolsIncomplete, { PH1: callFrame.functionName });
-                    callFrame.setMissingDebugInfoDetails({ details, resources });
+                    callFrame.missingDebugInfoDetails = { details, resources };
                 }
                 else {
-                    callFrame.setMissingDebugInfoDetails({
-                        resources: [],
+                    callFrame.missingDebugInfoDetails = {
                         details: i18nString(UIStrings.failedToLoadDebugSymbolsForFunction, { PH1: callFrame.functionName }),
-                    });
+                        resources: [],
+                    };
                 }
             }
             return callFrame;
@@ -637,7 +638,7 @@ export class DebuggerLanguagePluginManager {
                         console.log(i18nString(UIStrings.loadingDebugSymbolsFor, { PH1: plugin.name, PH2: url }));
                     }
                     try {
-                        const code = (!symbolsUrl && url.startsWith('wasm://')) ? await script.getWasmBytecode() : undefined;
+                        const code = (!symbolsUrl && Common.ParsedURL.schemeIs(url, 'wasm:')) ? await script.getWasmBytecode() : undefined;
                         const addModuleResult = await plugin.addRawModule(rawModuleId, symbolsUrl, { url, code });
                         // Check that the handle isn't stale by now. This works because the code that assigns to
                         // `rawModuleHandle` below will run before this code because of the `await` in the preceding
@@ -647,7 +648,12 @@ export class DebuggerLanguagePluginManager {
                             return [];
                         }
                         if ('missingSymbolFiles' in addModuleResult) {
-                            return { missingSymbolFiles: addModuleResult.missingSymbolFiles };
+                            const initiator = plugin.createPageResourceLoadInitiator();
+                            const missingSymbolFiles = addModuleResult.missingSymbolFiles.map(resource => {
+                                const resourceUrl = resource;
+                                return { resourceUrl, initiator };
+                            });
+                            return { missingSymbolFiles: missingSymbolFiles };
                         }
                         const sourceFileURLs = addModuleResult;
                         if (sourceFileURLs.length === 0) {
@@ -753,6 +759,14 @@ export class DebuggerLanguagePluginManager {
         };
         try {
             const functionInfo = await plugin.getFunctionInfo(rawLocation);
+            if ('missingSymbolFiles' in functionInfo) {
+                const initiator = plugin.createPageResourceLoadInitiator();
+                const missingSymbolFiles = functionInfo.missingSymbolFiles.map(resource => {
+                    const resourceUrl = resource;
+                    return { resourceUrl, initiator };
+                });
+                return { missingSymbolFiles };
+            }
             return functionInfo;
         }
         catch (error) {
@@ -895,4 +909,4 @@ class ModelData {
         return this.project;
     }
 }
-//# map=DebuggerLanguagePlugins.js.map
+//# sourceMappingURL=DebuggerLanguagePlugins.js.map

@@ -10,4 +10,4 @@ import * as ShowMoreDataGridNode from './ShowMoreDataGridNode.js';
 import * as SortableDataGrid from './SortableDataGrid.js';
 import * as ViewportDataGrid from './ViewportDataGrid.js';
 export { DataGrid, ShowMoreDataGridNode, SortableDataGrid, ViewportDataGrid };
-//# map=data_grid.js.map
+//# sourceMappingURL=data_grid.js.map

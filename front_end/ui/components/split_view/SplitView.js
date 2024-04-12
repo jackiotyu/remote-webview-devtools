@@ -171,5 +171,5 @@ export class SplitView extends HTMLElement {
         // clang-format on
     };
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-split-view', SplitView);
-//# map=SplitView.js.map
+customElements.define('devtools-split-view', SplitView);
+//# sourceMappingURL=SplitView.js.map

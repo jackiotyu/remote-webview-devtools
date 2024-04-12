@@ -14,8 +14,10 @@ export class AdvancedApp {
     toolboxWindow;
     toolboxRootView;
     changingDockSide;
+    toolboxDocument;
     constructor() {
         UI.DockController.DockController.instance().addEventListener("BeforeDockSideChanged" /* UI.DockController.Events.BeforeDockSideChanged */, this.openToolboxWindow, this);
+        Host.InspectorFrontendHost.InspectorFrontendHostInstance.events.addEventListener(Host.InspectorFrontendHostAPI.Events.ColorThemeChanged, () => ThemeSupport.ThemeSupport.fetchColors(this.toolboxDocument));
     }
     /**
      * Note: it's used by toolbox.ts without real type checks.
@@ -28,7 +30,8 @@ export class AdvancedApp {
     }
     presentUI(document) {
         const rootView = new UI.RootView.RootView();
-        this.rootSplitWidget = new UI.SplitWidget.SplitWidget(false, true, 'InspectorView.splitViewState', 555, 300, true);
+        this.rootSplitWidget =
+            new UI.SplitWidget.SplitWidget(false, true, 'inspector-view.split-view-state', 555, 300, true);
         this.rootSplitWidget.show(rootView.element);
         this.rootSplitWidget.setSidebarWidget(UI.InspectorView.InspectorView.instance());
         this.rootSplitWidget.setDefaultFocusedChild(UI.InspectorView.InspectorView.instance());
@@ -58,6 +61,7 @@ export class AdvancedApp {
     }
     deviceModeEmulationFrameLoaded(toolboxDocument) {
         ThemeSupport.ThemeSupport.instance().applyTheme(toolboxDocument);
+        ThemeSupport.ThemeSupport.fetchColors(toolboxDocument);
         ThemeSupport.ThemeSupport.instance().addEventListener(ThemeSupport.ThemeChangeEvent.eventName, () => {
             ThemeSupport.ThemeSupport.instance().applyTheme(toolboxDocument);
         });
@@ -66,6 +70,7 @@ export class AdvancedApp {
         UI.ContextMenu.ContextMenu.installHandler(toolboxDocument);
         this.toolboxRootView = new UI.RootView.RootView();
         this.toolboxRootView.attachToDocument(toolboxDocument);
+        this.toolboxDocument = toolboxDocument;
         this.updateDeviceModeView();
     }
     updateDeviceModeView() {
@@ -114,9 +119,9 @@ export class AdvancedApp {
     }
     updateForDocked(dockSide) {
         const resizerElement = this.rootSplitWidget.resizerElement();
-        resizerElement.style.transform = dockSide === "right" /* UI.DockController.DockState.RIGHT */ ?
-            'translateX(2px)' :
-            dockSide === "left" /* UI.DockController.DockState.LEFT */ ? 'translateX(-2px)' : '';
+        resizerElement.style.transform = dockSide === "right" /* UI.DockController.DockState.RIGHT */ ? 'translateX(2px)' :
+            dockSide === "left" /* UI.DockController.DockState.LEFT */ ? 'translateX(-2px)' :
+                '';
         this.rootSplitWidget.setVertical(dockSide === "right" /* UI.DockController.DockState.RIGHT */ || dockSide === "left" /* UI.DockController.DockState.LEFT */);
         this.rootSplitWidget.setSecondIsSidebar(dockSide === "right" /* UI.DockController.DockState.RIGHT */ || dockSide === "bottom" /* UI.DockController.DockState.BOTTOM */);
         this.rootSplitWidget.toggleResizer(this.rootSplitWidget.resizerElement(), true);
@@ -165,4 +170,4 @@ export class AdvancedAppProvider {
         return AdvancedApp.instance();
     }
 }
-//# map=AdvancedApp.js.map
+//# sourceMappingURL=AdvancedApp.js.map

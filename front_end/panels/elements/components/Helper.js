@@ -17,4 +17,4 @@ export const legacyNodeToElementsComponentsNode = (node) => {
         getAttribute: node.getAttribute.bind(node),
     };
 };
-//# map=Helper.js.map
+//# sourceMappingURL=Helper.js.map

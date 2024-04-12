@@ -14,4 +14,4 @@ import * as ThrottlingManager from './ThrottlingManager.js';
 import * as ThrottlingPresets from './ThrottlingPresets.js';
 import * as ThrottlingSettingsTab from './ThrottlingSettingsTab.js';
 export { MobileThrottlingSelector, NetworkPanelIndicator, NetworkThrottlingSelector, ThrottlingManager, ThrottlingPresets, ThrottlingSettingsTab, };
-//# map=mobile_throttling.js.map
+//# sourceMappingURL=mobile_throttling.js.map

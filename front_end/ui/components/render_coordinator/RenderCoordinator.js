@@ -226,4 +226,4 @@ export class RenderCoordinator extends EventTarget {
         }
     }
 }
-//# map=RenderCoordinator.js.map
+//# sourceMappingURL=RenderCoordinator.js.map

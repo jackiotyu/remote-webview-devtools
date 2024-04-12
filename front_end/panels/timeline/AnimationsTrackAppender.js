@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as i18n from '../../core/i18n/i18n.js';
+import * as ThemeSupport from '../../ui/legacy/theme_support/theme_support.js';
 import { buildGroupStyle, buildTrackHeader, getFormattedTime } from './AppenderUtils.js';
 const UIStrings = {
     /**
@@ -33,7 +34,7 @@ export class AnimationsTrackAppender {
         this.#compatibilityBuilder.registerTrackForGroup(group, this);
     }
     colorForEvent() {
-        return '#b9aced';
+        return ThemeSupport.ThemeSupport.instance().getComputedValue('--app-color-rendering');
     }
     titleForEvent(event) {
         return event.name;
@@ -43,4 +44,4 @@ export class AnimationsTrackAppender {
         return { title, formattedTime: getFormattedTime(event.dur) };
     }
 }
-//# map=AnimationsTrackAppender.js.map
+//# sourceMappingURL=AnimationsTrackAppender.js.map

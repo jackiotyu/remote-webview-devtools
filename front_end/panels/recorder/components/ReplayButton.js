@@ -5,6 +5,7 @@ import * as Host from '../../../core/host/host.js';
 import * as i18n from '../../../core/i18n/i18n.js';
 import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
+import * as VisualLogging from '../../../ui/visual_logging/visual_logging.js';
 import { SelectButton, } from './SelectButton.js';
 const UIStrings = {
     /**
@@ -75,10 +76,10 @@ const items = [
     },
 ];
 const replaySpeedToMetricSpeedMap = {
-    ["normal" /* PlayRecordingSpeed.Normal */]: Host.UserMetrics.RecordingReplaySpeed.Normal,
-    ["slow" /* PlayRecordingSpeed.Slow */]: Host.UserMetrics.RecordingReplaySpeed.Slow,
-    ["very_slow" /* PlayRecordingSpeed.VerySlow */]: Host.UserMetrics.RecordingReplaySpeed.VerySlow,
-    ["extremely_slow" /* PlayRecordingSpeed.ExtremelySlow */]: Host.UserMetrics.RecordingReplaySpeed.ExtremelySlow,
+    ["normal" /* PlayRecordingSpeed.Normal */]: 1 /* Host.UserMetrics.RecordingReplaySpeed.Normal */,
+    ["slow" /* PlayRecordingSpeed.Slow */]: 2 /* Host.UserMetrics.RecordingReplaySpeed.Slow */,
+    ["very_slow" /* PlayRecordingSpeed.VerySlow */]: 3 /* Host.UserMetrics.RecordingReplaySpeed.VerySlow */,
+    ["extremely_slow" /* PlayRecordingSpeed.ExtremelySlow */]: 4 /* Host.UserMetrics.RecordingReplaySpeed.ExtremelySlow */,
 };
 const str_ = i18n.i18n.registerUIStrings('panels/recorder/components/ReplayButton.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
@@ -156,12 +157,13 @@ export class ReplayButton extends HTMLElement {
       .variant=${"primary" /* SelectButtonVariant.PRIMARY */}
       .showItemDivider=${false}
       .disabled=${this.#props.disabled}
-      .action=${"chrome_recorder.replay-recording" /* Actions.RecorderActions.ReplayRecording */}
+      .action=${"chrome-recorder.replay-recording" /* Actions.RecorderActions.ReplayRecording */}
       .value=${this.#settings?.replayExtension || this.#settings?.speed}
-      .groups=${groups}>
+      .groups=${groups}
+      jslog=${VisualLogging.action("chrome-recorder.replay-recording" /* Actions.RecorderActions.ReplayRecording */).track({ click: true })}>
     </${SelectButton.litTagName}>`, this.#shadow, { host: this });
         // clang-format on
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-replay-button', ReplayButton);
-//# map=ReplayButton.js.map
+customElements.define('devtools-replay-button', ReplayButton);
+//# sourceMappingURL=ReplayButton.js.map

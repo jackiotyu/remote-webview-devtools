@@ -4,7 +4,7 @@
 import * as Host from '../../core/host/host.js';
 import * as i18n from '../../core/i18n/i18n.js';
 import * as SDK from '../../core/sdk/sdk.js';
-import { buildPropertyDefinitionText, buildPropertyName, buildPropertyValue, isFlexContainer, isGridContainer, isInlineElement, isMulticolContainer, isPossiblyReplacedElement, } from './CSSRuleValidatorHelper.js';
+import { buildPropertyDefinitionText, buildPropertyName, buildPropertyValue, isBlockContainer, isFlexContainer, isGridContainer, isInlineElement, isMulticolContainer, isPossiblyReplacedElement, } from './CSSRuleValidatorHelper.js';
 const UIStrings = {
     /**
      *@description The message shown in the Style pane when the user hovers over a property that has no effect due to some other property.
@@ -18,6 +18,12 @@ const UIStrings = {
       @example {nowrap} PROPERTY_VALUE
      */
     ruleViolatedBySameElementRuleFix: 'Try setting {PROPERTY_NAME} to something other than {PROPERTY_VALUE}.',
+    /**
+     *@description The message shown in the Style pane when the user hovers over a property declaration that has no effect due to not being a flex or grid container.
+     *@example {display: grid} DISPLAY_GRID_RULE
+     *@example {display: flex} DISPLAY_FLEX_RULE
+     */
+    ruleViolatedBySameElementRuleChangeFlexOrGrid: 'Try adding {DISPLAY_GRID_RULE} or {DISPLAY_FLEX_RULE} to make this element into a container.',
     /**
      *@description The message shown in the Style pane when the user hovers over a property declaration that has no effect due to the current property value.
      *@example {display: block} EXISTING_PROPERTY_DECLARATION
@@ -45,6 +51,18 @@ const UIStrings = {
      *@example {Arial} PH5
      */
     fontVariationSettingsWarning: 'Value for setting “{PH1}” {PH2} is outside the supported range [{PH3}, {PH4}] for font-family “{PH5}”.',
+    /**
+     *@description The message shown in the Style pane when the user hovers over a property declaration that has no effect on flex or grid child items.
+     *@example {flex} CONTAINER_DISPLAY_NAME
+     *@example {align-contents} PROPERTY_NAME
+     */
+    flexGridContainerPropertyRuleReason: 'This element is a {CONTAINER_DISPLAY_NAME} item, i.e. a child of a {CONTAINER_DISPLAY_NAME} container, but {PROPERTY_NAME} only applies to containers.',
+    /**
+     *@description The message shown in the Style pane when the user hovers over a property declaration that has no effect on flex or grid child items.
+     *@example {align-contents} PROPERTY_NAME
+     *@example {align-self} ALTERNATIVE_PROPERTY_NAME
+     */
+    flexGridContainerPropertyRuleFix: 'Try setting the {PROPERTY_NAME} on the container element or use {ALTERNATIVE_PROPERTY_NAME} instead.',
 };
 const str_ = i18n.i18n.registerUIStrings('panels/elements/CSSRuleValidator.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
@@ -69,7 +87,7 @@ export class Hint {
 }
 export class CSSRuleValidator {
     getMetricType() {
-        return Host.UserMetrics.CSSHintType.Other;
+        return 0 /* Host.UserMetrics.CSSHintType.Other */;
     }
     #affectedProperties;
     constructor(affectedProperties) {
@@ -84,13 +102,25 @@ export class AlignContentValidator extends CSSRuleValidator {
         super(['align-content']);
     }
     getMetricType() {
-        return Host.UserMetrics.CSSHintType.AlignContent;
+        return 1 /* Host.UserMetrics.CSSHintType.AlignContent */;
     }
     getHint(_propertyName, computedStyles) {
         if (!computedStyles) {
             return;
         }
-        if (!isFlexContainer(computedStyles)) {
+        const isFlex = isFlexContainer(computedStyles);
+        if (!isFlex && !isBlockContainer(computedStyles) && !isGridContainer(computedStyles)) {
+            const reasonPropertyDeclaration = buildPropertyDefinitionText('display', computedStyles?.get('display'));
+            const affectedPropertyDeclarationCode = buildPropertyName('align-content');
+            return new Hint(i18nString(UIStrings.ruleViolatedBySameElementRuleReason, {
+                'REASON_PROPERTY_DECLARATION_CODE': reasonPropertyDeclaration,
+                'AFFECTED_PROPERTY_DECLARATION_CODE': affectedPropertyDeclarationCode,
+            }), i18nString(UIStrings.ruleViolatedBySameElementRuleFix, {
+                PROPERTY_NAME: buildPropertyName('display'),
+                PROPERTY_VALUE: buildPropertyValue(computedStyles?.get('display')),
+            }));
+        }
+        if (!isFlex) {
             return;
         }
         if (computedStyles.get('flex-wrap') !== 'nowrap') {
@@ -112,7 +142,7 @@ export class FlexItemValidator extends CSSRuleValidator {
         super(['flex', 'flex-basis', 'flex-grow', 'flex-shrink']);
     }
     getMetricType() {
-        return Host.UserMetrics.CSSHintType.FlexItem;
+        return 2 /* Host.UserMetrics.CSSHintType.FlexItem */;
     }
     getHint(propertyName, computedStyles, parentComputedStyles) {
         if (!parentComputedStyles) {
@@ -138,7 +168,7 @@ export class FlexContainerValidator extends CSSRuleValidator {
         super(['flex-direction', 'flex-flow', 'flex-wrap']);
     }
     getMetricType() {
-        return Host.UserMetrics.CSSHintType.FlexContainer;
+        return 3 /* Host.UserMetrics.CSSHintType.FlexContainer */;
     }
     getHint(propertyName, computedStyles) {
         if (!computedStyles) {
@@ -173,7 +203,7 @@ export class GridContainerValidator extends CSSRuleValidator {
         ]);
     }
     getMetricType() {
-        return Host.UserMetrics.CSSHintType.GridContainer;
+        return 4 /* Host.UserMetrics.CSSHintType.GridContainer */;
     }
     getHint(propertyName, computedStyles) {
         if (isGridContainer(computedStyles)) {
@@ -207,7 +237,7 @@ export class GridItemValidator extends CSSRuleValidator {
         ]);
     }
     getMetricType() {
-        return Host.UserMetrics.CSSHintType.GridItem;
+        return 5 /* Host.UserMetrics.CSSHintType.GridItem */;
     }
     getHint(propertyName, computedStyles, parentComputedStyles) {
         if (!parentComputedStyles) {
@@ -237,7 +267,7 @@ export class FlexOrGridItemValidator extends CSSRuleValidator {
         ]);
     }
     getMetricType() {
-        return Host.UserMetrics.CSSHintType.FlexOrGridItem;
+        return 12 /* Host.UserMetrics.CSSHintType.FlexOrGridItem */;
     }
     getHint(propertyName, computedStyles, parentComputedStyles) {
         if (!parentComputedStyles) {
@@ -262,29 +292,40 @@ export class FlexGridValidator extends CSSRuleValidator {
     constructor() {
         super([
             'justify-content',
-            'align-content',
-            'place-content',
+            'place-content', // Shorthand	<'align-content'> <'justify-content'>?
             'align-items',
         ]);
     }
     getMetricType() {
-        return Host.UserMetrics.CSSHintType.FlexGrid;
+        return 6 /* Host.UserMetrics.CSSHintType.FlexGrid */;
     }
-    getHint(propertyName, computedStyles) {
+    getHint(propertyName, computedStyles, parentComputedStyles) {
         if (!computedStyles) {
             return;
         }
         if (isFlexContainer(computedStyles) || isGridContainer(computedStyles)) {
             return;
         }
-        const reasonPropertyDeclaration = buildPropertyDefinitionText('display', computedStyles?.get('display'));
+        if (parentComputedStyles && (isFlexContainer(parentComputedStyles) || isGridContainer(parentComputedStyles))) {
+            const reasonContainerDisplayName = buildPropertyValue(parentComputedStyles.get('display'));
+            const reasonPropertyName = buildPropertyName(propertyName);
+            const reasonAlternativePropertyName = buildPropertyName(propertyName === 'justify-content' ? 'justify-self' : 'align-self');
+            return new Hint(i18nString(UIStrings.flexGridContainerPropertyRuleReason, {
+                'CONTAINER_DISPLAY_NAME': reasonContainerDisplayName,
+                'PROPERTY_NAME': reasonPropertyName,
+            }), i18nString(UIStrings.flexGridContainerPropertyRuleFix, {
+                'PROPERTY_NAME': reasonPropertyName,
+                'ALTERNATIVE_PROPERTY_NAME': reasonAlternativePropertyName,
+            }));
+        }
+        const reasonPropertyDeclaration = buildPropertyDefinitionText('display', computedStyles.get('display'));
         const affectedPropertyDeclarationCode = buildPropertyName(propertyName);
         return new Hint(i18nString(UIStrings.ruleViolatedBySameElementRuleReason, {
             'REASON_PROPERTY_DECLARATION_CODE': reasonPropertyDeclaration,
             'AFFECTED_PROPERTY_DECLARATION_CODE': affectedPropertyDeclarationCode,
-        }), i18nString(UIStrings.ruleViolatedBySameElementRuleFix, {
-            PROPERTY_NAME: buildPropertyName('display'),
-            PROPERTY_VALUE: buildPropertyValue(computedStyles?.get('display')),
+        }), i18nString(UIStrings.ruleViolatedBySameElementRuleChangeFlexOrGrid, {
+            'DISPLAY_GRID_RULE': buildPropertyDefinitionText('display', 'grid'),
+            'DISPLAY_FLEX_RULE': buildPropertyDefinitionText('display', 'flex'),
         }));
     }
 }
@@ -301,7 +342,7 @@ export class MulticolFlexGridValidator extends CSSRuleValidator {
         ]);
     }
     getMetricType() {
-        return Host.UserMetrics.CSSHintType.MulticolFlexGrid;
+        return 7 /* Host.UserMetrics.CSSHintType.MulticolFlexGrid */;
     }
     getHint(propertyName, computedStyles) {
         if (!computedStyles) {
@@ -332,7 +373,7 @@ export class PaddingValidator extends CSSRuleValidator {
         ]);
     }
     getMetricType() {
-        return Host.UserMetrics.CSSHintType.Padding;
+        return 8 /* Host.UserMetrics.CSSHintType.Padding */;
     }
     getHint(propertyName, computedStyles) {
         const display = computedStyles?.get('display');
@@ -371,7 +412,7 @@ export class PositionValidator extends CSSRuleValidator {
         ]);
     }
     getMetricType() {
-        return Host.UserMetrics.CSSHintType.Position;
+        return 9 /* Host.UserMetrics.CSSHintType.Position */;
     }
     getHint(propertyName, computedStyles) {
         const position = computedStyles?.get('position');
@@ -399,7 +440,7 @@ export class ZIndexValidator extends CSSRuleValidator {
         ]);
     }
     getMetricType() {
-        return Host.UserMetrics.CSSHintType.ZIndex;
+        return 10 /* Host.UserMetrics.CSSHintType.ZIndex */;
     }
     getHint(propertyName, computedStyles, parentComputedStyles) {
         const position = computedStyles?.get('position');
@@ -434,7 +475,7 @@ export class SizingValidator extends CSSRuleValidator {
         ]);
     }
     getMetricType() {
-        return Host.UserMetrics.CSSHintType.Sizing;
+        return 11 /* Host.UserMetrics.CSSHintType.Sizing */;
     }
     getHint(propertyName, computedStyles, parentComputedStyles, nodeName) {
         if (!computedStyles || !nodeName) {
@@ -468,7 +509,7 @@ export class FontVariationSettingsValidator extends CSSRuleValidator {
         ]);
     }
     getMetricType() {
-        return Host.UserMetrics.CSSHintType.FontVariationSettings;
+        return 13 /* Host.UserMetrics.CSSHintType.FontVariationSettings */;
     }
     getHint(propertyName, computedStyles, parentComputedStyles, nodeName, fontFaces) {
         if (!computedStyles) {
@@ -541,4 +582,4 @@ const setupCSSRulesValidators = () => {
     return validatorsMap;
 };
 export const cssRuleValidatorsMap = setupCSSRulesValidators();
-//# map=CSSRuleValidator.js.map
+//# sourceMappingURL=CSSRuleValidator.js.map

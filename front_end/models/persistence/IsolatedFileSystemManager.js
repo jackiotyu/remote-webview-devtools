@@ -98,7 +98,7 @@ export class IsolatedFileSystemManager extends Common.ObjectWrapper.ObjectWrappe
             defaultExcludedFolders = defaultExcludedFolders.concat(defaultLinuxExcludedFolders);
         }
         const defaultExcludedFoldersPattern = defaultExcludedFolders.join('|');
-        this.workspaceFolderExcludePatternSettingInternal = Common.Settings.Settings.instance().createRegExpSetting('workspaceFolderExcludePattern', defaultExcludedFoldersPattern, Host.Platform.isWin() ? 'i' : '');
+        this.workspaceFolderExcludePatternSettingInternal = Common.Settings.Settings.instance().createRegExpSetting('workspace-folder-exclude-pattern', defaultExcludedFoldersPattern, Host.Platform.isWin() ? 'i' : '');
         this.fileSystemRequestResolve = null;
         this.fileSystemsLoadedPromise = this.requestFileSystems();
     }
@@ -285,8 +285,6 @@ export class IsolatedFileSystemManager extends Common.ObjectWrapper.ObjectWrappe
         this.callbacks.delete(requestId);
     }
 }
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
 export var Events;
 (function (Events) {
     Events["FileSystemAdded"] = "FileSystemAdded";
@@ -296,4 +294,4 @@ export var Events;
     Events["ExcludedFolderRemoved"] = "ExcludedFolderRemoved";
 })(Events || (Events = {}));
 let lastRequestId = 0;
-//# map=IsolatedFileSystemManager.js.map
+//# sourceMappingURL=IsolatedFileSystemManager.js.map

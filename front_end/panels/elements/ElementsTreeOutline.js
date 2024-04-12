@@ -41,7 +41,7 @@ import * as CodeHighlighter from '../../ui/components/code_highlighter/code_high
 import * as IconButton from '../../ui/components/icon_button/icon_button.js';
 import * as IssueCounter from '../../ui/components/issue_counter/issue_counter.js';
 import * as UI from '../../ui/legacy/legacy.js';
-import { IssuesPane } from '../issues/IssuesPane.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import * as ElementsComponents from './components/components.js';
 import { ElementsPanel } from './ElementsPanel.js';
 import { ElementsTreeElement, InitialChildrenLimit } from './ElementsTreeElement.js';
@@ -105,7 +105,7 @@ export class ElementsTreeOutline extends Common.ObjectWrapper.eventMixin(UI.Tree
     #nodeElementToIssue = new Map();
     constructor(omitRootDOMNode, selectEnabled, hideGutter) {
         super();
-        if (Root.Runtime.experiments.isEnabled(Root.Runtime.ExperimentName.HIGHLIGHT_ERRORS_ELEMENTS_PANEL)) {
+        if (Root.Runtime.experiments.isEnabled("highlight-errors-elements-panel" /* Root.Runtime.ExperimentName.HIGHLIGHT_ERRORS_ELEMENTS_PANEL */)) {
             this.#issuesManager = IssuesManager.IssuesManager.IssuesManager.instance();
             this.#issuesManager.addEventListener("IssueAdded" /* IssuesManager.IssuesManager.Events.IssueAdded */, this.#onIssueEventReceived, this);
             for (const issue of this.#issuesManager.issues()) {
@@ -116,7 +116,7 @@ export class ElementsTreeOutline extends Common.ObjectWrapper.eventMixin(UI.Tree
         }
         this.treeElementByNode = new WeakMap();
         const shadowContainer = document.createElement('div');
-        this.shadowRoot = UI.Utils.createShadowRootWithCoreStyles(shadowContainer, { cssFile: [elementsTreeOutlineStyles, CodeHighlighter.Style.default], delegatesFocus: undefined });
+        this.shadowRoot = UI.UIUtils.createShadowRootWithCoreStyles(shadowContainer, { cssFile: [elementsTreeOutlineStyles, CodeHighlighter.Style.default], delegatesFocus: undefined });
         const outlineDisclosureElement = this.shadowRoot.createChild('div', 'elements-disclosure');
         this.elementInternal = this.element;
         this.elementInternal.classList.add('elements-tree-outline', 'source-code');
@@ -141,6 +141,7 @@ export class ElementsTreeOutline extends Common.ObjectWrapper.eventMixin(UI.Tree
         this.elementInternal.addEventListener('keydown', this.onKeyDown.bind(this), false);
         outlineDisclosureElement.appendChild(this.elementInternal);
         this.element = shadowContainer;
+        this.contentElement.setAttribute('jslog', `${VisualLogging.tree('elements')}`);
         this.includeRootDOMNode = !omitRootDOMNode;
         this.selectEnabled = selectEnabled;
         this.rootDOMNodeInternal = null;
@@ -166,10 +167,10 @@ export class ElementsTreeOutline extends Common.ObjectWrapper.eventMixin(UI.Tree
         this.updateRecords = new Map();
         this.treeElementsBeingUpdated = new Set();
         this.decoratorExtensions = null;
-        this.showHTMLCommentsSetting = Common.Settings.Settings.instance().moduleSetting('showHTMLComments');
+        this.showHTMLCommentsSetting = Common.Settings.Settings.instance().moduleSetting('show-html-comments');
         this.showHTMLCommentsSetting.addChangeListener(this.onShowHTMLCommentsChange.bind(this));
         this.setUseLightSelectionColor(true);
-        if (Root.Runtime.experiments.isEnabled(Root.Runtime.ExperimentName.HIGHLIGHT_ERRORS_ELEMENTS_PANEL)) {
+        if (Root.Runtime.experiments.isEnabled("highlight-errors-elements-panel" /* Root.Runtime.ExperimentName.HIGHLIGHT_ERRORS_ELEMENTS_PANEL */)) {
             this.#popupHelper = new UI.PopoverHelper.PopoverHelper(this.elementInternal, event => {
                 const hoveredNode = event.composedPath()[0];
                 if (!hoveredNode || !hoveredNode.matches('.violating-element')) {
@@ -200,17 +201,14 @@ export class ElementsTreeOutline extends Common.ObjectWrapper.eventMixin(UI.Tree
                     box: hoveredNode.boxInWindow(),
                     show: async (popover) => {
                         popover.setIgnoreLeftMargin(true);
-                        const openIssueEvent = () => {
-                            void UI.ViewManager.ViewManager.instance().showView('issues-pane');
-                            void IssuesPane.instance().reveal(issue);
-                        };
+                        const openIssueEvent = () => Common.Revealer.reveal(issue);
                         viewIssueElement.addEventListener('click', () => openIssueEvent());
                         issueKindIcon.addEventListener('click', () => openIssueEvent());
                         popover.contentElement.appendChild(element);
                         return true;
                     },
                 };
-            });
+            }, 'elements.issue');
             this.#popupHelper.setTimeout(300);
             this.#popupHelper.setHasPadding(true);
         }
@@ -733,13 +731,14 @@ export class ElementsTreeOutline extends Common.ObjectWrapper.eventMixin(UI.Tree
         if (treeElement.isClosingTag()) {
             // Drop onto closing tag -> insert as last child.
             parentNode = treeElement.node();
+            anchorNode = null;
         }
         else {
             const dragTargetNode = treeElement.node();
             parentNode = dragTargetNode.parentNode;
             anchorNode = dragTargetNode;
         }
-        if (!parentNode || !anchorNode) {
+        if (!parentNode) {
             return;
         }
         const wasExpanded = this.treeElementBeingDragged.expanded;
@@ -779,7 +778,7 @@ export class ElementsTreeOutline extends Common.ObjectWrapper.eventMixin(UI.Tree
             textNode = null;
         }
         const commentNode = node.enclosingNodeOrSelfWithClass('webkit-html-comment');
-        contextMenu.saveSection().appendItem(i18nString(UIStrings.storeAsGlobalVariable), this.saveNodeToTempVariable.bind(this, treeElement.node()));
+        contextMenu.saveSection().appendItem(i18nString(UIStrings.storeAsGlobalVariable), this.saveNodeToTempVariable.bind(this, treeElement.node()), { jslogContext: 'store-as-global-variable' });
         if (textNode) {
             treeElement.populateTextContextMenu(contextMenu, textNode);
         }
@@ -790,11 +789,11 @@ export class ElementsTreeOutline extends Common.ObjectWrapper.eventMixin(UI.Tree
             treeElement.populateNodeContextMenu(contextMenu);
         }
         else if (isPseudoElement) {
-            treeElement.populateScrollIntoView(contextMenu);
+            treeElement.populatePseudoElementContextMenu(contextMenu);
         }
         contextMenu.viewSection().appendItem(i18nString(UIStrings.adornerSettings), () => {
             ElementsPanel.instance().showAdornerSettingsPane();
-        });
+        }, { jslogContext: 'show-adorner-settings' });
         contextMenu.appendApplicableItems(treeElement.node());
         void contextMenu.show();
     }
@@ -995,7 +994,7 @@ export class ElementsTreeOutline extends Common.ObjectWrapper.eventMixin(UI.Tree
         this.reset();
         if (domModel.existingDocument()) {
             this.rootDOMNode = domModel.existingDocument();
-            if (Root.Runtime.experiments.isEnabled(Root.Runtime.ExperimentName.HIGHLIGHT_ERRORS_ELEMENTS_PANEL)) {
+            if (Root.Runtime.experiments.isEnabled("highlight-errors-elements-panel" /* Root.Runtime.ExperimentName.HIGHLIGHT_ERRORS_ELEMENTS_PANEL */)) {
                 this.#addAllElementIssues();
             }
         }
@@ -1361,8 +1360,6 @@ export class ElementsTreeOutline extends Common.ObjectWrapper.eventMixin(UI.Tree
     static treeOutlineSymbol = Symbol('treeOutline');
 }
 (function (ElementsTreeOutline) {
-    // TODO(crbug.com/1167717): Make this a const enum again
-    // eslint-disable-next-line rulesdir/const_enum
     let Events;
     (function (Events) {
         Events["SelectedNodeChanged"] = "SelectedNodeChanged";
@@ -1512,6 +1509,7 @@ export class ShortcutTreeElement extends UI.TreeOutline.TreeElement {
         adorner.data = {
             name,
             content: adornerContent,
+            jslogContext: 'reveal',
         };
         this.listItemElement.appendChild(adorner);
         const onClick = (() => {
@@ -1572,4 +1570,4 @@ export class ShortcutTreeElement extends UI.TreeOutline.TreeElement {
         return true;
     }
 }
-//# map=ElementsTreeOutline.js.map
+//# sourceMappingURL=ElementsTreeOutline.js.map

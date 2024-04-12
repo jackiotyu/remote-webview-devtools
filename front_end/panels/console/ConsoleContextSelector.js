@@ -30,12 +30,12 @@ export class ConsoleContextSelector {
     toolbarItemInternal;
     constructor() {
         this.items = new UI.ListModel.ListModel();
-        this.dropDown = new UI.SoftDropDown.SoftDropDown(this.items, this);
+        this.dropDown = new UI.SoftDropDown.SoftDropDown(this.items, this, 'javascript-context');
         this.dropDown.setRowHeight(36);
         this.toolbarItemInternal = new UI.Toolbar.ToolbarItem(this.dropDown.element);
         this.toolbarItemInternal.setEnabled(false);
         this.toolbarItemInternal.setTitle(i18nString(UIStrings.javascriptContextNotSelected));
-        this.items.addEventListener(UI.ListModel.Events.ItemsReplaced, () => this.toolbarItemInternal.setEnabled(Boolean(this.items.length)));
+        this.items.addEventListener("ItemsReplaced" /* UI.ListModel.Events.ItemsReplaced */, () => this.toolbarItemInternal.setEnabled(Boolean(this.items.length)));
         this.toolbarItemInternal.element.classList.add('toolbar-has-dropdown');
         SDK.TargetManager.TargetManager.instance().addModelListener(SDK.RuntimeModel.RuntimeModel, SDK.RuntimeModel.Events.ExecutionContextCreated, this.onExecutionContextCreated, this, { scoped: true });
         SDK.TargetManager.TargetManager.instance().addModelListener(SDK.RuntimeModel.RuntimeModel, SDK.RuntimeModel.Events.ExecutionContextChanged, this.onExecutionContextChanged, this, { scoped: true });
@@ -166,7 +166,7 @@ export class ConsoleContextSelector {
     }
     createElementForItem(item) {
         const element = document.createElement('div');
-        const shadowRoot = UI.Utils.createShadowRootWithCoreStyles(element, { cssFile: [consoleContextSelectorStyles], delegatesFocus: undefined });
+        const shadowRoot = UI.UIUtils.createShadowRootWithCoreStyles(element, { cssFile: [consoleContextSelectorStyles], delegatesFocus: undefined });
         const title = shadowRoot.createChild('div', 'title');
         UI.UIUtils.createTextChild(title, Platform.StringUtilities.trimEndWithMaxLength(this.titleFor(item), 100));
         const subTitle = shadowRoot.createChild('div', 'subtitle');
@@ -181,7 +181,7 @@ export class ConsoleContextSelector {
             const resourceTreeModel = target.model(SDK.ResourceTreeModel.ResourceTreeModel);
             frame = resourceTreeModel && resourceTreeModel.frameForId(executionContext.frameId);
         }
-        if (executionContext.origin.startsWith('chrome-extension://')) {
+        if (Common.ParsedURL.schemeIs(executionContext.origin, 'chrome-extension:')) {
             return i18nString(UIStrings.extension);
         }
         const sameTargetParentFrame = frame && frame.sameTargetParentFrame();
@@ -240,4 +240,4 @@ export class ConsoleContextSelector {
         }
     }
 }
-//# map=ConsoleContextSelector.js.map
+//# sourceMappingURL=ConsoleContextSelector.js.map

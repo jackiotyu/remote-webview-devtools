@@ -73,4 +73,4 @@ export class PlayerDetailView extends UI.TabbedPane.TabbedPane {
         this.timelineView.onEvent(event);
     }
 }
-//# map=PlayerDetailView.js.map
+//# sourceMappingURL=PlayerDetailView.js.map

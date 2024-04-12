@@ -226,4 +226,4 @@ export const queryCSSSelectorAll = (selectors) => {
     } while (selectors.length > 0 && lists.length > 0);
     return lists.flatMap(list => [...list]);
 };
-//# map=CSSSelector.js.map
+//# sourceMappingURL=CSSSelector.js.map

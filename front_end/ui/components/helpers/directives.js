@@ -30,4 +30,4 @@ class NodeRenderedCallback extends LitHtml.Directive.Directive {
     }
 }
 export const nodeRenderedCallback = LitHtml.Directive.directive(NodeRenderedCallback);
-//# map=directives.js.map
+//# sourceMappingURL=directives.js.map

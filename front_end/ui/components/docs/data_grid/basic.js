@@ -1,7 +1,7 @@
 // Copyright 2020 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import * as FrontendHelpers from '../../../../../test/unittests/front_end/helpers/EnvironmentHelpers.js';
+import * as FrontendHelpers from '../../../../testing/EnvironmentHelpers.js';
 import * as DataGrid from '../../data_grid/data_grid.js';
 import * as ComponentHelpers from '../../helpers/helpers.js';
 await ComponentHelpers.ComponentServerSetup.setup();
@@ -20,4 +20,4 @@ component.data = {
     activeSort: null,
 };
 document.getElementById('container')?.appendChild(component);
-//# map=basic.js.map
+//# sourceMappingURL=basic.js.map

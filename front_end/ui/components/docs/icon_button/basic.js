@@ -15,7 +15,7 @@ appendComponent({
     clickHandler: () => { },
     groups: [
         { iconName: 'review', iconColor: 'var(--icon-primary)', text: 'Test' },
-        { iconName: 'warning_icon', iconColor: '', text: '1' },
+        { iconName: 'warning-filled', iconColor: '', text: '1' },
     ],
 });
 appendComponent({
@@ -56,4 +56,4 @@ appendComponent({
     leadingText: 'Issues:',
     compact: true,
 });
-//# map=basic.js.map
+//# sourceMappingURL=basic.js.map

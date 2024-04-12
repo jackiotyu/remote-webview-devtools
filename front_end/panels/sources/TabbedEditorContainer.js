@@ -28,18 +28,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 import * as Common from '../../core/common/common.js';
-import * as Host from '../../core/host/host.js';
 import * as i18n from '../../core/i18n/i18n.js';
 import * as Platform from '../../core/platform/platform.js';
 import * as Extensions from '../../models/extensions/extensions.js';
 import * as Persistence from '../../models/persistence/persistence.js';
 import * as TextUtils from '../../models/text_utils/text_utils.js';
 import * as Workspace from '../../models/workspace/workspace.js';
+import * as IconButton from '../../ui/components/icon_button/icon_button.js';
 import * as SourceFrame from '../../ui/legacy/components/source_frame/source_frame.js';
 import * as UI from '../../ui/legacy/legacy.js';
-import * as IconButton from '../../ui/components/icon_button/icon_button.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import * as Snippets from '../snippets/snippets.js';
-import * as Bindings from '../../models/bindings/bindings.js';
 import { SourcesView } from './SourcesView.js';
 import { UISourceCodeFrame } from './UISourceCodeFrame.js';
 const UIStrings = {
@@ -83,9 +82,10 @@ export class TabbedEditorContainer extends Common.ObjectWrapper.ObjectWrapper {
         this.tabbedPane.setAllowTabReorder(true, true);
         this.tabbedPane.addEventListener(UI.TabbedPane.Events.TabClosed, this.tabClosed, this);
         this.tabbedPane.addEventListener(UI.TabbedPane.Events.TabSelected, this.tabSelected, this);
+        this.tabbedPane.headerElement().setAttribute('jslog', `${VisualLogging.toolbar('top').track({ keydown: 'ArrowUp|ArrowLeft|ArrowDown|ArrowRight|Enter|Space' })}`);
         Persistence.Persistence.PersistenceImpl.instance().addEventListener(Persistence.Persistence.Events.BindingCreated, this.onBindingCreated, this);
         Persistence.Persistence.PersistenceImpl.instance().addEventListener(Persistence.Persistence.Events.BindingRemoved, this.onBindingRemoved, this);
-        Persistence.NetworkPersistenceManager.NetworkPersistenceManager.instance().addEventListener(Persistence.NetworkPersistenceManager.Events.RequestsForHeaderOverridesFileChanged, this.#onRequestsForHeaderOverridesFileChanged, this);
+        Persistence.NetworkPersistenceManager.NetworkPersistenceManager.instance().addEventListener("RequestsForHeaderOverridesFileChanged" /* Persistence.NetworkPersistenceManager.Events.RequestsForHeaderOverridesFileChanged */, this.#onRequestsForHeaderOverridesFileChanged, this);
         this.tabIds = new Map();
         this.files = new Map();
         this.previouslyViewedFilesSetting = setting;
@@ -163,17 +163,6 @@ export class TabbedEditorContainer extends Common.ObjectWrapper.ObjectWrapper {
             Common.EventTarget.fireEvent('source-file-loaded', uiSourceCode.displayName(true));
         }
         else {
-            if (uiSourceCode.project().type() === Workspace.Workspace.projectTypes.Debugger) {
-                const script = Bindings.DefaultScriptMapping.DefaultScriptMapping.scriptForUISourceCode(uiSourceCode);
-                if (script && script.isInlineScript() && !script.hasSourceURL) {
-                    if (script.isModule) {
-                        Host.userMetrics.vmInlineScriptContentShown(0 /* Host.UserMetrics.VMInlineScriptType.MODULE_SCRIPT */);
-                    }
-                    else {
-                        Host.userMetrics.vmInlineScriptContentShown(1 /* Host.UserMetrics.VMInlineScriptType.CLASSIC_SCRIPT */);
-                    }
-                }
-            }
             this.innerShowFile(uiSourceCode, true);
         }
     }
@@ -289,7 +278,7 @@ export class TabbedEditorContainer extends Common.ObjectWrapper.ObjectWrapper {
             previousView: previousView,
             userGesture: userGesture,
         };
-        this.dispatchEventToListeners(Events.EditorSelected, eventData);
+        this.dispatchEventToListeners("EditorSelected" /* Events.EditorSelected */, eventData);
     }
     titleForFile(uiSourceCode) {
         const maxDisplayNameLength = 30;
@@ -497,7 +486,7 @@ export class TabbedEditorContainer extends Common.ObjectWrapper.ObjectWrapper {
         this.files.delete(tabId);
         if (uiSourceCode) {
             this.removeUISourceCodeListeners(uiSourceCode);
-            this.dispatchEventToListeners(Events.EditorClosed, uiSourceCode);
+            this.dispatchEventToListeners("EditorClosed" /* Events.EditorClosed */, uiSourceCode);
             if (isUserGesture) {
                 this.editorClosedByUserAction(uiSourceCode);
             }
@@ -571,19 +560,12 @@ export class TabbedEditorContainer extends Common.ObjectWrapper.ObjectWrapper {
         this.updateFileTitle(uiSourceCode);
     }
     generateTabId() {
-        return 'tab_' + (tabId++);
+        return 'tab-' + (tabId++);
     }
     currentFile() {
         return this.currentFileInternal || null;
     }
 }
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
-export var Events;
-(function (Events) {
-    Events["EditorSelected"] = "EditorSelected";
-    Events["EditorClosed"] = "EditorClosed";
-})(Events || (Events = {}));
 const MAX_PREVIOUSLY_VIEWED_FILES_COUNT = 30;
 const MAX_SERIALIZABLE_URL_LENGTH = 4096;
 function historyItemKey(uiSourceCode) {
@@ -723,4 +705,4 @@ export class EditorContainerTabDelegate {
         this.editorContainer.onContextMenu(tabId, contextMenu);
     }
 }
-//# map=TabbedEditorContainer.js.map
+//# sourceMappingURL=TabbedEditorContainer.js.map

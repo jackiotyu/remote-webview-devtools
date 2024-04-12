@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as HeapSnapshotModel from './HeapSnapshotModel.js';
 export { HeapSnapshotModel, };
-//# map=heap_snapshot_model.js.map
+//# sourceMappingURL=heap_snapshot_model.js.map

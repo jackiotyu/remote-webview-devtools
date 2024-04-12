@@ -21,12 +21,11 @@ export async function completeInContext(textBefore, query, force = false) {
         extensions: CodeMirror.javascript.javascriptLanguage,
     });
     const result = await javascriptCompletionSource(new CodeMirror.CompletionContext(state, state.doc.length, force));
-    return result ?
-        result.options.filter((o) => o.label.startsWith(query)).map((o) => ({
-            text: o.label,
-            priority: 100 + (o.boost || 0),
-            isSecondary: o.type === 'secondary',
-        })) :
+    return result ? result.options.filter(o => o.label.startsWith(query)).map(o => ({
+        text: o.label,
+        priority: 100 + (o.boost || 0),
+        isSecondary: o.type === 'secondary',
+    })) :
         [];
 }
 class CompletionSet {
@@ -153,7 +152,7 @@ export async function javascriptCompletionSource(cx) {
     }
     const script = getExecutionContext()?.debuggerModel.selectedCallFrame()?.script;
     if (script &&
-        Bindings.DebuggerWorkspaceBinding.DebuggerWorkspaceBinding.instance().pluginManager?.hasPluginForScript(script)) {
+        Bindings.DebuggerWorkspaceBinding.DebuggerWorkspaceBinding.instance().pluginManager.hasPluginForScript(script)) {
         return null;
     }
     let result;
@@ -215,6 +214,7 @@ async function evaluateExpression(context, expression, group) {
         generatePreview: false,
         throwOnSideEffect: true,
         timeout: 500,
+        replMode: true,
     }, false, false);
     if ('error' in result || result.exceptionDetails || !result.object) {
         return null;
@@ -327,7 +327,7 @@ async function completePropertiesInner(expression, context, quoted, hasBracket =
         const isFunction = object.type === 'function';
         for (const prop of properties.properties || []) {
             if (!prop.symbol && !(isFunction && (prop.name === 'arguments' || prop.name === 'caller')) &&
-                (!prop.private || expression === 'this') && (quoted || SPAN_IDENT.test(prop.name))) {
+                (quoted || SPAN_IDENT.test(prop.name))) {
                 const label = quoted ? quoted + prop.name.replaceAll('\\', '\\\\').replaceAll(quoted, '\\' + quoted) + quoted : prop.name;
                 const apply = (quoted && !hasBracket) ? `${label}]` : undefined;
                 const boost = 2 * Number(prop.isOwn) + 1 * Number(prop.enumerable);
@@ -345,9 +345,9 @@ async function completeExpressionInScope() {
     if (!selectedFrame) {
         return result;
     }
-    const scopeObjectForScope = (scope) =>
+    const scopeObjectForScope = (scope) => 
     // TODO(crbug.com/1444349): Inline into `map` call below when experiment is removed.
-    Root.Runtime.experiments.isEnabled('evaluateExpressionsWithSourceMaps') ?
+    Root.Runtime.experiments.isEnabled('evaluate-expressions-with-source-maps') ?
         SourceMapScopes.NamesResolver.resolveScopeInObject(scope) :
         scope.object();
     const scopes = await Promise.all(selectedFrame.scopeChain().map(scope => scopeObjectForScope(scope).getAllProperties(false, false)));
@@ -675,4 +675,4 @@ function tooltipBuilder(signatures, currentIndex) {
     }
     return { dom: tooltip };
 }
-//# map=javascript.js.map
+//# sourceMappingURL=javascript.js.map

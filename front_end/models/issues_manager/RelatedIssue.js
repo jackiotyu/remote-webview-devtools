@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 import * as Common from '../../core/common/common.js';
 import * as SDK from '../../core/sdk/sdk.js';
+import { CookieIssue } from './CookieIssue.js';
 import { IssuesManager } from './IssuesManager.js';
 function issuesAssociatedWithNetworkRequest(issues, request) {
     return issues.filter(issue => {
@@ -44,6 +45,16 @@ export function hasIssueOfCategory(obj, category) {
     const issues = Array.from(IssuesManager.instance().issues());
     return issuesAssociatedWith(issues, obj).some(issue => issue.getCategory() === category);
 }
+export function hasThirdPartyPhaseoutCookieIssue(obj) {
+    const issues = Array.from(IssuesManager.instance().issues());
+    return issuesAssociatedWith(issues, obj)
+        .some(issue => CookieIssue.getSubCategory(issue.code()) === "ThirdPartyPhaseoutCookie" /* CookieIssueSubCategory.ThirdPartyPhaseoutCookie */);
+}
+export function hasThirdPartyPhaseoutCookieIssueForDomain(domain) {
+    const issues = Array.from(IssuesManager.instance().issues());
+    const issuesForDomain = issues.filter(issue => Array.from(issue.cookies()).some(cookie => cookie.domain === domain));
+    return issuesForDomain.some(issue => CookieIssue.getSubCategory(issue.code()) === "ThirdPartyPhaseoutCookie" /* CookieIssueSubCategory.ThirdPartyPhaseoutCookie */);
+}
 export async function reveal(obj, category) {
     if (typeof obj === 'string') {
         const issue = IssuesManager.instance().getIssueById(obj);
@@ -57,4 +68,4 @@ export async function reveal(obj, category) {
         return Common.Revealer.reveal(candidates[0]);
     }
 }
-//# map=RelatedIssue.js.map
+//# sourceMappingURL=RelatedIssue.js.map

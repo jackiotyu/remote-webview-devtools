@@ -11,6 +11,7 @@ import * as Host from '../../../core/host/host.js';
 import * as i18n from '../../../core/i18n/i18n.js';
 import * as Buttons from '../../../ui/components/buttons/buttons.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
+import * as VisualLogging from '../../../ui/visual_logging/visual_logging.js';
 import toolbarStyles from './toolbar.css.js';
 const { html, Decorators, LitElement } = LitHtml;
 const { customElement } = Decorators;
@@ -44,7 +45,7 @@ export class SendCommandEvent extends Event {
         super(SendCommandEvent.eventName, { bubbles: true, composed: true });
     }
 }
-export let Toolbar = class Toolbar extends LitElement {
+let Toolbar = class Toolbar extends LitElement {
     static styles = [toolbarStyles];
     #handleCopy = () => {
         this.dispatchEvent(new CopyCommandEvent());
@@ -62,6 +63,7 @@ export let Toolbar = class Toolbar extends LitElement {
           .iconUrl=${copyIconUrl}
           .variant=${"toolbar" /* Buttons.Button.Variant.TOOLBAR */}
           @click=${this.#handleCopy}
+          jslog=${VisualLogging.action('protocol-monitor.copy-command').track({ click: true })}
         ></${Buttons.Button.Button.litTagName}>
         <${Buttons.Button.Button.litTagName}
           .size=${"SMALL" /* Buttons.Button.Size.SMALL */}
@@ -69,6 +71,7 @@ export let Toolbar = class Toolbar extends LitElement {
           .iconUrl=${sendIconUrl}
           .variant=${"primary_toolbar" /* Buttons.Button.Variant.PRIMARY_TOOLBAR */}
           @click=${this.#handleSend}
+          jslog=${VisualLogging.action('protocol-monitor.send-command').track({ click: true })}
         ></${Buttons.Button.Button.litTagName}>
       </div>
     `;
@@ -78,4 +81,5 @@ export let Toolbar = class Toolbar extends LitElement {
 Toolbar = __decorate([
     customElement('devtools-pm-toolbar')
 ], Toolbar);
-//# map=Toolbar.js.map
+export { Toolbar };
+//# sourceMappingURL=Toolbar.js.map

@@ -46,6 +46,17 @@ const str_ = i18n.i18n.registerUIStrings('core/host/InspectorFrontendHost.ts', U
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const MAX_RECORDED_HISTOGRAMS_SIZE = 100;
 const OVERRIDES_FILE_SYSTEM_PATH = '/overrides';
+/**
+ * The InspectorFrontendHostStub is a stub interface used the frontend is loaded like a webpage. Examples:
+ *   - devtools://devtools/bundled/devtools_app.html
+ *   - https://chrome-devtools-frontend.appspot.com/serve_rev/@030cc140435b0152645522b9864b75cac6c0a854/worker_app.html
+ *   - http://localhost:9222/devtools/inspector.html?ws=localhost:9222/devtools/page/xTARGET_IDx
+ *
+ * When the frontend runs within the native embedder, then the InspectorFrontendHostAPI methods are provided
+ * by devtools_compatibility.js. Those leverage `DevToolsAPI.sendMessageToEmbedder()` which match up with
+ * the embedder API defined here: https://source.chromium.org/search?q=f:devtools%20f:dispatcher%20f:cc%20symbol:CreateForDevToolsFrontend&sq=&ss=chromium%2Fchromium%2Fsrc
+ * The native implementations live in devtools_ui_bindings.cc: https://source.chromium.org/chromium/chromium/src/+/main:chrome/browser/devtools/devtools_ui_bindings.cc
+ */
 export class InspectorFrontendHostStub {
     #urlsBeingSaved;
     events;
@@ -125,6 +136,9 @@ export class InspectorFrontendHostStub {
         } else {
             window.open(url, '_blank');
         }
+    }
+    openSearchResultsInNewTab(query) {
+        Common.Console.Console.instance().error('Search is not enabled in hosted mode. Please inspect using chrome://inspect');
     }
     showItemInFolder(fileSystemPath) {
         Common.Console.Console.instance().error('Show item in folder is not enabled in hosted mode. Please inspect using chrome://inspect');
@@ -351,10 +365,26 @@ export class InspectorFrontendHostStub {
     async initialTargetId() {
         return null;
     }
-    doAidaConversation(request, callback) {
+    doAidaConversation(request, streamId, callback) {
         callback({
-            response: '{}',
+            error: 'Not implemened',
         });
+    }
+    registerAidaClientEvent(request) {
+    }
+    recordImpression(event) {
+    }
+    recordResize(event) {
+    }
+    recordClick(event) {
+    }
+    recordHover(event) {
+    }
+    recordDrag(event) {
+    }
+    recordChange(event) {
+    }
+    recordKeyDown(event) {
     }
 }
 // @ts-ignore Global injected by devtools-compatibility.js
@@ -402,6 +432,14 @@ class InspectorFrontendAPIImpl {
             // Instantiate stub for web-hosted mode if necessary.
             // @ts-ignore Global injected by devtools-compatibility.js
             globalThis.InspectorFrontendHost = InspectorFrontendHostInstance = new InspectorFrontendHostStub();
+            if ('doAidaConversationForTesting' in globalThis) {
+                InspectorFrontendHostInstance['doAidaConversation'] =
+                    globalThis.doAidaConversationForTesting;
+            }
+            if ('getSyncInformationForTesting' in globalThis) {
+                InspectorFrontendHostInstance['getSyncInformation'] =
+                    globalThis.getSyncInformationForTesting;
+            }
         }
         else {
             // Otherwise add stubs for missing methods that are declared in the interface.
@@ -440,4 +478,4 @@ export function isUnderTest(prefs) {
     return Common.Settings.Settings.hasInstance() &&
         Common.Settings.Settings.instance().createSetting('isUnderTest', false).get();
 }
-//# map=InspectorFrontendHost.js.map
+//# sourceMappingURL=InspectorFrontendHost.js.map

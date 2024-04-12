@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 import * as Types from '../types/types.js';
 import { millisecondsToMicroseconds } from './Timing.js';
-import { mergeEventsInOrder } from './Trace.js';
+import { makeProfileCall, mergeEventsInOrder } from './Trace.js';
 /**
  * This is a helper that integrates CPU profiling data coming in the
  * shape of samples, with trace events. Samples indicate what the JS
@@ -77,6 +77,16 @@ export class SamplesIntegrator {
      * the sample data.
      */
     #profileModel;
+    /**
+     * Because GC nodes don't have a stack, we artificially add a stack to
+     * them which corresponds to that of the previous sample. This map
+     * tracks which node is used for the stack of a GC call.
+     * Note that GC samples are not shown in the flamechart, however they
+     * are used during the construction of for profile calls, as we can
+     * infer information about the duration of the executed code when a
+     * GC node is sampled.
+     */
+    #nodeForGC = new Map();
     #engineConfig;
     constructor(profileModel, pid, tid, configuration) {
         this.#profileModel = profileModel;
@@ -89,6 +99,12 @@ export class SamplesIntegrator {
         const stack = [];
         for (let i = 0; i < mergedEvents.length; i++) {
             const event = mergedEvents[i];
+            // Because instant trace events have no duration, they don't provide
+            // useful information for possible changes in the duration of calls
+            // in the JS stack.
+            if (event.ph === "I" /* Types.TraceEvents.Phase.INSTANT */) {
+                continue;
+            }
             if (stack.length === 0) {
                 if (Types.TraceEvents.isProfileCall(event)) {
                     this.#onProfileCall(event);
@@ -129,12 +145,6 @@ export class SamplesIntegrator {
         return this.#constructedProfileCalls;
     }
     #onTraceEventStart(event) {
-        // Because instant trace events have no duration, they don't provide
-        // useful information for possible changes in the duration of calls
-        // in the JS stack.
-        if (event.ph === "I" /* Types.TraceEvents.Phase.INSTANT */) {
-            return;
-        }
         // Top level events cannot be nested into JS frames so we reset
         // the stack when we find one.
         if (event.name === "RunMicrotasks" /* Types.TraceEvents.KnownEventName.RunMicrotasks */ ||
@@ -168,7 +178,7 @@ export class SamplesIntegrator {
         this.#lockedJsStackDepth.push(this.#currentJSStack.length);
     }
     #onProfileCall(event, parent) {
-        if ((parent && SamplesIntegrator.isJSInvocationEvent(parent)) || this.#fakeJSInvocation) {
+        if ((parent && Types.TraceEvents.isJSInvocationEvent(parent)) || this.#fakeJSInvocation) {
             this.#extractStackTrace(event);
         }
         else if (Types.TraceEvents.isProfileCall(event) && this.#currentJSStack.length === 0) {
@@ -202,29 +212,48 @@ export class SamplesIntegrator {
             return [];
         }
         const calls = [];
+        let prevNode;
         for (let i = 0; i < samples.length; i++) {
             const node = this.#profileModel.nodeByIndex(i);
             const timestamp = millisecondsToMicroseconds(Types.Timing.MilliSeconds(timestamps[i]));
             if (!node) {
                 continue;
             }
-            const call = SamplesIntegrator.makeProfileCall(node, timestamp, this.#processId, this.#threadId);
+            const call = makeProfileCall(node, timestamp, this.#processId, this.#threadId);
             calls.push(call);
+            if (node.id === this.#profileModel.gcNode?.id && prevNode) {
+                // GC samples have no stack, so we just put GC node on top of the
+                // last recorded sample. Cache the previous sample for future
+                // reference.
+                this.#nodeForGC.set(call, prevNode);
+                continue;
+            }
+            prevNode = node;
         }
         return calls;
     }
     #getStackTraceFromProfileCall(profileCall) {
         let node = this.#profileModel.nodeById(profileCall.nodeId);
+        const isGarbageCollection = node?.id === this.#profileModel.gcNode?.id;
+        if (isGarbageCollection) {
+            // Because GC don't have a stack, we use the stack of the previous
+            // sample.
+            node = this.#nodeForGC.get(profileCall) || null;
+        }
         if (!node) {
             return [];
         }
         // `node.depth` is 0 based, so to set the size of the array we need
         // to add 1 to its value.
-        const callFrames = new Array(node.depth + 1);
+        const callFrames = new Array(node.depth + 1 + Number(isGarbageCollection));
         // Add the stack trace in reverse order (bottom first).
         let i = callFrames.length - 1;
+        if (isGarbageCollection) {
+            // Place the garbage collection call frame on top of the stack.
+            callFrames[i--] = profileCall;
+        }
         while (node) {
-            callFrames[i--] = SamplesIntegrator.makeProfileCall(node, profileCall.ts, this.#processId, this.#threadId);
+            callFrames[i--] = makeProfileCall(node, profileCall.ts, this.#processId, this.#threadId);
             node = node.parent;
         }
         return callFrames;
@@ -283,7 +312,6 @@ export class SamplesIntegrator {
         this.#truncateJSStack(i, event.ts);
         for (; i < stackTrace.length; ++i) {
             const call = stackTrace[i];
-            this.#currentJSStack.push(call);
             if (call.nodeId === this.#profileModel.programNode?.id || call.nodeId === this.#profileModel.root?.id ||
                 call.nodeId === this.#profileModel.idleNode?.id || call.nodeId === this.#profileModel.gcNode?.id) {
                 // Skip (root), (program) and (idle) frames, since this are not
@@ -291,6 +319,7 @@ export class SamplesIntegrator {
                 // the timeline.
                 continue;
             }
+            this.#currentJSStack.push(call);
             this.#constructedProfileCalls.push(call);
         }
     }
@@ -321,27 +350,6 @@ export class SamplesIntegrator {
             this.#currentJSStack[k].dur = Types.Timing.MicroSeconds(Math.max(time - this.#currentJSStack[k].ts, 0));
         }
         this.#currentJSStack.length = depth;
-    }
-    /**
-     * Generally, before JS is executed, a trace event is dispatched that
-     * parents the JS calls. These we call "invocation" events. This
-     * function determines if an event is one of such.
-     */
-    static isJSInvocationEvent(event) {
-        switch (event.name) {
-            case "RunMicrotasks" /* Types.TraceEvents.KnownEventName.RunMicrotasks */:
-            case "FunctionCall" /* Types.TraceEvents.KnownEventName.FunctionCall */:
-            case "EvaluateScript" /* Types.TraceEvents.KnownEventName.EvaluateScript */:
-            case "v8.evaluateModule" /* Types.TraceEvents.KnownEventName.EvaluateModule */:
-            case "EventDispatch" /* Types.TraceEvents.KnownEventName.EventDispatch */:
-            case "V8.Execute" /* Types.TraceEvents.KnownEventName.V8Execute */:
-                return true;
-        }
-        // Also consider any new v8 trace events. (eg 'V8.RunMicrotasks' and 'v8.run')
-        if (event.name.startsWith('v8') || event.name.startsWith('V8')) {
-            return true;
-        }
-        return false;
     }
     static framesAreEqual(frame1, frame2) {
         return frame1.scriptId === frame2.scriptId && frame1.functionName === frame2.functionName &&
@@ -385,20 +393,5 @@ export class SamplesIntegrator {
         }
         stack.length = j;
     }
-    static makeProfileCall(node, ts, pid, tid) {
-        return {
-            cat: '',
-            name: 'ProfileCall',
-            nodeId: node.id,
-            args: {},
-            ph: "X" /* Types.TraceEvents.Phase.COMPLETE */,
-            pid,
-            tid,
-            ts,
-            dur: Types.Timing.MicroSeconds(0),
-            selfTime: Types.Timing.MicroSeconds(0),
-            callFrame: node.callFrame,
-        };
-    }
 }
-//# map=SamplesIntegrator.js.map
+//# sourceMappingURL=SamplesIntegrator.js.map

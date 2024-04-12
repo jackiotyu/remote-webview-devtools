@@ -60,4 +60,4 @@ export class InspectedPagePlaceholder extends Common.ObjectWrapper.eventMixin(UI
         this.dispatchEventToListeners("Update" /* Events.Update */, bounds);
     }
 }
-//# map=InspectedPagePlaceholder.js.map
+//# sourceMappingURL=InspectedPagePlaceholder.js.map

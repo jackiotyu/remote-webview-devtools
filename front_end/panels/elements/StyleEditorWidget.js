@@ -117,7 +117,7 @@ function createButton(buttonTitle) {
     button.classList.add('styles-pane-button');
     button.tabIndex = 0;
     button.title = buttonTitle;
-    button.onmouseup = (event) => {
+    button.onmouseup = event => {
         // Stop propagation to prevent the property editor from being activated.
         event.stopPropagation();
     };
@@ -150,4 +150,4 @@ function getAuthoredStyles(section, editableProperties) {
     }
     return authoredProperties;
 }
-//# map=StyleEditorWidget.js.map
+//# sourceMappingURL=StyleEditorWidget.js.map

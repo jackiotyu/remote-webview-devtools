@@ -137,10 +137,10 @@ export class AttributionReportingIssueDetailsView extends AffectedResourcesView 
         }
         const opts = {
             additionalOnClickAction() {
-                Host.userMetrics.issuesPanelResourceOpened(IssuesManager.Issue.IssueCategory.AttributionReporting, "Request" /* AffectedItem.Request */);
+                Host.userMetrics.issuesPanelResourceOpened("AttributionReporting" /* IssuesManager.Issue.IssueCategory.AttributionReporting */, "Request" /* AffectedItem.Request */);
             },
         };
         parent.appendChild(this.createRequestCell(request, opts));
     }
 }
-//# map=AttributionReportingIssueDetailsView.js.map
+//# sourceMappingURL=AttributionReportingIssueDetailsView.js.map

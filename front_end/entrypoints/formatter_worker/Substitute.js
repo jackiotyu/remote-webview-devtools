@@ -91,4 +91,4 @@ function applySubstitution(expression, replacements) {
     accumulator.push(expression.slice(last));
     return accumulator.join('');
 }
-//# map=Substitute.js.map
+//# sourceMappingURL=Substitute.js.map

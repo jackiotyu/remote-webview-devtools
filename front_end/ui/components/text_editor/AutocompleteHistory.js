@@ -88,4 +88,4 @@ export class AutocompleteHistory {
         this.#setting.set(this.#data.slice(-AutocompleteHistory.#historySize));
     }
 }
-//# map=AutocompleteHistory.js.map
+//# sourceMappingURL=AutocompleteHistory.js.map

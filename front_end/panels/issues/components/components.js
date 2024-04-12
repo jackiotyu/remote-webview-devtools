@@ -4,4 +4,4 @@
 import * as ElementsPanelLink from './ElementsPanelLink.js';
 import * as HideIssuesMenu from './HideIssuesMenu.js';
 export { ElementsPanelLink, HideIssuesMenu, };
-//# map=components.js.map
+//# sourceMappingURL=components.js.map

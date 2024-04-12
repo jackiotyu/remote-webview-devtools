@@ -12,4 +12,4 @@ export const debounce = function (func, delay) {
     };
     return debounced;
 };
-//# map=Debouncer.js.map
+//# sourceMappingURL=Debouncer.js.map

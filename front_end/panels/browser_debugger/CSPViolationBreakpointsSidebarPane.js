@@ -2,20 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as SDK from '../../core/sdk/sdk.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import { CategorizedBreakpointsSidebarPane } from './CategorizedBreakpointsSidebarPane.js';
-let cspViolationBreakpointsSidebarPaneInstance;
 export class CSPViolationBreakpointsSidebarPane extends CategorizedBreakpointsSidebarPane {
     constructor() {
         const breakpoints = SDK.DOMDebuggerModel.DOMDebuggerManager.instance().cspViolationBreakpoints();
-        const categories = breakpoints.map(breakpoint => breakpoint.category());
-        categories.sort();
-        super(categories, breakpoints, 'sources.cspViolationBreakpoints', "CSPViolation" /* Protocol.Debugger.PausedEventReason.CSPViolation */);
-    }
-    static instance() {
-        if (!cspViolationBreakpointsSidebarPaneInstance) {
-            cspViolationBreakpointsSidebarPaneInstance = new CSPViolationBreakpointsSidebarPane();
-        }
-        return cspViolationBreakpointsSidebarPaneInstance;
+        super(breakpoints, 'sources.csp-violation-breakpoints', "CSPViolation" /* Protocol.Debugger.PausedEventReason.CSPViolation */);
+        this.contentElement.setAttribute('jslog', `${VisualLogging.section('sources.csp-violation-breakpoints')}`);
     }
     getBreakpointFromPausedDetails(details) {
         const breakpointType = details.auxData && details.auxData['violationType'] ? details.auxData['violationType'] : '';
@@ -28,4 +21,4 @@ export class CSPViolationBreakpointsSidebarPane extends CategorizedBreakpointsSi
         SDK.DOMDebuggerModel.DOMDebuggerManager.instance().updateCSPViolationBreakpoints();
     }
 }
-//# map=CSPViolationBreakpointsSidebarPane.js.map
+//# sourceMappingURL=CSPViolationBreakpointsSidebarPane.js.map

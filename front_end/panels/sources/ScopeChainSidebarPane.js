@@ -1,14 +1,13 @@
 // Copyright 2021 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import * as Host from '../../core/host/host.js';
 import * as i18n from '../../core/i18n/i18n.js';
 import * as SDK from '../../core/sdk/sdk.js';
 import * as SourceMapScopes from '../../models/source_map_scopes/source_map_scopes.js';
-import * as LinearMemoryInspector from '../../ui/components/linear_memory_inspector/linear_memory_inspector.js';
 import * as ObjectUI from '../../ui/legacy/components/object_ui/object_ui.js';
 import * as Components from '../../ui/legacy/components/utils/utils.js';
 import * as UI from '../../ui/legacy/legacy.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import scopeChainSidebarPaneStyles from './scopeChainSidebarPane.css.js';
 const UIStrings = {
     /**
@@ -40,10 +39,6 @@ const UIStrings = {
      *@description Text in Scope Chain Sidebar Pane of the Sources panel
      */
     returnValue: 'Return value',
-    /**
-     *@description A context menu item in the Scope View of the Sources Panel
-     */
-    revealInMemoryInspectorPanel: 'Reveal in Memory Inspector panel',
 };
 const str_ = i18n.i18n.registerUIStrings('panels/sources/ScopeChainSidebarPane.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
@@ -56,7 +51,9 @@ export class ScopeChainSidebarPane extends UI.Widget.VBox {
     #scopesScript = null;
     constructor() {
         super(true);
+        this.contentElement.setAttribute('jslog', `${VisualLogging.section('sources.scope-chain')}`);
         this.treeOutline = new ObjectUI.ObjectPropertiesSection.ObjectPropertiesSectionsTreeOutline();
+        this.treeOutline.hideOverflow();
         this.treeOutline.setShowSelectionOnKeyboardFocus(/* show */ true);
         this.expandController =
             new ObjectUI.ObjectPropertiesSection.ObjectPropertiesSectionsTreeExpandController(this.treeOutline);
@@ -204,12 +201,12 @@ export class ScopeChainSidebarPane extends UI.Widget.VBox {
         if (isFirstScope) {
             const exception = details.exception();
             if (exception) {
-                extraProperties.push(new SDK.RemoteObject.RemoteObjectProperty(i18nString(UIStrings.exception), exception, undefined, undefined, undefined, undefined, undefined,
+                extraProperties.push(new SDK.RemoteObject.RemoteObjectProperty(i18nString(UIStrings.exception), exception, undefined, undefined, undefined, undefined, undefined, 
                 /* synthetic */ true));
             }
             const returnValue = callFrame.returnValue();
             if (returnValue) {
-                extraProperties.push(new SDK.RemoteObject.RemoteObjectProperty(i18nString(UIStrings.returnValue), returnValue, undefined, undefined, undefined, undefined, undefined,
+                extraProperties.push(new SDK.RemoteObject.RemoteObjectProperty(i18nString(UIStrings.returnValue), returnValue, undefined, undefined, undefined, undefined, undefined, 
                 /* synthetic */ true, callFrame.setReturnValue.bind(callFrame)));
             }
         }
@@ -223,28 +220,4 @@ export class ScopeChainSidebarPane extends UI.Widget.VBox {
         this.registerCSSFiles([scopeChainSidebarPaneStyles]);
     }
 }
-let openLinearMemoryInspectorInstance;
-export class OpenLinearMemoryInspector extends UI.Widget.VBox {
-    static instance(opts = { forceNew: null }) {
-        const { forceNew } = opts;
-        if (!openLinearMemoryInspectorInstance || forceNew) {
-            openLinearMemoryInspectorInstance = new OpenLinearMemoryInspector();
-        }
-        return openLinearMemoryInspectorInstance;
-    }
-    appendApplicableItems(event, contextMenu, target) {
-        if (target instanceof ObjectUI.ObjectPropertiesSection.ObjectPropertyTreeElement) {
-            if (target.property && target.property.value &&
-                LinearMemoryInspector.LinearMemoryInspectorController.isMemoryObjectProperty(target.property.value)) {
-                const expression = target.path();
-                contextMenu.debugSection().appendItem(i18nString(UIStrings.revealInMemoryInspectorPanel), this.openMemoryInspector.bind(this, expression, target.property.value));
-            }
-        }
-    }
-    async openMemoryInspector(expression, obj) {
-        const controller = LinearMemoryInspector.LinearMemoryInspectorController.LinearMemoryInspectorController.instance();
-        Host.userMetrics.linearMemoryInspectorRevealedFrom(Host.UserMetrics.LinearMemoryInspectorRevealedFrom.ContextMenu);
-        void controller.openInspectorView(obj, /* address */ undefined, expression);
-    }
-}
-//# map=ScopeChainSidebarPane.js.map
+//# sourceMappingURL=ScopeChainSidebarPane.js.map

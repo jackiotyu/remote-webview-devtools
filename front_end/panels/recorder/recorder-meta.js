@@ -29,8 +29,6 @@ const UIStrings = {
      */
     toggleCode: 'Toggle code view',
 };
-// TODO: (crbug.com/1181019)
-const RecorderCategory = 'Recorder';
 const str_ = i18n.i18n.registerUIStrings('panels/recorder/recorder-meta.ts', UIStrings);
 const i18nLazyString = i18n.i18n.getLazilyComputedLocalizedString.bind(undefined, str_);
 let loadedRecorderModule;
@@ -50,39 +48,39 @@ function maybeRetrieveContextTypes(getClassCallBack, actionId) {
     }
     return [];
 }
-UI.ViewManager.defaultOptionsForTabs.chrome_recorder = true;
+const viewId = 'chrome-recorder';
+UI.ViewManager.defaultOptionsForTabs[viewId] = true;
 UI.ViewManager.registerViewExtension({
     location: "panel" /* UI.ViewManager.ViewLocationValues.PANEL */,
-    id: 'chrome_recorder',
+    id: viewId,
     commandPrompt: i18nLazyString(UIStrings.showRecorder),
     title: i18nLazyString(UIStrings.recorder),
     order: 90,
     persistence: "closeable" /* UI.ViewManager.ViewPersistence.CLOSEABLE */,
-    isPreviewFeature: true,
     async loadView() {
         const Recorder = await loadRecorderModule();
         return Recorder.RecorderPanel.RecorderPanel.instance();
     },
 });
 UI.ActionRegistration.registerActionExtension({
-    category: RecorderCategory,
-    actionId: "chrome_recorder.create-recording" /* Actions.RecorderActions.CreateRecording */,
+    category: "RECORDER" /* UI.ActionRegistration.ActionCategory.RECORDER */,
+    actionId: "chrome-recorder.create-recording" /* Actions.RecorderActions.CreateRecording */,
     title: i18nLazyString(UIStrings.createRecording),
     async loadActionDelegate() {
         const Recorder = await loadRecorderModule();
-        return Recorder.RecorderPanel.ActionDelegate.instance();
+        return new Recorder.RecorderPanel.ActionDelegate();
     },
 });
 UI.ActionRegistration.registerActionExtension({
-    category: RecorderCategory,
-    actionId: "chrome_recorder.start-recording" /* Actions.RecorderActions.StartRecording */,
+    category: "RECORDER" /* UI.ActionRegistration.ActionCategory.RECORDER */,
+    actionId: "chrome-recorder.start-recording" /* Actions.RecorderActions.StartRecording */,
     title: i18nLazyString(UIStrings.startStopRecording),
     contextTypes() {
-        return maybeRetrieveContextTypes(Recorder => [Recorder.RecorderPanel.RecorderPanel], "chrome_recorder.start-recording" /* Actions.RecorderActions.StartRecording */);
+        return maybeRetrieveContextTypes(Recorder => [Recorder.RecorderPanel.RecorderPanel], "chrome-recorder.start-recording" /* Actions.RecorderActions.StartRecording */);
     },
     async loadActionDelegate() {
         const Recorder = await loadRecorderModule();
-        return Recorder.RecorderPanel.ActionDelegate.instance();
+        return new Recorder.RecorderPanel.ActionDelegate();
     },
     bindings: [
         {
@@ -93,15 +91,15 @@ UI.ActionRegistration.registerActionExtension({
     ],
 });
 UI.ActionRegistration.registerActionExtension({
-    category: RecorderCategory,
-    actionId: "chrome_recorder.replay-recording" /* Actions.RecorderActions.ReplayRecording */,
+    category: "RECORDER" /* UI.ActionRegistration.ActionCategory.RECORDER */,
+    actionId: "chrome-recorder.replay-recording" /* Actions.RecorderActions.ReplayRecording */,
     title: i18nLazyString(UIStrings.replayRecording),
     contextTypes() {
-        return maybeRetrieveContextTypes(Recorder => [Recorder.RecorderPanel.RecorderPanel], "chrome_recorder.replay-recording" /* Actions.RecorderActions.ReplayRecording */);
+        return maybeRetrieveContextTypes(Recorder => [Recorder.RecorderPanel.RecorderPanel], "chrome-recorder.replay-recording" /* Actions.RecorderActions.ReplayRecording */);
     },
     async loadActionDelegate() {
         const Recorder = await loadRecorderModule();
-        return Recorder.RecorderPanel.ActionDelegate.instance();
+        return new Recorder.RecorderPanel.ActionDelegate();
     },
     bindings: [
         {
@@ -112,15 +110,15 @@ UI.ActionRegistration.registerActionExtension({
     ],
 });
 UI.ActionRegistration.registerActionExtension({
-    category: RecorderCategory,
-    actionId: "chrome_recorder.toggle-code-view" /* Actions.RecorderActions.ToggleCodeView */,
+    category: "RECORDER" /* UI.ActionRegistration.ActionCategory.RECORDER */,
+    actionId: "chrome-recorder.toggle-code-view" /* Actions.RecorderActions.ToggleCodeView */,
     title: i18nLazyString(UIStrings.toggleCode),
     contextTypes() {
-        return maybeRetrieveContextTypes(Recorder => [Recorder.RecorderPanel.RecorderPanel], "chrome_recorder.toggle-code-view" /* Actions.RecorderActions.ToggleCodeView */);
+        return maybeRetrieveContextTypes(Recorder => [Recorder.RecorderPanel.RecorderPanel], "chrome-recorder.toggle-code-view" /* Actions.RecorderActions.ToggleCodeView */);
     },
     async loadActionDelegate() {
         const Recorder = await loadRecorderModule();
-        return Recorder.RecorderPanel.ActionDelegate.instance();
+        return new Recorder.RecorderPanel.ActionDelegate();
     },
     bindings: [
         {
@@ -130,4 +128,4 @@ UI.ActionRegistration.registerActionExtension({
         { shortcut: 'Meta+B', platform: "mac" /* UI.ActionRegistration.Platforms.Mac */ },
     ],
 });
-//# map=recorder-meta.js.map
+//# sourceMappingURL=recorder-meta.js.map

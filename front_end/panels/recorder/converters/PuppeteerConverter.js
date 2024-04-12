@@ -33,4 +33,4 @@ export class PuppeteerConverter {
         return 'text/javascript';
     }
 }
-//# map=PuppeteerConverter.js.map
+//# sourceMappingURL=PuppeteerConverter.js.map

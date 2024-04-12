@@ -80,4 +80,4 @@ export class SegmentedRange {
         return merged;
     }
 }
-//# map=SegmentedRange.js.map
+//# sourceMappingURL=SegmentedRange.js.map

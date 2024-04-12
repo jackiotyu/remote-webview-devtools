@@ -51,7 +51,7 @@ UI.ViewManager.registerViewExtension({
     order: 100,
     async loadView() {
         const PerformanceMonitor = await loadPerformanceMonitorModule();
-        return PerformanceMonitor.PerformanceMonitor.PerformanceMonitorImpl.instance();
+        return new PerformanceMonitor.PerformanceMonitor.PerformanceMonitorImpl();
     },
     tags: [
         i18nLazyString(UIStrings.performance),
@@ -61,4 +61,4 @@ UI.ViewManager.registerViewExtension({
         i18nLazyString(UIStrings.metrics),
     ],
 });
-//# map=performance_monitor-meta.js.map
+//# sourceMappingURL=performance_monitor-meta.js.map

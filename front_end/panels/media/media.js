@@ -18,4 +18,4 @@ import * as PlayerPropertiesView from './PlayerPropertiesView.js';
 import * as TickingFlameChart from './TickingFlameChart.js';
 import * as TickingFlameChartHelpers from './TickingFlameChartHelpers.js';
 export { MainView, MediaModel, PlayerDetailView, PlayerEventsView, PlayerListView, PlayerPropertiesView, TickingFlameChart, TickingFlameChartHelpers, };
-//# map=media.js.map
+//# sourceMappingURL=media.js.map

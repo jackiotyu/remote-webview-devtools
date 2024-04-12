@@ -1,14 +1,13 @@
 // Copyright 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-// TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
-/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 import * as Common from '../../../../core/common/common.js';
 import * as i18n from '../../../../core/i18n/i18n.js';
 import * as Platform from '../../../../core/platform/platform.js';
 import * as TextUtils from '../../../../models/text_utils/text_utils.js';
 import * as Diff from '../../../../third_party/diff/diff.js';
 import * as TextPrompt from '../../../../ui/components/text_prompt/text_prompt.js';
+import * as VisualLogging from '../../../visual_logging/visual_logging.js';
 import * as UI from '../../legacy.js';
 import filteredListWidgetStyles from './filteredListWidget.css.js';
 const UIStrings = {
@@ -24,6 +23,13 @@ const UIStrings = {
      * @description Text to show no results have been found
      */
     noResultsFound: 'No results found',
+    /**
+     * @description Aria alert to read the item in list when navigating with screen readers
+     * @example {name} PH1
+     * @example {2} PH2
+     * @example {5} PH3
+     */
+    sItemSOfS: '{PH1}, item {PH2} of {PH3}',
 };
 const str_ = i18n.i18n.registerUIStrings('ui/legacy/components/quick_open/FilteredListWidget.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
@@ -55,12 +61,13 @@ export class FilteredListWidget extends Common.ObjectWrapper.eventMixin(UI.Widge
         this.loadTimeout = 0;
         this.contentElement.classList.add('filtered-list-widget');
         const listener = this.onKeyDown.bind(this);
-        this.contentElement.addEventListener('keydown', listener, true);
+        this.contentElement.addEventListener('keydown', listener);
         UI.ARIAUtils.markAsCombobox(this.contentElement);
         const hbox = this.contentElement.createChild('div', 'hbox');
         this.inputBoxElement = new TextPrompt.TextPrompt.TextPrompt();
         this.inputBoxElement.data = { ariaLabel: i18nString(UIStrings.quickOpenPrompt), prefix: '', suggestion: '' };
         this.inputBoxElement.addEventListener(TextPrompt.TextPrompt.PromptInputEvent.eventName, this.onInput.bind(this), false);
+        this.inputBoxElement.setAttribute('jslog', `${VisualLogging.textField().track({ keydown: 'ArrowUp|ArrowDown|PageUp|PageDown|Enter|Tab' })}`);
         hbox.appendChild(this.inputBoxElement);
         this.hintElement = hbox.createChild('span', 'filtered-list-widget-hint');
         this.bottomElementsContainer = this.contentElement.createChild('div', 'vbox');
@@ -75,7 +82,7 @@ export class FilteredListWidget extends Common.ObjectWrapper.eventMixin(UI.Widge
         this.itemElementsContainer.addEventListener('mousemove', this.onMouseMove.bind(this), false);
         UI.ARIAUtils.markAsListBox(this.itemElementsContainer);
         UI.ARIAUtils.setControls(this.inputBoxElement, this.itemElementsContainer);
-        UI.ARIAUtils.setAutocomplete(this.inputBoxElement, UI.ARIAUtils.AutocompleteInteractionModel.list);
+        UI.ARIAUtils.setAutocomplete(this.inputBoxElement, "list" /* UI.ARIAUtils.AutocompleteInteractionModel.List */);
         this.notFoundElement = this.bottomElementsContainer.createChild('div', 'not-found-text');
         this.notFoundElement.classList.add('hidden');
         this.setDefaultFocusedElement(this.inputBoxElement);
@@ -135,7 +142,7 @@ export class FilteredListWidget extends Common.ObjectWrapper.eventMixin(UI.Widge
         if (!dialogTitle) {
             dialogTitle = i18nString(UIStrings.quickOpen);
         }
-        this.dialog = new UI.Dialog.Dialog();
+        this.dialog = new UI.Dialog.Dialog('quick-open');
         UI.ARIAUtils.setLabel(this.dialog.contentElement, dialogTitle);
         this.dialog.setMaxContentSize(new UI.Geometry.Size(504, 340));
         this.dialog.setSizeBehavior("SetExactWidthMaxHeight" /* UI.GlassPane.SizeBehavior.SetExactWidthMaxHeight */);
@@ -205,6 +212,10 @@ export class FilteredListWidget extends Common.ObjectWrapper.eventMixin(UI.Widge
             return;
         }
         event.preventDefault();
+        const element = this.list.elementAtIndex(this.list.selectedIndex());
+        if (element) {
+            void VisualLogging.logClick(element, event);
+        }
         const selectedIndexInProvider = this.provider.itemCount() ? this.list.selectedItem() : null;
         this.selectItem(selectedIndexInProvider);
         if (this.dialog) {
@@ -232,6 +243,7 @@ export class FilteredListWidget extends Common.ObjectWrapper.eventMixin(UI.Widge
         subtitleElement.textContent = '\u200B';
         if (this.provider) {
             this.provider.renderItem(item, this.cleanValue(), titleElement, subtitleElement);
+            wrapperElement.setAttribute('jslog', `${VisualLogging.item(this.provider.jslogContextAt(item)).track({ click: true })}`);
         }
         UI.ARIAUtils.markAsOption(itemElement);
         return wrapperElement;
@@ -269,6 +281,10 @@ export class FilteredListWidget extends Common.ObjectWrapper.eventMixin(UI.Widge
             return;
         }
         this.list.selectItem(item);
+        const text = this.list.elementAtIndex(this.list.selectedIndex())?.textContent;
+        if (text) {
+            UI.ARIAUtils.alert(i18nString(UIStrings.sItemSOfS, { PH1: text, PH2: this.list.selectedIndex() + 1, PH3: this.items.length }));
+        }
     }
     setQuery(query) {
         this.query = query;
@@ -461,6 +477,10 @@ export class FilteredListWidget extends Common.ObjectWrapper.eventMixin(UI.Widge
         }
         if (handled) {
             keyboardEvent.consume(true);
+            const text = this.list.elementAtIndex(this.list.selectedIndex())?.textContent;
+            if (text) {
+                UI.ARIAUtils.alert(i18nString(UIStrings.sItemSOfS, { PH1: text, PH2: this.list.selectedIndex() + 1, PH3: this.items.length }));
+            }
         }
     }
     scheduleFilter() {
@@ -481,7 +501,9 @@ export class FilteredListWidget extends Common.ObjectWrapper.eventMixin(UI.Widge
 }
 export class Provider {
     refreshCallback;
-    constructor() {
+    jslogContext;
+    constructor(jslogContext) {
+        this.jslogContext = jslogContext;
     }
     setRefreshCallback(refreshCallback) {
         this.refreshCallback = refreshCallback;
@@ -498,6 +520,9 @@ export class Provider {
         return 1;
     }
     renderItem(_itemIndex, _query, _titleElement, _subtitleElement) {
+    }
+    jslogContextAt(_itemIndex) {
+        return this.jslogContext;
     }
     renderAsTwoRows() {
         return false;
@@ -527,4 +552,4 @@ export function registerProvider(registration) {
 export function getRegisteredProviders() {
     return registeredProviders;
 }
-//# map=FilteredListWidget.js.map
+//# sourceMappingURL=FilteredListWidget.js.map

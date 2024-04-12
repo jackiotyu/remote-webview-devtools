@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as ExtensionManager from './ExtensionManager.js';
 export { ExtensionManager };
-//# map=extensions.js.map
+//# sourceMappingURL=extensions.js.map

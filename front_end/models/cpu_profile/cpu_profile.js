@@ -4,4 +4,4 @@
 import * as CPUProfileDataModel from './CPUProfileDataModel.js';
 import * as ProfileTreeModel from './ProfileTreeModel.js';
 export { CPUProfileDataModel, ProfileTreeModel, };
-//# map=cpu_profile.js.map
+//# sourceMappingURL=cpu_profile.js.map

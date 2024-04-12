@@ -1,10 +1,10 @@
 // Copyright 2015 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import nodeConnectionsPanelStyles from './nodeConnectionsPanel.css.js';
 import * as Host from '../../core/host/host.js';
 import * as i18n from '../../core/i18n/i18n.js';
 import * as UI from '../../ui/legacy/legacy.js';
+import nodeConnectionsPanelStyles from './nodeConnectionsPanel.css.js';
 const UIStrings = {
     /**
      *@description Text in Node Connections Panel of the Sources panel when debugging a Node.js app
@@ -30,7 +30,6 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('entrypoints/node_app/NodeConnectionsPanel.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-let nodeConnectionsPanelInstance;
 export class NodeConnectionsPanel extends UI.Panel.Panel {
     #config;
     #networkDiscoveryView;
@@ -52,13 +51,6 @@ export class NodeConnectionsPanel extends UI.Panel.Panel {
         });
         this.#networkDiscoveryView.show(container);
     }
-    static instance(opts = { forceNew: null }) {
-        const { forceNew } = opts;
-        if (!nodeConnectionsPanelInstance || forceNew) {
-            nodeConnectionsPanelInstance = new NodeConnectionsPanel();
-        }
-        return nodeConnectionsPanelInstance;
-    }
     #devicesDiscoveryConfigChanged({ data: config }) {
         this.#config = config;
         this.#networkDiscoveryView.discoveryConfigChanged(this.#config.networkDiscoveryConfig);
@@ -78,7 +70,7 @@ export class NodeConnectionsView extends UI.Widget.VBox {
         this.#callback = callback;
         this.element.classList.add('network-discovery-view');
         const networkDiscoveryFooter = this.element.createChild('div', 'network-discovery-footer');
-        const documentationLink = UI.XLink.XLink.create('https://nodejs.org/en/docs/inspector/', i18nString(UIStrings.nodejsDebuggingGuide));
+        const documentationLink = UI.XLink.XLink.create('https://nodejs.org/en/docs/inspector/', i18nString(UIStrings.nodejsDebuggingGuide), undefined, undefined, 'node-js-debugging');
         networkDiscoveryFooter.appendChild(i18n.i18n.getFormatLocalizedString(str_, UIStrings.specifyNetworkEndpointAnd, { PH1: documentationLink }));
         this.#list = new UI.ListWidget.ListWidget(this);
         this.#list.element.classList.add('network-discovery-list');
@@ -88,7 +80,7 @@ export class NodeConnectionsView extends UI.Widget.VBox {
         this.#list.setEmptyPlaceholder(placeholder);
         this.#list.show(this.element);
         this.#editor = null;
-        const addButton = UI.UIUtils.createTextButton(i18nString(UIStrings.addConnection), this.#addNetworkTargetButtonClicked.bind(this), 'add-network-target-button', true /* primary */);
+        const addButton = UI.UIUtils.createTextButton(i18nString(UIStrings.addConnection), this.#addNetworkTargetButtonClicked.bind(this), { className: 'add-network-target-button', primary: true });
         this.element.appendChild(addButton);
         this.#networkDiscoveryConfig = [];
         this.element.classList.add('node-frontend');
@@ -163,4 +155,4 @@ export class NodeConnectionsView extends UI.Widget.VBox {
         this.#list.registerCSSFiles([nodeConnectionsPanelStyles]);
     }
 }
-//# map=NodeConnectionsPanel.js.map
+//# sourceMappingURL=NodeConnectionsPanel.js.map

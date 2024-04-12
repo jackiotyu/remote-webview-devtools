@@ -5,6 +5,7 @@ import * as i18n from '../../core/i18n/i18n.js';
 import * as Platform from '../../core/platform/platform.js';
 import * as SourceFrame from '../../ui/legacy/components/source_frame/source_frame.js';
 import * as UI from '../../ui/legacy/legacy.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import playerPropertiesViewStyles from './playerPropertiesView.css.js';
 const UIStrings = {
     /**
@@ -347,7 +348,7 @@ class GenericTrackMenu extends UI.TabbedPane.TabbedPane {
     }
     addNewTab(trackNumber, element) {
         const localizedTrackLower = i18nString(UIStrings.track);
-        const tabId = `Track${trackNumber}`;
+        const tabId = `track-${trackNumber}`;
         if (this.hasTab(tabId)) {
             const tabElement = this.tabView(tabId);
             if (tabElement === null) {
@@ -369,7 +370,7 @@ class DecoderTrackMenu extends GenericTrackMenu {
         const title = `${decoderName} ${decoderLocalized}`;
         const propertiesLocalized = i18nString(UIStrings.properties);
         const hoverText = `${title} ${propertiesLocalized}`;
-        this.appendTab('DecoderProperties', title, informationalElement, hoverText);
+        this.appendTab('decoder-properties', title, informationalElement, hoverText);
     }
 }
 class NoTracksPlaceholderMenu extends UI.Widget.VBox {
@@ -404,6 +405,7 @@ export class PlayerPropertiesView extends UI.Widget.VBox {
     textTracksTabs;
     constructor() {
         super();
+        this.element.setAttribute('jslog', `${VisualLogging.pane('properties')}`);
         this.contentElement.classList.add('media-properties-frame');
         this.mediaElements = [];
         this.videoDecoderElements = [];
@@ -561,4 +563,4 @@ export class PlayerPropertiesView extends UI.Widget.VBox {
         this.registerCSSFiles([playerPropertiesViewStyles]);
     }
 }
-//# map=PlayerPropertiesView.js.map
+//# sourceMappingURL=PlayerPropertiesView.js.map

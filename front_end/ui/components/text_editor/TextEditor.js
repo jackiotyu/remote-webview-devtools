@@ -7,7 +7,6 @@ import * as CodeMirror from '../../../third_party/codemirror.next/codemirror.nex
 import * as ThemeSupport from '../../legacy/theme_support/theme_support.js';
 import * as LitHtml from '../../lit-html/lit-html.js';
 import * as CodeHighlighter from '../code_highlighter/code_highlighter.js';
-import * as ComponentHelpers from '../helpers/helpers.js';
 import { baseConfiguration, dummyDarkTheme, dynamicSetting, DynamicSetting, themeSelection } from './config.js';
 import { toLineColumn, toOffset } from './position.js';
 export class TextEditor extends HTMLElement {
@@ -17,7 +16,7 @@ export class TextEditor extends HTMLElement {
     #dynamicSettings = DynamicSetting.none;
     #activeSettingListeners = [];
     #pendingState;
-    #lastScrollPos = { left: 0, top: 0, changed: false };
+    #lastScrollSnapshot;
     #resizeTimeout = -1;
     #resizeListener = () => {
         if (this.#resizeTimeout < 0) {
@@ -46,16 +45,13 @@ export class TextEditor extends HTMLElement {
                     this.#ensureSettingListeners();
                 }
             },
+            scrollTo: this.#lastScrollSnapshot,
         });
-        this.#restoreScrollPosition(this.#activeEditor);
-        this.#activeEditor.scrollDOM.addEventListener('scroll', event => {
+        this.#activeEditor.scrollDOM.addEventListener('scroll', () => {
             if (!this.#activeEditor) {
                 return;
             }
-            this.#saveScrollPosition(this.#activeEditor, {
-                scrollLeft: event.target.scrollLeft,
-                scrollTop: event.target.scrollTop,
-            });
+            this.#lastScrollSnapshot = this.#activeEditor.scrollSnapshot();
             this.scrollEventHandledToSaveScrollPositionForTest();
         });
         this.#ensureSettingListeners();
@@ -93,55 +89,6 @@ export class TextEditor extends HTMLElement {
             this.#ensureSettingListeners();
         }
     }
-    #restoreScrollPosition(editor) {
-        // Only restore scroll position if the scroll position
-        // has already changed. This check is needed because
-        // we only want to restore scroll for the text editors
-        // that are itself scrollable which, when scrolled,
-        // triggers 'scroll' event from `scrollDOM` meaning that
-        // it contains a scrollable `scrollDOM` that is scrolled.
-        if (!this.#lastScrollPos.changed) {
-            return;
-        }
-        // Instead of reaching to the internal DOM node
-        // of CodeMirror `scrollDOM` and setting the scroll
-        // position directly via `scrollLeft` and `scrollTop`
-        // we're using the public `scrollIntoView` effect.
-        // However, this effect doesn't provide a way to
-        // scroll to the given rectangle position.
-        // So, as a "workaround", we're instructing it to scroll to
-        // the start of the page with last scroll position margins
-        // from the sides.
-        editor.dispatch({
-            effects: CodeMirror.EditorView.scrollIntoView(0, {
-                x: 'start',
-                xMargin: -this.#lastScrollPos.left,
-                y: 'start',
-                yMargin: -this.#lastScrollPos.top,
-            }),
-        });
-    }
-    // `scrollIntoView` starts the scrolling from the start of the `line`
-    // not the content area and there is a padding between the
-    // sides and initial character of the line. So, we're saving
-    // the last scroll position with this margin taken into account.
-    #saveScrollPosition(editor, { scrollLeft, scrollTop }) {
-        const contentRect = editor.contentDOM.getBoundingClientRect();
-        // In some cases `editor.coordsAtPos(0)` can return `null`
-        // (maybe, somehow, the editor is not visible yet).
-        // So, in that case, we don't take margins from the sides
-        // into account by setting `coordsAtZero` rectangle
-        // to be the same with `contentRect`.
-        const coordsAtZero = editor.coordsAtPos(0) ?? {
-            top: contentRect.top,
-            left: contentRect.left,
-            bottom: contentRect.bottom,
-            right: contentRect.right,
-        };
-        this.#lastScrollPos.left = scrollLeft + (contentRect.left - coordsAtZero.left);
-        this.#lastScrollPos.top = scrollTop + (contentRect.top - coordsAtZero.top);
-        this.#lastScrollPos.changed = true;
-    }
     scrollEventHandledToSaveScrollPositionForTest() {
     }
     connectedCallback() {
@@ -149,7 +96,7 @@ export class TextEditor extends HTMLElement {
             this.#createEditor();
         }
         else {
-            this.#restoreScrollPosition(this.#activeEditor);
+            this.#activeEditor.dispatch({ effects: this.#lastScrollSnapshot });
         }
     }
     disconnectedCallback() {
@@ -169,7 +116,9 @@ export class TextEditor extends HTMLElement {
         }
     }
     #ensureSettingListeners() {
-        const dynamicSettings = this.#activeEditor ? this.#activeEditor.state.facet(dynamicSetting) : DynamicSetting.none;
+        const dynamicSettings = this.#activeEditor ?
+            this.#activeEditor.state.facet(dynamicSetting) :
+            DynamicSetting.none;
         if (dynamicSettings === this.#dynamicSettings) {
             return;
         }
@@ -250,7 +199,7 @@ export class TextEditor extends HTMLElement {
         return toOffset(this.state.doc, pos);
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-text-editor', TextEditor);
+customElements.define('devtools-text-editor', TextEditor);
 // Line highlighting
 const clearHighlightedLine = CodeMirror.StateEffect.define();
 const setHighlightedLine = CodeMirror.StateEffect.define();
@@ -274,4 +223,4 @@ const highlightedLineState = CodeMirror.StateField.define({
     },
     provide: field => CodeMirror.EditorView.decorations.from(field, value => value),
 });
-//# map=TextEditor.js.map
+//# sourceMappingURL=TextEditor.js.map

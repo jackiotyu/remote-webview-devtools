@@ -34,7 +34,7 @@ import * as Components from '../../ui/legacy/components/utils/utils.js';
 import * as UI from '../../ui/legacy/legacy.js';
 import * as CPUProfile from '../../models/cpu_profile/cpu_profile.js';
 import { ProfileFlameChartDataProvider } from './CPUProfileFlameChart.js';
-import { ProfileEvents, ProfileType } from './ProfileHeader.js';
+import { ProfileType } from './ProfileHeader.js';
 import { ProfileView, WritableProfileHeader } from './ProfileView.js';
 const UIStrings = {
     /**
@@ -144,7 +144,7 @@ export class CPUProfileType extends ProfileType {
                 this.consoleProfileFinished(message);
             }
         }
-        SDK.TargetManager.TargetManager.instance().addModelListener(SDK.CPUProfilerModel.CPUProfilerModel, SDK.CPUProfilerModel.Events.ConsoleProfileFinished, event => this.consoleProfileFinished(event.data), this);
+        SDK.TargetManager.TargetManager.instance().addModelListener(SDK.CPUProfilerModel.CPUProfilerModel, "ConsoleProfileFinished" /* SDK.CPUProfilerModel.Events.ConsoleProfileFinished */, event => this.consoleProfileFinished(event.data), this);
     }
     profileBeingRecorded() {
         return super.profileBeingRecorded();
@@ -208,7 +208,7 @@ export class CPUProfileType extends ProfileType {
             this.setProfileBeingRecorded(null);
         }
         await SDK.TargetManager.TargetManager.instance().resumeAllTargets();
-        this.dispatchEventToListeners(ProfileEvents.ProfileComplete, recordedProfile);
+        this.dispatchEventToListeners("profile-complete" /* ProfileEvents.ProfileComplete */, recordedProfile);
     }
     createProfileLoadedFromFile(title) {
         return new CPUProfileHeader(null, this, title);
@@ -327,13 +327,13 @@ export class CPUFlameChartDataProvider extends ProfileFlameChartDataProvider {
         }
         this.maxStackDepthInternal = maxDepth + 1;
         this.entryNodes = entryNodes;
-        this.timelineData_ =
+        this.timelineDataInternal =
             PerfUI.FlameChart.FlameChartTimelineData.create({ entryLevels, entryTotalTimes, entryStartTimes, groups: null });
         this.entrySelfTimes = entrySelfTimes;
-        return this.timelineData_;
+        return this.timelineDataInternal;
     }
     prepareHighlightedEntryInfo(entryIndex) {
-        const timelineData = this.timelineData_;
+        const timelineData = this.timelineDataInternal;
         const node = this.entryNodes[entryIndex];
         if (!node) {
             return null;
@@ -389,4 +389,4 @@ export class CPUFlameChartDataProvider extends ProfileFlameChartDataProvider {
     }
     CPUFlameChartDataProvider.ChartEntry = ChartEntry;
 })(CPUFlameChartDataProvider || (CPUFlameChartDataProvider = {}));
-//# map=CPUProfileView.js.map
+//# sourceMappingURL=CPUProfileView.js.map

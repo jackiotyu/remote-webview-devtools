@@ -43,27 +43,8 @@ let pageLoadEventsArray = [];
 // entire trace this set will contain all the LCP events that were used - e.g.
 // the candidates that were the actual LCP events.
 const selectedLCPCandidateEvents = new Set();
-export const MarkerName = ['MarkDOMContent', 'MarkLoad', 'firstPaint', 'firstContentfulPaint', 'largestContentfulPaint::Candidate'];
-const markerTypeGuards = [
-    Types.TraceEvents.isTraceEventMarkDOMContent,
-    Types.TraceEvents.isTraceEventMarkLoad,
-    Types.TraceEvents.isTraceEventFirstPaint,
-    Types.TraceEvents.isTraceEventFirstContentfulPaint,
-    Types.TraceEvents.isTraceEventLargestContentfulPaintCandidate,
-    Types.TraceEvents.isTraceEventNavigationStart,
-];
-export function isTraceEventMarkerEvent(event) {
-    return markerTypeGuards.some(fn => fn(event));
-}
-const pageLoadEventTypeGuards = [
-    ...markerTypeGuards,
-    Types.TraceEvents.isTraceEventInteractiveTime,
-];
-export function eventIsPageLoadEvent(event) {
-    return pageLoadEventTypeGuards.some(fn => fn(event));
-}
 export function handleEvent(event) {
-    if (!eventIsPageLoadEvent(event)) {
+    if (!Types.TraceEvents.eventIsPageLoadEvent(event)) {
         return;
     }
     pageLoadEventsArray.push(event);
@@ -92,15 +73,6 @@ function storePageLoadMetricAgainstNavigationId(navigation, event) {
     if (Types.TraceEvents.isTraceEventNavigationStart(event)) {
         return;
     }
-    // We compare the timestamp of the event to determine if it happened during the
-    // time window in which its process was considered active.
-    const minTime = processData[0].window.min;
-    const maxTime = processData.at(-1)?.window.max || 0;
-    const eventBelongsToProcess = event.ts >= minTime && event.ts <= maxTime;
-    if (!eventBelongsToProcess) {
-        // If the event occurred outside its process' active time window we ignore it.
-        return;
-    }
     if (Types.TraceEvents.isTraceEventFirstContentfulPaint(event)) {
         const fcpTime = Types.Timing.MicroSeconds(event.ts - navigation.ts);
         const score = Helpers.Timing.formatMicrosecondsTime(fcpTime, {
@@ -108,7 +80,7 @@ function storePageLoadMetricAgainstNavigationId(navigation, event) {
             maximumFractionDigits: 2,
         });
         const classification = scoreClassificationForFirstContentfulPaint(fcpTime);
-        const metricScore = { event, score, metricName: "FCP" /* MetricName.FCP */, classification, navigation };
+        const metricScore = { event, score, metricName: "FCP" /* MetricName.FCP */, classification, navigation, timing: fcpTime };
         storeMetricScore(frameId, navigationId, metricScore);
         return;
     }
@@ -119,7 +91,7 @@ function storePageLoadMetricAgainstNavigationId(navigation, event) {
             maximumFractionDigits: 2,
         });
         const classification = "unclassified" /* ScoreClassification.UNCLASSIFIED */;
-        const metricScore = { event, score, metricName: "FP" /* MetricName.FP */, classification, navigation };
+        const metricScore = { event, score, metricName: "FP" /* MetricName.FP */, classification, navigation, timing: paintTime };
         storeMetricScore(frameId, navigationId, metricScore);
         return;
     }
@@ -135,6 +107,7 @@ function storePageLoadMetricAgainstNavigationId(navigation, event) {
             metricName: "DCL" /* MetricName.DCL */,
             classification: scoreClassificationForDOMContentLoaded(dclTime),
             navigation,
+            timing: dclTime,
         };
         storeMetricScore(frameId, navigationId, metricScore);
         return;
@@ -151,6 +124,7 @@ function storePageLoadMetricAgainstNavigationId(navigation, event) {
             metricName: "TTI" /* MetricName.TTI */,
             classification: scoreClassificationForTimeToInteractive(ttiValue),
             navigation,
+            timing: ttiValue,
         };
         storeMetricScore(frameId, navigationId, tti);
         const tbtValue = Helpers.Timing.millisecondsToMicroseconds(Types.Timing.MilliSeconds(event.args.args.total_blocking_time_ms));
@@ -164,6 +138,7 @@ function storePageLoadMetricAgainstNavigationId(navigation, event) {
             metricName: "TBT" /* MetricName.TBT */,
             classification: scoreClassificationForTotalBlockingTime(tbtValue),
             navigation,
+            timing: tbtValue,
         };
         storeMetricScore(frameId, navigationId, tbt);
         return;
@@ -180,6 +155,7 @@ function storePageLoadMetricAgainstNavigationId(navigation, event) {
             metricName: "L" /* MetricName.L */,
             classification: "unclassified" /* ScoreClassification.UNCLASSIFIED */,
             navigation,
+            timing: loadTime,
         };
         storeMetricScore(frameId, navigationId, metricScore);
         return;
@@ -200,6 +176,7 @@ function storePageLoadMetricAgainstNavigationId(navigation, event) {
             metricName: "LCP" /* MetricName.LCP */,
             classification: scoreClassificationForLargestContentfulPaint(lcpTime),
             navigation,
+            timing: lcpTime,
         };
         const metricsByNavigation = Platform.MapUtilities.getWithDefault(metricScoresByFrameId, frameId, () => new Map());
         const metrics = Platform.MapUtilities.getWithDefault(metricsByNavigation, navigationId, () => new Map());
@@ -389,28 +366,18 @@ export async function finalize() {
     const mainFrame = metaHandlerData().mainFrameId;
     // Filter out LCP candidates to use only definitive LCP values
     const allEventsButLCP = pageLoadEventsArray.filter(event => !Types.TraceEvents.isTraceEventLargestContentfulPaintCandidate(event));
-    const markerEvents = [...allFinalLCPEvents, ...allEventsButLCP].filter(isTraceEventMarkerEvent);
+    const markerEvents = [...allFinalLCPEvents, ...allEventsButLCP].filter(Types.TraceEvents.isTraceEventMarkerEvent);
     // Filter by main frame and sort.
     allMarkerEvents =
         markerEvents.filter(event => getFrameIdForPageLoadEvent(event) === mainFrame).sort((a, b) => a.ts - b.ts);
 }
 export function data() {
     return {
-        /**
-         * This represents the metric scores for all navigations, for all frames in a trace.
-         * Given a frame id, the map points to another map from navigation id to metric scores.
-         * The metric scores include the event related to the metric as well as the data regarding
-         * the score itself.
-         */
-        metricScoresByFrameId: new Map(metricScoresByFrameId),
-        /**
-         * Page load events with no associated duration that happened in the
-         * main frame.
-         */
-        allMarkerEvents: [...allMarkerEvents],
+        metricScoresByFrameId,
+        allMarkerEvents,
     };
 }
 export function deps() {
     return ['Meta'];
 }
-//# map=PageLoadMetricsHandler.js.map
+//# sourceMappingURL=PageLoadMetricsHandler.js.map

@@ -23,4 +23,4 @@ export class SimpleAppProvider {
         return new SimpleApp();
     }
 }
-//# map=SimpleApp.js.map
+//# sourceMappingURL=SimpleApp.js.map

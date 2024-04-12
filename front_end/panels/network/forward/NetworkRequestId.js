@@ -9,4 +9,4 @@ export class NetworkRequestId {
         this.manager = manager;
     }
 }
-//# map=NetworkRequestId.js.map
+//# sourceMappingURL=NetworkRequestId.js.map

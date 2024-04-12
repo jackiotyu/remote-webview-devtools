@@ -3,5 +3,6 @@
 // found in the LICENSE file.
 export * as FetchNodes from './FetchNodes.js';
 export * as FilmStrip from './FilmStrip.js';
+export * as MainThreadActivity from './MainThreadActivity.js';
 export * as Metadata from './Metadata.js';
-//# map=extras.js.map
+//# sourceMappingURL=extras.js.map

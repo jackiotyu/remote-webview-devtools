@@ -33,7 +33,7 @@
 import * as Common from '../common/common.js';
 import * as i18n from '../i18n/i18n.js';
 import { Events as RuntimeModelEvents, RuntimeModel } from './RuntimeModel.js';
-import { Capability, Type } from './Target.js';
+import { Type } from './Target.js';
 import { SDKModel } from './SDKModel.js';
 import { TargetManager } from './TargetManager.js';
 const UIStrings = {
@@ -101,7 +101,8 @@ export class ServiceWorkerManager extends SDKModel {
         this.#registrationsInternal = new Map();
         this.#enabled = false;
         void this.enable();
-        this.#forceUpdateSetting = Common.Settings.Settings.instance().createSetting('serviceWorkerUpdateOnReload', false);
+        this.#forceUpdateSetting =
+            Common.Settings.Settings.instance().createSetting('service-worker-update-on-reload', false);
         if (this.#forceUpdateSetting.get()) {
             this.forceUpdateSettingChanged();
         }
@@ -155,7 +156,7 @@ export class ServiceWorkerManager extends SDKModel {
         }
         if (registration.isRedundant()) {
             this.#registrationsInternal.delete(registrationId);
-            this.dispatchEventToListeners(Events.RegistrationDeleted, registration);
+            this.dispatchEventToListeners("RegistrationDeleted" /* Events.RegistrationDeleted */, registration);
             return;
         }
         registration.deleting = true;
@@ -216,16 +217,16 @@ export class ServiceWorkerManager extends SDKModel {
             if (!registration) {
                 registration = new ServiceWorkerRegistration(payload);
                 this.#registrationsInternal.set(payload.registrationId, registration);
-                this.dispatchEventToListeners(Events.RegistrationUpdated, registration);
+                this.dispatchEventToListeners("RegistrationUpdated" /* Events.RegistrationUpdated */, registration);
                 continue;
             }
             registration.update(payload);
             if (registration.shouldBeRemoved()) {
                 this.#registrationsInternal.delete(registration.id);
-                this.dispatchEventToListeners(Events.RegistrationDeleted, registration);
+                this.dispatchEventToListeners("RegistrationDeleted" /* Events.RegistrationDeleted */, registration);
             }
             else {
-                this.dispatchEventToListeners(Events.RegistrationUpdated, registration);
+                this.dispatchEventToListeners("RegistrationUpdated" /* Events.RegistrationUpdated */, registration);
             }
         }
     }
@@ -242,10 +243,10 @@ export class ServiceWorkerManager extends SDKModel {
         for (const registration of registrations) {
             if (registration.shouldBeRemoved()) {
                 this.#registrationsInternal.delete(registration.id);
-                this.dispatchEventToListeners(Events.RegistrationDeleted, registration);
+                this.dispatchEventToListeners("RegistrationDeleted" /* Events.RegistrationDeleted */, registration);
             }
             else {
-                this.dispatchEventToListeners(Events.RegistrationUpdated, registration);
+                this.dispatchEventToListeners("RegistrationUpdated" /* Events.RegistrationUpdated */, registration);
             }
         }
     }
@@ -255,7 +256,7 @@ export class ServiceWorkerManager extends SDKModel {
             return;
         }
         registration.errors.push(payload);
-        this.dispatchEventToListeners(Events.RegistrationErrorAdded, { registration: registration, error: payload });
+        this.dispatchEventToListeners("RegistrationErrorAdded" /* Events.RegistrationErrorAdded */, { registration: registration, error: payload });
     }
     forceUpdateOnReloadSetting() {
         return this.#forceUpdateSetting;
@@ -265,14 +266,6 @@ export class ServiceWorkerManager extends SDKModel {
         void this.#agent.invoke_setForceUpdateOnPageLoad({ forceUpdateOnPageLoad });
     }
 }
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
-export var Events;
-(function (Events) {
-    Events["RegistrationUpdated"] = "RegistrationUpdated";
-    Events["RegistrationErrorAdded"] = "RegistrationErrorAdded";
-    Events["RegistrationDeleted"] = "RegistrationDeleted";
-})(Events || (Events = {}));
 class ServiceWorkerDispatcher {
     #manager;
     constructor(manager) {
@@ -297,15 +290,23 @@ class ServiceWorkerDispatcher {
 export class ServiceWorkerVersionState {
     runningStatus;
     status;
-    // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    last_updated_timestamp;
+    lastUpdatedTimestamp;
     previousState;
     constructor(runningStatus, status, previousState, timestamp) {
         this.runningStatus = runningStatus;
         this.status = status;
-        this.last_updated_timestamp = timestamp;
+        this.lastUpdatedTimestamp = timestamp;
         this.previousState = previousState;
+    }
+}
+export class ServiceWorkerRouterRule {
+    condition;
+    source;
+    id;
+    constructor(condition, source, id) {
+        this.condition = condition;
+        this.source = source;
+        this.id = id;
     }
 }
 export class ServiceWorkerVersion {
@@ -317,6 +318,7 @@ export class ServiceWorkerVersion {
     scriptResponseTime;
     controlledClients;
     targetId;
+    routerRules;
     currentState;
     registration;
     constructor(registration, payload) {
@@ -339,6 +341,10 @@ export class ServiceWorkerVersion {
             this.controlledClients = [];
         }
         this.targetId = payload.targetId || null;
+        this.routerRules = null;
+        if (payload.routerRules) {
+            this.routerRules = this.parseJSONRules(payload.routerRules);
+        }
     }
     isStartable() {
         return !this.registration.isDeleted && this.isActivated() && this.isStopped();
@@ -385,15 +391,38 @@ export class ServiceWorkerVersion {
     }
     mode() {
         if (this.isNew() || this.isInstalling()) {
-            return ServiceWorkerVersion.Modes.Installing;
+            return "installing" /* ServiceWorkerVersion.Modes.Installing */;
         }
         if (this.isInstalled()) {
-            return ServiceWorkerVersion.Modes.Waiting;
+            return "waiting" /* ServiceWorkerVersion.Modes.Waiting */;
         }
         if (this.isActivating() || this.isActivated()) {
-            return ServiceWorkerVersion.Modes.Active;
+            return "active" /* ServiceWorkerVersion.Modes.Active */;
         }
-        return ServiceWorkerVersion.Modes.Redundant;
+        return "redundant" /* ServiceWorkerVersion.Modes.Redundant */;
+    }
+    parseJSONRules(input) {
+        try {
+            const parsedObject = JSON.parse(input);
+            if (!Array.isArray(parsedObject)) {
+                console.error('Parse error: `routerRules` in ServiceWorkerVersion should be an array');
+                return null;
+            }
+            const routerRules = [];
+            for (const parsedRule of parsedObject) {
+                const { condition, source, id } = parsedRule;
+                if (condition === undefined || source === undefined || id === undefined) {
+                    console.error('Parse error: Missing some fields of `routerRules` in ServiceWorkerVersion');
+                    return null;
+                }
+                routerRules.push(new ServiceWorkerRouterRule(JSON.stringify(condition), JSON.stringify(source), id));
+            }
+            return routerRules;
+        }
+        catch (e) {
+            console.error('Parse error: Invalid `routerRules` in ServiceWorkerVersion');
+            return null;
+        }
     }
 }
 (function (ServiceWorkerVersion) {
@@ -411,15 +440,6 @@ export class ServiceWorkerVersion {
         ["new" /* Protocol.ServiceWorker.ServiceWorkerVersionStatus.New */]: i18nLazyString(UIStrings.new),
         ["redundant" /* Protocol.ServiceWorker.ServiceWorkerVersionStatus.Redundant */]: i18nLazyString(UIStrings.redundant),
     };
-    // TODO(crbug.com/1167717): Make this a const enum again
-    // eslint-disable-next-line rulesdir/const_enum
-    let Modes;
-    (function (Modes) {
-        Modes["Installing"] = "installing";
-        Modes["Waiting"] = "waiting";
-        Modes["Active"] = "active";
-        Modes["Redundant"] = "redundant";
-    })(Modes = ServiceWorkerVersion.Modes || (ServiceWorkerVersion.Modes = {}));
 })(ServiceWorkerVersion || (ServiceWorkerVersion = {}));
 export class ServiceWorkerRegistration {
     #fingerprintInternal;
@@ -492,8 +512,8 @@ class ServiceWorkerContextNamer {
         this.#target = target;
         this.#serviceWorkerManager = serviceWorkerManager;
         this.#versionByTargetId = new Map();
-        serviceWorkerManager.addEventListener(Events.RegistrationUpdated, this.registrationsUpdated, this);
-        serviceWorkerManager.addEventListener(Events.RegistrationDeleted, this.registrationsUpdated, this);
+        serviceWorkerManager.addEventListener("RegistrationUpdated" /* Events.RegistrationUpdated */, this.registrationsUpdated, this);
+        serviceWorkerManager.addEventListener("RegistrationDeleted" /* Events.RegistrationDeleted */, this.registrationsUpdated, this);
         TargetManager.instance().addModelListener(RuntimeModel, RuntimeModelEvents.ExecutionContextCreated, this.executionContextCreated, this);
     }
     registrationsUpdated() {
@@ -547,5 +567,5 @@ class ServiceWorkerContextNamer {
         context.setLabel(i18nString(UIStrings.sSS, { PH1: label, PH2: version.id, PH3: localizedStatus() }));
     }
 }
-SDKModel.register(ServiceWorkerManager, { capabilities: Capability.ServiceWorker, autostart: true });
-//# map=ServiceWorkerManager.js.map
+SDKModel.register(ServiceWorkerManager, { capabilities: 16384 /* Capability.ServiceWorker */, autostart: true });
+//# sourceMappingURL=ServiceWorkerManager.js.map

@@ -8,6 +8,7 @@ import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
 import * as PanelFeedback from '../../../ui/components/panel_feedback/panel_feedback.js';
 import * as PanelIntroductionSteps from '../../../ui/components/panel_introduction_steps/panel_introduction_steps.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
+import * as VisualLogging from '../../../ui/visual_logging/visual_logging.js';
 import startViewStyles from './startView.css.js';
 const UIStrings = {
     /**
@@ -48,6 +49,10 @@ export class CreateRecordingEvent extends Event {
 export class StartView extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-start-view`;
     #shadow = this.attachShadow({ mode: 'open' });
+    constructor() {
+        super();
+        this.setAttribute('jslog', `${VisualLogging.section('start-view')}`);
+    }
     connectedCallback() {
         this.#shadow.adoptedStyleSheets = [startViewStyles];
         void ComponentHelpers.ScheduledRender.scheduleRender(this, this.#render);
@@ -68,7 +73,8 @@ export class StartView extends HTMLElement {
           </${PanelIntroductionSteps.PanelIntroductionSteps.PanelIntroductionSteps
             .litTagName}>
           <div class="fit-content">
-            <${Buttons.Button.Button.litTagName} .variant=${"primary" /* Buttons.Button.Variant.PRIMARY */} @click=${this.#onClick}>
+            <${Buttons.Button.Button.litTagName} .variant=${"primary" /* Buttons.Button.Variant.PRIMARY */} @click=${this.#onClick}
+              .jslogContext=${"chrome-recorder.create-recording" /* Actions.RecorderActions.CreateRecording */}>
               ${i18nString(UIStrings.createRecording)}
             </${Buttons.Button.Button.litTagName}>
           </div>
@@ -89,5 +95,5 @@ export class StartView extends HTMLElement {
         // clang-format on
     };
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-start-view', StartView);
-//# map=StartView.js.map
+customElements.define('devtools-start-view', StartView);
+//# sourceMappingURL=StartView.js.map

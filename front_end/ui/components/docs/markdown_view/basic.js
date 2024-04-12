@@ -1,7 +1,7 @@
 // Copyright 2021 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import * as FrontendHelpers from '../../../../../test/unittests/front_end/helpers/EnvironmentHelpers.js';
+import * as FrontendHelpers from '../../../../testing/EnvironmentHelpers.js';
 import * as Marked from '../../../../third_party/marked/marked.js';
 import * as ComponentHelpers from '../../helpers/helpers.js';
 import * as MarkdownView from '../../markdown_view/markdown_view.js';
@@ -32,6 +32,25 @@ Lorem ipsum dolor sit amet, ![icon](lighthouse-icon) consectetur adipiscing elit
 
 Proin posuere varius risus, nec tristique urna elementum ut.
 
+\`\`\`js
+console.log('test')
+\`\`\`
+
+\`\`\`js
+MarkdownView.MarkdownImagesMap.markdownImages.set('lighthouse-icon', {
+  src: '../../Images/lighthouse_logo.svg',
+  width: '16px',
+  height: '16px',
+  isIcon: true,
+});
+MarkdownView.MarkdownImagesMap.markdownImages.set('baseline', {
+  src: '../../Images/align-items-baseline.svg',
+  width: '200px',
+  height: '200px',
+  isIcon: false,
+});
+\`\`\`
+
 ![Image](baseline)
 
 \`Cras id elit at erat porttitor elementum\`. Donec purus nulla, suscipit eu hendrerit in, auctor eu erat. Proin ut accumsan mi, rhoncus interdum odio. Etiam dapibus posuere lorem.
@@ -39,4 +58,4 @@ Proin posuere varius risus, nec tristique urna elementum ut.
 component.data = {
     tokens: markdownAst,
 };
-//# map=basic.js.map
+//# sourceMappingURL=basic.js.map

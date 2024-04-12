@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 import * as Platform from '../../../core/platform/platform.js';
 import * as LitHtml from '../../lit-html/lit-html.js';
+import * as VisualLogging from '../../visual_logging/visual_logging.js';
 import * as CodeHighlighter from '../code_highlighter/code_highlighter.js';
 import * as ComponentHelpers from '../helpers/helpers.js';
 import * as Coordinator from '../render_coordinator/render_coordinator.js';
@@ -166,10 +167,10 @@ export class TreeOutline extends HTMLElement {
         await this.#render();
     }
     #setNodeKeyNoWrapCSSVariable(attributeValue) {
-        ComponentHelpers.SetCSSProperty.set(this, '--override-key-whitespace-wrapping', attributeValue !== null ? 'nowrap' : 'initial');
+        this.style.setProperty('--override-key-whitespace-wrapping', attributeValue !== null ? 'nowrap' : 'initial');
     }
     #setTopLevelNodeBorderColorCSSVariable(attributeValue) {
-        ComponentHelpers.SetCSSProperty.set(this, '--override-top-node-border', attributeValue ? `1px solid ${attributeValue}` : '');
+        this.style.setProperty('--override-top-node-border', attributeValue ? `1px solid ${attributeValue}` : '');
     }
     async #recursivelyCollapseTreeNodeChildren(treeNode) {
         if (!isExpandableNode(treeNode) || !this.#nodeIsExpanded(treeNode)) {
@@ -376,6 +377,7 @@ export class TreeOutline extends HTMLElement {
         aria-level=${depth + 1}
         aria-posinset=${positionInSet + 1}
         class=${listItemClasses}
+        jslog=${VisualLogging.treeItem(node.jslogContext).track({ click: true, keydown: 'ArrowUp|ArrowDown|ArrowLeft|ArrowRight|Enter|Space|Home|End' })}
         @click=${this.#onNodeClick}
         track-dom-node-to-tree-node=${trackDOMNodeToTreeNode(this.#domNodeToTreeNodeMap, node)}
         on-render=${ComponentHelpers.Directives.nodeRenderedCallback(domNode => {
@@ -402,7 +404,7 @@ export class TreeOutline extends HTMLElement {
             this.dispatchEvent(new ItemMouseOutEvent(node));
         }}
         >
-          <span class="arrow-icon" @click=${this.#onArrowClick(node)}>
+          <span class="arrow-icon" @click=${this.#onArrowClick(node)} jslog=${VisualLogging.expand().track({ click: true })}>
           </span>
           <span class="tree-node-key" data-node-key=${node.treeNodeData}>${renderedNodeKey}</span>
         </span>
@@ -449,5 +451,5 @@ export class TreeOutline extends HTMLElement {
         }
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-tree-outline', TreeOutline);
-//# map=TreeOutline.js.map
+customElements.define('devtools-tree-outline', TreeOutline);
+//# sourceMappingURL=TreeOutline.js.map

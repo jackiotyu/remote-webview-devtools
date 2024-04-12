@@ -16,7 +16,8 @@ export class ImagePreviewPopover {
     constructor(container, getLinkElement, getDOMNode) {
         this.getLinkElement = getLinkElement;
         this.getDOMNode = getDOMNode;
-        this.popover = new UI.PopoverHelper.PopoverHelper(container, this.handleRequest.bind(this));
+        this.popover =
+            new UI.PopoverHelper.PopoverHelper(container, this.handleRequest.bind(this), 'elements.image-preview');
         this.popover.setHasPadding(true);
         this.popover.setTimeout(0, 100);
     }
@@ -58,4 +59,4 @@ export class ImagePreviewPopover {
     }
 }
 const elementToURLMap = new WeakMap();
-//# map=ImagePreviewPopover.js.map
+//# sourceMappingURL=ImagePreviewPopover.js.map

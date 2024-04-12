@@ -34,6 +34,10 @@ export const UIStrings = {
     /**
      *@description Text to indicate the status of a heap snapshot in the Performance Pane
      */
+    calculatingShallowSizes: 'Calculating shallow sizes…',
+    /**
+     *@description Text to indicate the status of a heap snapshot in the Performance Pane
+     */
     calculatingRetainedSizes: 'Calculating retained sizes…',
     /**
      *@description Text to indicate the status of a heap snapshot in the Performance Pane
@@ -103,4 +107,4 @@ export const UIStrings = {
      */
     loadingStrings: 'Loading strings…',
 };
-//# map=ModuleUIStrings.js.map
+//# sourceMappingURL=ModuleUIStrings.js.map

@@ -1,20 +1,19 @@
 // Copyright 2022 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+import * as Common from '../../../core/common/common.js';
 import * as Host from '../../../core/host/host.js';
 import * as i18n from '../../../core/i18n/i18n.js';
-import * as IssuesManager from '../../../models/issues_manager/issues_manager.js';
-import * as NetworkForward from '../../../panels/network/forward/forward.js';
-import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
-import * as LitHtml from '../../../ui/lit-html/lit-html.js';
-import * as Sources from '../../../panels/sources/sources.js';
-import * as UI from '../../../ui/legacy/legacy.js';
-import { compareHeaders, HeaderSectionRow, } from './HeaderSectionRow.js';
-import * as Persistence from '../../../models/persistence/persistence.js';
 import * as Platform from '../../../core/platform/platform.js';
-import * as Common from '../../../core/common/common.js';
+import * as IssuesManager from '../../../models/issues_manager/issues_manager.js';
+import * as Persistence from '../../../models/persistence/persistence.js';
+import * as NetworkForward from '../../../panels/network/forward/forward.js';
+import * as Sources from '../../../panels/sources/sources.js';
 import * as Buttons from '../../../ui/components/buttons/buttons.js';
-import * as Root from '../../../core/root/root.js';
+import * as UI from '../../../ui/legacy/legacy.js';
+import * as LitHtml from '../../../ui/lit-html/lit-html.js';
+import * as VisualLogging from '../../../ui/visual_logging/visual_logging.js';
+import { compareHeaders, HeaderSectionRow, } from './HeaderSectionRow.js';
 import responseHeaderSectionStyles from './ResponseHeaderSection.css.js';
 const { render, html } = LitHtml;
 const UIStrings = {
@@ -56,40 +55,79 @@ const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const i18nLazyString = i18n.i18n.getLazilyComputedLocalizedString.bind(undefined, str_);
 const plusIconUrl = new URL('../../../Images/plus.svg', import.meta.url).toString();
 export const RESPONSE_HEADER_SECTION_DATA_KEY = 'ResponseHeaderSection';
-export class ResponseHeaderSection extends HTMLElement {
-    static litTagName = LitHtml.literal `devtools-response-header-section`;
-    #shadow = this.attachShadow({ mode: 'open' });
+class ResponseHeaderSectionBase extends HTMLElement {
+    shadow = this.attachShadow({ mode: 'open' });
+    headerDetails = [];
+    connectedCallback() {
+        this.shadow.adoptedStyleSheets = [responseHeaderSectionStyles];
+    }
+    setHeaders(headers) {
+        headers.sort(function (a, b) {
+            return Platform.StringUtilities.compare(a.name.toLowerCase(), b.name.toLowerCase());
+        });
+        this.headerDetails = headers.map(header => ({
+            name: Platform.StringUtilities.toLowerCaseString(header.name),
+            value: header.value.replace(/\s/g, ' '),
+        }));
+    }
+    highlightHeaders(data) {
+        if (data.toReveal?.section === "Response" /* NetworkForward.UIRequestLocation.UIHeaderSection.Response */) {
+            this.headerDetails.filter(header => compareHeaders(header.name, data.toReveal?.header?.toLowerCase()))
+                .forEach(header => {
+                header.highlight = true;
+            });
+        }
+    }
+}
+export class EarlyHintsHeaderSection extends ResponseHeaderSectionBase {
+    static litTagName = LitHtml.literal `devtools-early-hints-header-section`;
     #request;
-    #headerDetails = [];
+    set data(data) {
+        this.#request = data.request;
+        this.setHeaders(this.#request.earlyHintsHeaders);
+        this.highlightHeaders(data);
+        this.#render();
+    }
+    #render() {
+        if (!this.#request) {
+            return;
+        }
+        // Disabled until https://crbug.com/1079231 is fixed.
+        // clang-format off
+        render(html `
+      ${this.headerDetails.map(header => html `
+        <${HeaderSectionRow.litTagName} .data=${{
+            header: header,
+        }}></${HeaderSectionRow.litTagName}>
+      `)}
+    `, this.shadow, { host: this });
+        // clang-format on
+    }
+}
+customElements.define('devtools-early-hints-header-section', EarlyHintsHeaderSection);
+export class ResponseHeaderSection extends ResponseHeaderSectionBase {
+    static litTagName = LitHtml.literal `devtools-response-header-section`;
+    #request;
     #headerEditors = [];
     #uiSourceCode = null;
     #overrides = [];
     #headersAreOverrideable = false;
-    connectedCallback() {
-        this.#shadow.adoptedStyleSheets = [responseHeaderSectionStyles];
-    }
     set data(data) {
         this.#request = data.request;
         // If the request has been locally overridden, its 'sortedResponseHeaders'
         // contains no 'set-cookie' headers, because they have been filtered out by
         // the Chromium backend. DevTools therefore uses previously stored values.
         const headers = this.#request.sortedResponseHeaders.concat(this.#request.setCookieHeaders);
-        headers.sort(function (a, b) {
-            return Platform.StringUtilities.compare(a.name.toLowerCase(), b.name.toLowerCase());
-        });
-        this.#headerDetails = headers.map(header => ({
-            name: Platform.StringUtilities.toLowerCaseString(header.name),
-            value: header.value.replace(/\s/g, ' '),
-        }));
+        this.setHeaders(headers);
         const headersWithIssues = [];
         if (this.#request.wasBlocked()) {
             const headerWithIssues = BlockedReasonDetails.get(this.#request.blockedReason());
             if (headerWithIssues) {
-                if (IssuesManager.RelatedIssue.hasIssueOfCategory(this.#request, IssuesManager.Issue.IssueCategory.CrossOriginEmbedderPolicy)) {
+                if (IssuesManager.RelatedIssue.hasIssueOfCategory(this.#request, "CrossOriginEmbedderPolicy" /* IssuesManager.Issue.IssueCategory.CrossOriginEmbedderPolicy */)) {
                     const followLink = () => {
-                        Host.userMetrics.issuesPanelOpenedFrom(Host.UserMetrics.IssueOpener.LearnMoreLinkCOEP);
+                        Host.userMetrics.issuesPanelOpenedFrom(1 /* Host.UserMetrics.IssueOpener.LearnMoreLinkCOEP */);
                         if (this.#request) {
-                            void IssuesManager.RelatedIssue.reveal(this.#request, IssuesManager.Issue.IssueCategory.CrossOriginEmbedderPolicy);
+                            void IssuesManager.RelatedIssue.reveal(this.#request, "CrossOriginEmbedderPolicy" /* IssuesManager.Issue.IssueCategory.CrossOriginEmbedderPolicy */);
                         }
                     };
                     if (headerWithIssues.blockedDetails) {
@@ -121,10 +159,10 @@ export class ResponseHeaderSection extends HTMLElement {
             }
             return result;
         }
-        this.#headerDetails = mergeHeadersWithIssues(this.#headerDetails, headersWithIssues);
+        this.headerDetails = mergeHeadersWithIssues(this.headerDetails, headersWithIssues);
         const blockedResponseCookies = this.#request.blockedResponseCookies();
         const blockedCookieLineToReasons = new Map(blockedResponseCookies?.map(c => [c.cookieLine.replace(/\s/g, ' '), c.blockedReasons]));
-        for (const header of this.#headerDetails) {
+        for (const header of this.headerDetails) {
             if (header.name === 'set-cookie' && header.value) {
                 const matchingBlockedReasons = blockedCookieLineToReasons.get(header.value);
                 if (matchingBlockedReasons) {
@@ -132,19 +170,14 @@ export class ResponseHeaderSection extends HTMLElement {
                 }
             }
         }
-        if (data.toReveal?.section === NetworkForward.UIRequestLocation.UIHeaderSection.Response) {
-            this.#headerDetails.filter(header => compareHeaders(header.name, data.toReveal?.header?.toLowerCase()))
-                .forEach(header => {
-                header.highlight = true;
-            });
-        }
+        this.highlightHeaders(data);
         const dataAssociatedWithRequest = this.#request.getAssociatedData(RESPONSE_HEADER_SECTION_DATA_KEY);
         if (dataAssociatedWithRequest) {
             this.#headerEditors = dataAssociatedWithRequest;
         }
         else {
             this.#headerEditors =
-                this.#headerDetails.map(header => ({ name: header.name, value: header.value, originalValue: header.value }));
+                this.headerDetails.map(header => ({ name: header.name, value: header.value, originalValue: header.value }));
             this.#markOverrides();
         }
         void this.#loadOverridesFileInfo();
@@ -157,7 +190,7 @@ export class ResponseHeaderSection extends HTMLElement {
         }
         this.#headersAreOverrideable = false;
         this.#headerEditors =
-            this.#headerDetails.map(header => ({ name: header.name, value: header.value, originalValue: header.value }));
+            this.headerDetails.map(header => ({ name: header.name, value: header.value, originalValue: header.value }));
         this.#markOverrides();
         this.#request.setAssociatedData(RESPONSE_HEADER_SECTION_DATA_KEY, this.#headerEditors);
     }
@@ -179,8 +212,8 @@ export class ResponseHeaderSection extends HTMLElement {
             if (!this.#overrides.every(Persistence.NetworkPersistenceManager.isHeaderOverride)) {
                 throw 'Type mismatch after parsing';
             }
-            this.#headersAreOverrideable = Root.Runtime.experiments.isEnabled(Root.Runtime.ExperimentName.HEADER_OVERRIDES) &&
-                Common.Settings.Settings.instance().moduleSetting('persistenceNetworkOverridesEnabled').get();
+            this.#headersAreOverrideable =
+                Common.Settings.Settings.instance().moduleSetting('persistence-network-overrides-enabled').get();
             for (const header of this.#headerEditors) {
                 header.valueEditable = this.#headersAreOverrideable;
             }
@@ -197,59 +230,49 @@ export class ResponseHeaderSection extends HTMLElement {
         if (!this.#request || this.#request.originalResponseHeaders.length === 0) {
             return;
         }
-        // To compare original headers and actual headers we use a map from header
-        // name to an array of header values. This allows us to handle the cases
-        // in which we have multiple headers with the same name (and corresponding
-        // header values which may or may not occur multiple times as well). We are
-        // not using MultiMaps, because a Set would not able to distinguish between
-        // header values [a, a, b] and [a, b, b].
-        const originalHeaders = new Map();
-        for (const header of this.#request?.originalResponseHeaders || []) {
-            const headerName = Platform.StringUtilities.toLowerCaseString(header.name);
-            const headerValues = originalHeaders.get(headerName);
-            if (headerValues) {
-                headerValues.push(header.value.replace(/\s/g, ' '));
+        const originalHeaders = this.#request.originalResponseHeaders.map(header => ({
+            name: Platform.StringUtilities.toLowerCaseString(header.name),
+            value: header.value.replace(/\s/g, ' '),
+        }));
+        originalHeaders.sort(function (a, b) {
+            return Platform.StringUtilities.compare(a.name, b.name);
+        });
+        // Loop over actual headers and original headers simultaneously and mark each actual header as
+        // overridden if there is no identical original header.
+        // If there are multiple headers with the same name, concatenate their values first before
+        // comparing them.
+        let indexActual = 0;
+        let indexOriginal = 0;
+        while (indexActual < this.headerDetails.length) {
+            const currentName = this.headerDetails[indexActual].name;
+            let actualValue = this.headerDetails[indexActual].value || '';
+            const headerNotSet = this.headerDetails[indexActual].headerNotSet;
+            while (indexActual < this.headerDetails.length - 1 && this.headerDetails[indexActual + 1].name === currentName) {
+                indexActual++;
+                actualValue += `, ${this.headerDetails[indexActual].value}`;
             }
-            else {
-                originalHeaders.set(headerName, [header.value.replace(/\s/g, ' ')]);
+            while (indexOriginal < originalHeaders.length && originalHeaders[indexOriginal].name < currentName) {
+                indexOriginal++;
             }
-        }
-        const actualHeaders = new Map();
-        for (const header of this.#headerDetails) {
-            if (header.headerNotSet) {
-                continue;
-            }
-            const headerValues = actualHeaders.get(header.name);
-            if (headerValues) {
-                headerValues.push(header.value || '');
-            }
-            else {
-                actualHeaders.set(header.name, [header.value || '']);
-            }
-        }
-        const isDifferent = (headerName, actualHeaders, originalHeaders) => {
-            const actual = actualHeaders.get(headerName);
-            const original = originalHeaders.get(headerName);
-            if (!actual || !original || actual.length !== original.length) {
-                return true;
-            }
-            actual.sort();
-            original.sort();
-            for (let i = 0; i < actual.length; i++) {
-                if (!compareHeaders(actual[i], original[i])) {
-                    return true;
+            if (indexOriginal < originalHeaders.length && originalHeaders[indexOriginal].name === currentName) {
+                let originalValue = originalHeaders[indexOriginal].value;
+                while (indexOriginal < originalHeaders.length - 1 && originalHeaders[indexOriginal + 1].name === currentName) {
+                    indexOriginal++;
+                    originalValue += `, ${originalHeaders[indexOriginal].value}`;
+                }
+                indexOriginal++;
+                if (currentName !== 'set-cookie' && !headerNotSet && !compareHeaders(actualValue, originalValue)) {
+                    this.#headerEditors.filter(header => compareHeaders(header.name, currentName)).forEach(header => {
+                        header.isOverride = true;
+                    });
                 }
             }
-            return false;
-        };
-        for (const headerName of actualHeaders.keys()) {
-            // If the array of actual headers and the array of original headers do not
-            // exactly match, mark all headers with 'headerName' as being overridden.
-            if (headerName !== 'set-cookie' && isDifferent(headerName, actualHeaders, originalHeaders)) {
-                this.#headerEditors.filter(header => compareHeaders(header.name, headerName)).forEach(header => {
+            else if (currentName !== 'set-cookie' && !headerNotSet) {
+                this.#headerEditors.filter(header => compareHeaders(header.name, currentName)).forEach(header => {
                     header.isOverride = true;
                 });
             }
+            indexActual++;
         }
         // Special case for 'set-cookie' headers: compare each header individually
         // and don't treat all 'set-cookie' headers as a single unit.
@@ -397,7 +420,7 @@ export class ResponseHeaderSection extends HTMLElement {
         const index = this.#headerEditors.length - 1;
         this.#updateOverrides(this.#headerEditors[index].name, this.#headerEditors[index].value || '', index);
         this.#render();
-        const rows = this.#shadow.querySelectorAll('devtools-header-section-row');
+        const rows = this.shadow.querySelectorAll('devtools-header-section-row');
         const [lastRow] = Array.from(rows).slice(-1);
         lastRow?.focus();
         Host.userMetrics.actionTaken(Host.UserMetrics.Action.HeaderOverrideHeaderAdded);
@@ -406,25 +429,31 @@ export class ResponseHeaderSection extends HTMLElement {
         if (!this.#request) {
             return;
         }
-        const headerDescriptors = this.#headerEditors.map((headerEditor, index) => ({ ...this.#headerDetails[index], ...headerEditor, isResponseHeader: true }));
+        const headerDescriptors = this.#headerEditors.map((headerEditor, index) => ({ ...this.headerDetails[index], ...headerEditor, isResponseHeader: true }));
         // Disabled until https://crbug.com/1079231 is fixed.
         // clang-format off
         render(html `
       ${headerDescriptors.map((header, index) => html `
-        <${HeaderSectionRow.litTagName} .data=${{ header }} @headeredited=${this.#onHeaderEdited} @headerremoved=${this.#onHeaderRemoved} @enableheaderediting=${this.#onEnableHeaderEditingClick} data-index=${index}></${HeaderSectionRow.litTagName}>
+        <${HeaderSectionRow.litTagName}
+            .data=${{ header }}
+            @headeredited=${this.#onHeaderEdited}
+            @headerremoved=${this.#onHeaderRemoved}
+            @enableheaderediting=${this.#onEnableHeaderEditingClick}
+            data-index=${index}
+            jslog=${VisualLogging.item('response-header')}
+        ></${HeaderSectionRow.litTagName}>
       `)}
       ${this.#headersAreOverrideable ? html `
         <${Buttons.Button.Button.litTagName}
           class="add-header-button"
           .variant=${"secondary" /* Buttons.Button.Variant.SECONDARY */}
           .iconUrl=${plusIconUrl}
-          .iconWidth=${'12px'}
-          .iconHeight=${'12px'}
-          @click=${this.#onAddHeaderClick}>
+          @click=${this.#onAddHeaderClick}
+          jslog=${VisualLogging.action('add-header').track({ click: true })}>
           ${i18nString(UIStrings.addHeader)}
         </${Buttons.Button.Button.litTagName}>
       ` : LitHtml.nothing}
-    `, this.#shadow, { host: this });
+    `, this.shadow, { host: this });
         // clang-format on
     }
     async #onEnableHeaderEditingClick() {
@@ -435,7 +464,7 @@ export class ResponseHeaderSection extends HTMLElement {
         const requestUrl = this.#request.url();
         const networkPersistanceManager = Persistence.NetworkPersistenceManager.NetworkPersistenceManager.instance();
         if (networkPersistanceManager.project()) {
-            Common.Settings.Settings.instance().moduleSetting('persistenceNetworkOverridesEnabled').set(true);
+            Common.Settings.Settings.instance().moduleSetting('persistence-network-overrides-enabled').set(true);
             await networkPersistanceManager.getOrCreateHeadersUISourceCodeFromUrl(requestUrl);
         }
         else { // If folder for local overrides has not been provided yet
@@ -446,7 +475,7 @@ export class ResponseHeaderSection extends HTMLElement {
         }
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-response-header-section', ResponseHeaderSection);
+customElements.define('devtools-response-header-section', ResponseHeaderSection);
 const BlockedReasonDetails = new Map([
     [
         "coep-frame-resource-needs-coep-header" /* Protocol.Network.BlockedReason.CoepFrameResourceNeedsCoepHeader */,
@@ -535,4 +564,4 @@ const BlockedReasonDetails = new Map([
         },
     ],
 ]);
-//# map=ResponseHeaderSection.js.map
+//# sourceMappingURL=ResponseHeaderSection.js.map

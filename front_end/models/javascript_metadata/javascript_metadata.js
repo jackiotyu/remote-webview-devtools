@@ -8,4 +8,4 @@ import * as DOMPinnedProperties from './DOMPinnedProperties.js';
 import * as JavaScriptMetadata from './JavaScriptMetadata.js';
 import * as NativeFunctions from './NativeFunctions.js';
 export { DOMPinnedProperties, JavaScriptMetadata, NativeFunctions, };
-//# map=javascript_metadata.js.map
+//# sourceMappingURL=javascript_metadata.js.map

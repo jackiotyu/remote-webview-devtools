@@ -38,7 +38,7 @@ export class ResourceOriginPlugin extends Plugin {
                 const url = uiSourceCode.url();
                 const text = Bindings.ResourceUtils.displayNameForURL(url);
                 const title = i18nString(UIStrings.sourceMappedFromS, { PH1: text });
-                links.push(Components.Linkifier.Linkifier.linkifyRevealable(uiSourceCode, text, url, title));
+                links.push(Components.Linkifier.Linkifier.linkifyRevealable(uiSourceCode, text, url, title, undefined, 'original-script-location'));
             }
             for (const originURL of Bindings.SASSSourceMapping.SASSSourceMapping.uiSourceOrigin(this.uiSourceCode)) {
                 links.push(Components.Linkifier.Linkifier.linkifyURL(originURL));
@@ -66,4 +66,4 @@ export class ResourceOriginPlugin extends Plugin {
     }
 }
 export const linkifier = new Components.Linkifier.Linkifier();
-//# map=ResourceOriginPlugin.js.map
+//# sourceMappingURL=ResourceOriginPlugin.js.map

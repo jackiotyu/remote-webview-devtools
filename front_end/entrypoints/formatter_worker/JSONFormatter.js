@@ -64,4 +64,4 @@ export class JSONFormatter {
         }
     }
 }
-//# map=JSONFormatter.js.map
+//# sourceMappingURL=JSONFormatter.js.map

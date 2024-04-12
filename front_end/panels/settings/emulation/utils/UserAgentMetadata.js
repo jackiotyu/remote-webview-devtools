@@ -70,4 +70,4 @@ export function validateAsStructuredHeadersString(value, errorString) {
     }
     return { valid: true, errorMessage: undefined };
 }
-//# map=UserAgentMetadata.js.map
+//# sourceMappingURL=UserAgentMetadata.js.map

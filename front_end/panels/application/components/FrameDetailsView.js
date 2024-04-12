@@ -1,26 +1,27 @@
 // Copyright 2021 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import { StackTrace } from './StackTrace.js';
-import { PermissionsPolicySection, renderIconLink, } from './PermissionsPolicySection.js';
-import * as Bindings from '../../../models/bindings/bindings.js';
 import * as Common from '../../../core/common/common.js';
 import * as i18n from '../../../core/i18n/i18n.js';
-import * as NetworkForward from '../../../panels/network/forward/forward.js';
 import * as Platform from '../../../core/platform/platform.js';
 import * as Root from '../../../core/root/root.js';
 import * as SDK from '../../../core/sdk/sdk.js';
-import * as LitHtml from '../../../ui/lit-html/lit-html.js';
-import * as ExpandableList from '../../../ui/components/expandable_list/expandable_list.js';
-import * as ReportView from '../../../ui/components/report_view/report_view.js';
-import * as IconButton from '../../../ui/components/icon_button/icon_button.js';
-import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
-import * as LegacyWrapper from '../../../ui/components/legacy_wrapper/legacy_wrapper.js';
+import * as Bindings from '../../../models/bindings/bindings.js';
 import * as Workspace from '../../../models/workspace/workspace.js';
-import * as Components from '../../../ui/legacy/components/utils/utils.js';
-import { OriginTrialTreeView } from './OriginTrialTreeView.js';
+import * as NetworkForward from '../../../panels/network/forward/forward.js';
+import * as CspEvaluator from '../../../third_party/csp_evaluator/csp_evaluator.js';
+import * as ExpandableList from '../../../ui/components/expandable_list/expandable_list.js';
+import * as IconButton from '../../../ui/components/icon_button/icon_button.js';
+import * as LegacyWrapper from '../../../ui/components/legacy_wrapper/legacy_wrapper.js';
 import * as Coordinator from '../../../ui/components/render_coordinator/render_coordinator.js';
+import * as ReportView from '../../../ui/components/report_view/report_view.js';
+import * as Components from '../../../ui/legacy/components/utils/utils.js';
+import * as LitHtml from '../../../ui/lit-html/lit-html.js';
+import * as VisualLogging from '../../../ui/visual_logging/visual_logging.js';
 import frameDetailsReportViewStyles from './frameDetailsReportView.css.js';
+import { OriginTrialTreeView } from './OriginTrialTreeView.js';
+import { PermissionsPolicySection, renderIconLink, } from './PermissionsPolicySection.js';
+import { StackTrace } from './StackTrace.js';
 const UIStrings = {
     /**
      *@description Section header in the Frame Details view
@@ -97,6 +98,10 @@ const UIStrings = {
      *@description Section header in the Frame Details view
      */
     securityIsolation: 'Security & Isolation',
+    /**
+     *@description Section header in the Frame Details view
+     */
+    contentSecurityPolicy: 'Content Security Policy (CSP)',
     /**
      *@description Row title for in the Frame Details view
      */
@@ -222,13 +227,19 @@ const UIStrings = {
      */
     createdByAdScriptExplanation: 'There was an ad script in the `(async) stack` when this frame was created. Examining the creation `stack trace` of this frame might provide more insight.',
     /**
-     *@description Label for a button which when clicked causes some information to be refreshed/updated.
-     */
-    refresh: 'Refresh',
-    /**
      *@description Label for a link to an ad script, which created the current iframe.
      */
     creatorAdScript: 'Creator Ad Script',
+    /**
+     *@description Text describing the absence of a value.
+     */
+    none: 'None',
+    /**
+     *@description Explanation of what origin trials are
+     *(https://developer.chrome.com/docs/web-platform/origin-trials/)
+     *(please don't translate 'origin trials').
+     */
+    originTrialsExplanation: 'Origin trials give you access to a new or experimental feature.',
 };
 const str_ = i18n.i18n.registerUIStrings('panels/application/components/FrameDetailsView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
@@ -251,7 +262,7 @@ export class FrameDetailsReportView extends LegacyWrapper.LegacyWrapper.Wrappabl
     }
     connectedCallback() {
         this.parentElement?.classList.add('overflow-auto');
-        this.#protocolMonitorExperimentEnabled = Root.Runtime.experiments.isEnabled('protocolMonitor');
+        this.#protocolMonitorExperimentEnabled = Root.Runtime.experiments.isEnabled('protocol-monitor');
         this.#shadow.adoptedStyleSheets = [frameDetailsReportViewStyles];
     }
     async render() {
@@ -270,7 +281,8 @@ export class FrameDetailsReportView extends LegacyWrapper.LegacyWrapper.Wrappabl
             // Disabled until https://crbug.com/1079231 is fixed.
             // clang-format off
             LitHtml.render(LitHtml.html `
-        <${ReportView.ReportView.Report.litTagName} .data=${{ reportTitle: this.#frame.displayName() }}>
+        <${ReportView.ReportView.Report.litTagName} .data=${{ reportTitle: this.#frame.displayName() }}
+        jslog=${VisualLogging.pane('frames')}>
           ${this.#renderDocumentSection()}
           ${this.#renderIsolationSection()}
           ${this.#renderApiAvailabilitySection()}
@@ -295,33 +307,21 @@ export class FrameDetailsReportView extends LegacyWrapper.LegacyWrapper.Wrappabl
             return LitHtml.nothing;
         }
         this.#originTrialTreeView.classList.add('span-cols');
-        const frame = this.#frame;
-        const refreshOriginTrials = () => {
-            void frame.getOriginTrials().then(trials => {
-                this.#originTrialTreeView.data = { trials };
-            });
-        };
-        refreshOriginTrials();
+        void this.#frame.getOriginTrials().then(trials => {
+            this.#originTrialTreeView.data = { trials };
+        });
+        // clang-format off
         return LitHtml.html `
-    <${ReportView.ReportView.ReportSectionHeader.litTagName}>
-      ${i18n.i18n.lockedString('Origin Trials')}
-      <${IconButton.IconButton.IconButton.litTagName} class="inline-button" .data=${{
-            clickHandler: refreshOriginTrials,
-            groups: [
-                {
-                    iconName: 'refresh',
-                    text: i18nString(UIStrings.refresh),
-                    iconColor: 'var(--icon-default-hover)',
-                    iconWidth: '14px',
-                    iconHeight: '14px',
-                },
-            ],
-        }}>
-      </${IconButton.IconButton.IconButton.litTagName}>
-    </${ReportView.ReportView.ReportSectionHeader.litTagName}>
+    <${ReportView.ReportView.ReportSectionHeader.litTagName}>${i18n.i18n.lockedString('Origin trials')}</${ReportView.ReportView.ReportSectionHeader.litTagName}>
+    <div class="span-cols">
+        ${i18nString(UIStrings.originTrialsExplanation)}
+        <x-link href="https://developer.chrome.com/docs/web-platform/origin-trials/" class="link"
+        jslog=${VisualLogging.link('learn-more.origin-trials').track({ click: true })}>${i18nString(UIStrings.learnMore)}</x-link>
+    </div>
     ${this.#originTrialTreeView}
     <${ReportView.ReportView.ReportSectionDivider.litTagName}></${ReportView.ReportView.ReportSectionDivider.litTagName}>
     `;
+        // clang-format on
     }
     #renderDocumentSection() {
         if (!this.#frame) {
@@ -350,7 +350,7 @@ export class FrameDetailsReportView extends LegacyWrapper.LegacyWrapper.Wrappabl
             return LitHtml.nothing;
         }
         const sourceCode = this.#uiSourceCodeForFrame(this.#frame);
-        return renderIconLink('breakpoint-circle', i18nString(UIStrings.clickToRevealInSourcesPanel), () => Common.Revealer.reveal(sourceCode));
+        return renderIconLink('breakpoint-circle', i18nString(UIStrings.clickToRevealInSourcesPanel), () => Common.Revealer.reveal(sourceCode), 'reveal-in-sources');
     }
     #maybeRenderNetworkLinkForURL() {
         if (this.#frame) {
@@ -358,12 +358,9 @@ export class FrameDetailsReportView extends LegacyWrapper.LegacyWrapper.Wrappabl
             if (resource && resource.request) {
                 const request = resource.request;
                 return renderIconLink('arrow-up-down-circle', i18nString(UIStrings.clickToRevealInNetworkPanel), () => {
-                    const headersTab = Root.Runtime.experiments.isEnabled(Root.Runtime.ExperimentName.HEADER_OVERRIDES) ?
-                        NetworkForward.UIRequestLocation.UIRequestTabs.HeadersComponent :
-                        NetworkForward.UIRequestLocation.UIRequestTabs.Headers;
-                    const requestLocation = NetworkForward.UIRequestLocation.UIRequestLocation.tab(request, headersTab);
+                    const requestLocation = NetworkForward.UIRequestLocation.UIRequestLocation.tab(request, "headers-component" /* NetworkForward.UIRequestLocation.UIRequestTabs.HeadersComponent */);
                     return Common.Revealer.reveal(requestLocation);
-                });
+                }, 'reveal-in-network');
             }
         }
         return LitHtml.nothing;
@@ -409,7 +406,7 @@ export class FrameDetailsReportView extends LegacyWrapper.LegacyWrapper.Wrappabl
                             filterValue: unreachableUrl.path,
                         },
                     ]));
-                });
+                }, 'unreachable-url.reveal-in-network');
             }
         }
         return LitHtml.nothing;
@@ -440,6 +437,7 @@ export class FrameDetailsReportView extends LegacyWrapper.LegacyWrapper.Wrappabl
                 @mouseleave=${() => SDK.OverlayModel.OverlayModel.hideDOMNodeHighlight()}
                 @click=${() => Common.Revealer.reveal(linkTargetDOMNode)}
                 title=${i18nString(UIStrings.clickToRevealInElementsPanel)}
+                jslog=${VisualLogging.action('reveal-in-elements').track({ click: true })}
               >
                 <${IconButton.Icon.Icon.litTagName} .data=${{
                     iconName: 'code-circle',
@@ -453,6 +451,7 @@ export class FrameDetailsReportView extends LegacyWrapper.LegacyWrapper.Wrappabl
                 @mouseenter=${() => this.#frame?.highlight()}
                 @mouseleave=${() => SDK.OverlayModel.OverlayModel.hideDOMNodeHighlight()}
                 @click=${() => Common.Revealer.reveal(linkTargetDOMNode)}
+                jslog=${VisualLogging.action('reveal-in-elements').track({ click: true })}
               >
                 &lt;${linkTargetDOMNode.nodeName().toLocaleLowerCase()}&gt;
               </button>
@@ -471,7 +470,9 @@ export class FrameDetailsReportView extends LegacyWrapper.LegacyWrapper.Wrappabl
             // clang-format off
             return LitHtml.html `
         <${ReportView.ReportView.ReportKey.litTagName} title=${i18nString(UIStrings.creationStackTraceExplanation)}>${i18nString(UIStrings.creationStackTrace)}</${ReportView.ReportView.ReportKey.litTagName}>
-        <${ReportView.ReportView.ReportValue.litTagName}>
+        <${ReportView.ReportView.ReportValue.litTagName}
+        jslog=${VisualLogging.section('frame-creation-stack-trace')}
+        >
           <${StackTrace.litTagName} .data=${{
                 frame: this.#frame,
                 buildStackTraceRows: Components.JSPresentationUtils.buildStackTraceRows,
@@ -520,11 +521,12 @@ export class FrameDetailsReportView extends LegacyWrapper.LegacyWrapper.Wrappabl
         // clang-format off
         return LitHtml.html `
       <${ReportView.ReportView.ReportKey.litTagName}>${i18nString(UIStrings.adStatus)}</${ReportView.ReportView.ReportKey.litTagName}>
-      <${ReportView.ReportView.ReportValue.litTagName}>
-        <${ExpandableList.ExpandableList.ExpandableList.litTagName} .data=${{ rows }}></${ExpandableList.ExpandableList.ExpandableList.litTagName}></${ReportView.ReportView.ReportValue.litTagName}>
+      <${ReportView.ReportView.ReportValue.litTagName}
+      jslog=${VisualLogging.section('ad-status')}>
+        <${ExpandableList.ExpandableList.ExpandableList.litTagName} .data=${{ rows, title: i18nString(UIStrings.adStatus) }}></${ExpandableList.ExpandableList.ExpandableList.litTagName}></${ReportView.ReportView.ReportValue.litTagName}>
       ${this.#target ? LitHtml.html `
         <${ReportView.ReportView.ReportKey.litTagName}>${i18nString(UIStrings.creatorAdScript)}</${ReportView.ReportView.ReportKey.litTagName}>
-        <${ReportView.ReportView.ReportValue.litTagName} class="ad-script-link">${adScriptLinkElement}</${ReportView.ReportView.ReportValue.litTagName}>
+        <${ReportView.ReportView.ReportValue.litTagName} class="ad-script-link">${adScriptLinkElement?.setAttribute('jslog', `${VisualLogging.link('ad-script').track({ click: true })}`)}</${ReportView.ReportView.ReportValue.litTagName}>
       ` : LitHtml.nothing}
     `;
         // clang-format on
@@ -543,7 +545,7 @@ export class FrameDetailsReportView extends LegacyWrapper.LegacyWrapper.Wrappabl
       <${ReportView.ReportView.ReportValue.litTagName}>
         ${this.#frame.isCrossOriginIsolated() ? i18nString(UIStrings.yes) : i18nString(UIStrings.no)}
       </${ReportView.ReportView.ReportValue.litTagName}>
-      ${LitHtml.Directives.until(this.#maybeRenderCoopCoepStatus(), LitHtml.nothing)}
+      ${LitHtml.Directives.until(this.#maybeRenderCoopCoepCSPStatus(), LitHtml.nothing)}
       <${ReportView.ReportView.ReportSectionDivider.litTagName}></${ReportView.ReportView.ReportSectionDivider.litTagName}>
     `;
     }
@@ -567,7 +569,7 @@ export class FrameDetailsReportView extends LegacyWrapper.LegacyWrapper.Wrappabl
         }
         return null;
     }
-    async #maybeRenderCoopCoepStatus() {
+    async #maybeRenderCoopCoepCSPStatus() {
         if (this.#frame) {
             const model = this.#frame.resourceTreeModel().target().model(SDK.NetworkManager.NetworkManager);
             const info = model && await model.getSecurityIsolationStatus(this.#frame.id);
@@ -575,6 +577,7 @@ export class FrameDetailsReportView extends LegacyWrapper.LegacyWrapper.Wrappabl
                 return LitHtml.html `
           ${this.#maybeRenderCrossOriginStatus(info.coep, i18n.i18n.lockedString('Cross-Origin Embedder Policy (COEP)'), "None" /* Protocol.Network.CrossOriginEmbedderPolicyValue.None */)}
           ${this.#maybeRenderCrossOriginStatus(info.coop, i18n.i18n.lockedString('Cross-Origin Opener Policy (COOP)'), "UnsafeNone" /* Protocol.Network.CrossOriginOpenerPolicyValue.UnsafeNone */)}
+          ${this.#renderCSPSection(info.csp)}
         `;
             }
         }
@@ -597,6 +600,56 @@ export class FrameDetailsReportView extends LegacyWrapper.LegacyWrapper.Wrappabl
       </${ReportView.ReportView.ReportValue.litTagName}>
     `;
     }
+    #renderEffectiveDirectives(directives) {
+        const parsedDirectives = new CspEvaluator.CspParser.CspParser(directives).csp.directives;
+        const result = [];
+        for (const directive in parsedDirectives) {
+            result.push(LitHtml.html `<div><span class="bold">${directive}</span>${': ' + parsedDirectives[directive]?.join(', ')}</div>`);
+        }
+        return result;
+    }
+    #renderSingleCSP(cspInfo) {
+        // Disabled until https://crbug.com/1079231 is fixed.
+        // clang-format off
+        return LitHtml.html `
+      <${ReportView.ReportView.ReportKey.litTagName}>${cspInfo.isEnforced ? i18n.i18n.lockedString('Content-Security-Policy') :
+            LitHtml.html `${i18n.i18n.lockedString('Content-Security-Policy-Report-Only')}<x-link
+            class="link"
+            href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only"
+            jslog=${VisualLogging.link('learn-more.csp-report-only').track({ click: true })}
+          ><${IconButton.Icon.Icon.litTagName} .data=${{
+                iconName: 'help',
+                color: 'var(--icon-link)',
+                width: '16px',
+                height: '16px',
+            }}>
+            </${IconButton.Icon.Icon.litTagName}></x-link>`}
+      </${ReportView.ReportView.ReportKey.litTagName}>
+      <${ReportView.ReportView.ReportValue.litTagName}>
+        <${IconButton.Icon.Icon.litTagName} class="inline-icon" name="code"></${IconButton.Icon.Icon.litTagName}>
+        ${cspInfo.source === "HTTP" /* Protocol.Network.ContentSecurityPolicySource.HTTP */ ? i18n.i18n.lockedString('HTTP header') : i18n.i18n.lockedString('Meta tag')}
+        ${this.#renderEffectiveDirectives(cspInfo.effectiveDirectives)}
+      </${ReportView.ReportView.ReportValue.litTagName}>
+    `;
+        // clang-format on
+    }
+    #renderCSPSection(cspInfos) {
+        // Disabled until https://crbug.com/1079231 is fixed.
+        // clang-format off
+        return LitHtml.html `
+      <${ReportView.ReportView.ReportSectionDivider.litTagName}></${ReportView.ReportView.ReportSectionDivider.litTagName}>
+      <${ReportView.ReportView.ReportSectionHeader.litTagName}>
+        ${i18nString(UIStrings.contentSecurityPolicy)}
+      </${ReportView.ReportView.ReportSectionHeader.litTagName}>
+      ${(cspInfos && cspInfos.length) ? cspInfos.map(cspInfo => this.#renderSingleCSP(cspInfo)) : LitHtml.html `
+        <${ReportView.ReportView.ReportKey.litTagName}>${i18n.i18n.lockedString('Content-Security-Policy')}</${ReportView.ReportView.ReportKey.litTagName}>
+        <${ReportView.ReportView.ReportValue.litTagName}>
+          ${i18nString(UIStrings.none)}
+        </${ReportView.ReportView.ReportValue.litTagName}>
+      `}
+    `;
+        // clang-format on
+    }
     #renderApiAvailabilitySection() {
         if (!this.#frame) {
             return LitHtml.nothing;
@@ -605,7 +658,7 @@ export class FrameDetailsReportView extends LegacyWrapper.LegacyWrapper.Wrappabl
       <${ReportView.ReportView.ReportSectionHeader.litTagName}>${i18nString(UIStrings.apiAvailability)}</${ReportView.ReportView.ReportSectionHeader.litTagName}>
       <div class="span-cols">
         ${i18nString(UIStrings.availabilityOfCertainApisDepends)}
-        <x-link href="https://web.dev/why-coop-coep/" class="link">${i18nString(UIStrings.learnMore)}</x-link>
+        <x-link href="https://web.dev/why-coop-coep/" class="link" jslog=${VisualLogging.link('learn-more.coop-coep').track({ click: true })}>${i18nString(UIStrings.learnMore)}</x-link>
       </div>
       ${this.#renderSharedArrayBufferAvailability()}
       ${this.#renderMeasureMemoryAvailability()}
@@ -662,7 +715,7 @@ export class FrameDetailsReportView extends LegacyWrapper.LegacyWrapper.Wrappabl
             return LitHtml.html `
         <${ReportView.ReportView.ReportKey.litTagName}>${i18nString(UIStrings.measureMemory)}</${ReportView.ReportView.ReportKey.litTagName}>
         <${ReportView.ReportView.ReportValue.litTagName}>
-          <span title=${tooltipText}>${availabilityText}</span>\xA0<x-link class="link" href="https://web.dev/monitor-total-page-memory-usage/">${i18nString(UIStrings.learnMore)}</x-link>
+          <span title=${tooltipText}>${availabilityText}</span>\xA0<x-link class="link" href="https://web.dev/monitor-total-page-memory-usage/" jslog=${VisualLogging.link('learn-more.monitor-memory-usage').track({ click: true })}>${i18nString(UIStrings.learnMore)}</x-link>
         </${ReportView.ReportView.ReportValue.litTagName}>
       `;
         }
@@ -684,5 +737,5 @@ export class FrameDetailsReportView extends LegacyWrapper.LegacyWrapper.Wrappabl
     `;
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-resources-frame-details-view', FrameDetailsReportView);
-//# map=FrameDetailsView.js.map
+customElements.define('devtools-resources-frame-details-view', FrameDetailsReportView);
+//# sourceMappingURL=FrameDetailsView.js.map

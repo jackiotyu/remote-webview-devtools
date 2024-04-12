@@ -250,4 +250,4 @@ function createMainConnection(websocketConnectionLost) {
     }
     return new MainConnection();
 }
-//# map=Connections.js.map
+//# sourceMappingURL=Connections.js.map

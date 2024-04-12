@@ -38,7 +38,7 @@ export class Runtime {
     }
     static experimentsSetting() {
         try {
-            return JSON.parse(self.localStorage && self.localStorage['experiments'] ? self.localStorage['experiments'] : '{}');
+            return Platform.StringUtilities.toKebabCaseKeys(JSON.parse(self.localStorage && self.localStorage['experiments'] ? self.localStorage['experiments'] : '{}'));
         }
         catch (e) {
             console.error('Failed to parse localStorage[\'experiments\']');
@@ -52,25 +52,18 @@ export class Runtime {
         return runtimePlatform;
     }
     static isDescriptorEnabled(descriptor) {
-        const activatorExperiment = descriptor['experiment'];
-        if (activatorExperiment === '*') {
+        const { experiment } = descriptor;
+        if (experiment === '*') {
             return true;
         }
-        if (activatorExperiment && activatorExperiment.startsWith('!') &&
-            experiments.isEnabled(activatorExperiment.substring(1))) {
+        if (experiment && experiment.startsWith('!') && experiments.isEnabled(experiment.substring(1))) {
             return false;
         }
-        if (activatorExperiment && !activatorExperiment.startsWith('!') && !experiments.isEnabled(activatorExperiment)) {
+        if (experiment && !experiment.startsWith('!') && !experiments.isEnabled(experiment)) {
             return false;
         }
-        const condition = descriptor['condition'];
-        if (condition && !condition.startsWith('!') && !Runtime.queryParam(condition)) {
-            return false;
-        }
-        if (condition && condition.startsWith('!') && Runtime.queryParam(condition.substring(1))) {
-            return false;
-        }
-        return true;
+        const { condition } = descriptor;
+        return condition ? condition() : true;
     }
     loadLegacyModule(modulePath) {
         return import(`../../${modulePath}`);
@@ -82,20 +75,17 @@ export class ExperimentsSupport {
     #enabledTransiently;
     #enabledByDefault;
     #serverEnabled;
-    // Experiments in this set won't be shown to the user
-    #nonConfigurable;
     constructor() {
         this.#experiments = [];
         this.#experimentNames = new Set();
         this.#enabledTransiently = new Set();
         this.#enabledByDefault = new Set();
         this.#serverEnabled = new Set();
-        this.#nonConfigurable = new Set();
     }
     allConfigurableExperiments() {
         const result = [];
         for (const experiment of this.#experiments) {
-            if (!this.#enabledTransiently.has(experiment.name) && !this.#nonConfigurable.has(experiment.name)) {
+            if (!this.#enabledTransiently.has(experiment.name)) {
                 result.push(experiment);
             }
         }
@@ -108,7 +98,9 @@ export class ExperimentsSupport {
         self.localStorage['experiments'] = JSON.stringify(value);
     }
     register(experimentName, experimentTitle, unstable, docLink, feedbackLink) {
-        Platform.DCHECK(() => !this.#experimentNames.has(experimentName), 'Duplicate registration of experiment ' + experimentName);
+        if (this.#experimentNames.has(experimentName)) {
+            throw new Error(`Duplicate registraction of experiment '${experimentName}'`);
+        }
         this.#experimentNames.add(experimentName);
         this.#experiments.push(new Experiment(this, experimentName, experimentTitle, Boolean(unstable), docLink ?? Platform.DevToolsPath.EmptyUrlString, feedbackLink ?? Platform.DevToolsPath.EmptyUrlString));
     }
@@ -151,12 +143,6 @@ export class ExperimentsSupport {
             this.#serverEnabled.add(experiment);
         }
     }
-    setNonConfigurableExperiments(experimentNames) {
-        for (const experiment of experimentNames) {
-            this.checkExperiment(experiment);
-            this.#nonConfigurable.add(experiment);
-        }
-    }
     enableForTest(experimentName) {
         this.checkExperiment(experimentName);
         this.#enabledTransiently.add(experimentName);
@@ -186,7 +172,9 @@ export class ExperimentsSupport {
         this.setExperimentsSetting(cleanedUpExperimentSetting);
     }
     checkExperiment(experimentName) {
-        Platform.DCHECK(() => this.#experimentNames.has(experimentName), 'Unknown experiment ' + experimentName);
+        if (!this.#experimentNames.has(experimentName)) {
+            throw new Error(`Unknown experiment '${experimentName}'`);
+        }
     }
 }
 export class Experiment {
@@ -213,45 +201,7 @@ export class Experiment {
 }
 // This must be constructed after the query parameters have been parsed.
 export const experiments = new ExperimentsSupport();
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
-export var ExperimentName;
-(function (ExperimentName) {
-    ExperimentName["CAPTURE_NODE_CREATION_STACKS"] = "captureNodeCreationStacks";
-    ExperimentName["CSS_OVERVIEW"] = "cssOverview";
-    ExperimentName["LIVE_HEAP_PROFILE"] = "liveHeapProfile";
-    ExperimentName["DEVELOPER_RESOURCES_VIEW"] = "developerResourcesView";
-    ExperimentName["CSP_VIOLATIONS_VIEW"] = "cspViolationsView";
-    ExperimentName["WASM_DWARF_DEBUGGING"] = "wasmDWARFDebugging";
-    ExperimentName["ALL"] = "*";
-    ExperimentName["PROTOCOL_MONITOR"] = "protocolMonitor";
-    ExperimentName["WEBAUTHN_PANE"] = "webauthnPane";
-    ExperimentName["FULL_ACCESSIBILITY_TREE"] = "fullAccessibilityTree";
-    ExperimentName["PRECISE_CHANGES"] = "preciseChanges";
-    ExperimentName["STYLES_PANE_CSS_CHANGES"] = "stylesPaneCSSChanges";
-    ExperimentName["HEADER_OVERRIDES"] = "headerOverrides";
-    ExperimentName["EYEDROPPER_COLOR_PICKER"] = "eyedropperColorPicker";
-    ExperimentName["INSTRUMENTATION_BREAKPOINTS"] = "instrumentationBreakpoints";
-    ExperimentName["AUTHORED_DEPLOYED_GROUPING"] = "authoredDeployedGrouping";
-    ExperimentName["IMPORTANT_DOM_PROPERTIES"] = "importantDOMProperties";
-    ExperimentName["JUST_MY_CODE"] = "justMyCode";
-    ExperimentName["PRELOADING_STATUS_PANEL"] = "preloadingStatusPanel";
-    ExperimentName["DISABLE_COLOR_FORMAT_SETTING"] = "disableColorFormatSetting";
-    ExperimentName["TIMELINE_AS_CONSOLE_PROFILE_RESULT_PANEL"] = "timelineAsConsoleProfileResultPanel";
-    ExperimentName["OUTERMOST_TARGET_SELECTOR"] = "outermostTargetSelector";
-    ExperimentName["JS_PROFILER_TEMP_ENABLE"] = "jsProfilerTemporarilyEnable";
-    ExperimentName["HIGHLIGHT_ERRORS_ELEMENTS_PANEL"] = "highlightErrorsElementsPanel";
-    ExperimentName["SET_ALL_BREAKPOINTS_EAGERLY"] = "setAllBreakpointsEagerly";
-    ExperimentName["SELF_XSS_WARNING"] = "selfXssWarning";
-    ExperimentName["USE_SOURCE_MAP_SCOPES"] = "useSourceMapScopes";
-    ExperimentName["STORAGE_BUCKETS_TREE"] = "storageBucketsTree";
-    ExperimentName["DELETE_OVERRIDES_TEMP_ENABLE"] = "deleteOverridesTemporarilyEnable";
-})(ExperimentName || (ExperimentName = {}));
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
-export var ConditionName;
-(function (ConditionName) {
-    ConditionName["CAN_DOCK"] = "can_dock";
-    ConditionName["NOT_SOURCES_HIDE_ADD_FOLDER"] = "!sources.hide_add_folder";
-})(ConditionName || (ConditionName = {}));
-//# map=Runtime.js.map
+export const conditions = {
+    canDock: () => Boolean(Runtime.queryParam('can_dock')),
+};
+//# sourceMappingURL=Runtime.js.map

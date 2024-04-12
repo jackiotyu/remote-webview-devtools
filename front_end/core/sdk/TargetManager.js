@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as Common from '../common/common.js';
-import * as Platform from '../platform/platform.js';
-import { Type as TargetType, Target } from './Target.js';
-import { SDKModel } from './SDKModel.js';
-import * as Root from '../root/root.js';
 import * as Host from '../host/host.js';
+import * as Platform from '../platform/platform.js';
 import { assertNotNullOrUndefined } from '../platform/platform.js';
+import * as Root from '../root/root.js';
+import { SDKModel } from './SDKModel.js';
+import { Target, Type as TargetType } from './Target.js';
 let targetManagerInstance;
 export class TargetManager extends Common.ObjectWrapper.ObjectWrapper {
     #targetsInternal;
@@ -49,17 +49,17 @@ export class TargetManager extends Common.ObjectWrapper.ObjectWrapper {
             return;
         }
         Host.InspectorFrontendHost.InspectorFrontendHostInstance.inspectedURLChanged(target.inspectedURL() || Platform.DevToolsPath.EmptyUrlString);
-        this.dispatchEventToListeners(Events.InspectedURLChanged, target);
+        this.dispatchEventToListeners("InspectedURLChanged" /* Events.InspectedURLChanged */, target);
     }
     onNameChange(target) {
-        this.dispatchEventToListeners(Events.NameChanged, target);
+        this.dispatchEventToListeners("NameChanged" /* Events.NameChanged */, target);
     }
     async suspendAllTargets(reason) {
         if (this.#isSuspended) {
             return;
         }
         this.#isSuspended = true;
-        this.dispatchEventToListeners(Events.SuspendStateChanged);
+        this.dispatchEventToListeners("SuspendStateChanged" /* Events.SuspendStateChanged */);
         const suspendPromises = Array.from(this.#targetsInternal.values(), target => target.suspend(reason));
         await Promise.all(suspendPromises);
     }
@@ -68,7 +68,7 @@ export class TargetManager extends Common.ObjectWrapper.ObjectWrapper {
             return;
         }
         this.#isSuspended = false;
-        this.dispatchEventToListeners(Events.SuspendStateChanged);
+        this.dispatchEventToListeners("SuspendStateChanged" /* Events.SuspendStateChanged */);
         const resumePromises = Array.from(this.#targetsInternal.values(), target => target.resume());
         await Promise.all(resumePromises);
     }
@@ -252,7 +252,7 @@ export class TargetManager extends Common.ObjectWrapper.ObjectWrapper {
             return false;
         }
         if (!this.#browserTargetInternal) {
-            this.#browserTargetInternal = new Target(this, /* #id*/ 'main', /* #name*/ 'browser', TargetType.Browser, /* #parentTarget*/ null,
+            this.#browserTargetInternal = new Target(this, /* #id*/ 'main', /* #name*/ 'browser', TargetType.Browser, /* #parentTarget*/ null, 
             /* #sessionId */ '', /* suspended*/ false, /* #connection*/ null, /* targetInfo*/ undefined);
             this.#browserTargetInternal.createModels(new Set(this.#modelObservers.keysArray()));
         }
@@ -347,15 +347,6 @@ export class TargetManager extends Common.ObjectWrapper.ObjectWrapper {
         return this.#scopeTarget;
     }
 }
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
-export var Events;
-(function (Events) {
-    Events["AvailableTargetsChanged"] = "AvailableTargetsChanged";
-    Events["InspectedURLChanged"] = "InspectedURLChanged";
-    Events["NameChanged"] = "NameChanged";
-    Events["SuspendStateChanged"] = "SuspendStateChanged";
-})(Events || (Events = {}));
 export class Observer {
     targetAdded(_target) {
     }
@@ -372,4 +363,4 @@ export class SDKModelObserver {
 function isSDKModelEvent(arg) {
     return 'source' in arg && arg.source instanceof SDKModel;
 }
-//# map=TargetManager.js.map
+//# sourceMappingURL=TargetManager.js.map

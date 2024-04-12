@@ -48,4 +48,4 @@ export class ExtensionConverter {
         }
     }
 }
-//# map=ExtensionConverter.js.map
+//# sourceMappingURL=ExtensionConverter.js.map

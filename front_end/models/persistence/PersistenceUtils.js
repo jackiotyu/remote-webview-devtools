@@ -42,7 +42,7 @@ export class PersistenceUtils {
     static iconForUISourceCode(uiSourceCode) {
         const binding = PersistenceImpl.instance().binding(uiSourceCode);
         if (binding) {
-            if (!binding.fileSystem.url().startsWith('file://')) {
+            if (!Common.ParsedURL.schemeIs(binding.fileSystem.url(), 'file:')) {
                 return null;
             }
             const icon = new IconButton.Icon.Icon();
@@ -57,7 +57,7 @@ export class PersistenceUtils {
             return icon;
         }
         if (uiSourceCode.project().type() !== Workspace.Workspace.projectTypes.FileSystem ||
-            !uiSourceCode.url().startsWith('file://')) {
+            !Common.ParsedURL.schemeIs(uiSourceCode.url(), 'file:')) {
             return null;
         }
         if (NetworkPersistenceManager.instance().isActiveHeaderOverrides(uiSourceCode)) {
@@ -80,10 +80,10 @@ export class LinkDecorator extends Common.ObjectWrapper.ObjectWrapper {
     }
     bindingChanged(event) {
         const binding = event.data;
-        this.dispatchEventToListeners(Components.Linkifier.LinkDecorator.Events.LinkIconChanged, binding.network);
+        this.dispatchEventToListeners("LinkIconChanged" /* Components.Linkifier.LinkDecorator.Events.LinkIconChanged */, binding.network);
     }
     linkIcon(uiSourceCode) {
         return PersistenceUtils.iconForUISourceCode(uiSourceCode);
     }
 }
-//# map=PersistenceUtils.js.map
+//# sourceMappingURL=PersistenceUtils.js.map

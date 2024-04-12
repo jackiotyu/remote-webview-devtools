@@ -423,4 +423,4 @@ export class CompilerScriptMapping {
         this.#stubProject.dispose();
     }
 }
-//# map=CompilerScriptMapping.js.map
+//# sourceMappingURL=CompilerScriptMapping.js.map

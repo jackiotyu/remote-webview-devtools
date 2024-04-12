@@ -6,6 +6,7 @@ import * as i18n from '../../core/i18n/i18n.js';
 import * as Platform from '../../core/platform/platform.js';
 import * as PerfUI from '../../ui/legacy/components/perf_ui/perf_ui.js';
 import * as UI from '../../ui/legacy/legacy.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 export class HeapTimelineOverview extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) {
     overviewCalculator;
     overviewContainer;
@@ -25,6 +26,7 @@ export class HeapTimelineOverview extends Common.ObjectWrapper.eventMixin(UI.Wid
         super();
         this.element.id = 'heap-recording-view';
         this.element.classList.add('heap-tracking-overview');
+        this.element.setAttribute('jslog', `${VisualLogging.section('heap-tracking-overview')}`);
         this.overviewCalculator = new OverviewCalculator();
         this.overviewContainer = this.element.createChild('div', 'heap-overview-container');
         this.overviewGrid = new PerfUI.OverviewGrid.OverviewGrid('heap-recording', this.overviewCalculator);
@@ -32,7 +34,7 @@ export class HeapTimelineOverview extends Common.ObjectWrapper.eventMixin(UI.Wid
         this.overviewCanvas =
             this.overviewContainer.createChild('canvas', 'heap-recording-overview-canvas');
         this.overviewContainer.appendChild(this.overviewGrid.element);
-        this.overviewGrid.addEventListener(PerfUI.OverviewGrid.Events.WindowChanged, this.onWindowChanged, this);
+        this.overviewGrid.addEventListener("WindowChanged" /* PerfUI.OverviewGrid.Events.WindowChanged */, this.onWindowChanged, this);
         this.windowLeft = 0.0;
         this.windowRight = 1.0;
         this.overviewGrid.setWindow(this.windowLeft, this.windowRight);
@@ -291,4 +293,4 @@ export class OverviewCalculator {
         return this.maximumBoundaries - this.minimumBoundaries;
     }
 }
-//# map=HeapTimelineOverview.js.map
+//# sourceMappingURL=HeapTimelineOverview.js.map

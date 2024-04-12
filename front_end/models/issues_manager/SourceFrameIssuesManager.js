@@ -7,6 +7,7 @@ import * as Workspace from '../../models/workspace/workspace.js';
 import { ContentSecurityPolicyIssue, trustedTypesPolicyViolationCode, trustedTypesSinkViolationCode, } from './ContentSecurityPolicyIssue.js';
 import { toZeroBasedLocation } from './Issue.js';
 import { getIssueTitleFromMarkdownDescription } from './MarkdownIssueDescription.js';
+import { PropertyRuleIssue } from './PropertyRuleIssue.js';
 import { lateImportStylesheetLoadingCode } from './StylesheetLoadingIssue.js';
 export class SourceFrameIssuesManager {
     issuesManager;
@@ -21,7 +22,7 @@ export class SourceFrameIssuesManager {
         void this.#addIssue(issue);
     }
     async #addIssue(issue) {
-        if (!this.#isTrustedTypeIssue(issue) && !this.#isLateImportIssue(issue)) {
+        if (!this.#isTrustedTypeIssue(issue) && !this.#isLateImportIssue(issue) && !this.#isPropertyRuleIssue(issue)) {
             return;
         }
         const issuesModel = issue.model();
@@ -58,6 +59,9 @@ export class SourceFrameIssuesManager {
         return issue instanceof ContentSecurityPolicyIssue && issue.code() === trustedTypesSinkViolationCode ||
             issue.code() === trustedTypesPolicyViolationCode;
     }
+    #isPropertyRuleIssue(issue) {
+        return issue instanceof PropertyRuleIssue;
+    }
     #isLateImportIssue(issue) {
         return issue.code() === lateImportStylesheetLoadingCode;
     }
@@ -68,11 +72,11 @@ export class SourceFrameIssuesManager {
 export class IssueMessage extends Workspace.UISourceCode.Message {
     #kind;
     constructor(title, kind, clickHandler) {
-        super(Workspace.UISourceCode.Message.Level.Issue, title, clickHandler);
+        super("Issue" /* Workspace.UISourceCode.Message.Level.Issue */, title, clickHandler);
         this.#kind = kind;
     }
     getIssueKind() {
         return this.#kind;
     }
 }
-//# map=SourceFrameIssuesManager.js.map
+//# sourceMappingURL=SourceFrameIssuesManager.js.map

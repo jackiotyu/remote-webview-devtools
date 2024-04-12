@@ -49,20 +49,20 @@ async function loadPerfUIModule() {
 }
 UI.ActionRegistration.registerActionExtension({
     actionId: 'components.collect-garbage',
-    category: UI.ActionRegistration.ActionCategory.PERFORMANCE,
+    category: "PERFORMANCE" /* UI.ActionRegistration.ActionCategory.PERFORMANCE */,
     title: i18nLazyString(UIStrings.collectGarbage),
-    iconClass: "bin" /* UI.ActionRegistration.IconClass.BIN */,
+    iconClass: "mop" /* UI.ActionRegistration.IconClass.MOP */,
     async loadActionDelegate() {
         const PerfUI = await loadPerfUIModule();
-        return PerfUI.GCActionDelegate.GCActionDelegate.instance();
+        return new PerfUI.GCActionDelegate.GCActionDelegate();
     },
 });
 Common.Settings.registerSettingExtension({
-    category: Common.Settings.SettingCategory.PERFORMANCE,
-    storageType: Common.Settings.SettingStorageType.Synced,
+    category: "PERFORMANCE" /* Common.Settings.SettingCategory.PERFORMANCE */,
+    storageType: "Synced" /* Common.Settings.SettingStorageType.Synced */,
     title: i18nLazyString(UIStrings.flamechartMouseWheelAction),
-    settingName: 'flamechartMouseWheelAction',
-    settingType: Common.Settings.SettingType.ENUM,
+    settingName: 'flamechart-mouse-wheel-action',
+    settingType: "enum" /* Common.Settings.SettingType.ENUM */,
     defaultValue: 'zoom',
     options: [
         {
@@ -78,11 +78,11 @@ Common.Settings.registerSettingExtension({
     ],
 });
 Common.Settings.registerSettingExtension({
-    category: Common.Settings.SettingCategory.MEMORY,
-    experiment: Root.Runtime.ExperimentName.LIVE_HEAP_PROFILE,
+    category: "MEMORY" /* Common.Settings.SettingCategory.MEMORY */,
+    experiment: "live-heap-profile" /* Root.Runtime.ExperimentName.LIVE_HEAP_PROFILE */,
     title: i18nLazyString(UIStrings.liveMemoryAllocationAnnotations),
-    settingName: 'memoryLiveHeapProfile',
-    settingType: Common.Settings.SettingType.BOOLEAN,
+    settingName: 'memory-live-heap-profile',
+    settingType: "boolean" /* Common.Settings.SettingType.BOOLEAN */,
     defaultValue: false,
     options: [
         {
@@ -95,4 +95,4 @@ Common.Settings.registerSettingExtension({
         },
     ],
 });
-//# map=perf_ui-meta.js.map
+//# sourceMappingURL=perf_ui-meta.js.map

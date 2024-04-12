@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as SuggestionInput from './SuggestionInput.js';
 export { SuggestionInput };
-//# map=suggestion_input.js.map
+//# sourceMappingURL=suggestion_input.js.map

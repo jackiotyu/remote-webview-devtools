@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as Linkifier from './LinkifierImpl.js';
 export { Linkifier, };
-//# map=linkifier.js.map
+//# sourceMappingURL=linkifier.js.map

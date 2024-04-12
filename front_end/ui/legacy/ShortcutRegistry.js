@@ -4,11 +4,11 @@
 import * as Common from '../../core/common/common.js';
 import * as Host from '../../core/host/host.js';
 import * as Platform from '../../core/platform/platform.js';
-import * as Root from '../../core/root/root.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import { getRegisteredActionExtensions } from './ActionRegistration.js';
 import { Context } from './Context.js';
 import { Dialog } from './Dialog.js';
-import { KeyboardShortcut, Modifiers, Type } from './KeyboardShortcut.js';
+import { KeyboardShortcut, Modifiers } from './KeyboardShortcut.js';
 import { isEditing } from './UIUtils.js';
 let shortcutRegistryInstance;
 export class ShortcutRegistry {
@@ -31,12 +31,12 @@ export class ShortcutRegistry {
         this.consumePrefix = null;
         this.devToolsDefaultShortcutActions = new Set();
         this.disabledDefaultShortcutsForAction = new Platform.MapUtilities.Multimap();
-        this.keybindSetSetting = Common.Settings.Settings.instance().moduleSetting('activeKeybindSet');
+        this.keybindSetSetting = Common.Settings.Settings.instance().moduleSetting('active-keybind-set');
         this.keybindSetSetting.addChangeListener(event => {
             Host.userMetrics.keybindSetSettingChanged(event.data);
             this.registerBindings();
         });
-        this.userShortcutsSetting = Common.Settings.Settings.instance().moduleSetting('userShortcuts');
+        this.userShortcutsSetting = Common.Settings.Settings.instance().moduleSetting('user-shortcuts');
         this.userShortcutsSetting.addChangeListener(this.registerBindings, this);
         this.registerBindings();
     }
@@ -64,8 +64,8 @@ export class ShortcutRegistry {
         if (keyNode) {
             for (const actionId of Object.keys(handlers)) {
                 if (keyNode.actions().indexOf(actionId) >= 0) {
-                    const action = this.actionRegistry.action(actionId);
-                    if (action) {
+                    if (this.actionRegistry.hasAction(actionId)) {
+                        const action = this.actionRegistry.getAction(actionId);
                         applicableActions.push(action);
                     }
                 }
@@ -154,7 +154,7 @@ export class ShortcutRegistry {
         }
         if (this.activePrefixTimeout) {
             clearTimeout(this.activePrefixTimeout);
-            const handled = await maybeExecuteActionForKey.call(this);
+            const handled = await maybeExecuteActionForKey.call(this, event);
             this.activePrefixKey = null;
             this.activePrefixTimeout = null;
             if (handled) {
@@ -169,12 +169,12 @@ export class ShortcutRegistry {
             this.consumePrefix = async () => {
                 this.activePrefixKey = null;
                 this.activePrefixTimeout = null;
-                await maybeExecuteActionForKey.call(this);
+                await maybeExecuteActionForKey.call(this, event);
             };
             this.activePrefixTimeout = window.setTimeout(this.consumePrefix, KeyTimeout);
         }
         else {
-            await maybeExecuteActionForKey.call(this);
+            await maybeExecuteActionForKey.call(this, event);
         }
         function isPossiblyInputKey() {
             if (!event || !isEditing() || /^F\d+|Control|Shift|Alt|Meta|Escape|Win|U\+001B$/.test(domKey)) {
@@ -214,7 +214,7 @@ export class ShortcutRegistry {
         }
         /** ;
          */
-        async function maybeExecuteActionForKey() {
+        async function maybeExecuteActionForKey(event) {
             const actions = this.applicableActions(key, handlers);
             if (!actions.length) {
                 return false;
@@ -229,6 +229,9 @@ export class ShortcutRegistry {
                 }
                 if (handled) {
                     Host.userMetrics.keyboardShortcutFired(action.id());
+                    if (event) {
+                        void VisualLogging.logKeyDown(null, event, action.id());
+                    }
                     return true;
                 }
             }
@@ -246,8 +249,7 @@ export class ShortcutRegistry {
             }
         }
         for (const otherShortcut of this.actionToShortcut.get(shortcut.action)) {
-            if (otherShortcut.descriptorsMatch(shortcut.descriptors) &&
-                otherShortcut.hasKeybindSet(this.keybindSetSetting.get())) {
+            if (otherShortcut.descriptorsMatch(shortcut.descriptors)) {
                 // don't allow duplicate shortcuts
                 return;
             }
@@ -255,8 +257,8 @@ export class ShortcutRegistry {
         this.addShortcutToSetting(shortcut);
     }
     removeShortcut(shortcut) {
-        if (shortcut.type === Type.DefaultShortcut || shortcut.type === Type.KeybindSetShortcut) {
-            this.addShortcutToSetting(shortcut.changeType(Type.DisabledDefault));
+        if (shortcut.type === "DefaultShortcut" /* Type.DefaultShortcut */ || shortcut.type === "KeybindSetShortcut" /* Type.KeybindSetShortcut */) {
+            this.addShortcutToSetting(shortcut.changeType("DisabledDefault" /* Type.DisabledDefault */));
         }
         else {
             this.removeShortcutFromSetting(shortcut);
@@ -289,19 +291,17 @@ export class ShortcutRegistry {
         this.disabledDefaultShortcutsForAction.clear();
         this.devToolsDefaultShortcutActions.clear();
         const forwardedKeys = [];
-        if (Root.Runtime.experiments.isEnabled('keyboardShortcutEditor')) {
-            const userShortcuts = this.userShortcutsSetting.get();
-            for (const userShortcut of userShortcuts) {
-                const shortcut = KeyboardShortcut.createShortcutFromSettingObject(userShortcut);
-                if (shortcut.type === Type.DisabledDefault) {
-                    this.disabledDefaultShortcutsForAction.set(shortcut.action, shortcut);
+        const userShortcuts = this.userShortcutsSetting.get();
+        for (const userShortcut of userShortcuts) {
+            const shortcut = KeyboardShortcut.createShortcutFromSettingObject(userShortcut);
+            if (shortcut.type === "DisabledDefault" /* Type.DisabledDefault */) {
+                this.disabledDefaultShortcutsForAction.set(shortcut.action, shortcut);
+            }
+            else {
+                if (ForwardedActions.has(shortcut.action)) {
+                    forwardedKeys.push(...shortcut.descriptors.map(descriptor => KeyboardShortcut.keyCodeAndModifiersFromKey(descriptor.key)));
                 }
-                else {
-                    if (ForwardedActions.has(shortcut.action)) {
-                        forwardedKeys.push(...shortcut.descriptors.map(descriptor => KeyboardShortcut.keyCodeAndModifiersFromKey(descriptor.key)));
-                    }
-                    this.registerShortcut(shortcut);
-                }
+                this.registerShortcut(shortcut);
             }
         }
         for (const actionExtension of getRegisteredActionExtensions()) {
@@ -324,13 +324,13 @@ export class ShortcutRegistry {
                     }
                     if (!keybindSets) {
                         this.devToolsDefaultShortcutActions.add(actionId);
-                        this.registerShortcut(new KeyboardShortcut(shortcutDescriptors, actionId, Type.DefaultShortcut));
+                        this.registerShortcut(new KeyboardShortcut(shortcutDescriptors, actionId, "DefaultShortcut" /* Type.DefaultShortcut */));
                     }
                     else {
                         if (keybindSets.includes("devToolsDefault" /* KeybindSet.DEVTOOLS_DEFAULT */)) {
                             this.devToolsDefaultShortcutActions.add(actionId);
                         }
-                        this.registerShortcut(new KeyboardShortcut(shortcutDescriptors, actionId, Type.KeybindSetShortcut, new Set(keybindSets)));
+                        this.registerShortcut(new KeyboardShortcut(shortcutDescriptors, actionId, "KeybindSetShortcut" /* Type.KeybindSetShortcut */, new Set(keybindSets)));
                     }
                 }
             }
@@ -421,9 +421,9 @@ export const ForwardedActions = new Set([
     'main.toggle-dock',
     'debugger.toggle-breakpoints-active',
     'debugger.toggle-pause',
-    'commandMenu.show',
-    'console.show',
+    'quick-open.show-command-menu',
+    'console.toggle',
 ]);
 export const KeyTimeout = 1000;
 export const DefaultShortcutSetting = 'devToolsDefault';
-//# map=ShortcutRegistry.js.map
+//# sourceMappingURL=ShortcutRegistry.js.map

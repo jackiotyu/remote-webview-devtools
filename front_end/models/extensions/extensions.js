@@ -9,4 +9,4 @@ import * as HostUrlPattern from './HostUrlPattern.js';
 import * as RecorderExtensionEndpoint from './RecorderExtensionEndpoint.js';
 import * as RecorderPluginManager from './RecorderPluginManager.js';
 export { ExtensionAPI, ExtensionPanel, ExtensionServer, ExtensionView, HostUrlPattern, RecorderExtensionEndpoint, RecorderPluginManager, };
-//# map=extensions.js.map
+//# sourceMappingURL=extensions.js.map

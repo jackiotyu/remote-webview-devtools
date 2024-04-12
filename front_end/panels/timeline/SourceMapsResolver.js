@@ -12,12 +12,36 @@ export class NodeNamesUpdated extends Event {
         });
     }
 }
+// Track node function names resolved by sourcemaps.
+// Because NodeIDs could conflict, we key these based on:
+// ProcessID=>ThreadID=>NodeId=>resolved function name.
+// Keying it by the IDs rather than the Node itself means we can avoid passing around trace data in order to get or set values in this map.
+const resolvedNodeNames = new Map();
 export class SourceMapsResolver extends EventTarget {
     #traceData;
     #isResolvingNames = false;
+    // We need to gather up a list of all the DebuggerModels that we should
+    // listen to for source map attached events. For most pages this will be
+    // the debugger model for the primary page target, but if a trace has
+    // workers, we would also need to gather up the DebuggerModel instances for
+    // those workers too.
+    #debuggerModelsToListen = new Set();
     constructor(traceData) {
         super();
         this.#traceData = traceData;
+    }
+    static clearResolvedNodeNames() {
+        resolvedNodeNames.clear();
+    }
+    static resolvedNodeNameForEntry(entry) {
+        return resolvedNodeNames.get(entry.pid)?.get(entry.tid)?.get(entry.nodeId) ?? null;
+    }
+    static storeResolvedNodeNameForEntry(pid, tid, nodeId, resolvedFunctionName) {
+        const resolvedForPid = resolvedNodeNames.get(pid) || new Map();
+        const resolvedForTid = resolvedForPid.get(tid) || new Map();
+        resolvedForTid.set(nodeId, resolvedFunctionName);
+        resolvedForPid.set(tid, resolvedForTid);
+        resolvedNodeNames.set(pid, resolvedForPid);
     }
     async install() {
         // Required as during the migration we might not always run the Renderer/Samples
@@ -26,12 +50,6 @@ export class SourceMapsResolver extends EventTarget {
         if (!this.#traceData.Samples) {
             return;
         }
-        // We need to gather up a list of all the DebuggerModels that we should
-        // listen to for source map attached events. For most pages this will be
-        // the debugger model for the primary page target, but if a trace has
-        // workers, we would also need to gather up the DebuggerModel instances for
-        // those workers too.
-        const debuggerModelsToListen = new Set();
         for (const threadToProfileMap of this.#traceData.Samples.profilesInProcess.values()) {
             for (const [tid, profile] of threadToProfileMap) {
                 const nodes = profile.parsedProfile.nodes();
@@ -49,11 +67,11 @@ export class SourceMapsResolver extends EventTarget {
                     if (!shouldListenToSourceMap) {
                         continue;
                     }
-                    debuggerModelsToListen.add(debuggerModel);
+                    this.#debuggerModelsToListen.add(debuggerModel);
                 }
             }
         }
-        for (const debuggerModel of debuggerModelsToListen) {
+        for (const debuggerModel of this.#debuggerModelsToListen) {
             debuggerModel.sourceMapManager().addEventListener(SDK.SourceMapManager.Events.SourceMapAttached, this.#onAttachedSourceMap, this);
         }
         // Although we have added listeners for SourceMapAttached events, we also
@@ -61,13 +79,24 @@ export class SourceMapsResolver extends EventTarget {
         // sourcemaps that were attached before we bound our event listener.
         await this.#resolveNamesForNodes();
     }
+    /**
+     * Removes the event listeners and stops tracking newly added sourcemaps.
+     * Should be called before destroying an instance of this class to avoid leaks
+     * with listeners.
+     */
+    uninstall() {
+        for (const debuggerModel of this.#debuggerModelsToListen) {
+            debuggerModel.sourceMapManager().removeEventListener(SDK.SourceMapManager.Events.SourceMapAttached, this.#onAttachedSourceMap, this);
+        }
+        this.#debuggerModelsToListen.clear();
+    }
     async #resolveNamesForNodes() {
         if (!this.#traceData.Samples) {
             return;
         }
-        for (const threadToProfile of this.#traceData.Samples.profilesInProcess.values()) {
-            for (const [tid, profile] of threadToProfile) {
-                const nodes = profile.parsedProfile.nodes() ?? [];
+        for (const [pid, threadsInProcess] of this.#traceData.Samples.profilesInProcess) {
+            for (const [tid, threadProfile] of threadsInProcess) {
+                const nodes = threadProfile.parsedProfile.nodes() ?? [];
                 const target = this.#targetForThread(tid);
                 if (!target) {
                     continue;
@@ -75,9 +104,11 @@ export class SourceMapsResolver extends EventTarget {
                 for (const node of nodes) {
                     const resolvedFunctionName = await SourceMapScopes.NamesResolver.resolveProfileFrameFunctionName(node.callFrame, target);
                     node.setFunctionName(resolvedFunctionName);
+                    SourceMapsResolver.storeResolvedNodeNameForEntry(pid, tid, node.id, resolvedFunctionName);
                 }
             }
         }
+        this.dispatchEvent(new NodeNamesUpdated());
     }
     #onAttachedSourceMap() {
         // Exit if we are already resolving so that we batch requests; if pages
@@ -94,7 +125,6 @@ export class SourceMapsResolver extends EventTarget {
         setTimeout(async () => {
             this.#isResolvingNames = false;
             await this.#resolveNamesForNodes();
-            this.dispatchEvent(new NodeNamesUpdated());
         }, 500);
     }
     // Figure out the target for the node. If it is in a worker thread,
@@ -107,4 +137,4 @@ export class SourceMapsResolver extends EventTarget {
         return SDK.TargetManager.TargetManager.instance().primaryPageTarget();
     }
 }
-//# map=SourceMapsResolver.js.map
+//# sourceMappingURL=SourceMapsResolver.js.map

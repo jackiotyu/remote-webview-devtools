@@ -27,15 +27,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 export class Progress {
-    setTotalWork(totalWork) {
+    setTotalWork(_totalWork) {
     }
-    setTitle(title) {
+    setTitle(_title) {
     }
-    setWorked(worked, title) {
+    setWorked(_worked, _title) {
     }
-    incrementWorked(worked) {
+    incrementWorked(_worked) {
     }
     done() {
     }
@@ -162,4 +161,4 @@ export class ProgressProxy {
         }
     }
 }
-//# map=Progress.js.map
+//# sourceMappingURL=Progress.js.map

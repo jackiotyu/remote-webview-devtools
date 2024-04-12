@@ -3,6 +3,19 @@
 // found in the LICENSE file.
 import * as Common from '../../../core/common/common.js';
 import * as Platform from '../../../core/platform/platform.js';
+import * as Types from '../types/types.js';
+export function stackTraceForEvent(event) {
+    if (Types.TraceEvents.isSyntheticInvalidation(event)) {
+        return event.stackTrace || null;
+    }
+    if (event.args?.data?.stackTrace) {
+        return event.args.data.stackTrace;
+    }
+    if (Types.TraceEvents.isTraceEventUpdateLayoutTree(event)) {
+        return event.args.beginData?.stackTrace || null;
+    }
+    return null;
+}
 export function extractOriginFromTrace(firstNavigationURL) {
     const url = Common.ParsedURL.ParsedURL.fromString(firstNavigationURL);
     if (url) {
@@ -103,7 +116,7 @@ export function getNavigationForTraceEvent(event, eventFrameId, navigationsByFra
     return navigations[eventNavigationIndex];
 }
 export function extractId(event) {
-    return event.id || event.id2?.global || event.id2?.local;
+    return event.id ?? event.id2?.global ?? event.id2?.local;
 }
 export function activeURLForFrameAtTime(frameId, time, rendererProcessesByFrame) {
     const processData = rendererProcessesByFrame.get(frameId);
@@ -120,4 +133,113 @@ export function activeURLForFrameAtTime(frameId, time, rendererProcessesByFrame)
     }
     return null;
 }
-//# map=Trace.js.map
+export function makeProfileCall(node, ts, pid, tid) {
+    return {
+        cat: '',
+        name: 'ProfileCall',
+        nodeId: node.id,
+        args: {},
+        ph: "X" /* Types.TraceEvents.Phase.COMPLETE */,
+        pid,
+        tid,
+        ts,
+        dur: Types.Timing.MicroSeconds(0),
+        selfTime: Types.Timing.MicroSeconds(0),
+        callFrame: node.callFrame,
+    };
+}
+export function makeSyntheticTraceEntry(name, ts, pid, tid) {
+    return {
+        cat: '',
+        name,
+        args: {},
+        ph: "X" /* Types.TraceEvents.Phase.COMPLETE */,
+        pid,
+        tid,
+        ts,
+        dur: Types.Timing.MicroSeconds(0),
+        selfTime: Types.Timing.MicroSeconds(0),
+    };
+}
+export function matchBeginningAndEndEvents(unpairedEvents) {
+    // map to store begin and end of the event
+    const matchedPairs = new Map();
+    // looking for start and end
+    for (const event of unpairedEvents) {
+        const syntheticId = getSyntheticId(event);
+        if (syntheticId === undefined) {
+            continue;
+        }
+        // Create a synthetic id to prevent collisions across categories.
+        // Console timings can be dispatched with the same id, so use the
+        // event name as well to generate unique ids.
+        const otherEventsWithID = Platform.MapUtilities.getWithDefault(matchedPairs, syntheticId, () => {
+            return { begin: null, end: null };
+        });
+        const isStartEvent = event.ph === "b" /* Types.TraceEvents.Phase.ASYNC_NESTABLE_START */;
+        const isEndEvent = event.ph === "e" /* Types.TraceEvents.Phase.ASYNC_NESTABLE_END */;
+        if (isStartEvent) {
+            otherEventsWithID.begin = event;
+        }
+        else if (isEndEvent) {
+            otherEventsWithID.end = event;
+        }
+    }
+    return matchedPairs;
+}
+function getSyntheticId(event) {
+    const id = extractId(event);
+    return id && `${event.cat}:${id}:${event.name}`;
+}
+export function createSortedSyntheticEvents(matchedPairs, syntheticEventCallback) {
+    const syntheticEvents = [];
+    for (const [id, eventsPair] of matchedPairs.entries()) {
+        const beginEvent = eventsPair.begin;
+        const endEvent = eventsPair.end;
+        if (!beginEvent || !endEvent) {
+            // This should never happen, the backend only creates the events once it
+            // has them both, so we should never get into this state.
+            // If we do, something is very wrong, so let's just drop that problematic event.
+            continue;
+        }
+        const pair = { beginEvent, endEvent };
+        function eventsArePairable(data) {
+            return Boolean(getSyntheticId(data.beginEvent)) &&
+                getSyntheticId(data.beginEvent) === getSyntheticId(data.endEvent);
+        }
+        if (!eventsArePairable(pair)) {
+            continue;
+        }
+        const event = {
+            cat: endEvent.cat,
+            ph: endEvent.ph,
+            pid: endEvent.pid,
+            tid: endEvent.tid,
+            id,
+            // Both events have the same name, so it doesn't matter which we pick to
+            // use as the description
+            name: beginEvent.name,
+            dur: Types.Timing.MicroSeconds(endEvent.ts - beginEvent.ts),
+            ts: beginEvent.ts,
+            args: {
+                data: pair,
+            },
+        };
+        if (event.dur < 0) {
+            // We have seen in the backend that sometimes animation events get
+            // generated with multiple begin entries, or multiple end entries, and this
+            // can cause invalid data on the performance panel, so we drop them.
+            // crbug.com/1472375
+            continue;
+        }
+        syntheticEventCallback?.(event);
+        syntheticEvents.push(event);
+    }
+    return syntheticEvents.sort((a, b) => a.ts - b.ts);
+}
+export function createMatchedSortedSyntheticEvents(unpairedAsyncEvents, syntheticEventCallback) {
+    const matchedPairs = matchBeginningAndEndEvents(unpairedAsyncEvents);
+    const syntheticEvents = createSortedSyntheticEvents(matchedPairs, syntheticEventCallback);
+    return syntheticEvents;
+}
+//# sourceMappingURL=Trace.js.map

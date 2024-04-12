@@ -31,4 +31,4 @@ export class RecorderShortcutHelper {
         this.#timeoutId = setTimeout(() => this.#handleCallback(callback), this.#timeout);
     }
 }
-//# map=RecorderShortcutHelper.js.map
+//# sourceMappingURL=RecorderShortcutHelper.js.map

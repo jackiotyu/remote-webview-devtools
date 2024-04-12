@@ -91,6 +91,7 @@ export function outline(state) {
                             prefix += '*';
                             break;
                         case 'PropertyDefinition':
+                        case 'PrivatePropertyDefinition':
                         case 'VariableDefinition': {
                             const title = prefix + state.sliceDoc(cursor.from, cursor.to);
                             const { lineNumber, columnNumber } = toLineColumn(cursor.from);
@@ -261,6 +262,9 @@ export function outline(state) {
 export class OutlineQuickOpen extends QuickOpen.FilteredListWidget.Provider {
     items = [];
     active = false;
+    constructor() {
+        super('source-symbol');
+    }
     attach() {
         const sourceFrame = this.currentSourceFrame();
         if (sourceFrame) {
@@ -341,4 +345,4 @@ export class OutlineQuickOpen extends QuickOpen.FilteredListWidget.Provider {
         return i18nString(UIStrings.noResultsFound);
     }
 }
-//# map=OutlineQuickOpen.js.map
+//# sourceMappingURL=OutlineQuickOpen.js.map

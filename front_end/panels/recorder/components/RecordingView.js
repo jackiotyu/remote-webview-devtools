@@ -8,19 +8,19 @@ import * as SDK from '../../../core/sdk/sdk.js';
 import * as CodeMirror from '../../../third_party/codemirror.next/codemirror.next.js';
 import * as Buttons from '../../../ui/components/buttons/buttons.js';
 import * as CodeHighlighter from '../../../ui/components/code_highlighter/code_highlighter.js';
-import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
+import * as Dialogs from '../../../ui/components/dialogs/dialogs.js';
 import * as IconButton from '../../../ui/components/icon_button/icon_button.js';
 import * as Input from '../../../ui/components/input/input.js';
+import * as Menus from '../../../ui/components/menus/menus.js';
+import * as SplitView from '../../../ui/components/split_view/split_view.js';
 import * as TextEditor from '../../../ui/components/text_editor/text_editor.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
-import * as Dialogs from '../../../ui/components/dialogs/dialogs.js';
-import * as Menus from '../../../ui/components/menus/menus.js';
+import * as VisualLogging from '../../../ui/visual_logging/visual_logging.js';
 import * as Models from '../models/models.js';
-import recordingViewStyles from './recordingView.css.js';
-import { StepView, } from './StepView.js';
-import { ReplayButton, } from './ReplayButton.js';
-import * as SplitView from '../../../ui/components/split_view/split_view.js';
 import { ExtensionView } from './ExtensionView.js';
+import recordingViewStyles from './recordingView.css.js';
+import { ReplayButton, } from './ReplayButton.js';
+import { StepView, } from './StepView.js';
 const UIStrings = {
     /**
      * @description Depicts that the recording was done on a mobile device (e.g., a smartphone or tablet).
@@ -135,7 +135,7 @@ export class PlayRecordingEvent extends Event {
     static eventName = 'playrecording';
     data;
     constructor(data = {
-        targetPanel: "chrome_recorder" /* TargetPanel.Default */,
+        targetPanel: "chrome-recorder" /* TargetPanel.Default */,
         speed: "normal" /* PlayRecordingSpeed.Normal */,
     }) {
         super(PlayRecordingEvent.eventName);
@@ -198,25 +198,25 @@ const networkConditionPresets = [
 function converterIdToFlowMetric(converterId) {
     switch (converterId) {
         case "puppeteer" /* Models.ConverterIds.ConverterIds.Puppeteer */:
-            return Host.UserMetrics.RecordingCopiedToClipboard.CopiedRecordingWithPuppeteer;
+            return 1 /* Host.UserMetrics.RecordingCopiedToClipboard.CopiedRecordingWithPuppeteer */;
         case "json" /* Models.ConverterIds.ConverterIds.JSON */:
-            return Host.UserMetrics.RecordingCopiedToClipboard.CopiedRecordingWithJSON;
+            return 2 /* Host.UserMetrics.RecordingCopiedToClipboard.CopiedRecordingWithJSON */;
         case "@puppeteer/replay" /* Models.ConverterIds.ConverterIds.Replay */:
-            return Host.UserMetrics.RecordingCopiedToClipboard.CopiedRecordingWithReplay;
+            return 3 /* Host.UserMetrics.RecordingCopiedToClipboard.CopiedRecordingWithReplay */;
         default:
-            return Host.UserMetrics.RecordingCopiedToClipboard.CopiedRecordingWithExtension;
+            return 4 /* Host.UserMetrics.RecordingCopiedToClipboard.CopiedRecordingWithExtension */;
     }
 }
 function converterIdToStepMetric(converterId) {
     switch (converterId) {
         case "puppeteer" /* Models.ConverterIds.ConverterIds.Puppeteer */:
-            return Host.UserMetrics.RecordingCopiedToClipboard.CopiedStepWithPuppeteer;
+            return 5 /* Host.UserMetrics.RecordingCopiedToClipboard.CopiedStepWithPuppeteer */;
         case "json" /* Models.ConverterIds.ConverterIds.JSON */:
-            return Host.UserMetrics.RecordingCopiedToClipboard.CopiedStepWithJSON;
+            return 6 /* Host.UserMetrics.RecordingCopiedToClipboard.CopiedStepWithJSON */;
         case "@puppeteer/replay" /* Models.ConverterIds.ConverterIds.Replay */:
-            return Host.UserMetrics.RecordingCopiedToClipboard.CopiedStepWithReplay;
+            return 7 /* Host.UserMetrics.RecordingCopiedToClipboard.CopiedStepWithReplay */;
         default:
-            return Host.UserMetrics.RecordingCopiedToClipboard.CopiedStepWithExtension;
+            return 8 /* Host.UserMetrics.RecordingCopiedToClipboard.CopiedStepWithExtension */;
     }
 }
 export class RecordingView extends HTMLElement {
@@ -248,6 +248,9 @@ export class RecordingView extends HTMLElement {
     #sourceMap;
     #extensionDescriptor;
     #onCopyBound = this.#onCopy.bind(this);
+    constructor() {
+        super();
+    }
     set data(data) {
         this.#isRecording = data.isRecording;
         this.#replayState = data.replayState;
@@ -300,7 +303,7 @@ export class RecordingView extends HTMLElement {
     }
     #handleTogglePlaying(event) {
         this.dispatchEvent(new PlayRecordingEvent({
-            targetPanel: "chrome_recorder" /* TargetPanel.Default */,
+            targetPanel: "chrome-recorder" /* TargetPanel.Default */,
             speed: event.speed,
             extension: event.extension,
         }));
@@ -373,6 +376,7 @@ export class RecordingView extends HTMLElement {
             isSelected: this.#selectedStep === step,
             recorderSettings: this.#recorderSettings,
         }}
+      jslog=${VisualLogging.section('step').track({ click: true })}
       ></${StepView.litTagName}>
     `;
         // clang-format on
@@ -497,7 +501,7 @@ export class RecordingView extends HTMLElement {
         }
         event.preventDefault();
         await this.#copyCurrentSelection(this.#selectedStep);
-        Host.userMetrics.keyboardShortcutFired('chrome_recorder.copy-recording-or-step');
+        Host.userMetrics.keyboardShortcutFired("chrome-recorder.copy-recording-or-step" /* Actions.RecorderActions.CopyRecordingOrStep */);
     }
     #renderSettings() {
         if (!this.#settings) {
@@ -574,6 +578,7 @@ export class RecordingView extends HTMLElement {
             .sideButton=${false}
             .showSelectedItem=${true}
             .showConnector=${false}
+            .jslogContext=${'network-conditions'}
             .position=${"bottom" /* Dialogs.Dialog.DialogVerticalPosition.BOTTOM */}
             .buttonTitle=${menuButtonTitle}
           >
@@ -581,6 +586,7 @@ export class RecordingView extends HTMLElement {
                 return LitHtml.html `<${Menus.Menu.MenuItem.litTagName}
                 .value=${condition.i18nTitleKey}
                 .selected=${selectedOption === condition.i18nTitleKey}
+                jslog=${VisualLogging.item(Platform.StringUtilities.toKebabCase(condition.i18nTitleKey || ''))}
               >
                 ${condition.title instanceof Function
                     ? condition.title()
@@ -599,6 +605,7 @@ export class RecordingView extends HTMLElement {
             min=${Models.SchemaUtils.minTimeout}
             max=${Models.SchemaUtils.maxTimeout}
             value=${this.#settings.timeout || Models.RecordingPlayer.defaultTimeout}
+            jslog=${VisualLogging.textField('timeout').track({ keydown: true })}
             class="devtools-text-input"
             type="number">
         </label>
@@ -624,15 +631,13 @@ export class RecordingView extends HTMLElement {
             @click=${isEditable && this.#onToggleReplaySettings}
             tabindex="0"
             role="button"
+            jslog=${VisualLogging.action('replay-settings').track({ click: true })}
             aria-label=${i18nString(UIStrings.editReplaySettings)}>
             <span>${i18nString(UIStrings.replaySettings)}</span>
             ${isEditable
             ? LitHtml.html `<${IconButton.Icon.Icon.litTagName}
                     class="chevron"
-                    .data=${{
-                iconName: 'triangle-down',
-                color: 'var(--sys-color-on-surface)',
-            }}>
+                    name="triangle-down">
                   </${IconButton.Icon.Icon.litTagName}>`
             : ''}
           </div>
@@ -683,8 +688,8 @@ export class RecordingView extends HTMLElement {
           <div slot="main">
             ${this.#renderSections()}
           </div>
-          <div slot="sidebar">
-            <div class="section-toolbar">
+          <div slot="sidebar" jslog=${VisualLogging.pane('source-code').track({ resize: true })}>
+            <div class="section-toolbar" jslog=${VisualLogging.toolbar()}>
               <${Menus.SelectMenu.SelectMenu.litTagName}
                 @selectmenuselected=${this.#onCodeFormatChange}
                 .showDivider=${true}
@@ -694,11 +699,13 @@ export class RecordingView extends HTMLElement {
                 .showConnector=${false}
                 .position=${"bottom" /* Dialogs.Dialog.DialogVerticalPosition.BOTTOM */}
                 .buttonTitle=${converterFormatName}
+                .jslogContext=${'code-format'}
               >
                 ${this.#builtInConverters.map(converter => {
                 return LitHtml.html `<${Menus.Menu.MenuItem.litTagName}
                     .value=${converter.getId()}
                     .selected=${this.#converterId === converter.getId()}
+                    jslog=${VisualLogging.action().track({ click: true }).context(`converter-${Platform.StringUtilities.toKebabCase(converter.getId())}`)}
                   >
                     ${converter.getFormatName()}
                   </${Menus.Menu.MenuItem.litTagName}>`;
@@ -707,22 +714,24 @@ export class RecordingView extends HTMLElement {
                 return LitHtml.html `<${Menus.Menu.MenuItem.litTagName}
                     .value=${converter.getId()}
                     .selected=${this.#converterId === converter.getId()}
+                    jslog=${VisualLogging.action().track({ click: true }).context('converter-extension')}
                   >
                     ${converter.getFormatName()}
                   </${Menus.Menu.MenuItem.litTagName}>`;
             })}
               </${Menus.SelectMenu.SelectMenu.litTagName}>
               <${Buttons.Button.Button.litTagName}
-                title=${Models.Tooltip.getTooltipForActions(i18nString(UIStrings.hideCode), "chrome_recorder.toggle-code-view" /* Actions.RecorderActions.ToggleCodeView */)}
+                title=${Models.Tooltip.getTooltipForActions(i18nString(UIStrings.hideCode), "chrome-recorder.toggle-code-view" /* Actions.RecorderActions.ToggleCodeView */)}
                 .data=${{
                 variant: "round" /* Buttons.Button.Variant.ROUND */,
                 size: "SMALL" /* Buttons.Button.Size.SMALL */,
                 iconName: 'cross',
             }}
                 @click=${this.showCodeToggle}
+                jslog=${VisualLogging.close().track({ click: true })}
               ></${Buttons.Button.Button.litTagName}>
             </div>
-            <div class="text-editor">
+            <div class="text-editor" jslog=${VisualLogging.textField().track({ keydown: true })}>
               <${TextEditor.TextEditor.TextEditor.litTagName} .state=${this.#editorState}></${TextEditor.TextEditor.TextEditor.litTagName}>
             </div>
           </div>
@@ -743,7 +752,7 @@ export class RecordingView extends HTMLElement {
     #renderReplayOrAbortButton() {
         if (this.#replayState.isPlaying) {
             return LitHtml.html `
-        <${Buttons.Button.Button.litTagName} @click=${this.#handleAbortReplay} .iconName=${'pause'} .variant=${"secondary" /* Buttons.Button.Variant.SECONDARY */}>
+        <${Buttons.Button.Button.litTagName} .jslogContext=${'abort-replay'} @click=${this.#handleAbortReplay} .iconName=${'pause'} .variant=${"secondary" /* Buttons.Button.Variant.SECONDARY */}>
           ${i18nString(UIStrings.cancelReplay)}
         </${Buttons.Button.Button.litTagName}>`;
         }
@@ -768,8 +777,8 @@ export class RecordingView extends HTMLElement {
     }
     showCodeToggle = () => {
         this.#showCodeView = !this.#showCodeView;
-        Host.userMetrics.recordingCodeToggled(this.#showCodeView ? Host.UserMetrics.RecordingCodeToggled.CodeShown :
-            Host.UserMetrics.RecordingCodeToggled.CodeHidden);
+        Host.userMetrics.recordingCodeToggled(this.#showCodeView ? 1 /* Host.UserMetrics.RecordingCodeToggled.CodeShown */ :
+            2 /* Host.UserMetrics.RecordingCodeToggled.CodeHidden */);
         void this.#convertToCode();
     };
     #convertToCode = async () => {
@@ -849,8 +858,9 @@ export class RecordingView extends HTMLElement {
           class="show-code"
           .data=${{
                 variant: "secondary" /* Buttons.Button.Variant.SECONDARY */,
-                title: Models.Tooltip.getTooltipForActions(i18nString(UIStrings.showCode), "chrome_recorder.toggle-code-view" /* Actions.RecorderActions.ToggleCodeView */),
+                title: Models.Tooltip.getTooltipForActions(i18nString(UIStrings.showCode), "chrome-recorder.toggle-code-view" /* Actions.RecorderActions.ToggleCodeView */),
             }}
+          jslog=${VisualLogging.toggleSubpane("chrome-recorder.toggle-code-view" /* Actions.RecorderActions.ToggleCodeView */).track({ click: true })}
         >
           ${i18nString(UIStrings.showCode)}
         </${Buttons.Button.Button.litTagName}>
@@ -892,6 +902,7 @@ export class RecordingView extends HTMLElement {
                     .data=${{
             variant: "secondary" /* Buttons.Button.Variant.SECONDARY */,
             title: i18nString(UIStrings.addAssertion),
+            jslogContext: 'add-assertion',
         }}
                     @click=${this.#dispatchAddAssertionEvent}
                   >${i18nString(UIStrings.addAssertion)}</devtools-button>` : undefined}
@@ -921,6 +932,7 @@ export class RecordingView extends HTMLElement {
                   @keydown=${this.#onTitleInputKeyDown}
                   id="title-input"
                   .contentEditable=${isTitleEditable ? 'true' : 'false'}
+                  jslog=${VisualLogging.value('title').track({ change: true })}
                   class=${LitHtml.Directives.classMap({
             'has-error': this.#isTitleInvalid,
             'disabled': !isTitleEditable,
@@ -934,6 +946,7 @@ export class RecordingView extends HTMLElement {
             variant: "toolbar" /* Buttons.Button.Variant.TOOLBAR */,
             iconName: 'edit',
             title: i18nString(UIStrings.editTitle),
+            jslogContext: 'edit-title',
         }}
               ></${Buttons.Button.Button.litTagName}>
             </div>
@@ -953,6 +966,7 @@ export class RecordingView extends HTMLElement {
                 variant: "secondary" /* Buttons.Button.Variant.SECONDARY */,
                 iconName: 'performance',
                 title: i18nString(UIStrings.performancePanel),
+                jslogContext: 'measure-performance',
             }}
                 >
                   ${i18nString(UIStrings.performancePanel)}
@@ -974,11 +988,12 @@ export class RecordingView extends HTMLElement {
       <div class="footer">
         <div class="controls">
           <devtools-control-button
+            jslog=${VisualLogging.toggle('toggle-recording').track({ click: true })}
             @click=${this.#dispatchRecordingFinished}
             .disabled=${this.#recordingTogglingInProgress}
             .shape=${'square'}
             .label=${translation}
-            title=${Models.Tooltip.getTooltipForActions(translation, "chrome_recorder.start-recording" /* Actions.RecorderActions.StartRecording */)}
+            title=${Models.Tooltip.getTooltipForActions(translation, "chrome-recorder.start-recording" /* Actions.RecorderActions.StartRecording */)}
           >
           </devtools-control-button>
         </div>
@@ -1015,5 +1030,5 @@ export class RecordingView extends HTMLElement {
         // clang-format on
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-recording-view', RecordingView);
-//# map=RecordingView.js.map
+customElements.define('devtools-recording-view', RecordingView);
+//# sourceMappingURL=RecordingView.js.map

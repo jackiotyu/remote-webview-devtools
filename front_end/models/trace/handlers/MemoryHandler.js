@@ -15,6 +15,6 @@ export function handleEvent(event) {
     }
 }
 export function data() {
-    return { updateCountersByProcess: new Map(updateCountersByProcess) };
+    return { updateCountersByProcess };
 }
-//# map=MemoryHandler.js.map
+//# sourceMappingURL=MemoryHandler.js.map

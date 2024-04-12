@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import { OverlayModel } from './OverlayModel.js';
-import { Capability } from './Target.js';
 import { SDKModel } from './SDKModel.js';
 export class ScreenCaptureModel extends SDKModel {
     #agent;
@@ -122,12 +121,10 @@ export class ScreenCaptureModel extends SDKModel {
     }
     downloadProgress() {
     }
-    prerenderAttemptCompleted(_params) {
-    }
     prefetchStatusUpdated(_params) {
     }
     prerenderStatusUpdated(_params) {
     }
 }
-SDKModel.register(ScreenCaptureModel, { capabilities: Capability.ScreenCapture, autostart: false });
-//# map=ScreenCaptureModel.js.map
+SDKModel.register(ScreenCaptureModel, { capabilities: 64 /* Capability.ScreenCapture */, autostart: false });
+//# sourceMappingURL=ScreenCaptureModel.js.map

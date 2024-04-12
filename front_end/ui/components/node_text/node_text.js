@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as NodeText from './NodeText.js';
 export { NodeText, };
-//# map=node_text.js.map
+//# sourceMappingURL=node_text.js.map

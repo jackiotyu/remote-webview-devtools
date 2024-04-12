@@ -30,6 +30,7 @@
 import * as Platform from '../../core/platform/platform.js';
 import * as Components from '../../ui/legacy/components/utils/utils.js';
 import * as UI from '../../ui/legacy/legacy.js';
+import { ConsoleViewMessage, getMessageForElement } from './ConsoleViewMessage.js';
 export class ConsoleViewport {
     element;
     topGapElement;
@@ -215,6 +216,10 @@ export class ConsoleViewport {
         }
         if (selectedElement && (focusLastChild || changed || containerHasFocus) && this.element.hasFocus()) {
             selectedElement.classList.add('console-selected');
+            const consoleViewMessage = getMessageForElement(selectedElement);
+            if (consoleViewMessage) {
+                UI.Context.Context.instance().setFlavor(ConsoleViewMessage, consoleViewMessage);
+            }
             // Do not focus the message if something within holds focus (e.g. object).
             if (focusLastChild) {
                 this.setStickToBottom(false);
@@ -655,4 +660,4 @@ export class ConsoleViewport {
         return this.element.offsetHeight;
     }
 }
-//# map=ConsoleViewport.js.map
+//# sourceMappingURL=ConsoleViewport.js.map

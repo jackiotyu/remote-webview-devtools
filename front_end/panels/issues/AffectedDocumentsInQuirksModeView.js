@@ -62,4 +62,4 @@ export class AffectedDocumentsInQuirksModeView extends AffectedElementsView {
         this.updateAffectedResourceCount(count);
     }
 }
-//# map=AffectedDocumentsInQuirksModeView.js.map
+//# sourceMappingURL=AffectedDocumentsInQuirksModeView.js.map

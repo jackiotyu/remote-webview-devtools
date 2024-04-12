@@ -2,11 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as Platform from '../../core/platform/platform.js';
-import * as Utils from './utils/utils.js';
-import { Icon } from './Icon.js';
-import { deepElementFromEvent } from './UIUtils.js';
-import { Widget } from './Widget.js';
 import glassPaneStyles from './glassPane.css.legacy.js';
+import { deepElementFromEvent, measuredScrollbarWidth } from './UIUtils.js';
+import { Widget } from './Widget.js';
 export class GlassPane {
     widgetInternal;
     element;
@@ -22,12 +20,16 @@ export class GlassPane {
     sizeBehavior;
     marginBehavior;
     #ignoreLeftMargin = false;
-    constructor() {
+    constructor(jslog) {
         this.widgetInternal = new Widget(true);
         this.widgetInternal.markAsRoot();
         this.element = this.widgetInternal.element;
         this.contentElement = this.widgetInternal.contentElement;
-        this.arrowElement = Icon.create('', 'arrow hidden');
+        if (jslog) {
+            this.contentElement.setAttribute('jslog', jslog);
+        }
+        this.arrowElement = document.createElement('span');
+        this.arrowElement.classList.add('arrow', 'hidden');
         if (this.element.shadowRoot) {
             this.element.shadowRoot.appendChild(this.arrowElement);
         }
@@ -42,6 +44,9 @@ export class GlassPane {
         this.anchorBehavior = "PreferTop" /* AnchorBehavior.PreferTop */;
         this.sizeBehavior = "SetExactSize" /* SizeBehavior.SetExactSize */;
         this.marginBehavior = "DefaultMargin" /* MarginBehavior.DefaultMargin */;
+    }
+    setJsLog(jslog) {
+        this.contentElement.setAttribute('jslog', jslog);
     }
     isShowing() {
         return this.widgetInternal.isShowing();
@@ -98,19 +103,19 @@ export class GlassPane {
         }
         // TODO(crbug.com/1006759): Extract the magic number
         // Deliberately starts with 3000 to hide other z-indexed elements below.
-        this.element.style.zIndex = `${3000 + 1000 * _panes.size}`;
+        this.element.style.zIndex = `${3000 + 1000 * panes.size}`;
         this.element.setAttribute('data-devtools-glass-pane', '');
         document.body.addEventListener('mousedown', this.onMouseDownBound, true);
         document.body.addEventListener('pointerdown', this.onMouseDownBound, true);
         this.widgetInternal.show(document.body);
-        _panes.add(this);
+        panes.add(this);
         this.positionContent();
     }
     hide() {
         if (!this.isShowing()) {
             return;
         }
-        _panes.delete(this);
+        panes.delete(this);
         this.element.ownerDocument.body.removeEventListener('mousedown', this.onMouseDownBound, true);
         this.element.ownerDocument.body.removeEventListener('pointerdown', this.onMouseDownBound, true);
         this.widgetInternal.detach();
@@ -131,9 +136,9 @@ export class GlassPane {
         }
         const showArrow = this.marginBehavior === "Arrow" /* MarginBehavior.Arrow */;
         const gutterSize = showArrow ? 8 : (this.marginBehavior === "NoMargin" /* MarginBehavior.NoMargin */ ? 0 : 3);
-        const scrollbarSize = Utils.measuredScrollbarWidth(this.element.ownerDocument);
+        const scrollbarSize = measuredScrollbarWidth(this.element.ownerDocument);
         const arrowSize = 10;
-        const container = (_containers.get(this.element.ownerDocument));
+        const container = (containers.get(this.element.ownerDocument));
         if (this.sizeBehavior === "MeasureContent" /* SizeBehavior.MeasureContent */) {
             this.contentElement.positionAt(0, 0);
             this.contentElement.style.width = '';
@@ -185,7 +190,6 @@ export class GlassPane {
                     else {
                         height = Math.min(height, spaceTop);
                     }
-                    this.arrowElement.setIconType('mediumicon-arrow-bottom');
                     this.arrowElement.classList.add('arrow-bottom');
                     arrowY = anchorBox.y - gutterSize;
                 }
@@ -202,7 +206,6 @@ export class GlassPane {
                     else {
                         height = Math.min(height, spaceBottom);
                     }
-                    this.arrowElement.setIconType('mediumicon-arrow-top');
                     this.arrowElement.classList.add('arrow-top');
                     arrowY = anchorBox.y + anchorBox.height + gutterSize;
                 }
@@ -250,7 +253,6 @@ export class GlassPane {
                     else {
                         width = Math.min(width, spaceLeft);
                     }
-                    this.arrowElement.setIconType('mediumicon-arrow-right');
                     this.arrowElement.classList.add('arrow-right');
                     arrowX = anchorBox.x - gutterSize;
                 }
@@ -267,7 +269,6 @@ export class GlassPane {
                     else {
                         width = Math.min(width, spaceRight);
                     }
-                    this.arrowElement.setIconType('mediumicon-arrow-left');
                     this.arrowElement.classList.add('arrow-left');
                     arrowX = anchorBox.x + anchorBox.width + gutterSize;
                 }
@@ -310,26 +311,22 @@ export class GlassPane {
         return this.widgetInternal;
     }
     static setContainer(element) {
-        _containers.set(element.ownerDocument, element);
+        containers.set(element.ownerDocument, element);
         GlassPane.containerMoved(element);
     }
     static container(document) {
-        return _containers.get(document);
+        return containers.get(document);
     }
     static containerMoved(element) {
-        for (const pane of _panes) {
+        for (const pane of panes) {
             if (pane.isShowing() && pane.element.ownerDocument === element.ownerDocument) {
                 pane.positionContent();
             }
         }
     }
 }
-// TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
-// eslint-disable-next-line @typescript-eslint/naming-convention
-const _containers = new Map();
-// TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
-// eslint-disable-next-line @typescript-eslint/naming-convention
-const _panes = new Set();
+const containers = new Map();
+const panes = new Set();
 // Exported for layout tests.
-export const GlassPanePanes = _panes;
-//# map=GlassPane.js.map
+export const GlassPanePanes = panes;
+//# sourceMappingURL=GlassPane.js.map

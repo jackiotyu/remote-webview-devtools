@@ -172,7 +172,7 @@ export class NetworkTimeCalculator extends Common.ObjectWrapper.ObjectWrapper {
     }
     boundaryChanged() {
         void this.boundryChangedEventThrottler.schedule(async () => {
-            this.dispatchEventToListeners(Events.BoundariesChanged);
+            this.dispatchEventToListeners("BoundariesChanged" /* Events.BoundariesChanged */);
         });
     }
     updateBoundariesForEventTime(eventTime) {
@@ -230,7 +230,7 @@ export class NetworkTimeCalculator extends Common.ObjectWrapper.ObjectWrapper {
     extendBoundariesToIncludeTimestamp(timestamp) {
         const previousMinimumBoundary = this.minimumBoundaryInternal;
         const previousMaximumBoundary = this.maximumBoundaryInternal;
-        const minOffset = _minimumSpread;
+        const minOffset = MINIMUM_SPREAD;
         if (this.minimumBoundaryInternal === -1 || this.maximumBoundaryInternal === -1) {
             this.minimumBoundaryInternal = timestamp;
             this.maximumBoundaryInternal = timestamp + minOffset;
@@ -250,15 +250,7 @@ export class NetworkTimeCalculator extends Common.ObjectWrapper.ObjectWrapper {
         return 0;
     }
 }
-// TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export const _minimumSpread = 0.1;
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
-export var Events;
-(function (Events) {
-    Events["BoundariesChanged"] = "BoundariesChanged";
-})(Events || (Events = {}));
+const MINIMUM_SPREAD = 0.1;
 export class NetworkTransferTimeCalculator extends NetworkTimeCalculator {
     constructor() {
         super(false);
@@ -284,4 +276,4 @@ export class NetworkTransferDurationCalculator extends NetworkTimeCalculator {
         return request.duration;
     }
 }
-//# map=NetworkTimeCalculator.js.map
+//# sourceMappingURL=NetworkTimeCalculator.js.map

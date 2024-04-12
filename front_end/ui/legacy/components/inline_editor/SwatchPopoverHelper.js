@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 import * as Common from '../../../../core/common/common.js';
 import * as Platform from '../../../../core/platform/platform.js';
+import * as VisualLogging from '../../../visual_logging/visual_logging.js';
 import * as UI from '../../legacy.js';
 import { ColorSwatch } from './ColorSwatch.js';
 import swatchPopoverStyles from './swatchPopover.css.js';
@@ -49,8 +50,9 @@ export class SwatchPopoverHelper extends Common.ObjectWrapper.ObjectWrapper {
             // Reopen the picker for another anchor element.
             this.hide(true);
         }
+        VisualLogging.setMappedParent(view.contentElement, anchorElement);
         this.popover.registerCSSFiles([swatchPopoverStyles]);
-        this.dispatchEventToListeners(Events.WillShowPopover);
+        this.dispatchEventToListeners("WillShowPopover" /* Events.WillShowPopover */);
         this.isHidden = false;
         this.anchorElement = anchorElement;
         this.view = view;
@@ -126,10 +128,4 @@ export class SwatchPopoverHelper extends Common.ObjectWrapper.ObjectWrapper {
         }
     }
 }
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
-export var Events;
-(function (Events) {
-    Events["WillShowPopover"] = "WillShowPopover";
-})(Events || (Events = {}));
-//# map=SwatchPopoverHelper.js.map
+//# sourceMappingURL=SwatchPopoverHelper.js.map

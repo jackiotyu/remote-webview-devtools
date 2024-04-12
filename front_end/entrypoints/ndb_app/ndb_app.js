@@ -4,4 +4,4 @@
 import '../shell/shell.js';
 import * as Main from '../main/main.js';
 new Main.MainImpl.MainImpl();
-//# map=ndb_app.js.map
+//# sourceMappingURL=ndb_app.js.map

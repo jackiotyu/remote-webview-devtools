@@ -35,4 +35,4 @@ export class GraphManager {
         return this.graphMapByContextId.get(contextId) || null;
     }
 }
-//# map=GraphManager.js.map
+//# sourceMappingURL=GraphManager.js.map

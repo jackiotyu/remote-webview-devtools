@@ -6,4 +6,4 @@ import * as FilteredListWidget from './FilteredListWidget.js';
 import * as HelpQuickOpen from './HelpQuickOpen.js';
 import * as QuickOpen from './QuickOpen.js';
 export { CommandMenu, FilteredListWidget, HelpQuickOpen, QuickOpen, };
-//# map=quick_open.js.map
+//# sourceMappingURL=quick_open.js.map

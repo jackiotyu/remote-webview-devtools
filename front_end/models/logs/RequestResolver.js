@@ -27,7 +27,7 @@ export class RequestResolver extends Common.ResolverBase.ResolverBase {
         return null;
     }
     onRequestAdded(event) {
-        const request = event.data;
+        const { request } = event.data;
         const backendRequestId = request.backendRequestId();
         if (backendRequestId) {
             this.onResolve(backendRequestId, request);
@@ -47,4 +47,4 @@ export class RequestResolver extends Common.ResolverBase.ResolverBase {
         this.networkListener = null;
     }
 }
-//# map=RequestResolver.js.map
+//# sourceMappingURL=RequestResolver.js.map

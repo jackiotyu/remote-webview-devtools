@@ -172,4 +172,4 @@ export const colorFormatSpec = {
         },
     },
 };
-//# map=ColorFormatSpec.js.map
+//# sourceMappingURL=ColorFormatSpec.js.map

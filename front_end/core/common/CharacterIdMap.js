@@ -30,4 +30,4 @@ export class CharacterIdMap {
         return object;
     }
 }
-//# map=CharacterIdMap.js.map
+//# sourceMappingURL=CharacterIdMap.js.map

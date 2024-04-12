@@ -15,6 +15,7 @@ export function initialize() {
 export function reset() {
     sessionIdEvents.length = 0;
     workerIdByThread.clear();
+    workerURLById.clear();
     handlerState = 1 /* HandlerState.UNINITIALIZED */;
 }
 export function handleEvent(event) {
@@ -43,9 +44,9 @@ export function data() {
         throw new Error('Workers Handler is not finalized');
     }
     return {
-        workerSessionIdEvents: [...sessionIdEvents],
-        workerIdByThread: new Map(workerIdByThread),
-        workerURLById: new Map(workerURLById),
+        workerSessionIdEvents: sessionIdEvents,
+        workerIdByThread,
+        workerURLById,
     };
 }
-//# map=WorkersHandler.js.map
+//# sourceMappingURL=WorkersHandler.js.map

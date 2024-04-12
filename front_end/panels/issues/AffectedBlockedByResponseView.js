@@ -47,7 +47,7 @@ export class AffectedBlockedByResponseView extends AffectedResourcesView {
         element.classList.add('affected-resource-row');
         const requestCell = this.createRequestCell(details.request, {
             additionalOnClickAction() {
-                Host.userMetrics.issuesPanelResourceOpened(IssuesManager.Issue.IssueCategory.CrossOriginEmbedderPolicy, "Request" /* AffectedItem.Request */);
+                Host.userMetrics.issuesPanelResourceOpened("CrossOriginEmbedderPolicy" /* IssuesManager.Issue.IssueCategory.CrossOriginEmbedderPolicy */, "Request" /* AffectedItem.Request */);
             },
         });
         element.appendChild(requestCell);
@@ -72,4 +72,4 @@ export class AffectedBlockedByResponseView extends AffectedResourcesView {
         this.#appendDetails(this.issue.getBlockedByResponseDetails());
     }
 }
-//# map=AffectedBlockedByResponseView.js.map
+//# sourceMappingURL=AffectedBlockedByResponseView.js.map

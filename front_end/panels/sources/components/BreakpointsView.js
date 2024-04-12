@@ -11,13 +11,13 @@ import * as Bindings from '../../../models/bindings/bindings.js';
 import * as Breakpoints from '../../../models/breakpoints/breakpoints.js';
 import * as TextUtils from '../../../models/text_utils/text_utils.js';
 import * as Workspace from '../../../models/workspace/workspace.js';
-import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
 import * as IconButton from '../../../ui/components/icon_button/icon_button.js';
 import * as Input from '../../../ui/components/input/input.js';
 import * as LegacyWrapper from '../../../ui/components/legacy_wrapper/legacy_wrapper.js';
 import * as Coordinator from '../../../ui/components/render_coordinator/render_coordinator.js';
 import * as UI from '../../../ui/legacy/legacy.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
+import * as VisualLogging from '../../../ui/visual_logging/visual_logging.js';
 import breakpointsViewStyles from './breakpointsView.css.js';
 import { findNextNodeForKeyboardNavigation, getDifferentiatingPathMap } from './BreakpointsViewUtils.js';
 const UIStrings = {
@@ -67,6 +67,14 @@ const UIStrings = {
      */
     editLogpoint: 'Edit logpoint',
     /**
+     *@description Context menu item in the Breakpoints Sidebar Pane of the Sources panel that disables all breakpoints.
+     */
+    disableAllBreakpoints: 'Disable all breakpoints',
+    /**
+     *@description Context menu item in the Breakpoints Sidebar Pane of the Sources panel that enables all breakpoints.
+     */
+    enableAllBreakpoints: 'Enable all breakpoints',
+    /**
      *@description Tooltip text that shows when hovered over a remove button that appears next to a breakpoint in the breakpoint sidebar of the sources panel. Also used in the context menu for breakpoint items.
      */
     removeBreakpoint: 'Remove breakpoint',
@@ -113,16 +121,16 @@ export class BreakpointsSidebarController {
     #updateScheduled = false;
     #updateRunning = false;
     constructor(breakpointManager, settings) {
-        this.#collapsedFilesSettings = Common.Settings.Settings.instance().createSetting('collapsedFiles', []);
+        this.#collapsedFilesSettings = Common.Settings.Settings.instance().createSetting('collapsed-files', []);
         this.#collapsedFiles = new Set(this.#collapsedFilesSettings.get());
         this.#breakpointManager = breakpointManager;
         this.#breakpointManager.addEventListener(Breakpoints.BreakpointManager.Events.BreakpointAdded, this.#onBreakpointAdded, this);
         this.#breakpointManager.addEventListener(Breakpoints.BreakpointManager.Events.BreakpointRemoved, this.#onBreakpointRemoved, this);
-        this.#breakpointsActiveSetting = settings.moduleSetting('breakpointsActive');
+        this.#breakpointsActiveSetting = settings.moduleSetting('breakpoints-active');
         this.#breakpointsActiveSetting.addChangeListener(this.update, this);
-        this.#pauseOnUncaughtExceptionSetting = settings.moduleSetting('pauseOnUncaughtException');
+        this.#pauseOnUncaughtExceptionSetting = settings.moduleSetting('pause-on-uncaught-exception');
         this.#pauseOnUncaughtExceptionSetting.addChangeListener(this.update, this);
-        this.#pauseOnCaughtExceptionSetting = settings.moduleSetting('pauseOnCaughtException');
+        this.#pauseOnCaughtExceptionSetting = settings.moduleSetting('pause-on-caught-exception');
         this.#pauseOnCaughtExceptionSetting.addChangeListener(this.update, this);
     }
     static instance({ forceNew, breakpointManager, settings } = {
@@ -430,6 +438,7 @@ export class BreakpointsView extends LegacyWrapper.LegacyWrapper.WrappableCompon
     constructor() {
         super();
         this.#controller = BreakpointsSidebarController.instance();
+        this.setAttribute('jslog', `${VisualLogging.section('sources.js-breakpoints')}`);
         void this.#controller.update();
     }
     static litTagName = LitHtml.literal `devtools-breakpoint-view`;
@@ -472,9 +481,11 @@ export class BreakpointsView extends LegacyWrapper.LegacyWrapper.WrappableCompon
             tabindex='0'
             @click=${clickHandler}
             @keydown=${this.#keyDownHandler}
+            role='checkbox'
+            aria-checked=${this.#pauseOnUncaughtExceptions}
             data-first-pause>
           <label class='checkbox-label'>
-            <input type='checkbox' tabindex=-1 ?checked=${this.#pauseOnUncaughtExceptions} @change=${this.#onPauseOnUncaughtExceptionsStateChanged.bind(this)}>
+            <input type='checkbox' tabindex=-1 ?checked=${this.#pauseOnUncaughtExceptions} @change=${this.#onPauseOnUncaughtExceptionsStateChanged.bind(this)} jslog=${VisualLogging.toggle('pause-uncaught').track({ change: true })}>
             <span>${i18nString(UIStrings.pauseOnUncaughtExceptions)}</span>
           </label>
         </div>
@@ -482,9 +493,11 @@ export class BreakpointsView extends LegacyWrapper.LegacyWrapper.WrappableCompon
               tabindex='-1'
               @click=${clickHandler}
               @keydown=${this.#keyDownHandler}
+              role='checkbox'
+              aria-checked=${pauseOnCaughtIsChecked}
               data-last-pause>
             <label class='checkbox-label'>
-              <input data-pause-on-caught-checkbox type='checkbox' tabindex=-1 ?checked=${pauseOnCaughtIsChecked} ?disabled=${pauseOnCaughtExceptionIsDisabled} @change=${this.#onPauseOnCaughtExceptionsStateChanged.bind(this)}>
+              <input data-pause-on-caught-checkbox type='checkbox' tabindex=-1 ?checked=${pauseOnCaughtIsChecked} ?disabled=${pauseOnCaughtExceptionIsDisabled} @change=${this.#onPauseOnCaughtExceptionsStateChanged.bind(this)} jslog=${VisualLogging.toggle('pause-on-caught-exception').track({ change: true })}>
               <span>${i18nString(UIStrings.pauseOnCaughtExceptions)}</span>
             </label>
         </div>
@@ -518,9 +531,9 @@ export class BreakpointsView extends LegacyWrapper.LegacyWrapper.WrappableCompon
         if (Platform.KeyboardUtilities.isEnterOrSpaceKey(event)) {
             const currentTarget = event.currentTarget;
             await this.#setSelected(currentTarget);
-            const inputs = currentTarget.getElementsByTagName('input');
-            if (inputs.length === 1) {
-                inputs[0].checked = !inputs[0].checked;
+            const input = currentTarget.querySelector('input');
+            if (input) {
+                input.click();
             }
             event.consume();
         }
@@ -584,15 +597,8 @@ export class BreakpointsView extends LegacyWrapper.LegacyWrapper.WrappableCompon
             i18nString(UIStrings.editCondition);
         // clang-format off
         return LitHtml.html `
-    <button data-edit-breakpoint @click=${clickHandler} title=${title}>
-    <${IconButton.Icon.Icon.litTagName} .data=${{
-            iconName: 'edit',
-            width: '16px',
-            height: '16px',
-            color: 'var(--icon-default)',
-        }}
-      >
-      </${IconButton.Icon.Icon.litTagName}>
+    <button data-edit-breakpoint @click=${clickHandler} title=${title} jslog=${VisualLogging.action('edit-breakpoint').track({ click: true })}>
+      <${IconButton.Icon.Icon.litTagName} name="edit"></${IconButton.Icon.Icon.litTagName}>
     </button>
       `;
         // clang-format on
@@ -605,15 +611,8 @@ export class BreakpointsView extends LegacyWrapper.LegacyWrapper.WrappableCompon
         };
         // clang-format off
         return LitHtml.html `
-    <button data-remove-breakpoint @click=${clickHandler} title=${tooltipText} aria-label=${tooltipText}>
-    <${IconButton.Icon.Icon.litTagName} .data=${{
-            iconName: 'cross',
-            width: '20px',
-            height: '20px',
-            color: 'var(--icon-default)',
-        }}
-      }>
-      </${IconButton.Icon.Icon.litTagName}>
+    <button data-remove-breakpoint @click=${clickHandler} title=${tooltipText} aria-label=${tooltipText} jslog=${VisualLogging.action('remove-breakpoint').track({ click: true })}>
+      <${IconButton.Icon.Icon.litTagName} name="bin"></${IconButton.Icon.Icon.litTagName}>
     </button>
       `;
         // clang-format on
@@ -624,30 +623,30 @@ export class BreakpointsView extends LegacyWrapper.LegacyWrapper.WrappableCompon
         menu.defaultSection().appendItem(i18nString(UIStrings.removeAllBreakpointsInFile), () => {
             Host.userMetrics.actionTaken(Host.UserMetrics.Action.BreakpointsInFileRemovedFromContextMenu);
             void this.#controller.breakpointsRemoved(breakpointItems);
-        });
+        }, { jslogContext: 'remove-file-breakpoints' });
         const otherGroups = this.#breakpointGroups.filter(group => group !== breakpointGroup);
         menu.defaultSection().appendItem(i18nString(UIStrings.removeOtherBreakpoints), () => {
             const breakpointItems = otherGroups.map(({ breakpointItems }) => breakpointItems).flat();
             void this.#controller.breakpointsRemoved(breakpointItems);
-        }, otherGroups.length === 0);
+        }, { disabled: otherGroups.length === 0, jslogContext: 'remove-other-breakpoints' });
         menu.defaultSection().appendItem(i18nString(UIStrings.removeAllBreakpoints), () => {
             const breakpointItems = this.#breakpointGroups.map(({ breakpointItems }) => breakpointItems).flat();
             void this.#controller.breakpointsRemoved(breakpointItems);
-        });
+        }, { jslogContext: 'remove-all-breakpoints' });
         const notEnabledItems = breakpointItems.filter(breakpointItem => breakpointItem.status !== "ENABLED" /* BreakpointStatus.ENABLED */);
         menu.debugSection().appendItem(i18nString(UIStrings.enableAllBreakpointsInFile), () => {
             Host.userMetrics.actionTaken(Host.UserMetrics.Action.BreakpointsInFileEnabledDisabledFromContextMenu);
             for (const breakpointItem of notEnabledItems) {
                 this.#controller.breakpointStateChanged(breakpointItem, true);
             }
-        }, notEnabledItems.length === 0);
+        }, { disabled: notEnabledItems.length === 0, jslogContext: 'enable-file-breakpoints' });
         const notDisabledItems = breakpointItems.filter(breakpointItem => breakpointItem.status !== "DISABLED" /* BreakpointStatus.DISABLED */);
         menu.debugSection().appendItem(i18nString(UIStrings.disableAllBreakpointsInFile), () => {
             Host.userMetrics.actionTaken(Host.UserMetrics.Action.BreakpointsInFileEnabledDisabledFromContextMenu);
             for (const breakpointItem of notDisabledItems) {
                 this.#controller.breakpointStateChanged(breakpointItem, false);
             }
-        }, notDisabledItems.length === 0);
+        }, { disabled: notDisabledItems.length === 0, jslogContext: 'disable-file-breakpoints' });
         void menu.show();
     }
     #renderBreakpointGroup(group, groupIndex) {
@@ -713,40 +712,48 @@ export class BreakpointsView extends LegacyWrapper.LegacyWrapper.WrappableCompon
             aria-label=''
             .checked=${checked}
             @change=${groupCheckboxToggled}
-            tabindex=-1>
+            tabindex=-1
+            jslog=${VisualLogging.toggle('breakpoint-group').track({
+            change: true,
+        })}>
     `;
     }
     #renderFileIcon() {
-        return LitHtml.html `
-      <${IconButton.Icon.Icon.litTagName} class='file-icon' .data=${{ iconName: 'file-script', color: 'var(--icon-file-script)', width: '18px', height: '18px' }}></${IconButton.Icon.Icon.litTagName}>
-    `;
+        return LitHtml.html `<${IconButton.Icon.Icon.litTagName} name="file-script"></${IconButton.Icon.Icon.litTagName}>`;
     }
     #onBreakpointEntryContextMenu(event, breakpointItem, editable) {
+        const items = this.#breakpointGroups.map(({ breakpointItems }) => breakpointItems).flat();
+        const otherItems = items.filter(item => item !== breakpointItem);
         const menu = new UI.ContextMenu.ContextMenu(event);
         const editBreakpointText = breakpointItem.type === "LOGPOINT" /* SDK.DebuggerModel.BreakpointType.LOGPOINT */ ?
             i18nString(UIStrings.editLogpoint) :
             i18nString(UIStrings.editCondition);
-        menu.revealSection().appendItem(editBreakpointText, () => {
+        menu.revealSection().appendItem(i18nString(UIStrings.revealLocation), () => {
+            void this.#controller.jumpToSource(breakpointItem);
+        }, { jslogContext: 'jump-to-breakpoint' });
+        menu.editSection().appendItem(editBreakpointText, () => {
             Host.userMetrics.breakpointEditDialogRevealedFrom(0 /* Host.UserMetrics.BreakpointEditDialogRevealedFrom.BreakpointSidebarContextMenu */);
             void this.#controller.breakpointEdited(breakpointItem, false /* editButtonClicked */);
-        }, !editable);
-        menu.defaultSection().appendItem(i18nString(UIStrings.removeBreakpoint), () => {
+        }, { disabled: !editable, jslogContext: 'edit-breakpoint' });
+        menu.defaultSection().appendItem(i18nString(UIStrings.enableAllBreakpoints), items.forEach.bind(items, item => this.#controller.breakpointStateChanged(item, true)), {
+            disabled: items.every(item => item.status === "ENABLED" /* BreakpointStatus.ENABLED */),
+            jslogContext: 'enable-all-breakpoints',
+        });
+        menu.defaultSection().appendItem(i18nString(UIStrings.disableAllBreakpoints), items.forEach.bind(items, item => this.#controller.breakpointStateChanged(item, false)), {
+            disabled: items.every(item => item.status === "DISABLED" /* BreakpointStatus.DISABLED */),
+            jslogContext: 'disable-all-breakpoints',
+        });
+        menu.footerSection().appendItem(i18nString(UIStrings.removeBreakpoint), () => {
             Host.userMetrics.actionTaken(Host.UserMetrics.Action.BreakpointRemovedFromContextMenu);
             void this.#controller.breakpointsRemoved([breakpointItem]);
-        });
-        const otherItems = this.#breakpointGroups.map(({ breakpointItems }) => breakpointItems)
-            .flat()
-            .filter(item => item !== breakpointItem);
-        menu.defaultSection().appendItem(i18nString(UIStrings.removeOtherBreakpoints), () => {
+        }, { jslogContext: 'remove-breakpoint' });
+        menu.footerSection().appendItem(i18nString(UIStrings.removeOtherBreakpoints), () => {
             void this.#controller.breakpointsRemoved(otherItems);
-        }, otherItems.length === 0);
-        menu.defaultSection().appendItem(i18nString(UIStrings.removeAllBreakpoints), () => {
+        }, { disabled: otherItems.length === 0, jslogContext: 'remove-other-breakpoints' });
+        menu.footerSection().appendItem(i18nString(UIStrings.removeAllBreakpoints), () => {
             const breakpointItems = this.#breakpointGroups.map(({ breakpointItems }) => breakpointItems).flat();
             void this.#controller.breakpointsRemoved(breakpointItems);
-        });
-        menu.editSection().appendItem(i18nString(UIStrings.revealLocation), () => {
-            void this.#controller.jumpToSource(breakpointItem);
-        });
+        }, { jslogContext: 'remove-all-breakpoints' });
         void menu.show();
     }
     #renderBreakpointEntry(breakpointItem, editable, groupIndex, breakpointItemIndex) {
@@ -791,9 +798,10 @@ export class BreakpointsView extends LegacyWrapper.LegacyWrapper.WrappableCompon
               ?indeterminate=${breakpointItem.status === "INDETERMINATE" /* BreakpointStatus.INDETERMINATE */}
               .checked=${breakpointItem.status === "ENABLED" /* BreakpointStatus.ENABLED */}
               @change=${(e) => this.#onCheckboxToggled(e, breakpointItem)}
-              tabindex=-1>
+              tabindex=-1
+              jslog=${VisualLogging.toggle('breakpoint').track({ change: true })}>
       </label>
-      <span class='code-snippet' @click=${codeSnippetClickHandler} title=${codeSnippetTooltip}>${codeSnippet}</span>
+      <span class='code-snippet' @click=${codeSnippetClickHandler} title=${codeSnippetTooltip} jslog=${VisualLogging.action('sources.jump-to-breakpoint').track({ click: true })}>${codeSnippet}</span>
       <span class='breakpoint-item-location-or-actions'>
         ${editable ? this.#renderEditBreakpointButton(breakpointItem) : LitHtml.nothing}
         ${this.#renderRemoveBreakpointButton([breakpointItem], i18nString(UIStrings.removeBreakpoint), Host.UserMetrics.Action.BreakpointRemovedFromRemoveButton)}
@@ -865,5 +873,5 @@ export class BreakpointsView extends LegacyWrapper.LegacyWrapper.WrappableCompon
         this.#controller.setPauseOnUncaughtExceptions(checked);
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-breakpoint-view', BreakpointsView);
-//# map=BreakpointsView.js.map
+customElements.define('devtools-breakpoint-view', BreakpointsView);
+//# sourceMappingURL=BreakpointsView.js.map

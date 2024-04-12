@@ -1,13 +1,25 @@
 // Copyright 2018 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+import * as i18n from '../../core/i18n/i18n.js';
 import * as Common from '../common/common.js';
 import * as Host from '../host/host.js';
 import { ParallelConnection } from './Connections.js';
-import { Capability, Type } from './Target.js';
-import { SDKModel } from './SDKModel.js';
-import { Events as TargetManagerEvents, TargetManager } from './TargetManager.js';
 import { ResourceTreeModel } from './ResourceTreeModel.js';
+import { SDKModel } from './SDKModel.js';
+import { Type } from './Target.js';
+import { TargetManager } from './TargetManager.js';
+const UIStrings = {
+    /**
+     * @description Text that refers to the main target. The main target is the primary webpage that
+     * DevTools is connected to. This text is used in various places in the UI as a label/name to inform
+     * the user which target/webpage they are currently connected to, as DevTools may connect to multiple
+     * targets at the same time in some scenarios.
+     */
+    main: 'Main',
+};
+const str_ = i18n.i18n.registerUIStrings('core/sdk/ChildTargetManager.ts', UIStrings);
+const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 export class ChildTargetManager extends SDKModel {
     #targetManager;
     #parentTarget;
@@ -39,7 +51,7 @@ export class ChildTargetManager extends SDKModel {
     }
     static install(attachCallback) {
         ChildTargetManager.attachCallback = attachCallback;
-        SDKModel.register(ChildTargetManager, { capabilities: Capability.Target, autostart: true });
+        SDKModel.register(ChildTargetManager, { capabilities: 32 /* Capability.Target */, autostart: true });
     }
     childTargets() {
         return Array.from(this.#childTargetsBySessionId.values());
@@ -58,7 +70,7 @@ export class ChildTargetManager extends SDKModel {
     targetCreated({ targetInfo }) {
         this.#targetInfosInternal.set(targetInfo.targetId, targetInfo);
         this.fireAvailableTargetsChanged();
-        this.dispatchEventToListeners(Events.TargetCreated, targetInfo);
+        this.dispatchEventToListeners("TargetCreated" /* Events.TargetCreated */, targetInfo);
     }
     targetInfoChanged({ targetInfo }) {
         this.#targetInfosInternal.set(targetInfo.targetId, targetInfo);
@@ -70,24 +82,24 @@ export class ChildTargetManager extends SDKModel {
                 if (resourceTreeModel && resourceTreeModel.mainFrame) {
                     resourceTreeModel.primaryPageChanged(resourceTreeModel.mainFrame, "Activation" /* PrimaryPageChangeType.Activation */);
                 }
+                target.setName(i18nString(UIStrings.main));
             }
             else {
                 target.updateTargetInfo(targetInfo);
             }
         }
         this.fireAvailableTargetsChanged();
-        this.dispatchEventToListeners(Events.TargetInfoChanged, targetInfo);
+        this.dispatchEventToListeners("TargetInfoChanged" /* Events.TargetInfoChanged */, targetInfo);
     }
     targetDestroyed({ targetId }) {
         this.#targetInfosInternal.delete(targetId);
         this.fireAvailableTargetsChanged();
-        this.dispatchEventToListeners(Events.TargetDestroyed, targetId);
+        this.dispatchEventToListeners("TargetDestroyed" /* Events.TargetDestroyed */, targetId);
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    targetCrashed({ targetId, status, errorCode }) {
+    targetCrashed(_event) {
     }
     fireAvailableTargetsChanged() {
-        TargetManager.instance().dispatchEventToListeners(TargetManagerEvents.AvailableTargetsChanged, [...this.#targetInfosInternal.values()]);
+        TargetManager.instance().dispatchEventToListeners("AvailableTargetsChanged" /* TargetManagerEvents.AvailableTargetsChanged */, [...this.#targetInfosInternal.values()]);
     }
     async getParentTargetId() {
         if (!this.#parentTargetId) {
@@ -137,6 +149,9 @@ export class ChildTargetManager extends SDKModel {
         }
         else if (targetInfo.type === 'worker') {
             type = Type.Worker;
+        }
+        else if (targetInfo.type === 'worklet') {
+            type = Type.Worklet;
         }
         else if (targetInfo.type === 'shared_worker') {
             type = Type.SharedWorker;
@@ -205,12 +220,4 @@ export class ChildTargetManager extends SDKModel {
     static lastAnonymousTargetId = 0;
     static attachCallback;
 }
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
-export var Events;
-(function (Events) {
-    Events["TargetCreated"] = "TargetCreated";
-    Events["TargetDestroyed"] = "TargetDestroyed";
-    Events["TargetInfoChanged"] = "TargetInfoChanged";
-})(Events || (Events = {}));
-//# map=ChildTargetManager.js.map
+//# sourceMappingURL=ChildTargetManager.js.map

@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 import * as i18n from '../../core/i18n/i18n.js';
 import * as Platform from '../../core/platform/platform.js';
+import * as VisualLogging from '../visual_logging/visual_logging.js';
 import * as ARIAUtils from './ARIAUtils.js';
 import listWidgetStyles from './listWidget.css.legacy.js';
 import { Toolbar, ToolbarButton } from './Toolbar.js';
@@ -30,6 +31,14 @@ const UIStrings = {
      *@description Text to cancel something
      */
     cancelString: 'Cancel',
+    /**
+     * @description Text for screen reader to announce that an item has been saved.
+     */
+    changesSaved: 'Changes to item have been saved',
+    /**
+     * @description Text for screen reader to announce that an item has been removed.
+     */
+    removedItem: 'Item has been removed',
 };
 const str_ = i18n.i18n.registerUIStrings('ui/legacy/ListWidget.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
@@ -45,7 +54,8 @@ export class ListWidget extends VBox {
     editItem;
     editElement;
     emptyPlaceholder;
-    constructor(delegate, delegatesFocus = true) {
+    isTable;
+    constructor(delegate, delegatesFocus = true, isTable = false) {
         super(true, delegatesFocus);
         this.registerRequiredCSS(listWidgetStyles);
         this.delegate = delegate;
@@ -59,6 +69,10 @@ export class ListWidget extends VBox {
         this.editItem = null;
         this.editElement = null;
         this.emptyPlaceholder = null;
+        this.isTable = isTable;
+        if (isTable) {
+            this.list.role = 'table';
+        }
         this.updatePlaceholder();
     }
     clear() {
@@ -74,13 +88,23 @@ export class ListWidget extends VBox {
         if (this.lastSeparator && this.items.length) {
             const element = document.createElement('div');
             element.classList.add('list-separator');
+            if (this.isTable) {
+                element.role = 'rowgroup';
+            }
             this.list.appendChild(element);
         }
         this.lastSeparator = false;
         this.items.push(item);
         this.editable.push(editable);
         const element = this.list.createChild('div', 'list-item');
-        element.appendChild(this.delegate.renderItem(item, editable));
+        if (this.isTable) {
+            element.role = 'rowgroup';
+        }
+        const content = this.delegate.renderItem(item, editable);
+        if (!content.hasAttribute('jslog')) {
+            content.setAttribute('jslog', `${VisualLogging.item()}`);
+        }
+        element.appendChild(content);
         if (editable) {
             element.classList.add('editable');
             element.tabIndex = 0;
@@ -127,11 +151,11 @@ export class ListWidget extends VBox {
         controls.createChild('div', 'controls-gradient');
         const buttons = controls.createChild('div', 'controls-buttons');
         const toolbar = new Toolbar('', buttons);
-        const editButton = new ToolbarButton(i18nString(UIStrings.editString), 'edit');
-        editButton.addEventListener(ToolbarButton.Events.Click, onEditClicked.bind(this));
+        const editButton = new ToolbarButton(i18nString(UIStrings.editString), 'edit', undefined, 'edit-item');
+        editButton.addEventListener("Click" /* ToolbarButton.Events.Click */, onEditClicked.bind(this));
         toolbar.appendToolbarItem(editButton);
-        const removeButton = new ToolbarButton(i18nString(UIStrings.removeString), 'bin');
-        removeButton.addEventListener(ToolbarButton.Events.Click, onRemoveClicked.bind(this));
+        const removeButton = new ToolbarButton(i18nString(UIStrings.removeString), 'bin', undefined, 'remove-item');
+        removeButton.addEventListener("Click" /* ToolbarButton.Events.Click */, onRemoveClicked.bind(this));
         toolbar.appendToolbarItem(removeButton);
         return controls;
         function onEditClicked() {
@@ -143,6 +167,9 @@ export class ListWidget extends VBox {
             const index = this.elements.indexOf(element);
             this.element.focus();
             this.delegate.removeItemRequested(this.items[index], index);
+            ARIAUtils.alert(i18nString(UIStrings.removedItem));
+            // focus on the next item in the list, or the last item if we're removing the last item
+            this.elements[Math.min(index, this.elements.length - 1)].focus();
         }
     }
     wasShown() {
@@ -183,9 +210,15 @@ export class ListWidget extends VBox {
         const editItem = this.editItem;
         const isNew = !this.editElement;
         const editor = this.editor;
+        // Focus on the current item or the new item after committing
+        const focusElementIndex = this.editElement ? this.elements.indexOf(this.editElement) : this.elements.length - 1;
         this.stopEditing();
-        if (editItem) {
+        if (editItem !== null) {
             this.delegate.commitEdit(editItem, editor, isNew);
+            ARIAUtils.alert(i18nString(UIStrings.changesSaved));
+            if (this.elements[focusElementIndex]) {
+                this.elements[focusElementIndex].focus();
+            }
         }
     }
     stopEditing() {
@@ -224,12 +257,27 @@ export class Editor {
         this.element.classList.add('editor-container');
         this.element.addEventListener('keydown', onKeyDown.bind(null, Platform.KeyboardUtilities.isEscKey, this.cancelClicked.bind(this)), false);
         this.contentElementInternal = this.element.createChild('div', 'editor-content');
-        this.contentElementInternal.addEventListener('keydown', onKeyDown.bind(null, event => event.key === 'Enter', this.commitClicked.bind(this)), false);
+        this.contentElementInternal.addEventListener('keydown', onKeyDown.bind(null, event => {
+            if (event.key !== 'Enter') {
+                return false;
+            }
+            if (event.target instanceof HTMLSelectElement) {
+                // 'Enter' on <select> is supposed to open the drop down, so don't swallow that here.
+                return false;
+            }
+            return true;
+        }, this.commitClicked.bind(this)), false);
         const buttonsRow = this.element.createChild('div', 'editor-buttons');
-        this.commitButton = createTextButton('', this.commitClicked.bind(this), '', true /* primary */);
+        this.commitButton = createTextButton('', this.commitClicked.bind(this), {
+            jslogContext: 'commit',
+            primary: true,
+        });
         buttonsRow.appendChild(this.commitButton);
-        this.cancelButton =
-            createTextButton(i18nString(UIStrings.cancelString), this.cancelClicked.bind(this), '', true /* primary */);
+        this.cancelButton = createTextButton(i18nString(UIStrings.cancelString), this.cancelClicked.bind(this), {
+            jslogContext: 'cancel',
+            primary: true,
+        });
+        this.cancelButton.setAttribute('jslog', `${VisualLogging.action('cancel').track({ click: true })}`);
         buttonsRow.appendChild(this.cancelButton);
         this.errorMessageContainer = this.element.createChild('div', 'list-widget-input-validation-error');
         ARIAUtils.markAsAlert(this.errorMessageContainer);
@@ -254,6 +302,7 @@ export class Editor {
         const input = createInput('', type);
         input.placeholder = title;
         input.addEventListener('input', this.validateControls.bind(this, false), false);
+        input.setAttribute('jslog', `${VisualLogging.textField().track({ change: true, keydown: 'Enter' }).context(name)}`);
         ARIAUtils.setLabel(input, title);
         this.controlByName.set(name, input);
         this.controls.push(input);
@@ -262,11 +311,13 @@ export class Editor {
     }
     createSelect(name, options, validator, title) {
         const select = document.createElement('select');
+        select.setAttribute('jslog', `${VisualLogging.dropDown().track({ change: true }).context(name)}`);
         select.classList.add('chrome-select');
         for (let index = 0; index < options.length; ++index) {
             const option = select.createChild('option');
             option.value = options[index];
             option.textContent = options[index];
+            option.setAttribute('jslog', `${VisualLogging.item(Platform.StringUtilities.toKebabCase(options[index])).track({ click: true })}`);
         }
         if (title) {
             Tooltip.install(select, title);
@@ -306,8 +357,12 @@ export class Editor {
             else {
                 ARIAUtils.setInvalid(input, true);
             }
-            if (!forceValid && errorMessage && !this.errorMessageContainer.textContent) {
-                this.errorMessageContainer.textContent = errorMessage;
+            if (!forceValid && errorMessage) {
+                if (this.errorMessageContainer.textContent) {
+                    const br = document.createElement('br');
+                    this.errorMessageContainer.append(br);
+                }
+                this.errorMessageContainer.append(errorMessage);
             }
             allValid = allValid && valid;
         }
@@ -352,4 +407,4 @@ export class Editor {
         }
     }
 }
-//# map=ListWidget.js.map
+//# sourceMappingURL=ListWidget.js.map

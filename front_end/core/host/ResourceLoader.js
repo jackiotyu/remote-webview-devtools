@@ -66,11 +66,11 @@ const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 export const ResourceLoader = {};
 let _lastStreamId = 0;
 const _boundStreams = {};
-const _bindOutputStream = function (stream) {
+export const bindOutputStream = function (stream) {
     _boundStreams[++_lastStreamId] = stream;
     return _lastStreamId;
 };
-const _discardOutputStream = function (id) {
+export const discardOutputStream = function (id) {
     void _boundStreams[id].close();
     delete _boundStreams[id];
 };
@@ -192,7 +192,7 @@ function canBeRemoteFilePath(url) {
     }
 }
 export const loadAsStream = function (url, headers, stream, callback, allowRemoteFilePaths) {
-    const streamId = _bindOutputStream(stream);
+    const streamId = bindOutputStream(stream);
     const parsedURL = new Common.ParsedURL.ParsedURL(url);
     if (parsedURL.isDataURL()) {
         loadXHR(url).then(dataURLDecodeSuccessful).catch(dataURLDecodeFailed);
@@ -202,8 +202,8 @@ export const loadAsStream = function (url, headers, stream, callback, allowRemot
         // Remote file paths can cause security problems, see crbug.com/1342722.
         if (callback) {
             callback(/* success */ false, /* headers */ {}, {
-                statusCode: 400,
-                netError: -20,
+                statusCode: 400, // BAD_REQUEST
+                netError: -20, // BLOCKED_BY_CLIENT
                 netErrorName: 'net::BLOCKED_BY_CLIENT',
                 message: 'Loading from a remote file path is prohibited for security reasons.',
             });
@@ -222,7 +222,7 @@ export const loadAsStream = function (url, headers, stream, callback, allowRemot
             const { success, description } = createErrorMessageFromResponse(response);
             callback(success, response.headers || {}, description);
         }
-        _discardOutputStream(streamId);
+        discardOutputStream(streamId);
     }
     function dataURLDecodeSuccessful(text) {
         streamWrite(streamId, text);
@@ -233,4 +233,4 @@ export const loadAsStream = function (url, headers, stream, callback, allowRemot
         finishedCallback({ statusCode: 404, messageOverride });
     }
 };
-//# map=ResourceLoader.js.map
+//# sourceMappingURL=ResourceLoader.js.map

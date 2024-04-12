@@ -17,4 +17,4 @@ component.data = {
     active: true,
     onNavigateToSource: () => { },
 };
-//# map=basic.js.map
+//# sourceMappingURL=basic.js.map

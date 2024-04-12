@@ -40,4 +40,4 @@ export class AccessibilitySubPane extends UI.View.SimpleView {
         this.registerCSSFiles([accessibilityPropertiesStyles]);
     }
 }
-//# map=AccessibilitySubPane.js.map
+//# sourceMappingURL=AccessibilitySubPane.js.map

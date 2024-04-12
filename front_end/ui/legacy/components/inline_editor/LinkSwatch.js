@@ -2,9 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as i18n from '../../../../core/i18n/i18n.js';
-import * as Platform from '../../../../core/platform/platform.js';
-import * as ComponentHelpers from '../../../components/helpers/helpers.js';
 import * as LitHtml from '../../../lit-html/lit-html.js';
+import * as VisualLogging from '../../../visual_logging/visual_logging.js';
+import textButtonStyles from '../../textButton.css.legacy.js';
+import * as ThemeSupport from '../../theme_support/theme_support.js';
 import linkSwatchStyles from './linkSwatch.css.js';
 const UIStrings = {
     /**
@@ -23,13 +24,11 @@ class BaseLinkSwatch extends HTMLElement {
     #linkElement;
     connectedCallback() {
         this.shadow.adoptedStyleSheets = [linkSwatchStyles];
+        ThemeSupport.ThemeSupport.instance().appendStyle(this.shadow, textButtonStyles);
     }
     set data(data) {
         this.onLinkActivate = (linkText, event) => {
             if (event instanceof MouseEvent && event.button !== 0) {
-                return;
-            }
-            if (event instanceof KeyboardEvent && !Platform.KeyboardUtilities.isEnterOrSpaceKey(event)) {
                 return;
             }
             data.onLinkActivate(linkText);
@@ -44,6 +43,8 @@ class BaseLinkSwatch extends HTMLElement {
     render(data) {
         const { isDefined, text, title } = data;
         const classes = Directives.classMap({
+            'link-style': true,
+            'text-button': true,
             'link-swatch-link': true,
             'undefined': !isDefined,
         });
@@ -51,13 +52,12 @@ class BaseLinkSwatch extends HTMLElement {
         const onActivate = isDefined ? this.onLinkActivate.bind(this, text.trim()) : null;
         // We added var popover, so don't need the title attribute when no need for showing title and
         // only provide the data-title for the popover to get the data.
-        const { startNode } = render(html `<span class=${classes} title=${LitHtml.Directives.ifDefined(data.showTitle ? title : null)} data-title=${LitHtml.Directives.ifDefined(!data.showTitle ? title : null)} @mousedown=${onActivate} @keydown=${onActivate} role="link" tabindex="-1">${text}</span>`, this.shadow, { host: this });
-        if (startNode?.nextSibling instanceof HTMLSpanElement) {
+        const { startNode } = render(html `<button class=${classes} title=${LitHtml.Directives.ifDefined(data.showTitle ? title : null)} data-title=${LitHtml.Directives.ifDefined(!data.showTitle ? title : null)} @click=${onActivate} role="link" tabindex="-1">${text}</button>`, this.shadow, { host: this });
+        if (startNode?.nextSibling instanceof HTMLButtonElement) {
             this.#linkElement = startNode?.nextSibling;
         }
     }
 }
-const VARIABLE_FUNCTION_REGEX = /(^var\()\s*(--(?:[\s\w\P{ASCII}-]|\\.)+)(,?\s*.*)\s*(\))$/u;
 export class CSSVarSwatch extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-css-var-swatch`;
     shadow = this.attachShadow({ mode: 'open' });
@@ -78,53 +78,24 @@ export class CSSVarSwatch extends HTMLElement {
     get link() {
         return this.#link;
     }
-    parseVariableFunctionParts(text) {
-        // When the value of CSS var() is greater than two spaces, only one is
-        // always displayed, and the actual number of spaces is displayed when
-        // editing is clicked.
-        const result = text.replace(/\n/g, ' ').replace(/\s{2,}/g, ' ').match(VARIABLE_FUNCTION_REGEX);
-        if (!result) {
-            return null;
-        }
-        return {
-            // Returns `var(`
-            pre: result[1],
-            // Returns the CSS variable name, e.g. `--foo`
-            variableName: result[2].trim(),
-            // Returns the fallback value in the CSS variable, including a comma if
-            // one is present, e.g. `,50px`
-            fallbackIncludeComma: result[3],
-            // Returns `)`
-            post: result[4],
-        };
-    }
-    variableName(text) {
-        const match = text.match(VARIABLE_FUNCTION_REGEX);
-        if (match) {
-            return match[2];
-        }
-        return '';
-    }
     render(data) {
-        const { text, fromFallback, computedValue, onLinkActivate } = data;
-        const functionParts = this.parseVariableFunctionParts(text);
-        if (!functionParts) {
-            render('', this.shadow, { host: this });
-            return;
-        }
+        const { variableName, fromFallback, computedValue, onLinkActivate } = data;
         const isDefined = Boolean(computedValue) && !fromFallback;
-        const title = isDefined ? computedValue ?? '' : i18nString(UIStrings.sIsNotDefined, { PH1: this.variableName(text) });
-        const fallbackIncludeComma = functionParts.fallbackIncludeComma ? functionParts.fallbackIncludeComma : '';
+        const title = isDefined ? computedValue ?? '' : i18nString(UIStrings.sIsNotDefined, { PH1: variableName });
         this.#link = new BaseLinkSwatch();
         this.#link.data = {
             title,
             showTitle: false,
-            text: functionParts.variableName,
+            text: variableName,
             isDefined,
             onLinkActivate,
         };
         this.#link.classList.add('css-var-link');
-        render(html `<span data-title=${data.computedValue || ''}>${functionParts.pre}${this.#link}${fallbackIncludeComma}${functionParts.post}</span>`, this.shadow, { host: this });
+        // clang-format off
+        render(html `<span data-title=${data.computedValue || ''}
+          jslog=${VisualLogging.link('css-variable').track({ click: true, hover: true })}
+        >var(${this.#link}<slot name="fallback">${data.fallbackText ? `, ${data.fallbackText}` : ''}</slot>)</span>`, this.shadow, { host: this });
+        // clang-format on
     }
 }
 export class LinkSwatch extends HTMLElement {
@@ -134,9 +105,9 @@ export class LinkSwatch extends HTMLElement {
         this.render(data);
     }
     render(data) {
-        const { text, isDefined, onLinkActivate } = data;
+        const { text, isDefined, onLinkActivate, jslogContext } = data;
         const title = isDefined ? text : i18nString(UIStrings.sIsNotDefined, { PH1: text });
-        render(html `<span title=${data.text}><${BaseLinkSwatch.litTagName} .data=${{
+        render(html `<span title=${data.text} jslog=${VisualLogging.link().track({ click: true }).context(jslogContext)}><${BaseLinkSwatch.litTagName} .data=${{
             text,
             isDefined,
             title,
@@ -144,7 +115,7 @@ export class LinkSwatch extends HTMLElement {
         }}></${BaseLinkSwatch.litTagName}></span>`, this.shadow, { host: this });
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-base-link-swatch', BaseLinkSwatch);
-ComponentHelpers.CustomElements.defineComponent('devtools-link-swatch', LinkSwatch);
-ComponentHelpers.CustomElements.defineComponent('devtools-css-var-swatch', CSSVarSwatch);
-//# map=LinkSwatch.js.map
+customElements.define('devtools-base-link-swatch', BaseLinkSwatch);
+customElements.define('devtools-link-swatch', LinkSwatch);
+customElements.define('devtools-css-var-swatch', CSSVarSwatch);
+//# sourceMappingURL=LinkSwatch.js.map

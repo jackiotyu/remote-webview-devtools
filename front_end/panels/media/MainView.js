@@ -80,26 +80,19 @@ export class PlayerDataDownloadManager {
         this.playerDataCollection.delete(playerID);
     }
 }
-let mainViewInstance;
 export class MainView extends UI.Panel.PanelWithSidebar {
     detailPanels;
     deletedPlayers;
     downloadStore;
     sidebar;
-    constructor(downloadStore) {
-        super('Media');
+    constructor(downloadStore = new PlayerDataDownloadManager()) {
+        super('media');
         this.detailPanels = new Map();
         this.deletedPlayers = new Set();
         this.downloadStore = downloadStore;
         this.sidebar = new PlayerListView(this);
         this.sidebar.show(this.panelSidebarElement());
         SDK.TargetManager.TargetManager.instance().observeModels(MediaModel, this, { scoped: true });
-    }
-    static instance(opts) {
-        if (!mainViewInstance || opts?.forceNew) {
-            mainViewInstance = new MainView(opts?.downloadStore || new PlayerDataDownloadManager());
-        }
-        return mainViewInstance;
     }
     renderMainPanel(playerID) {
         if (!this.detailPanels.has(playerID)) {
@@ -236,4 +229,4 @@ export class MainView extends UI.Panel.PanelWithSidebar {
         anchor.click();
     }
 }
-//# map=MainView.js.map
+//# sourceMappingURL=MainView.js.map

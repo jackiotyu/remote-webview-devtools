@@ -16,4 +16,4 @@ container?.addEventListener('linkifieractivated', (event) => {
     alert(`Linkifier click: ${data}`);
 });
 container?.appendChild(link);
-//# map=simple-url.js.map
+//# sourceMappingURL=simple-url.js.map

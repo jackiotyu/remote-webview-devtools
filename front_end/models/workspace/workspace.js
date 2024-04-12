@@ -6,4 +6,4 @@ import * as SearchConfig from './SearchConfig.js';
 import * as UISourceCode from './UISourceCode.js';
 import * as Workspace from './WorkspaceImpl.js';
 export { FileManager, SearchConfig, UISourceCode, Workspace, };
-//# map=workspace.js.map
+//# sourceMappingURL=workspace.js.map

@@ -34,4 +34,4 @@ UI.ViewManager.registerViewExtension({
         return Animation.AnimationTimeline.AnimationTimeline.instance();
     },
 });
-//# map=animation-meta.js.map
+//# sourceMappingURL=animation-meta.js.map

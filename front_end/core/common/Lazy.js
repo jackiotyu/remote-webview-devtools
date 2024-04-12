@@ -3,6 +3,9 @@
 // found in the LICENSE file.
 const UNINITIALIZED = Symbol('uninitialized');
 const ERROR_STATE = Symbol('error');
+/**
+ * Very basic memoizer. Will only invoke its callback the first time, returning the cached value all subsequent calls.
+ */
 export function lazy(producer) {
     let value = UNINITIALIZED;
     let error = null;
@@ -24,4 +27,4 @@ export function lazy(producer) {
         }
     };
 }
-//# map=Lazy.js.map
+//# sourceMappingURL=Lazy.js.map

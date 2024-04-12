@@ -8,7 +8,7 @@ export class OverviewController extends Common.ObjectWrapper.ObjectWrapper {
     constructor() {
         super();
         this.currentUrl = SDK.TargetManager.TargetManager.instance().inspectedURL();
-        SDK.TargetManager.TargetManager.instance().addEventListener(SDK.TargetManager.Events.InspectedURLChanged, this.#checkUrlAndResetIfChanged, this);
+        SDK.TargetManager.TargetManager.instance().addEventListener("InspectedURLChanged" /* SDK.TargetManager.Events.InspectedURLChanged */, this.#checkUrlAndResetIfChanged, this);
     }
     #checkUrlAndResetIfChanged() {
         if (this.currentUrl === SDK.TargetManager.TargetManager.instance().inspectedURL()) {
@@ -18,4 +18,4 @@ export class OverviewController extends Common.ObjectWrapper.ObjectWrapper {
         this.dispatchEventToListeners("Reset" /* Events.Reset */);
     }
 }
-//# map=CSSOverviewController.js.map
+//# sourceMappingURL=CSSOverviewController.js.map

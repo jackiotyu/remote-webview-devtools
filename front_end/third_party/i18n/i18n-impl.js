@@ -26,7 +26,6 @@ export class I18n {
      * - the default locale if no match is found
      */
     lookupClosestSupportedLocale(locale) {
-        // @ts-expect-error https://github.com/microsoft/TypeScript/issues/29129
         const canonicalLocale = Intl.getCanonicalLocales(locale)[0];
         const localeParts = canonicalLocale.split('-');
         while (localeParts.length) {
@@ -39,4 +38,4 @@ export class I18n {
         return this.defaultLocale;
     }
 }
-//# map=i18n-impl.js.map
+//# sourceMappingURL=i18n-impl.js.map

@@ -89,7 +89,7 @@ export class CPUProfileDataModel extends ProfileTreeModel {
         this.profileHead = this.translateProfileTree(profile.nodes);
         this.initialize(this.profileHead);
         this.extractMetaNodes();
-        if (this.samples) {
+        if (this.samples?.length) {
             this.sortSamples();
             this.normalizeTimestamps();
             this.fixMissingSamples();
@@ -505,4 +505,4 @@ export class CPUProfileDataModel extends ProfileTreeModel {
         return [...this.#idToParsedNode.values()];
     }
 }
-//# map=CPUProfileDataModel.js.map
+//# sourceMappingURL=CPUProfileDataModel.js.map

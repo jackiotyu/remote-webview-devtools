@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as Host from '../../../../core/host/host.js';
-import * as ComponentHelpers from '../../../components/helpers/helpers.js';
 import * as LitHtml from '../../../lit-html/lit-html.js';
+import * as VisualLogging from '../../../visual_logging/visual_logging.js';
 import cssLengthStyles from './cssLength.css.js';
 import { LENGTH_UNITS, parseText } from './CSSLengthUtils.js';
 import { ValueChangedEvent } from './InlineEditorUtils.js';
@@ -129,9 +129,13 @@ export class CSSLength extends HTMLElement {
         <span class="value"
           @mousedown=${this.onValueMousedown}
           @mouseup=${this.onValueMouseup}
-        >${this.length.value}</span><span class="unit">${this.length.unit}</span><div class="unit-dropdown">
+        >${this.length.value}</span><span class="unit">${this.length.unit}</span>
+        <div class="unit-dropdown">
           <span class="icon"></span>
-          <select @mouseup=${this.onUnitMouseup} @change=${this.onUnitChange}>
+          <select
+            jslog=${VisualLogging.dropDown('unit').track({ change: true })}
+            @mouseup=${this.onUnitMouseup}
+            @change=${this.onUnitChange}>
             ${options}
           </select>
         </div>
@@ -139,5 +143,5 @@ export class CSSLength extends HTMLElement {
         // clang-format on
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-css-length', CSSLength);
-//# map=CSSLength.js.map
+customElements.define('devtools-css-length', CSSLength);
+//# sourceMappingURL=CSSLength.js.map

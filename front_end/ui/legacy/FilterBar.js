@@ -31,12 +31,13 @@ import * as Common from '../../core/common/common.js';
 import * as Host from '../../core/host/host.js';
 import * as i18n from '../../core/i18n/i18n.js';
 import * as Platform from '../../core/platform/platform.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import * as IconButton from '../components/icon_button/icon_button.js';
 import * as ARIAUtils from './ARIAUtils.js';
+import filterStyles from './filter.css.legacy.js';
 import { KeyboardShortcut, Modifiers } from './KeyboardShortcut.js';
 import { bindCheckbox } from './SettingsUI.js';
-import { Events, TextPrompt } from './TextPrompt.js';
-import filterStyles from './filter.css.legacy.js';
+import { TextPrompt } from './TextPrompt.js';
 import { ToolbarSettingToggle } from './Toolbar.js';
 import { Tooltip } from './Tooltip.js';
 import { CheckboxLabel, createTextChild } from './UIUtils.js';
@@ -78,16 +79,22 @@ export class FilterBar extends Common.ObjectWrapper.eventMixin(HBox) {
         this.registerRequiredCSS(filterStyles);
         this.enabled = true;
         this.element.classList.add('filter-bar');
+        this.element.setAttribute('jslog', `${VisualLogging.toolbar('filter-bar')}`);
         this.stateSetting =
-            Common.Settings.Settings.instance().createSetting('filterBar-' + name + '-toggled', Boolean(visibleByDefault));
+            Common.Settings.Settings.instance().createSetting('filter-bar-' + name + '-toggled', Boolean(visibleByDefault));
         this.filterButtonInternal =
-            new ToolbarSettingToggle(this.stateSetting, 'filter', i18nString(UIStrings.filter), 'filter-filled');
+            new ToolbarSettingToggle(this.stateSetting, 'filter', i18nString(UIStrings.filter), 'filter-filled', 'filter');
         this.filters = [];
         this.updateFilterBar();
         this.stateSetting.addChangeListener(this.updateFilterBar.bind(this));
     }
     filterButton() {
         return this.filterButtonInternal;
+    }
+    addDivider() {
+        const element = document.createElement('div');
+        element.classList.add('filter-divider');
+        this.element.appendChild(element);
     }
     addFilter(filter) {
         this.filters.push(filter);
@@ -174,18 +181,18 @@ export class TextFilterUI extends Common.ObjectWrapper.ObjectWrapper {
         this.proxyElement = this.prompt.attach(this.filterInputElement);
         Tooltip.install(this.proxyElement, i18nString(UIStrings.egSmalldUrlacomb));
         this.prompt.setPlaceholder(i18nString(UIStrings.filter));
-        this.prompt.addEventListener(Events.TextChanged, this.valueChanged.bind(this));
+        this.prompt.addEventListener("TextChanged" /* Events.TextChanged */, this.valueChanged.bind(this));
         this.suggestionProvider = null;
-        const clearButton = container.createChild('div', 'filter-input-clear-button');
+        const clearButton = container.createChild('button', 'filter-input-clear-button');
         Tooltip.install(clearButton, i18nString(UIStrings.clearFilter));
         const clearIcon = new IconButton.Icon.Icon();
         clearIcon.data = { color: 'var(--icon-default)', width: '16px', height: '16px', iconName: 'cross-circle-filled' };
-        clearIcon.classList.add('filter-cancel-button');
         clearButton.appendChild(clearIcon);
         clearButton.addEventListener('click', () => {
             this.clear();
             this.focus();
         });
+        clearButton.setAttribute('jslog', `${VisualLogging.action('clear-filter').track({ click: true })}`);
         this.updateEmptyStyles();
     }
     completions(expression, prefix, force) {
@@ -201,7 +208,7 @@ export class TextFilterUI extends Common.ObjectWrapper.ObjectWrapper {
         return this.filterElement;
     }
     value() {
-        return this.prompt.textWithCurrentSuggestion();
+        return this.prompt.text();
     }
     setValue(value) {
         this.prompt.setText(value);
@@ -235,6 +242,7 @@ export class NamedBitSetFilterUI extends Common.ObjectWrapper.ObjectWrapper {
         super();
         this.filtersElement = document.createElement('div');
         this.filtersElement.classList.add('filter-bitset-filter');
+        this.filtersElement.setAttribute('jslog', `${VisualLogging.section('filter-bitset')}`);
         ARIAUtils.markAsListBox(this.filtersElement);
         ARIAUtils.markAsMultiSelectable(this.filtersElement);
         Tooltip.install(this.filtersElement, i18nString(UIStrings.sclickToSelectMultipleTypes, {
@@ -305,6 +313,7 @@ export class NamedBitSetFilterUI extends Common.ObjectWrapper.ObjectWrapper {
         }
         typeFilterElement.addEventListener('click', this.onTypeFilterClicked.bind(this), false);
         typeFilterElement.addEventListener('keydown', this.onTypeFilterKeydown.bind(this), false);
+        typeFilterElement.setAttribute('jslog', `${VisualLogging.item(name).track({ click: true })}`);
         this.typeFilterElements.push(typeFilterElement);
     }
     onTypeFilterClicked(event) {
@@ -369,7 +378,12 @@ export class NamedBitSetFilterUI extends Common.ObjectWrapper.ObjectWrapper {
         }
         else {
             this.allowedTypes.add(typeName);
+            Host.userMetrics.legacyResourceTypeFilterItemSelected(typeName);
         }
+        if (this.allowedTypes.size === 0) {
+            this.allowedTypes.add(NamedBitSetFilterUI.ALL_TYPES);
+        }
+        Host.userMetrics.legacyResourceTypeFilterNumberOfSelectedChanged(this.allowedTypes.size);
         if (this.setting) {
             // Settings do not support `Sets` so convert it back to the Map-like object.
             const updatedSetting = {};
@@ -389,7 +403,7 @@ export class CheckboxFilterUI extends Common.ObjectWrapper.ObjectWrapper {
     activeWhenChecked;
     label;
     checkboxElement;
-    constructor(className, title, activeWhenChecked, setting) {
+    constructor(className, title, activeWhenChecked, setting, jslogContext) {
         super();
         this.filterElement = document.createElement('div');
         this.filterElement.classList.add('filter-checkbox-filter');
@@ -404,6 +418,9 @@ export class CheckboxFilterUI extends Common.ObjectWrapper.ObjectWrapper {
             this.checkboxElement.checked = true;
         }
         this.checkboxElement.addEventListener('change', this.fireUpdated.bind(this), false);
+        if (jslogContext) {
+            this.checkboxElement.setAttribute('jslog', `${VisualLogging.toggle().track({ change: true }).context(jslogContext)}`);
+        }
     }
     isActive() {
         return this.activeWhenChecked === this.checkboxElement.checked;
@@ -424,4 +441,4 @@ export class CheckboxFilterUI extends Common.ObjectWrapper.ObjectWrapper {
         this.dispatchEventToListeners("FilterChanged" /* FilterUIEvents.FilterChanged */);
     }
 }
-//# map=FilterBar.js.map
+//# sourceMappingURL=FilterBar.js.map

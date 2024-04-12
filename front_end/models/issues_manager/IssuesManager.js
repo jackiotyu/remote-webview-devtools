@@ -7,17 +7,18 @@ import { AttributionReportingIssue } from './AttributionReportingIssue.js';
 import { BounceTrackingIssue } from './BounceTrackingIssue.js';
 import { ClientHintIssue } from './ClientHintIssue.js';
 import { ContentSecurityPolicyIssue } from './ContentSecurityPolicyIssue.js';
+import { CookieDeprecationMetadataIssue } from './CookieDeprecationMetadataIssue.js';
+import { CookieIssue } from './CookieIssue.js';
 import { CorsIssue } from './CorsIssue.js';
 import { CrossOriginEmbedderPolicyIssue, isCrossOriginEmbedderPolicyIssue } from './CrossOriginEmbedderPolicyIssue.js';
 import { DeprecationIssue } from './DeprecationIssue.js';
 import { FederatedAuthRequestIssue } from './FederatedAuthRequestIssue.js';
-import { FederatedAuthUserInfoRequestIssue } from './FederatedAuthUserInfoRequestIssue.js';
 import { GenericIssue } from './GenericIssue.js';
 import { HeavyAdIssue } from './HeavyAdIssue.js';
 import { LowTextContrastIssue } from './LowTextContrastIssue.js';
 import { MixedContentIssue } from './MixedContentIssue.js';
+import { PropertyRuleIssue } from './PropertyRuleIssue.js';
 import { QuirksModeIssue } from './QuirksModeIssue.js';
-import { CookieIssue } from './CookieIssue.js';
 import { SharedArrayBufferIssue } from './SharedArrayBufferIssue.js';
 import { SourceFrameIssuesManager } from './SourceFrameIssuesManager.js';
 import { StylesheetLoadingIssue } from './StylesheetLoadingIssue.js';
@@ -96,8 +97,12 @@ const issueCodeHandlers = new Map([
         StylesheetLoadingIssue.fromInspectorIssue,
     ],
     [
-        "FederatedAuthUserInfoRequestIssue" /* Protocol.Audits.InspectorIssueCode.FederatedAuthUserInfoRequestIssue */,
-        FederatedAuthUserInfoRequestIssue.fromInspectorIssue,
+        "PropertyRuleIssue" /* Protocol.Audits.InspectorIssueCode.PropertyRuleIssue */,
+        PropertyRuleIssue.fromInspectorIssue,
+    ],
+    [
+        "CookieDeprecationMetadataIssue" /* Protocol.Audits.InspectorIssueCode.CookieDeprecationMetadataIssue */,
+        CookieDeprecationMetadataIssue.fromInspectorIssue,
     ],
 ]);
 /**
@@ -117,7 +122,7 @@ export function defaultHideIssueByCodeSetting() {
     return setting;
 }
 export function getHideIssueByCodeSetting() {
-    return Common.Settings.Settings.instance().createSetting('HideIssueByCodeSetting-Experiment-2021', defaultHideIssueByCodeSetting());
+    return Common.Settings.Settings.instance().createSetting('hide-issue-by-code-setting-experiment-2021', defaultHideIssueByCodeSetting());
 }
 /**
  * The `IssuesManager` is the central storage for issues. It collects issues from all the
@@ -148,8 +153,8 @@ export class IssuesManager extends Common.ObjectWrapper.ObjectWrapper {
         new SourceFrameIssuesManager(this);
         SDK.TargetManager.TargetManager.instance().observeModels(SDK.IssuesModel.IssuesModel, this);
         SDK.TargetManager.TargetManager.instance().addModelListener(SDK.ResourceTreeModel.ResourceTreeModel, SDK.ResourceTreeModel.Events.PrimaryPageChanged, this.#onPrimaryPageChanged, this);
-        SDK.FrameManager.FrameManager.instance().addEventListener(SDK.FrameManager.Events.FrameAddedToTarget, this.#onFrameAddedToTarget, this);
-        // issueFilter uses the 'showThirdPartyIssues' setting. Clients of IssuesManager need
+        SDK.FrameManager.FrameManager.instance().addEventListener("FrameAddedToTarget" /* SDK.FrameManager.Events.FrameAddedToTarget */, this.#onFrameAddedToTarget, this);
+        // issueFilter uses the 'show-third-party-issues' setting. Clients of IssuesManager need
         // a full update when the setting changes to get an up-to-date issues list.
         this.showThirdPartyIssuesSetting?.addChangeListener(() => this.#updateFilteredIssues());
         this.hideIssueSetting?.addChangeListener(() => this.#updateFilteredIssues());
@@ -364,4 +369,4 @@ globalThis.addIssueForTest = (issue) => {
     const issuesModel = mainTarget?.model(SDK.IssuesModel.IssuesModel);
     issuesModel?.issueAdded({ issue });
 };
-//# map=IssuesManager.js.map
+//# sourceMappingURL=IssuesManager.js.map

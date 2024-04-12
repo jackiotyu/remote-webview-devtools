@@ -8,4 +8,4 @@ if (window.opener) {
     const app = window.opener.Emulation.AdvancedApp.instance();
     app.deviceModeEmulationFrameLoaded(document);
 }
-//# map=device_mode_emulation_frame.js.map
+//# sourceMappingURL=device_mode_emulation_frame.js.map

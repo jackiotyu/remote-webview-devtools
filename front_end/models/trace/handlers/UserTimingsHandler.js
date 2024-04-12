@@ -1,7 +1,6 @@
 // Copyright 2022 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import * as Platform from '../../../core/platform/platform.js';
 import * as Helpers from '../helpers/helpers.js';
 import * as Types from '../types/types.js';
 /**
@@ -9,7 +8,7 @@ import * as Types from '../types/types.js';
  * See UserTimings.md in this directory for some handy documentation on
  * UserTimings and the trace events we parse currently.
  **/
-const syntheticEvents = [];
+let syntheticEvents = [];
 const performanceMeasureEvents = [];
 const performanceMarkEvents = [];
 const consoleTimings = [];
@@ -91,61 +90,8 @@ export async function finalize() {
     if (handlerState !== 2 /* HandlerState.INITIALIZED */) {
         throw new Error('UserTimings handler is not initialized');
     }
-    const matchedEvents = new Map();
-    for (const event of [...performanceMeasureEvents, ...consoleTimings]) {
-        const id = Helpers.Trace.extractId(event);
-        if (id === undefined) {
-            continue;
-        }
-        // Create a synthetic id to prevent collisions across categories.
-        // Console timings can be dispatched with the same id, so use the
-        // event name as well to generate unique ids.
-        const syntheticId = `${event.cat}:${id}:${event.name}`;
-        const otherEventsWithID = Platform.MapUtilities.getWithDefault(matchedEvents, syntheticId, () => {
-            return { begin: null, end: null };
-        });
-        const isStartEvent = event.ph === "b" /* Types.TraceEvents.Phase.ASYNC_NESTABLE_START */;
-        const isEndEvent = event.ph === "e" /* Types.TraceEvents.Phase.ASYNC_NESTABLE_END */;
-        if (isStartEvent) {
-            otherEventsWithID.begin = event;
-        }
-        else if (isEndEvent) {
-            otherEventsWithID.end = event;
-        }
-    }
-    for (const [id, eventsPair] of matchedEvents.entries()) {
-        if (!eventsPair.begin || !eventsPair.end) {
-            // This should never happen, the backend only creates the events once it
-            // has them both, so we should never get into this state.
-            // If we do, something is very wrong, so let's just drop that problematic event.
-            continue;
-        }
-        const event = {
-            cat: eventsPair.end.cat,
-            ph: eventsPair.end.ph,
-            pid: eventsPair.end.pid,
-            tid: eventsPair.end.tid,
-            id,
-            // Both events have the same name, so it doesn't matter which we pick to
-            // use as the description
-            name: eventsPair.begin.name,
-            dur: Types.Timing.MicroSeconds(eventsPair.end.ts - eventsPair.begin.ts),
-            ts: eventsPair.begin.ts,
-            args: {
-                data: {
-                    beginEvent: eventsPair.begin,
-                    endEvent: eventsPair.end,
-                },
-            },
-        };
-        if (event.dur < 0) {
-            // Avoid any pairs that have created a negative duration; this is bad
-            // trace data and we should just ignore them.
-            continue;
-        }
-        syntheticEvents.push(event);
-    }
-    syntheticEvents.sort((a, b) => a.ts - b.ts);
+    const asyncEvents = [...performanceMeasureEvents, ...consoleTimings];
+    syntheticEvents = Helpers.Trace.createMatchedSortedSyntheticEvents(asyncEvents);
     handlerState = 3 /* HandlerState.FINALIZED */;
 }
 export function data() {
@@ -153,10 +99,11 @@ export function data() {
         throw new Error('UserTimings handler is not finalized');
     }
     return {
-        performanceMeasures: syntheticEvents.filter(Types.TraceEvents.isTraceEventPerformanceMeasure),
-        consoleTimings: syntheticEvents.filter(Types.TraceEvents.isTraceEventConsoleTime),
+        performanceMeasures: syntheticEvents.filter(e => e.cat === 'blink.user_timing'),
+        consoleTimings: syntheticEvents.filter(e => e.cat === 'blink.console'),
+        // TODO(crbug/41484172): UserTimingsHandler.test.ts fails if this is not copied.
         performanceMarks: [...performanceMarkEvents],
         timestampEvents: [...timestampEvents],
     };
 }
-//# map=UserTimingsHandler.js.map
+//# sourceMappingURL=UserTimingsHandler.js.map

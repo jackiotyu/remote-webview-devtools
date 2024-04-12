@@ -45,7 +45,7 @@ export class JavaScriptREPL {
             return { preview: document.createDocumentFragment(), result: null };
         }
         let expression = text;
-        if (Root.Runtime.experiments.isEnabled('evaluateExpressionsWithSourceMaps')) {
+        if (Root.Runtime.experiments.isEnabled('evaluate-expressions-with-source-maps')) {
             const callFrame = executionContext.debuggerModel.selectedCallFrame();
             if (callFrame) {
                 const nameMap = await SourceMapScopes.NamesResolver.allVariablesInCallFrame(callFrame);
@@ -104,4 +104,4 @@ export function setMaxLengthForEvaluation(value) {
 export function getMaxLengthForEvaluation() {
     return maxLengthForEvaluation;
 }
-//# map=JavaScriptREPL.js.map
+//# sourceMappingURL=JavaScriptREPL.js.map

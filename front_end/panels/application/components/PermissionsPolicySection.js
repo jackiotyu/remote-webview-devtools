@@ -1,16 +1,16 @@
 // Copyright 2021 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+import * as Common from '../../../core/common/common.js';
 import * as i18n from '../../../core/i18n/i18n.js';
 import * as SDK from '../../../core/sdk/sdk.js';
 import * as NetworkForward from '../../../panels/network/forward/forward.js';
-import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
 import * as IconButton from '../../../ui/components/icon_button/icon_button.js';
 import * as Coordinator from '../../../ui/components/render_coordinator/render_coordinator.js';
 import * as ReportView from '../../../ui/components/report_view/report_view.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
+import * as VisualLogging from '../../../ui/visual_logging/visual_logging.js';
 import permissionsPolicySectionStyles from './permissionsPolicySection.css.js';
-import * as Common from '../../../core/common/common.js';
 const UIStrings = {
     /**
      *@description Label for a button. When clicked more details (for the content this button refers to) will be shown.
@@ -55,11 +55,12 @@ const UIStrings = {
 const str_ = i18n.i18n.registerUIStrings('panels/application/components/PermissionsPolicySection.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const coordinator = Coordinator.RenderCoordinator.RenderCoordinator.instance();
-export function renderIconLink(iconName, title, clickHandler) {
+export function renderIconLink(iconName, title, clickHandler, jsLogContext) {
     // Disabled until https://crbug.com/1079231 is fixed.
     // clang-format off
     return LitHtml.html `
-    <button class="link" role="link" tabindex=0 @click=${clickHandler} title=${title}>
+    <button class="link" role="link" tabindex=0 @click=${clickHandler} title=${title}
+    jslog=${VisualLogging.action().track({ click: true }).context(jsLogContext)}>
       <${IconButton.Icon.Icon.litTagName} .data=${{
         iconName: iconName,
         color: 'var(--icon-link)',
@@ -109,7 +110,10 @@ export class PermissionsPolicySection extends HTMLElement {
         <${ReportView.ReportView.ReportKey.litTagName}>${i18nString(UIStrings.disabledFeatures)}</${ReportView.ReportView.ReportKey.litTagName}>
         <${ReportView.ReportView.ReportValue.litTagName}>
           ${disallowed.map(p => p.feature).join(', ')}
-          <button class="link" @click=${() => this.#toggleShowPermissionsDisallowedDetails()}>
+          <button class="link" @click=${() => this.#toggleShowPermissionsDisallowedDetails()}
+          jslog=${VisualLogging.action('show-disabled-features-details').track({
+                click: true,
+            })}>
             ${i18nString(UIStrings.showDetails)}
           </button>
         </${ReportView.ReportView.ReportValue.litTagName}>
@@ -161,9 +165,9 @@ export class PermissionsPolicySection extends HTMLElement {
           </div>
           <div class="block-reason">${blockReasonText}</div>
           <div>
-            ${linkTargetDOMNode ? renderIconLink('code-circle', i18nString(UIStrings.clickToShowIframe), () => Common.Revealer.reveal(linkTargetDOMNode)) :
+            ${linkTargetDOMNode ? renderIconLink('code-circle', i18nString(UIStrings.clickToShowIframe), () => Common.Revealer.reveal(linkTargetDOMNode), 'reveal-in-elements') :
                 LitHtml.nothing}
-            ${linkTargetRequest ? renderIconLink('arrow-up-down-circle', i18nString(UIStrings.clickToShowHeader), revealHeader) :
+            ${linkTargetRequest ? renderIconLink('arrow-up-down-circle', i18nString(UIStrings.clickToShowHeader), revealHeader, 'reveal-in-network') :
                 LitHtml.nothing}
           </div>
         </div>
@@ -175,7 +179,10 @@ export class PermissionsPolicySection extends HTMLElement {
       <${ReportView.ReportView.ReportValue.litTagName} class="policies-list">
         ${featureRows}
         <div class="permissions-row">
-          <button class="link" @click=${() => this.#toggleShowPermissionsDisallowedDetails()}>
+          <button class="link" @click=${() => this.#toggleShowPermissionsDisallowedDetails()}
+          jslog=${VisualLogging.action('hide-disabled-features-details').track({
+            click: true,
+        })}>
             ${i18nString(UIStrings.hideDetails)}
           </button>
         </div>
@@ -196,5 +203,5 @@ export class PermissionsPolicySection extends HTMLElement {
         });
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-resources-permissions-policy-section', PermissionsPolicySection);
-//# map=PermissionsPolicySection.js.map
+customElements.define('devtools-resources-permissions-policy-section', PermissionsPolicySection);
+//# sourceMappingURL=PermissionsPolicySection.js.map

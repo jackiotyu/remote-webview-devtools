@@ -175,4 +175,4 @@ export function parseCSS(text, chunkCallback) {
         return { startLine: lineNumber, startColumn: columnNumber, endLine: lineNumber, endColumn: columnNumber };
     }
 }
-//# map=CSSRuleParser.js.map
+//# sourceMappingURL=CSSRuleParser.js.map

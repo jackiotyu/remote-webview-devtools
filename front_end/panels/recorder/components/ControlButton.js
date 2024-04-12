@@ -11,7 +11,7 @@ import * as LitHtml from '../../../ui/lit-html/lit-html.js';
 import controlButtonStyles from './controlButton.css.js';
 const { html, Decorators, LitElement } = LitHtml;
 const { customElement, property } = Decorators;
-export let ControlButton = class ControlButton extends LitElement {
+let ControlButton = class ControlButton extends LitElement {
     static styles = [controlButtonStyles];
     constructor() {
         super();
@@ -50,4 +50,5 @@ __decorate([
 ControlButton = __decorate([
     customElement('devtools-control-button')
 ], ControlButton);
-//# map=ControlButton.js.map
+export { ControlButton };
+//# sourceMappingURL=ControlButton.js.map

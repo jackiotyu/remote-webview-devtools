@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as LitHtml from '../../lit-html/lit-html.js';
+import * as VisualLogging from '../../visual_logging/visual_logging.js';
 import * as ComponentHelpers from '../helpers/helpers.js';
 import * as IconButton from '../icon_button/icon_button.js';
 import buttonStyles from './button.css.js';
@@ -37,12 +38,6 @@ export class Button extends HTMLElement {
         if ('size' in data && data.size) {
             this.#props.size = data.size;
         }
-        if ('iconWidth' in data && data.iconWidth) {
-            this.#props.iconWidth = data.iconWidth;
-        }
-        if ('iconHeight' in data && data.iconHeight) {
-            this.#props.iconHeight = data.iconHeight;
-        }
         this.#props.active = Boolean(data.active);
         this.#props.spinner = Boolean('spinner' in data ? data.spinner : false);
         this.#props.type = 'button';
@@ -51,6 +46,7 @@ export class Button extends HTMLElement {
         }
         this.#setDisabledProperty(data.disabled || false);
         this.#props.title = data.title;
+        this.#props.jslogContext = data.jslogContext;
         void ComponentHelpers.ScheduledRender.scheduleRender(this, this.#boundRender);
     }
     set iconUrl(iconUrl) {
@@ -69,14 +65,6 @@ export class Button extends HTMLElement {
         this.#props.size = size;
         void ComponentHelpers.ScheduledRender.scheduleRender(this, this.#boundRender);
     }
-    set iconWidth(iconWidth) {
-        this.#props.iconWidth = iconWidth;
-        void ComponentHelpers.ScheduledRender.scheduleRender(this, this.#boundRender);
-    }
-    set iconHeight(iconHeight) {
-        this.#props.iconHeight = iconHeight;
-        void ComponentHelpers.ScheduledRender.scheduleRender(this, this.#boundRender);
-    }
     set type(type) {
         this.#props.type = type;
         void ComponentHelpers.ScheduledRender.scheduleRender(this, this.#boundRender);
@@ -93,8 +81,18 @@ export class Button extends HTMLElement {
         this.#props.active = active;
         void ComponentHelpers.ScheduledRender.scheduleRender(this, this.#boundRender);
     }
+    get active() {
+        return this.#props.active;
+    }
     set spinner(spinner) {
         this.#props.spinner = spinner;
+        void ComponentHelpers.ScheduledRender.scheduleRender(this, this.#boundRender);
+    }
+    get jslogContext() {
+        return this.#props.jslogContext;
+    }
+    set jslogContext(jslogContext) {
+        this.#props.jslogContext = jslogContext;
         void ComponentHelpers.ScheduledRender.scheduleRender(this, this.#boundRender);
     }
     #setDisabledProperty(disabled) {
@@ -160,36 +158,32 @@ export class Button extends HTMLElement {
         const hasIcon = Boolean(this.#props.iconUrl) || Boolean(this.#props.iconName);
         const classes = {
             primary: this.#props.variant === "primary" /* Variant.PRIMARY */,
+            tonal: this.#props.variant === "tonal" /* Variant.TONAL */,
             secondary: this.#props.variant === "secondary" /* Variant.SECONDARY */,
             toolbar: this.#isToolbarVariant(),
             'primary-toolbar': this.#props.variant === "primary_toolbar" /* Variant.PRIMARY_TOOLBAR */,
             round: this.#props.variant === "round" /* Variant.ROUND */,
             'text-with-icon': hasIcon && !this.#isEmpty,
             'only-icon': hasIcon && this.#isEmpty,
-            small: Boolean(this.#props.size === "SMALL" /* Size.SMALL */ || this.#props.size === "TINY" /* Size.TINY */),
-            tiny: Boolean(this.#props.size === "TINY" /* Size.TINY */),
+            'only-text': !hasIcon && !this.#isEmpty,
+            small: Boolean(this.#props.size === "SMALL" /* Size.SMALL */),
             active: this.#props.active,
-            'explicit-size': Boolean(this.#props.iconHeight || this.#props.iconWidth),
         };
         const spinnerClasses = {
             primary: this.#props.variant === "primary" /* Variant.PRIMARY */,
             secondary: this.#props.variant === "secondary" /* Variant.SECONDARY */,
             disabled: Boolean(this.#props.disabled),
-            'spinner-component': true,
+            spinner: true,
         };
+        const jslog = this.#props.jslogContext && VisualLogging.action().track({ click: true }).context(this.#props.jslogContext);
         // clang-format off
         LitHtml.render(LitHtml.html `
-        <button title=${LitHtml.Directives.ifDefined(this.#props.title)} .disabled=${this.#props.disabled} class=${LitHtml.Directives.classMap(classes)}>
-          ${hasIcon ? LitHtml.html `<${IconButton.Icon.Icon.litTagName}
-            .data=${{
-            iconPath: this.#props.iconUrl,
-            iconName: this.#props.iconName,
-            color: 'var(--color-background)',
-            width: this.#props.iconWidth || undefined,
-            height: this.#props.iconHeight || undefined,
-        }}
-          >
-          </${IconButton.Icon.Icon.litTagName}>` : ''}
+        <button title=${LitHtml.Directives.ifDefined(this.#props.title)} .disabled=${this.#props.disabled} class=${LitHtml.Directives.classMap(classes)} jslog=${LitHtml.Directives.ifDefined(jslog)}>
+          ${hasIcon
+            ? LitHtml.html `
+                <${IconButton.Icon.Icon.litTagName} name=${this.#props.iconName || this.#props.iconUrl}>
+                </${IconButton.Icon.Icon.litTagName}>`
+            : ''}
           ${this.#props.spinner ? LitHtml.html `<span class=${LitHtml.Directives.classMap(spinnerClasses)}></span>` : ''}
           <slot @slotchange=${this.#onSlotChange}></slot>
         </button>
@@ -232,5 +226,5 @@ export class Button extends HTMLElement {
         return this.#internals.reportValidity();
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-button', Button);
-//# map=Button.js.map
+customElements.define('devtools-button', Button);
+//# sourceMappingURL=Button.js.map

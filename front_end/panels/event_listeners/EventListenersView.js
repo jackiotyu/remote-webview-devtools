@@ -9,8 +9,9 @@ import * as ObjectUI from '../../ui/legacy/components/object_ui/object_ui.js';
 import objectValueStyles from '../../ui/legacy/components/object_ui/objectValue.css.js';
 import * as Components from '../../ui/legacy/components/utils/utils.js';
 import * as UI from '../../ui/legacy/legacy.js';
-import eventListenersViewStyles from './eventListenersView.css.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import { frameworkEventListeners } from './EventListenersUtils.js';
+import eventListenersViewStyles from './eventListenersView.css.js';
 const UIStrings = {
     /**
      *@description Empty holder text content in Event Listeners View of the Event Listener Debugging pane in the Sources panel
@@ -154,10 +155,10 @@ export class EventListenersView extends UI.Widget.VBox {
                 const objectListenerElement = listenerElement;
                 const listenerOrigin = objectListenerElement.eventListener().origin();
                 let hidden = false;
-                if (listenerOrigin === SDK.DOMDebuggerModel.EventListener.Origin.FrameworkUser && !showFramework) {
+                if (listenerOrigin === "FrameworkUser" /* SDK.DOMDebuggerModel.EventListener.Origin.FrameworkUser */ && !showFramework) {
                     hidden = true;
                 }
-                if (listenerOrigin === SDK.DOMDebuggerModel.EventListener.Origin.Framework && showFramework) {
+                if (listenerOrigin === "Framework" /* SDK.DOMDebuggerModel.EventListener.Origin.Framework */ && showFramework) {
                     hidden = true;
                 }
                 if (!showPassive && objectListenerElement.eventListener().passive()) {
@@ -267,8 +268,9 @@ export class ObjectEventListenerBar extends UI.TreeOutline.TreeElement {
         this.valueTitle = propertyValue.element;
         title.appendChild(this.valueTitle);
         if (this.eventListenerInternal.canRemove()) {
-            const deleteButton = title.createChild('span', 'event-listener-button');
+            const deleteButton = title.createChild('button', 'event-listener-button');
             deleteButton.textContent = i18nString(UIStrings.remove);
+            deleteButton.setAttribute('jslog', `${VisualLogging.action('delete-event-listener').track({ click: true })}`);
             UI.Tooltip.Tooltip.install(deleteButton, i18nString(UIStrings.deleteEventListener));
             deleteButton.addEventListener('click', event => {
                 this.removeListener();
@@ -277,8 +279,9 @@ export class ObjectEventListenerBar extends UI.TreeOutline.TreeElement {
             title.appendChild(deleteButton);
         }
         if (this.eventListenerInternal.isScrollBlockingType() && this.eventListenerInternal.canTogglePassive()) {
-            const passiveButton = title.createChild('span', 'event-listener-button');
+            const passiveButton = title.createChild('button', 'event-listener-button');
             passiveButton.textContent = i18nString(UIStrings.togglePassive);
+            passiveButton.setAttribute('jslog', `${VisualLogging.action('passive').track({ click: true })}`);
             UI.Tooltip.Tooltip.install(passiveButton, i18nString(UIStrings.toggleWhetherEventListenerIs));
             passiveButton.addEventListener('click', event => {
                 this.togglePassiveListener();
@@ -295,10 +298,14 @@ export class ObjectEventListenerBar extends UI.TreeOutline.TreeElement {
                 menu.appendApplicableItems(linkElement);
             }
             if (object.subtype === 'node') {
-                menu.defaultSection().appendItem(i18nString(UIStrings.revealInElementsPanel), () => Common.Revealer.reveal(object));
+                menu.defaultSection().appendItem(i18nString(UIStrings.revealInElementsPanel), () => Common.Revealer.reveal(object), { jslogContext: 'reveal-in-elements' });
             }
-            menu.defaultSection().appendItem(i18nString(UIStrings.deleteEventListener), this.removeListener.bind(this), !this.eventListenerInternal.canRemove());
-            menu.defaultSection().appendCheckboxItem(i18nString(UIStrings.passive), this.togglePassiveListener.bind(this), this.eventListenerInternal.passive(), !this.eventListenerInternal.canTogglePassive());
+            menu.defaultSection().appendItem(i18nString(UIStrings.deleteEventListener), this.removeListener.bind(this), { disabled: !this.eventListenerInternal.canRemove(), jslogContext: 'delete-event-listener' });
+            menu.defaultSection().appendCheckboxItem(i18nString(UIStrings.passive), this.togglePassiveListener.bind(this), {
+                checked: this.eventListenerInternal.passive(),
+                disabled: !this.eventListenerInternal.canTogglePassive(),
+                jslogContext: 'passive',
+            });
             void menu.show();
         });
     }
@@ -344,4 +351,4 @@ export class ObjectEventListenerBar extends UI.TreeOutline.TreeElement {
         return false;
     }
 }
-//# map=EventListenersView.js.map
+//# sourceMappingURL=EventListenersView.js.map

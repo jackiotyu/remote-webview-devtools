@@ -183,4 +183,4 @@ export class ContentProviderBasedProject extends Workspace.Workspace.ProjectStor
         this.removeProject();
     }
 }
-//# map=ContentProviderBasedProject.js.map
+//# sourceMappingURL=ContentProviderBasedProject.js.map

@@ -17,4 +17,4 @@ export class ProfileTypeRegistry {
     }
 }
 export const instance = new ProfileTypeRegistry();
-//# map=ProfileTypeRegistry.js.map
+//# sourceMappingURL=ProfileTypeRegistry.js.map

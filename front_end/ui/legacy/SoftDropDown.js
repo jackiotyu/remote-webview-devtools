@@ -2,16 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as i18n from '../../core/i18n/i18n.js';
-import * as ThemeSupport from './theme_support/theme_support.js';
-import * as Utils from './utils/utils.js';
+import * as IconButton from '../components/icon_button/icon_button.js';
+import * as VisualLogging from '../visual_logging/visual_logging.js';
 import * as ARIAUtils from './ARIAUtils.js';
 import { Size } from './Geometry.js';
 import { GlassPane } from './GlassPane.js';
-import { Icon } from './Icon.js';
 import { ListControl, ListMode } from './ListControl.js';
-import { Events as ListModelEvents } from './ListModel.js';
 import softDropDownStyles from './softDropDown.css.legacy.js';
 import softDropDownButtonStyles from './softDropDownButton.css.legacy.js';
+import * as ThemeSupport from './theme_support/theme_support.js';
+import { createShadowRootWithCoreStyles } from './UIUtils.js';
 const UIStrings = {
     /**
      *@description Placeholder text in Soft Drop Down
@@ -32,16 +32,19 @@ export class SoftDropDown {
     rowHeight;
     width;
     listWasShowing200msAgo;
-    constructor(model, delegate) {
+    constructor(model, delegate, jslogContext) {
         this.delegate = delegate;
         this.selectedItem = null;
         this.model = model;
         this.placeholderText = i18nString(UIStrings.noItemSelected);
         this.element = document.createElement('button');
+        if (jslogContext) {
+            this.element.setAttribute('jslog', `${VisualLogging.dropDown().track({ click: true, keydown: 'ArrowUp|ArrowDown|Enter' }).context(jslogContext)}`);
+        }
         this.element.classList.add('soft-dropdown');
         ThemeSupport.ThemeSupport.instance().appendStyle(this.element, softDropDownButtonStyles);
         this.titleElement = this.element.createChild('span', 'title');
-        const dropdownArrowIcon = Icon.create('triangle-down');
+        const dropdownArrowIcon = IconButton.Icon.create('triangle-down');
         this.element.appendChild(dropdownArrowIcon);
         ARIAUtils.setExpanded(this.element, false);
         this.glassPane = new GlassPane();
@@ -53,13 +56,13 @@ export class SoftDropDown {
         this.list.element.classList.add('item-list');
         this.rowHeight = 36;
         this.width = 315;
-        Utils
-            .createShadowRootWithCoreStyles(this.glassPane.contentElement, {
+        createShadowRootWithCoreStyles(this.glassPane.contentElement, {
             cssFile: softDropDownStyles,
             delegatesFocus: undefined,
-        })
-            .appendChild(this.list.element);
+        }).appendChild(this.list.element);
         ARIAUtils.markAsMenu(this.list.element);
+        VisualLogging.setMappedParent(this.list.element, this.element);
+        this.list.element.setAttribute('jslog', `${VisualLogging.menu().parent('mapped').track({ resize: true, keydown: 'ArrowUp|ArrowDown|PageUp|PageDown' })}`);
         this.listWasShowing200msAgo = false;
         this.element.addEventListener('mousedown', event => {
             if (this.listWasShowing200msAgo) {
@@ -81,9 +84,13 @@ export class SoftDropDown {
                 return;
             }
             this.selectHighlightedItem();
+            if (event.target instanceof Element && event.target?.parentElement) {
+                // hide() will consume the mouseup event and click won't be triggered
+                void VisualLogging.logClick(event.target.parentElement, event);
+            }
             this.hide(event);
         }, false);
-        model.addEventListener(ListModelEvents.ItemsReplaced, this.itemsReplaced, this);
+        model.addEventListener("ItemsReplaced" /* ListModelEvents.ItemsReplaced */, this.itemsReplaced, this);
     }
     show(event) {
         if (this.glassPane.isShowing()) {
@@ -275,4 +282,4 @@ export class SoftDropDown {
         this.list.refreshItem(item);
     }
 }
-//# map=SoftDropDown.js.map
+//# sourceMappingURL=SoftDropDown.js.map

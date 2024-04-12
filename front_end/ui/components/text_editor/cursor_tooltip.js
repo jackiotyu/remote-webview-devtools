@@ -67,4 +67,4 @@ export function cursorTooltip(source) {
     });
     return [state, plugin];
 }
-//# map=cursor_tooltip.js.map
+//# sourceMappingURL=cursor_tooltip.js.map

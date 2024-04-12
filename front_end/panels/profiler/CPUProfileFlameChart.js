@@ -36,15 +36,14 @@ let colorGeneratorInstance = null;
 export class ProfileFlameChartDataProvider {
     colorGeneratorInternal;
     maxStackDepthInternal;
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    timelineData_;
+    timelineDataInternal;
     entryNodes;
     #font;
     boldFont;
     constructor() {
         this.colorGeneratorInternal = ProfileFlameChartDataProvider.colorGenerator();
         this.maxStackDepthInternal = 0;
-        this.timelineData_ = null;
+        this.timelineDataInternal = null;
         this.entryNodes = [];
         this.#font = `${PerfUI.Font.DEFAULT_FONT_SIZE} ${PerfUI.Font.getFontFamilyForCanvas()}`;
     }
@@ -70,7 +69,7 @@ export class ProfileFlameChartDataProvider {
         return this.maxStackDepthInternal;
     }
     timelineData() {
-        return this.timelineData_ || this.calculateTimelineData();
+        return this.timelineDataInternal || this.calculateTimelineData();
     }
     calculateTimelineData() {
         throw 'Not implemented.';
@@ -130,10 +129,10 @@ export class CPUProfileFlameChart extends Common.ObjectWrapper.eventMixin(UI.Wid
         this.mainPane.setTextBaseline(4);
         this.mainPane.setTextPadding(2);
         this.mainPane.show(this.element);
-        this.mainPane.addEventListener(PerfUI.FlameChart.Events.EntrySelected, this.onEntrySelected, this);
-        this.mainPane.addEventListener(PerfUI.FlameChart.Events.EntryInvoked, this.onEntryInvoked, this);
+        this.mainPane.addEventListener("EntrySelected" /* PerfUI.FlameChart.Events.EntrySelected */, this.onEntrySelected, this);
+        this.mainPane.addEventListener("EntryInvoked" /* PerfUI.FlameChart.Events.EntryInvoked */, this.onEntryInvoked, this);
         this.entrySelected = false;
-        this.mainPane.addEventListener(PerfUI.FlameChart.Events.CanvasFocused, this.onEntrySelected, this);
+        this.mainPane.addEventListener("CanvasFocused" /* PerfUI.FlameChart.Events.CanvasFocused */, this.onEntrySelected, this);
         this.overviewPane.addEventListener("WindowChanged" /* OverviewPaneEvents.WindowChanged */, this.onWindowChanged, this);
         this.dataProvider = dataProvider;
         this.searchResults = [];
@@ -166,7 +165,7 @@ export class CPUProfileFlameChart extends Common.ObjectWrapper.eventMixin(UI.Wid
     }
     onEntryInvoked(event) {
         this.onEntrySelected(event);
-        this.dispatchEventToListeners(PerfUI.FlameChart.Events.EntryInvoked, event.data);
+        this.dispatchEventToListeners("EntryInvoked" /* PerfUI.FlameChart.Events.EntryInvoked */, event.data);
     }
     update() {
         this.overviewPane.update();
@@ -270,7 +269,7 @@ export class OverviewPane extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox
             this.overviewContainer.createChild('canvas', 'cpu-profile-flame-chart-overview-canvas');
         this.overviewContainer.appendChild(this.overviewGrid.element);
         this.dataProvider = dataProvider;
-        this.overviewGrid.addEventListener(PerfUI.OverviewGrid.Events.WindowChangedWithPosition, this.onWindowChanged, this);
+        this.overviewGrid.addEventListener("WindowChangedWithPosition" /* PerfUI.OverviewGrid.Events.WindowChangedWithPosition */, this.onWindowChanged, this);
     }
     windowChanged(windowStartTime, windowEndTime) {
         this.selectRange(windowStartTime, windowEndTime);
@@ -369,4 +368,4 @@ export class OverviewPane extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox
         this.overviewCanvas.style.height = height + 'px';
     }
 }
-//# map=CPUProfileFlameChart.js.map
+//# sourceMappingURL=CPUProfileFlameChart.js.map

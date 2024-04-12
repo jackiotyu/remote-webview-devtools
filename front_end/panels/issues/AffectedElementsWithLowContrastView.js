@@ -73,4 +73,4 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/issues/AffectedElementsWithLowContrastView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-//# map=AffectedElementsWithLowContrastView.js.map
+//# sourceMappingURL=AffectedElementsWithLowContrastView.js.map

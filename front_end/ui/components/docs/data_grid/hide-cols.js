@@ -49,4 +49,4 @@ btn?.addEventListener('click', () => {
         rows: component.data.rows,
     };
 });
-//# map=hide-cols.js.map
+//# sourceMappingURL=hide-cols.js.map

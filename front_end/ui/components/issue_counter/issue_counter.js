@@ -4,4 +4,4 @@
 import * as IssueCounter from './IssueCounter.js';
 import * as IssueLinkIcon from './IssueLinkIcon.js';
 export { IssueCounter, IssueLinkIcon, };
-//# map=issue_counter.js.map
+//# sourceMappingURL=issue_counter.js.map

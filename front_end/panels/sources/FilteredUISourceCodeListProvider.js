@@ -29,8 +29,8 @@ export class FilteredUISourceCodeListProvider extends QuickOpen.FilteredListWidg
     uiSourceCodes;
     uiSourceCodeIds;
     query;
-    constructor() {
-        super();
+    constructor(jslogContext) {
+        super(jslogContext);
         this.queryLineNumberAndColumnNumber = '';
         this.defaultScores = null;
         this.scorer = new FilePathScoreFunction('');
@@ -60,7 +60,7 @@ export class FilteredUISourceCodeListProvider extends QuickOpen.FilteredListWidg
         if (this.uiSourceCodeIds.has(uiSourceCode.canononicalScriptId())) {
             return false;
         }
-        if (Root.Runtime.experiments.isEnabled(Root.Runtime.ExperimentName.JUST_MY_CODE) &&
+        if (Root.Runtime.experiments.isEnabled("just-my-code" /* Root.Runtime.ExperimentName.JUST_MY_CODE */) &&
             Bindings.IgnoreListManager.IgnoreListManager.instance().isUserOrSourceMapIgnoreListedUISourceCode(uiSourceCode)) {
             return false;
         }
@@ -210,4 +210,4 @@ export class FilteredUISourceCodeListProvider extends QuickOpen.FilteredListWidg
         this.defaultScores = null;
     }
 }
-//# map=FilteredUISourceCodeListProvider.js.map
+//# sourceMappingURL=FilteredUISourceCodeListProvider.js.map

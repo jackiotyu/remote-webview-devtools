@@ -72,4 +72,4 @@ export class TextEditorHistory {
         return { from: 0, to: text.length, options };
     }
 }
-//# map=TextEditorHistory.js.map
+//# sourceMappingURL=TextEditorHistory.js.map

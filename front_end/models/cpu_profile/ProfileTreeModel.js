@@ -92,4 +92,4 @@ export class ProfileTreeModel {
         return root.total;
     }
 }
-//# map=ProfileTreeModel.js.map
+//# sourceMappingURL=ProfileTreeModel.js.map

@@ -1,10 +1,11 @@
 // Copyright 2020 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+import * as Host from '../../core/host/host.js';
 import * as i18n from '../../core/i18n/i18n.js';
 import * as SDK from '../../core/sdk/sdk.js';
+import * as IconButton from '../../ui/components/icon_button/icon_button.js';
 import * as UI from '../../ui/legacy/legacy.js';
-import * as Host from '../../core/host/host.js';
 import { ApplicationPanelTreeElement, ExpandableApplicationPanelTreeElement } from './ApplicationPanelTreeElement.js';
 import { ServiceWorkerCacheView } from './ServiceWorkerCacheViews.js';
 const UIStrings = {
@@ -28,8 +29,8 @@ export class ServiceWorkerCacheTreeElement extends ExpandableApplicationPanelTre
     swCacheTreeElements;
     storageBucket;
     constructor(resourcesPanel, storageBucket) {
-        super(resourcesPanel, i18nString(UIStrings.cacheStorage), 'CacheStorage');
-        const icon = UI.Icon.Icon.create('database', 'resource-tree-item');
+        super(resourcesPanel, i18nString(UIStrings.cacheStorage), 'cache-storage');
+        const icon = IconButton.Icon.create('database');
         this.setLink('https://developer.chrome.com/docs/devtools/storage/cache/?utm_source=devtools');
         this.setLeadingIcons([icon]);
         this.swCacheModels = new Set();
@@ -50,7 +51,7 @@ export class ServiceWorkerCacheTreeElement extends ExpandableApplicationPanelTre
     }
     handleContextMenuEvent(event) {
         const contextMenu = new UI.ContextMenu.ContextMenu(event);
-        contextMenu.defaultSection().appendItem(i18nString(UIStrings.refreshCaches), this.refreshCaches.bind(this));
+        contextMenu.defaultSection().appendItem(i18nString(UIStrings.refreshCaches), this.refreshCaches.bind(this), { jslogContext: 'refresh-caches' });
         void contextMenu.show();
     }
     refreshCaches() {
@@ -64,15 +65,15 @@ export class ServiceWorkerCacheTreeElement extends ExpandableApplicationPanelTre
         for (const cache of model.caches()) {
             this.addCache(model, cache);
         }
-        model.addEventListener(SDK.ServiceWorkerCacheModel.Events.CacheAdded, this.cacheAdded, this);
-        model.addEventListener(SDK.ServiceWorkerCacheModel.Events.CacheRemoved, this.cacheRemoved, this);
+        model.addEventListener("CacheAdded" /* SDK.ServiceWorkerCacheModel.Events.CacheAdded */, this.cacheAdded, this);
+        model.addEventListener("CacheRemoved" /* SDK.ServiceWorkerCacheModel.Events.CacheRemoved */, this.cacheRemoved, this);
     }
     serviceWorkerCacheModelRemoved(model) {
         for (const cache of model.caches()) {
             this.removeCache(model, cache);
         }
-        model.removeEventListener(SDK.ServiceWorkerCacheModel.Events.CacheAdded, this.cacheAdded, this);
-        model.removeEventListener(SDK.ServiceWorkerCacheModel.Events.CacheRemoved, this.cacheRemoved, this);
+        model.removeEventListener("CacheAdded" /* SDK.ServiceWorkerCacheModel.Events.CacheAdded */, this.cacheAdded, this);
+        model.removeEventListener("CacheRemoved" /* SDK.ServiceWorkerCacheModel.Events.CacheRemoved */, this.cacheRemoved, this);
         this.swCacheModels.delete(model);
     }
     cacheAdded(event) {
@@ -132,7 +133,7 @@ export class SWCacheTreeElement extends ApplicationPanelTreeElement {
         this.model = model;
         this.cache = cache;
         this.view = null;
-        const icon = UI.Icon.Icon.create('table', 'resource-tree-item');
+        const icon = IconButton.Icon.create('table');
         this.setLeadingIcons([icon]);
     }
     get itemURL() {
@@ -145,7 +146,7 @@ export class SWCacheTreeElement extends ApplicationPanelTreeElement {
     }
     handleContextMenuEvent(event) {
         const contextMenu = new UI.ContextMenu.ContextMenu(event);
-        contextMenu.defaultSection().appendItem(i18nString(UIStrings.delete), this.clearCache.bind(this));
+        contextMenu.defaultSection().appendItem(i18nString(UIStrings.delete), this.clearCache.bind(this), { jslogContext: 'delete' });
         void contextMenu.show();
     }
     clearCache() {
@@ -163,11 +164,11 @@ export class SWCacheTreeElement extends ApplicationPanelTreeElement {
             this.view = new ServiceWorkerCacheView(this.model, this.cache);
         }
         this.showView(this.view);
-        Host.userMetrics.panelShown(Host.UserMetrics.PanelCodes[Host.UserMetrics.PanelCodes.service_worker_cache]);
+        Host.userMetrics.panelShown('service-worker-cache');
         return false;
     }
     hasModelAndCache(model, cache) {
         return this.cache.equals(cache) && this.model === model;
     }
 }
-//# map=ServiceWorkerCacheTreeElement.js.map
+//# sourceMappingURL=ServiceWorkerCacheTreeElement.js.map

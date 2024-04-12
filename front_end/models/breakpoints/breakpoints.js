@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as BreakpointManager from './BreakpointManager.js';
 export { BreakpointManager };
-//# map=breakpoints.js.map
+//# sourceMappingURL=breakpoints.js.map

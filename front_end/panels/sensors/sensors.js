@@ -4,4 +4,4 @@
 import * as LocationsSettingsTab from './LocationsSettingsTab.js';
 import * as SensorsView from './SensorsView.js';
 export { LocationsSettingsTab, SensorsView, };
-//# map=sensors.js.map
+//# sourceMappingURL=sensors.js.map

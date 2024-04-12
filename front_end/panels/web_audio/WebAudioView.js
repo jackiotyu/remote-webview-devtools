@@ -1,13 +1,14 @@
 // Copyright 2019 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import webAudioStyles from './webAudio.css.js';
 import * as i18n from '../../core/i18n/i18n.js';
 import * as SDK from '../../core/sdk/sdk.js';
 import * as UI from '../../ui/legacy/legacy.js';
-import * as GraphVisualizer from './graph_visualizer/graph_visualizer.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import { ContextDetailBuilder, ContextSummaryBuilder } from './AudioContextContentBuilder.js';
 import { AudioContextSelector } from './AudioContextSelector.js';
+import * as GraphVisualizer from './graph_visualizer/graph_visualizer.js';
+import webAudioStyles from './webAudio.css.js';
 import { WebAudioModel } from './WebAudioModel.js';
 const UIStrings = {
     /**
@@ -17,7 +18,6 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/web_audio/WebAudioView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-let webAudioViewInstance;
 export class WebAudioView extends UI.ThrottledWidget.ThrottledWidget {
     contextSelector;
     contentContainer;
@@ -27,6 +27,7 @@ export class WebAudioView extends UI.ThrottledWidget.ThrottledWidget {
     summaryBarContainer;
     constructor() {
         super(true, 1000);
+        this.element.setAttribute('jslog', `${VisualLogging.panel('web-audio').track({ resize: true })}`);
         this.element.classList.add('web-audio-drawer');
         // Creates the toolbar.
         const toolbarContainer = this.contentElement.createChild('div', 'web-audio-toolbar-container vbox');
@@ -35,6 +36,7 @@ export class WebAudioView extends UI.ThrottledWidget.ThrottledWidget {
         toolbar.appendToolbarItem(UI.Toolbar.Toolbar.createActionButtonForId('components.collect-garbage'));
         toolbar.appendSeparator();
         toolbar.appendToolbarItem(this.contextSelector.toolbarItem());
+        toolbar.element.setAttribute('jslog', `${VisualLogging.toolbar()}`);
         // Create content container
         this.contentContainer = this.contentElement.createChild('div', 'web-audio-content-container vbox flex-auto');
         // Creates the detail view.
@@ -59,13 +61,6 @@ export class WebAudioView extends UI.ThrottledWidget.ThrottledWidget {
             void this.doUpdate();
         });
         SDK.TargetManager.TargetManager.instance().observeModels(WebAudioModel, this);
-    }
-    static instance(opts = { forceNew: null }) {
-        const { forceNew } = opts;
-        if (!webAudioViewInstance || forceNew) {
-            webAudioViewInstance = new WebAudioView();
-        }
-        return webAudioViewInstance;
     }
     wasShown() {
         super.wasShown();
@@ -320,4 +315,4 @@ export class WebAudioView extends UI.ThrottledWidget.ThrottledWidget {
         }
     }
 }
-//# map=WebAudioView.js.map
+//# sourceMappingURL=WebAudioView.js.map

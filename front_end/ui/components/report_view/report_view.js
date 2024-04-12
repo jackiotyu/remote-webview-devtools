@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as ReportView from './ReportView.js';
 export { ReportView };
-//# map=report_view.js.map
+//# sourceMappingURL=report_view.js.map

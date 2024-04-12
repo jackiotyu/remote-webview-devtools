@@ -4,37 +4,37 @@
 import * as i18n from '../../../../core/i18n/i18n.js';
 import * as ChromeLink from '../../../../ui/components/chrome_link/chrome_link.js';
 import * as Dialogs from '../../../../ui/components/dialogs/dialogs.js';
-import * as ComponentHelpers from '../../../../ui/components/helpers/helpers.js';
 import * as IconButton from '../../../../ui/components/icon_button/icon_button.js';
 import * as LegacyWrapper from '../../../../ui/components/legacy_wrapper/legacy_wrapper.js';
 import * as Coordinator from '../../../../ui/components/render_coordinator/render_coordinator.js';
 import * as ReportView from '../../../../ui/components/report_view/report_view.js';
 import * as UI from '../../../../ui/legacy/legacy.js';
 import * as LitHtml from '../../../../ui/lit-html/lit-html.js';
+import * as VisualLogging from '../../../../ui/visual_logging/visual_logging.js';
 import preloadingDisabledInfobarStyles from './preloadingDisabledInfobar.css.js';
 const UIStrings = {
     /**
      *@description Infobar text for disabled case
      */
-    infobarPreloadingIsDisabled: 'Preloading is disabled',
+    infobarPreloadingIsDisabled: 'Speculative loading is disabled',
     /**
      *@description Infobar text for force-enabled case
      */
-    infobarPreloadingIsForceEnabled: 'Preloading is force-enabled',
+    infobarPreloadingIsForceEnabled: 'Speculative loading is force-enabled',
     /**
      *@description Title for dialog
      */
-    titleReasonsPreventingPreloading: 'Reasons preventing preloading',
+    titleReasonsPreventingPreloading: 'Reasons preventing speculative loading',
     /**
      *@description Header in dialog
      */
-    headerDisabledByPreference: 'User settings or extension',
+    headerDisabledByPreference: 'User settings or extensions',
     /**
      *@description Description in dialog
-     *@example {Preload pages settings (linked to chrome://settings/preloading)} PH1
+     *@example {Preload pages settings (linked to chrome://settings/performance)} PH1
      *@example {Extensions settings (linked to chrome://extensions)} PH2
      */
-    descriptionDisabledByPreference: 'Preloading is disabled because of user settings or an extension. Go to {PH1} to update your preference. Go to {PH2} to disable any extension that blocks preloading.',
+    descriptionDisabledByPreference: 'Speculative loading is disabled because of user settings or an extension. Go to {PH1} to update your preference. Go to {PH2} to disable any extension that blocks speculative loading.',
     /**
      *@description Text of link
      */
@@ -50,7 +50,7 @@ const UIStrings = {
     /**
      *@description Description in dialog
      */
-    descriptionDisabledByDataSaver: 'Preloading is disabled because of the operating system\'s Data Saver mode.',
+    descriptionDisabledByDataSaver: 'Speculative loading is disabled because of the operating system\'s Data Saver mode.',
     /**
      *@description Header in dialog
      */
@@ -58,7 +58,7 @@ const UIStrings = {
     /**
      *@description Description in dialog
      */
-    descriptionDisabledByBatterySaver: 'Preloading is disabled because of the operating system\'s Battery Saver mode.',
+    descriptionDisabledByBatterySaver: 'Speculative loading is disabled because of the operating system\'s Battery Saver mode.',
     /**
      *@description Header in dialog
      */
@@ -141,6 +141,7 @@ export class PreloadingDisabledInfobar extends LegacyWrapper.LegacyWrapper.Wrapp
             closeOnESC: true,
             closeOnScroll: false,
         }}
+          jslog=${VisualLogging.dialog('preloading-disabled').track({ resize: true, keydown: 'Escape' })}
         >
           ${this.#dialogContents()}
         </${Dialogs.IconDialog.IconDialog.litTagName}>
@@ -150,7 +151,7 @@ export class PreloadingDisabledInfobar extends LegacyWrapper.LegacyWrapper.Wrapp
     }
     #dialogContents() {
         const LINK = 'https://developer.chrome.com/blog/prerender-pages/';
-        const learnMoreLink = UI.XLink.XLink.create(LINK, i18nString(UIStrings.footerLearnMore));
+        const learnMoreLink = UI.XLink.XLink.create(LINK, i18nString(UIStrings.footerLearnMore), undefined, undefined, 'learn-more');
         const iconLink = UI.Fragment.html `
       <x-link class="icon-link devtools-link" tabindex="0" href="${LINK}"></x-link>
     `;
@@ -195,7 +196,7 @@ export class PreloadingDisabledInfobar extends LegacyWrapper.LegacyWrapper.Wrapp
     }
     #maybeDisalebByPreference() {
         const preloadingSettingLink = new ChromeLink.ChromeLink.ChromeLink();
-        preloadingSettingLink.href = 'chrome://settings/cookies';
+        preloadingSettingLink.href = 'chrome://settings/performance';
         preloadingSettingLink.textContent = i18nString(UIStrings.preloadingPagesSettings);
         const extensionsSettingLink = new ChromeLink.ChromeLink.ChromeLink();
         extensionsSettingLink.href = 'chrome://extensions';
@@ -216,5 +217,5 @@ export class PreloadingDisabledInfobar extends LegacyWrapper.LegacyWrapper.Wrapp
         return this.#maybeKeyValue(this.#data.disabledByHoldbackPrerenderSpeculationRules, i18nString(UIStrings.headerDisabledByHoldbackPrerenderSpeculationRules), i18nString(UIStrings.descriptionDisabledByHoldbackPrerenderSpeculationRules));
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-resources-preloading-disabled-infobar', PreloadingDisabledInfobar);
-//# map=PreloadingDisabledInfobar.js.map
+customElements.define('devtools-resources-preloading-disabled-infobar', PreloadingDisabledInfobar);
+//# sourceMappingURL=PreloadingDisabledInfobar.js.map

@@ -133,7 +133,7 @@ export class SignedExchangeInfoView extends UI.Widget.VBox {
         }
         const titleElement = document.createDocumentFragment();
         titleElement.createChild('div', 'header-name').textContent = i18nString(UIStrings.signedHttpExchange);
-        const learnMoreNode = UI.XLink.XLink.create('https://github.com/WICG/webpackage', i18nString(UIStrings.learnmore), 'header-toggle');
+        const learnMoreNode = UI.XLink.XLink.create('https://github.com/WICG/webpackage', i18nString(UIStrings.learnmore), 'header-toggle', undefined, 'learn-more');
         titleElement.appendChild(learnMoreNode);
         const headerCategory = new Category(root, titleElement);
         if (signedExchangeInfo.header) {
@@ -141,7 +141,7 @@ export class SignedExchangeInfoView extends UI.Widget.VBox {
             const redirectDestination = request.redirectDestination();
             const requestURLElement = this.formatHeader(i18nString(UIStrings.requestUrl), header.requestUrl);
             if (redirectDestination) {
-                const viewRequestLink = Components.Linkifier.Linkifier.linkifyRevealable(redirectDestination, 'View request');
+                const viewRequestLink = Components.Linkifier.Linkifier.linkifyRevealable(redirectDestination, 'View request', undefined, undefined, undefined, 'redirect-destination-request');
                 viewRequestLink.classList.add('header-toggle');
                 requestURLElement.appendChild(viewRequestLink);
             }
@@ -238,4 +238,4 @@ export class Category extends UI.TreeOutline.TreeElement {
         return leaf;
     }
 }
-//# map=SignedExchangeInfoView.js.map
+//# sourceMappingURL=SignedExchangeInfoView.js.map

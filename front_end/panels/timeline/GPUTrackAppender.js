@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 import * as i18n from '../../core/i18n/i18n.js';
 import * as TraceEngine from '../../models/trace/trace.js';
+import * as ThemeSupport from '../../ui/legacy/theme_support/theme_support.js';
 import { buildGroupStyle, buildTrackHeader, getFormattedTime } from './AppenderUtils.js';
 const UIStrings = {
     /**
@@ -65,7 +66,7 @@ export class GPUTrackAppender {
         if (!TraceEngine.Types.TraceEvents.isTraceEventGPUTask(event)) {
             throw new Error(`Unexpected GPU Task: The event's type is '${event.name}'`);
         }
-        return 'hsl(109, 33%, 55%)';
+        return ThemeSupport.ThemeSupport.instance().getComputedValue('--app-color-painting');
     }
     /**
      * Gets the title an event added by this appender should be rendered with.
@@ -85,4 +86,4 @@ export class GPUTrackAppender {
         return { title, formattedTime: getFormattedTime(event.dur) };
     }
 }
-//# map=GPUTrackAppender.js.map
+//# sourceMappingURL=GPUTrackAppender.js.map

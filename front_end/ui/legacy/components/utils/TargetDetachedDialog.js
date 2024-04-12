@@ -42,7 +42,7 @@ export class TargetDetachedDialog extends SDK.SDKModel.SDKModel {
         if (parentTarget && parentTarget.type() !== SDK.Target.Type.Browser) {
             return;
         }
-        const dialog = new UI.Dialog.Dialog();
+        const dialog = new UI.Dialog.Dialog('target-crashed');
         dialog.setSizeBehavior("MeasureContent" /* UI.GlassPane.SizeBehavior.MeasureContent */);
         dialog.addCloseButton();
         dialog.setDimmed(true);
@@ -68,5 +68,5 @@ export class TargetDetachedDialog extends SDK.SDKModel.SDKModel {
         }
     }
 }
-SDK.SDKModel.SDKModel.register(TargetDetachedDialog, { capabilities: SDK.Target.Capability.Inspector, autostart: true });
-//# map=TargetDetachedDialog.js.map
+SDK.SDKModel.SDKModel.register(TargetDetachedDialog, { capabilities: 2048 /* SDK.Target.Capability.Inspector */, autostart: true });
+//# sourceMappingURL=TargetDetachedDialog.js.map

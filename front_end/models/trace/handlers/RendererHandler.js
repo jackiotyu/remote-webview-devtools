@@ -4,6 +4,7 @@
 import * as Platform from '../../../core/platform/platform.js';
 import * as Helpers from '../helpers/helpers.js';
 import * as Types from '../types/types.js';
+import { data as auctionWorkletsData } from './AuctionWorkletsHandler.js';
 import { data as metaHandlerData } from './MetaHandler.js';
 import { data as samplesHandlerData } from './SamplesHandler.js';
 /**
@@ -23,9 +24,7 @@ const processes = new Map();
 // show the user the rasterization thread(s) on the main frame as tracks.
 const compositorTileWorkers = Array();
 const entryToNode = new Map();
-const allRendererEvents = [];
-let nodeIdCount = 0;
-const makeRendererEntrytNodeId = () => (++nodeIdCount);
+let allTraceEntries = [];
 const completeEventStack = [];
 let handlerState = 1 /* HandlerState.UNINITIALIZED */;
 let config = Types.Configuration.DEFAULT;
@@ -37,18 +36,6 @@ const makeRendererProcess = () => ({
 const makeRendererThread = () => ({
     name: null,
     entries: [],
-});
-const makeEmptyRendererTree = () => ({
-    nodes: new Map(),
-    roots: new Set(),
-    maxDepth: 0,
-});
-const makeEmptyRendererEventNode = (entry, id) => ({
-    entry,
-    id,
-    parentId: null,
-    children: new Set(),
-    depth: 0,
 });
 const getOrCreateRendererProcess = (processes, pid) => {
     return Platform.MapUtilities.getWithDefault(processes, pid, makeRendererProcess);
@@ -62,10 +49,9 @@ export function handleUserConfig(userConfig) {
 export function reset() {
     processes.clear();
     entryToNode.clear();
-    allRendererEvents.length = 0;
+    allTraceEntries.length = 0;
     completeEventStack.length = 0;
     compositorTileWorkers.length = 0;
-    nodeIdCount = -1;
     handlerState = 1 /* HandlerState.UNINITIALIZED */;
 }
 export function initialize() {
@@ -92,14 +78,14 @@ export function handleEvent(event) {
             return;
         }
         thread.entries.push(completeEvent);
-        allRendererEvents.push(completeEvent);
+        allTraceEntries.push(completeEvent);
         return;
     }
     if (Types.TraceEvents.isTraceEventInstant(event) || Types.TraceEvents.isTraceEventComplete(event)) {
         const process = getOrCreateRendererProcess(processes, event.pid);
         const thread = getOrCreateRendererThread(process, event.tid);
         thread.entries.push(event);
-        allRendererEvents.push(event);
+        allTraceEntries.push(event);
     }
 }
 export async function finalize() {
@@ -111,6 +97,7 @@ export async function finalize() {
     sanitizeProcesses(processes);
     buildHierarchy(processes);
     sanitizeThreads(processes);
+    Helpers.Trace.sortTraceEventsInPlace(allTraceEntries);
     handlerState = 3 /* HandlerState.FINALIZED */;
 }
 export function data() {
@@ -121,7 +108,7 @@ export function data() {
         processes: new Map(processes),
         compositorTileWorkers: new Map(gatherCompositorThreads()),
         entryToNode: new Map(entryToNode),
-        allRendererEvents: [...allRendererEvents],
+        allTraceEntries: [...allTraceEntries],
     };
 }
 function gatherCompositorThreads() {
@@ -198,13 +185,10 @@ export function assignIsMainFrame(processes, mainFrameId, rendererProcessesByFra
  * @see assignMeta
  */
 export function assignThreadName(processes, rendererProcessesByFrame, threadsInProcess) {
-    for (const [, renderProcessesByPid] of rendererProcessesByFrame) {
-        for (const [pid] of renderProcessesByPid) {
-            const process = getOrCreateRendererProcess(processes, pid);
-            for (const [tid, threadInfo] of threadsInProcess.get(pid) ?? []) {
-                const thread = getOrCreateRendererThread(process, tid);
-                thread.name = threadInfo?.args.name ?? `${tid}`;
-            }
+    for (const [pid, process] of processes) {
+        for (const [tid, threadInfo] of threadsInProcess.get(pid) ?? []) {
+            const thread = getOrCreateRendererThread(process, tid);
+            thread.name = threadInfo?.args.name ?? `${tid}`;
         }
     }
 }
@@ -214,18 +198,31 @@ export function assignThreadName(processes, rendererProcessesByFrame, threadsInP
  *  - Deletes processes with an unkonwn origin.
  */
 export function sanitizeProcesses(processes) {
+    const auctionWorklets = auctionWorkletsData().worklets;
+    const metaData = metaHandlerData();
+    if (metaData.traceIsGeneric) {
+        return;
+    }
     for (const [pid, process] of processes) {
         // If the process had no url, or if it had a malformed url that could not be
         // parsed for some reason, or if it's an "about:" origin, delete it.
         // This is done because we don't really care about processes for which we
         // can't provide actionable insights to the user (e.g. about:blank pages).
+        //
+        // There is one exception; AuctionWorklet processes get parsed in a
+        // separate handler, so at this point we check to see if the process has
+        // been found by the AuctionWorkletsHandler, and if so we update the URL.
+        // This ensures that we keep this process around and do not drop it due to
+        // the lack of a URL.
         if (process.url === null) {
-            processes.delete(pid);
+            const maybeWorklet = auctionWorklets.get(pid);
+            if (maybeWorklet) {
+                process.url = maybeWorklet.host;
+            }
+            else {
+                processes.delete(pid);
+            }
             continue;
-        }
-        const asUrl = new URL(process.url);
-        if (asUrl.protocol === 'about:') {
-            processes.delete(pid);
         }
     }
 }
@@ -268,126 +265,32 @@ export function sanitizeThreads(processes) {
  *   |- Task C -|
  */
 export function buildHierarchy(processes, options) {
+    const samplesData = samplesHandlerData();
     for (const [pid, process] of processes) {
         for (const [tid, thread] of process.threads) {
             if (!thread.entries.length) {
-                thread.tree = makeEmptyRendererTree();
+                thread.tree = Helpers.TreeHelpers.makeEmptyTraceEntryTree();
                 continue;
             }
             // Step 1. Massage the data.
             Helpers.Trace.sortTraceEventsInPlace(thread.entries);
             // Step 2. Inject profile calls from samples
-            const cpuProfile = samplesHandlerData().profilesInProcess.get(pid)?.get(tid)?.parsedProfile;
+            const cpuProfile = samplesData.profilesInProcess.get(pid)?.get(tid)?.parsedProfile;
             const samplesIntegrator = cpuProfile && new Helpers.SamplesIntegrator.SamplesIntegrator(cpuProfile, pid, tid, config);
             const profileCalls = samplesIntegrator?.buildProfileCalls(thread.entries);
             if (profileCalls) {
+                allTraceEntries = [...allTraceEntries, ...profileCalls];
                 thread.entries = Helpers.Trace.mergeEventsInOrder(thread.entries, profileCalls);
             }
             // Step 3. Build the tree.
-            thread.tree = treify(thread.entries, options);
+            const treeData = Helpers.TreeHelpers.treify(thread.entries, options);
+            thread.tree = treeData.tree;
+            // Update the entryToNode map with the entries from this thread
+            for (const [entry, node] of treeData.entryToNode) {
+                entryToNode.set(entry, node);
+            }
         }
     }
-}
-/**
- * Builds a hierarchy of the entries (trace events and profile calls) in
- * a particular thread of a particular process, assuming that they're
- * sorted, by iterating through all of the events in order.
- *
- * The approach is analogous to how a parser would be implemented. A
- * stack maintains local context. A scanner peeks and pops from the data
- * stream. Various "tokens" (events) are treated as "whitespace"
- * (ignored).
- *
- * The tree starts out empty and is populated as the hierarchy is built.
- * The nodes are also assumed to be created empty, with no known parent
- * or children.
- *
- * Complexity: O(n), where n = number of events
- */
-export function treify(entries, options) {
-    const stack = [];
-    // Reset the node id counter for every new renderer.
-    nodeIdCount = -1;
-    const tree = makeEmptyRendererTree();
-    for (let i = 0; i < entries.length; i++) {
-        const event = entries[i];
-        // If the current event should not be part of the tree, then simply proceed
-        // with the next event.
-        if (options && !options.filter.has(event.name)) {
-            continue;
-        }
-        const duration = event.dur || 0;
-        const nodeId = makeRendererEntrytNodeId();
-        const node = makeEmptyRendererEventNode(event, nodeId);
-        // If the parent stack is empty, then the current event is a root. Create a
-        // node for it, mark it as a root, then proceed with the next event.
-        if (stack.length === 0) {
-            tree.nodes.set(nodeId, node);
-            tree.roots.add(node);
-            event.selfTime = Types.Timing.MicroSeconds(duration);
-            stack.push(node);
-            tree.maxDepth = Math.max(tree.maxDepth, stack.length);
-            entryToNode.set(event, node);
-            continue;
-        }
-        const parentNode = stack.at(-1);
-        if (parentNode === undefined) {
-            throw new Error('Impossible: no parent node found in the stack');
-        }
-        const parentEvent = parentNode.entry;
-        const begin = event.ts;
-        const parentBegin = parentEvent.ts;
-        const parentDuration = parentEvent.dur || 0;
-        const end = begin + duration;
-        const parentEnd = parentBegin + parentDuration;
-        // Check the relationship between the parent event at the top of the stack,
-        // and the current event being processed. There are only 4 distinct
-        // possiblities, only 2 of them actually valid, given the assumed sorting:
-        // 1. Current event starts before the parent event, ends whenever. (invalid)
-        // 2. Current event starts after the parent event, ends whenever. (valid)
-        // 3. Current event starts during the parent event, ends after. (invalid)
-        // 4. Current event starts and ends during the parent event. (valid)
-        // 1. If the current event starts before the parent event, then the data is
-        //    not sorted properly, messed up some way, or this logic is incomplete.
-        const startsBeforeParent = begin < parentBegin;
-        if (startsBeforeParent) {
-            throw new Error('Impossible: current event starts before the parent event');
-        }
-        // 2. If the current event starts after the parent event, then it's a new
-        //    parent. Pop, then handle current event again.
-        const startsAfterParent = begin >= parentEnd;
-        if (startsAfterParent) {
-            stack.pop();
-            i--;
-            // The last created node has been discarded, so discard this id.
-            nodeIdCount--;
-            continue;
-        }
-        // 3. If the current event starts during the parent event, but ends
-        //    after it, then the data is messed up some way, for example a
-        //    profile call was sampled too late after its start, ignore the
-        //    problematic event.
-        const endsAfterParent = end > parentEnd;
-        if (endsAfterParent) {
-            continue;
-        }
-        // 4. The only remaining case is the common case, where the current event is
-        //    contained within the parent event. Create a node for the current
-        //    event, establish the parent/child relationship, then proceed with the
-        //    next event.
-        tree.nodes.set(nodeId, node);
-        node.depth = stack.length;
-        node.parentId = parentNode.id;
-        parentNode.children.add(node);
-        event.selfTime = Types.Timing.MicroSeconds(duration);
-        if (parentEvent.selfTime !== undefined) {
-            parentEvent.selfTime = Types.Timing.MicroSeconds(parentEvent.selfTime - (event.dur || 0));
-        }
-        stack.push(node);
-        tree.maxDepth = Math.max(tree.maxDepth, stack.length);
-        entryToNode.set(event, node);
-    }
-    return tree;
 }
 export function makeCompleteEvent(event) {
     if (Types.TraceEvents.isTraceEventEnd(event)) {
@@ -418,10 +321,6 @@ export function makeCompleteEvent(event) {
     return syntheticComplete;
 }
 export function deps() {
-    return ['Meta', 'Samples'];
+    return ['Meta', 'Samples', 'AuctionWorklets'];
 }
-class RendererEventNodeIdTag {
-    /* eslint-disable-next-line no-unused-private-class-members */
-    #tag;
-}
-//# map=RendererHandler.js.map
+//# sourceMappingURL=RendererHandler.js.map

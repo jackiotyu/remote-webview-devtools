@@ -47,7 +47,7 @@ export class EditingLocationHistoryManager {
         }
         const prevPos = update.startState.selection.main;
         const newPos = update.state.selection.main;
-        const isJump = !this.revealing && prevPos.anchor !== newPos.anchor && update.transactions.some((tr) => {
+        const isJump = !this.revealing && prevPos.anchor !== newPos.anchor && update.transactions.some(tr => {
             return Boolean(tr.isUserEvent('select.pointer') || tr.isUserEvent('select.reveal') || tr.isUserEvent('select.search'));
         });
         if (isJump) {
@@ -122,4 +122,4 @@ class EditingLocationHistoryEntry {
         return this.url === uiSourceCode.url() && this.projectId === uiSourceCode.project().id();
     }
 }
-//# map=EditingLocationHistoryManager.js.map
+//# sourceMappingURL=EditingLocationHistoryManager.js.map

@@ -53,4 +53,4 @@ class DevToolsRecorder {
 if (!window.DevToolsRecorder) {
     window.DevToolsRecorder = new DevToolsRecorder();
 }
-//# map=injected.js.map
+//# sourceMappingURL=injected.js.map

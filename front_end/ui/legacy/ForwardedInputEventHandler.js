@@ -24,4 +24,4 @@ export class ForwardedInputEventHandler {
     }
 }
 new ForwardedInputEventHandler();
-//# map=ForwardedInputEventHandler.js.map
+//# sourceMappingURL=ForwardedInputEventHandler.js.map

@@ -8,7 +8,7 @@ import * as PerfUI from '../../ui/legacy/components/perf_ui/perf_ui.js';
 import * as ThemeSupport from '../../ui/legacy/theme_support/theme_support.js';
 import { NetworkLogView } from './NetworkLogView.js';
 import { NetworkTimeBoundary } from './NetworkTimeCalculator.js';
-import { RequestTimeRangeNames, RequestTimingView } from './RequestTimingView.js';
+import { RequestTimingView } from './RequestTimingView.js';
 const coordinator = Coordinator.RenderCoordinator.RenderCoordinator.instance();
 export class NetworkOverview extends PerfUI.TimelineOverviewPane.TimelineOverviewBase {
     selectedFilmStripTime;
@@ -87,7 +87,7 @@ export class NetworkOverview extends PerfUI.TimelineOverviewPane.TimelineOvervie
         const height = this.element.offsetHeight;
         this.calculator().setDisplayWidth(width);
         this.resetCanvas();
-        const numBands = (((height - _padding - 1) / _bandHeight) - 1) | 0;
+        const numBands = (((height - PADDING - 1) / BAND_HEIGHT) - 1) | 0;
         this.numBands = (numBands > 0) ? numBands : 1;
         this.scheduleUpdate();
     }
@@ -122,7 +122,7 @@ export class NetworkOverview extends PerfUI.TimelineOverviewPane.TimelineOvervie
         }
         const context = this.context();
         const linesByType = new Map();
-        const paddingTop = _padding;
+        const paddingTop = PADDING;
         function drawLines(type) {
             const lines = linesByType.get(type);
             if (!lines) {
@@ -134,7 +134,7 @@ export class NetworkOverview extends PerfUI.TimelineOverviewPane.TimelineOvervie
             context.lineWidth = BORDER_WIDTH;
             context.fillStyle = ThemeSupport.ThemeSupport.instance().getComputedValue(RequestTimeRangeNameToColor[type]);
             for (let i = 0; i < n;) {
-                const y = lines[i++] * _bandHeight + paddingTop;
+                const y = lines[i++] * BAND_HEIGHT + paddingTop;
                 const startTime = lines[i++];
                 let endTime = lines[i++];
                 if (endTime === Number.MAX_VALUE) {
@@ -142,8 +142,8 @@ export class NetworkOverview extends PerfUI.TimelineOverviewPane.TimelineOvervie
                 }
                 const startX = calculator.computePosition(TraceEngine.Types.Timing.MilliSeconds(startTime));
                 const endX = calculator.computePosition(TraceEngine.Types.Timing.MilliSeconds(endTime)) + 1;
-                context.fillRect(startX, y, endX - startX, _bandHeight);
-                context.strokeRect(startX, y, endX - startX, _bandHeight);
+                context.fillRect(startX, y, Math.max(endX - startX, MIN_BAND_WIDTH), BAND_HEIGHT);
+                context.strokeRect(startX, y, Math.max(endX - startX, MIN_BAND_WIDTH), BAND_HEIGHT);
             }
         }
         function addLine(type, y, start, end) {
@@ -163,7 +163,7 @@ export class NetworkOverview extends PerfUI.TimelineOverviewPane.TimelineOvervie
             const timeRanges = RequestTimingView.calculateRequestTimeRanges(request, this.calculator().minimumBoundary());
             for (let j = 0; j < timeRanges.length; ++j) {
                 const type = timeRanges[j].name;
-                if (band !== -1 || type === RequestTimeRangeNames.Total) {
+                if (band !== -1 || type === "total" /* RequestTimeRangeNames.Total */) {
                     addLine(type, y, timeRanges[j].start * 1000, timeRanges[j].end * 1000);
                 }
             }
@@ -172,27 +172,27 @@ export class NetworkOverview extends PerfUI.TimelineOverviewPane.TimelineOvervie
         context.save();
         context.scale(window.devicePixelRatio, window.devicePixelRatio);
         context.lineWidth = 2;
-        drawLines(RequestTimeRangeNames.Total);
-        drawLines(RequestTimeRangeNames.Blocking);
-        drawLines(RequestTimeRangeNames.Connecting);
-        drawLines(RequestTimeRangeNames.ServiceWorker);
-        drawLines(RequestTimeRangeNames.ServiceWorkerPreparation);
-        drawLines(RequestTimeRangeNames.ServiceWorkerRespondWith);
-        drawLines(RequestTimeRangeNames.Push);
-        drawLines(RequestTimeRangeNames.Proxy);
-        drawLines(RequestTimeRangeNames.DNS);
-        drawLines(RequestTimeRangeNames.SSL);
-        drawLines(RequestTimeRangeNames.Sending);
-        drawLines(RequestTimeRangeNames.Waiting);
-        drawLines(RequestTimeRangeNames.Receiving);
+        drawLines("total" /* RequestTimeRangeNames.Total */);
+        drawLines("blocking" /* RequestTimeRangeNames.Blocking */);
+        drawLines("connecting" /* RequestTimeRangeNames.Connecting */);
+        drawLines("serviceworker" /* RequestTimeRangeNames.ServiceWorker */);
+        drawLines("serviceworker-preparation" /* RequestTimeRangeNames.ServiceWorkerPreparation */);
+        drawLines("serviceworker-respondwith" /* RequestTimeRangeNames.ServiceWorkerRespondWith */);
+        drawLines("push" /* RequestTimeRangeNames.Push */);
+        drawLines("proxy" /* RequestTimeRangeNames.Proxy */);
+        drawLines("dns" /* RequestTimeRangeNames.DNS */);
+        drawLines("ssl" /* RequestTimeRangeNames.SSL */);
+        drawLines("sending" /* RequestTimeRangeNames.Sending */);
+        drawLines("waiting" /* RequestTimeRangeNames.Waiting */);
+        drawLines("receiving" /* RequestTimeRangeNames.Receiving */);
         if (this.highlightedRequest) {
             const size = 5;
             const borderSize = 2;
             const request = this.highlightedRequest;
             const band = this.bandId(request.connectionId);
-            const y = ((band === -1) ? 0 : (band % this.numBands + 1)) * _bandHeight + paddingTop;
+            const y = ((band === -1) ? 0 : (band % this.numBands + 1)) * BAND_HEIGHT + paddingTop;
             const timeRanges = RequestTimingView.calculateRequestTimeRanges(request, this.calculator().minimumBoundary());
-            context.fillStyle = ThemeSupport.ThemeSupport.instance().getComputedValue('--legacy-selection-bg-color');
+            context.fillStyle = ThemeSupport.ThemeSupport.instance().getComputedValue('--sys-color-tonal-container');
             // The network overview works in seconds, but the calcululator deals in
             // milliseconds, hence the multiplication by 1000.
             const start = TraceEngine.Types.Timing.MilliSeconds(timeRanges[0].start * 1000);
@@ -200,7 +200,7 @@ export class NetworkOverview extends PerfUI.TimelineOverviewPane.TimelineOvervie
             context.fillRect(calculator.computePosition(start) - borderSize, y - size / 2 - borderSize, calculator.computePosition(end) - calculator.computePosition(start) + 1 + 2 * borderSize, size * borderSize);
             for (let j = 0; j < timeRanges.length; ++j) {
                 const type = timeRanges[j].name;
-                if (band !== -1 || type === RequestTimeRangeNames.Total) {
+                if (band !== -1 || type === "total" /* RequestTimeRangeNames.Total */) {
                     context.beginPath();
                     context.strokeStyle =
                         ThemeSupport.ThemeSupport.instance().getComputedValue(RequestTimeRangeNameToColor[type]);
@@ -247,27 +247,25 @@ export class NetworkOverview extends PerfUI.TimelineOverviewPane.TimelineOvervie
     }
 }
 export const RequestTimeRangeNameToColor = {
-    [RequestTimeRangeNames.Total]: '--override-network-overview-total',
-    [RequestTimeRangeNames.Blocking]: '--override-network-overview-blocking',
-    [RequestTimeRangeNames.Connecting]: '--override-network-overview-connecting',
-    [RequestTimeRangeNames.ServiceWorker]: '--override-network-overview-service-worker',
-    [RequestTimeRangeNames.ServiceWorkerPreparation]: '--override-network-overview-service-worker',
-    [RequestTimeRangeNames.ServiceWorkerRespondWith]: '--override-network-overview-service-worker-respond-with',
-    [RequestTimeRangeNames.Push]: '--override-network-overview-push',
-    [RequestTimeRangeNames.Proxy]: '--override-network-overview-proxy',
-    [RequestTimeRangeNames.DNS]: '--override-network-overview-dns',
-    [RequestTimeRangeNames.SSL]: '--override-network-overview-ssl',
-    [RequestTimeRangeNames.Sending]: '--override-network-overview-sending',
-    [RequestTimeRangeNames.Waiting]: '--override-network-overview-waiting',
-    [RequestTimeRangeNames.Receiving]: '--override-network-overview-receiving',
-    [RequestTimeRangeNames.Queueing]: '--override-network-overview-queueing',
+    ["total" /* RequestTimeRangeNames.Total */]: '--network-overview-total',
+    ["blocking" /* RequestTimeRangeNames.Blocking */]: '--network-overview-blocking',
+    ["connecting" /* RequestTimeRangeNames.Connecting */]: '--network-overview-connecting',
+    ["serviceworker" /* RequestTimeRangeNames.ServiceWorker */]: '--network-overview-service-worker',
+    ["serviceworker-preparation" /* RequestTimeRangeNames.ServiceWorkerPreparation */]: '--network-overview-service-worker',
+    ["serviceworker-respondwith" /* RequestTimeRangeNames.ServiceWorkerRespondWith */]: '--network-overview-service-worker-respond-with',
+    ["push" /* RequestTimeRangeNames.Push */]: '--network-overview-push',
+    ["proxy" /* RequestTimeRangeNames.Proxy */]: '--override-network-overview-proxy',
+    ["dns" /* RequestTimeRangeNames.DNS */]: '--network-overview-dns',
+    ["ssl" /* RequestTimeRangeNames.SSL */]: '--network-overview-ssl',
+    ["sending" /* RequestTimeRangeNames.Sending */]: '--override-network-overview-sending',
+    ["waiting" /* RequestTimeRangeNames.Waiting */]: '--network-overview-waiting',
+    ["receiving" /* RequestTimeRangeNames.Receiving */]: '--network-overview-receiving',
+    ["queueing" /* RequestTimeRangeNames.Queueing */]: '--network-overview-queueing',
 };
-// TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export const _bandHeight = 3;
-// TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export const _padding = 5;
+const BAND_HEIGHT = 3;
+const PADDING = 5;
+// Minimum rectangle width for very short requests.
+const MIN_BAND_WIDTH = 10;
 // Border between bars in network overview panel for accessibility.
 const BORDER_WIDTH = 1;
-//# map=NetworkOverview.js.map
+//# sourceMappingURL=NetworkOverview.js.map

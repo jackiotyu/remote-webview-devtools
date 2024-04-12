@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as WindowBoundsService from './WindowBoundsService.js';
 export { WindowBoundsService, };
-//# map=window_bounds.js.map
+//# sourceMappingURL=window_bounds.js.map

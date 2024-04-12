@@ -5,6 +5,7 @@ import * as i18n from '../../../core/i18n/i18n.js';
 import * as Buttons from '../../../ui/components/buttons/buttons.js';
 import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
+import * as VisualLogging from '../../../ui/visual_logging/visual_logging.js';
 import { Dialog as DialogElement, } from './Dialog.js';
 import shortcutDialogStyles from './shortcutDialog.css.js';
 const UIStrings = {
@@ -80,7 +81,6 @@ export class ShortcutDialog extends HTMLElement {
             variant: "toolbar" /* Buttons.Button.Variant.TOOLBAR */,
             iconName: 'help',
             title: i18nString(UIStrings.showShortcutTitle),
-            iconWidth: '16px',
         }}
       ></${Buttons.Button.Button.litTagName}>
       <${DialogElement.litTagName}
@@ -97,6 +97,7 @@ export class ShortcutDialog extends HTMLElement {
         on-render=${ComponentHelpers.Directives.nodeRenderedCallback(node => {
             this.#dialog = node;
         })}
+        jslog=${VisualLogging.dialog('shortcuts').track({ resize: true, keydown: 'Escape' })}
       >
         <div class="keybinds-category-header">
           <span class="keybinds-category-header-text">${i18nString(UIStrings.dialogTitle)}</span>
@@ -108,6 +109,7 @@ export class ShortcutDialog extends HTMLElement {
             iconName: 'cross',
             title: i18nString(UIStrings.close),
         }}
+            jslog=${VisualLogging.close().track({ click: true })}
           ></${Buttons.Button.Button.litTagName}>
         </div>
         <ul class="keybinds-list">
@@ -133,5 +135,5 @@ export class ShortcutDialog extends HTMLElement {
         }
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-shortcut-dialog', ShortcutDialog);
-//# map=ShortcutDialog.js.map
+customElements.define('devtools-shortcut-dialog', ShortcutDialog);
+//# sourceMappingURL=ShortcutDialog.js.map

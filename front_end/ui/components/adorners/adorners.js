@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as Adorner from './Adorner.js';
 export { Adorner, };
-//# map=adorners.js.map
+//# sourceMappingURL=adorners.js.map

@@ -35,12 +35,10 @@ export class BackgroundServiceModel extends SDK.SDKModel.SDKModel {
         this.dispatchEventToListeners(Events.BackgroundServiceEventReceived, backgroundServiceEvent);
     }
 }
-SDK.SDKModel.SDKModel.register(BackgroundServiceModel, { capabilities: SDK.Target.Capability.Browser, autostart: false });
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
+SDK.SDKModel.SDKModel.register(BackgroundServiceModel, { capabilities: 1 /* SDK.Target.Capability.Browser */, autostart: false });
 export var Events;
 (function (Events) {
     Events["RecordingStateChanged"] = "RecordingStateChanged";
     Events["BackgroundServiceEventReceived"] = "BackgroundServiceEventReceived";
 })(Events || (Events = {}));
-//# map=BackgroundServiceModel.js.map
+//# sourceMappingURL=BackgroundServiceModel.js.map

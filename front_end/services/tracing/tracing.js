@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as PerformanceTracing from './PerformanceTracing.js';
 export { PerformanceTracing, };
-//# map=tracing.js.map
+//# sourceMappingURL=tracing.js.map

@@ -24,8 +24,8 @@ export function buildGroupStyle(extra) {
         padding: 4,
         height: 17,
         collapsible: true,
-        color: ThemeSupport.ThemeSupport.instance().getComputedValue('--color-text-primary'),
-        backgroundColor: ThemeSupport.ThemeSupport.instance().getComputedValue('--color-background'),
+        color: ThemeSupport.ThemeSupport.instance().getComputedValue('--sys-color-on-surface'),
+        backgroundColor: ThemeSupport.ThemeSupport.instance().getComputedValue('--sys-color-cdt-base-container'),
         nestingLevel: 0,
         shareHeaderLine: true,
     };
@@ -41,8 +41,8 @@ export function buildGroupStyle(extra) {
  * @param track this is set only when `selectable` is true, and it is used for selecting a track in the details panel.
  * @returns the group that built from the give data
  */
-export function buildTrackHeader(startLevel, name, style, selectable, expanded, track) {
-    const group = { startLevel, name, style, selectable, expanded };
+export function buildTrackHeader(startLevel, name, style, selectable, expanded, track, showStackContextMenu) {
+    const group = { startLevel, name, style, selectable, expanded, showStackContextMenu };
     if (selectable && track) {
         group.track = track;
     }
@@ -95,4 +95,4 @@ export function addDecorationToEvent(timelineData, eventIndex, decoration) {
     decorationsForEvent.push(decoration);
     timelineData.entryDecorations[eventIndex] = decorationsForEvent;
 }
-//# map=AppenderUtils.js.map
+//# sourceMappingURL=AppenderUtils.js.map

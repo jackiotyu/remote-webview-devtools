@@ -445,4 +445,4 @@ export class ScopeVariableAnalysis {
         this.#processNode(decl.init ?? null);
     }
 }
-//# map=ScopeParser.js.map
+//# sourceMappingURL=ScopeParser.js.map

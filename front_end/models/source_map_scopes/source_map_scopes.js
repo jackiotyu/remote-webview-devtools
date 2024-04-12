@@ -4,4 +4,4 @@
 import * as NamesResolver from './NamesResolver.js';
 import * as ScopeTreeCache from './ScopeTreeCache.js';
 export { NamesResolver, ScopeTreeCache, };
-//# map=source_map_scopes.js.map
+//# sourceMappingURL=source_map_scopes.js.map

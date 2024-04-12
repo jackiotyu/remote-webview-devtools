@@ -2,11 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as Platform from '../../core/platform/platform.js';
-// TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
-// eslint-disable-next-line @typescript-eslint/naming-convention
-let _id = 0;
+let id = 0;
 export function nextId(prefix) {
-    return (prefix || '') + ++_id;
+    return (prefix || '') + ++id;
 }
 export function bindLabelToControl(label, control) {
     const controlId = nextId('labelledControl');
@@ -197,24 +195,7 @@ export function setHidden(element, value) {
 export function setLevel(element, level) {
     element.setAttribute('aria-level', level.toString());
 }
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
-export var AutocompleteInteractionModel;
-(function (AutocompleteInteractionModel) {
-    // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    AutocompleteInteractionModel["inline"] = "inline";
-    // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    AutocompleteInteractionModel["list"] = "list";
-    // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    AutocompleteInteractionModel["both"] = "both";
-    // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    AutocompleteInteractionModel["none"] = "none";
-})(AutocompleteInteractionModel || (AutocompleteInteractionModel = {}));
-export function setAutocomplete(element, interactionModel = AutocompleteInteractionModel.none) {
+export function setAutocomplete(element, interactionModel = "none" /* AutocompleteInteractionModel.None */) {
     element.setAttribute('aria-autocomplete', interactionModel);
 }
 export function clearAutocomplete(element) {
@@ -343,4 +324,4 @@ export function alert(message) {
     const element = alertElementInstance();
     element.textContent = Platform.StringUtilities.trimEndWithMaxLength(message, 10000);
 }
-//# map=ARIAUtils.js.map
+//# sourceMappingURL=ARIAUtils.js.map

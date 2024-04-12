@@ -159,4 +159,4 @@ export class NetworkSearchResult {
         return location.searchMatch?.matchLength;
     }
 }
-//# map=NetworkSearchScope.js.map
+//# sourceMappingURL=NetworkSearchScope.js.map

@@ -6,6 +6,7 @@ import * as Common from '../common/common.js';
 import * as HostModule from '../host/host.js';
 import * as Platform from '../platform/platform.js';
 import { cssMetadata, GridAreaRowRegex } from './CSSMetadata.js';
+import { stripComments } from './CSSPropertyParser.js';
 export class CSSProperty {
     ownerStyle;
     index;
@@ -150,7 +151,7 @@ export class CSSProperty {
         const range = this.range.relativeTo(this.ownerStyle.range.startLine, this.ownerStyle.range.startColumn);
         const indentation = this.ownerStyle.cssText ?
             this.detectIndentation(this.ownerStyle.cssText) :
-            Common.Settings.Settings.instance().moduleSetting('textEditorIndent').get();
+            Common.Settings.Settings.instance().moduleSetting('text-editor-indent').get();
         const endIndentation = this.ownerStyle.cssText ? indentation.substring(0, this.ownerStyle.range.endColumn) : '';
         const text = new TextUtils.Text.Text(this.ownerStyle.cssText || '');
         const newStyleText = text.replaceRange(range, Platform.StringUtilities.sprintf(';%s;', propertyText));
@@ -177,7 +178,8 @@ export class CSSProperty {
         function processToken(token, tokenType) {
             if (!insideProperty) {
                 const disabledProperty = tokenType?.includes('comment') && isDisabledProperty(token);
-                const isPropertyStart = (tokenType?.includes('string') || tokenType?.includes('meta') || tokenType?.includes('property') ||
+                const isPropertyStart = (tokenType?.includes('def') || tokenType?.includes('string') || tokenType?.includes('meta') ||
+                    tokenType?.includes('property') ||
                     (tokenType?.includes('variableName') && tokenType !== ('variableName.function')));
                 if (disabledProperty) {
                     result = result.trimEnd() + indentation + token;
@@ -260,7 +262,11 @@ export class CSSProperty {
         const appendSemicolonIfMissing = (propertyText) => propertyText + (propertyText.endsWith(';') ? '' : ';');
         let text;
         if (disabled) {
-            text = '/* ' + appendSemicolonIfMissing(propertyText) + ' */';
+            // We remove comments before wrapping comment tags around propertyText, because otherwise it will
+            // create an unmatched trailing `*/`, making the text invalid. This will result in disabled
+            // CSSProperty losing its original comments, but since escaping comments will result in the parser
+            // to completely ignore and then lose this declaration, this is the best compromise so far.
+            text = '/* ' + appendSemicolonIfMissing(stripComments(propertyText)) + ' */';
         }
         else {
             text = appendSemicolonIfMissing(this.text.substring(2, propertyText.length - 2).trim());
@@ -283,4 +289,4 @@ export class CSSProperty {
         return this.#longhandProperties;
     }
 }
-//# map=CSSProperty.js.map
+//# sourceMappingURL=CSSProperty.js.map

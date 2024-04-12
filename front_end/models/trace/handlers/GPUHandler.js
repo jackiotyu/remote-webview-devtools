@@ -45,10 +45,10 @@ export function data() {
         throw new Error('GPU Handler is not finalized');
     }
     return {
-        mainGPUThreadTasks: [...mainGPUThreadTasks],
+        mainGPUThreadTasks,
     };
 }
 export function deps() {
     return ['Meta'];
 }
-//# map=GPUHandler.js.map
+//# sourceMappingURL=GPUHandler.js.map

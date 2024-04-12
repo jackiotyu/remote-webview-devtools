@@ -4,4 +4,4 @@
 import * as StructuredHeaders from './StructuredHeaders.js';
 import * as UserAgentMetadata from './UserAgentMetadata.js';
 export { StructuredHeaders, UserAgentMetadata, };
-//# map=utils.js.map
+//# sourceMappingURL=utils.js.map

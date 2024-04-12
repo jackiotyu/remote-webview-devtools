@@ -190,4 +190,4 @@ export const categorizePropertyName = (propertyName) => {
     }
     return ["Other" /* Category.Other */];
 };
-//# map=PropertyNameCategories.js.map
+//# sourceMappingURL=PropertyNameCategories.js.map

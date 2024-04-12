@@ -60,4 +60,4 @@ export const createClickAttributes = (event, target) => {
         offsetY,
     };
 };
-//# map=util.js.map
+//# sourceMappingURL=util.js.map

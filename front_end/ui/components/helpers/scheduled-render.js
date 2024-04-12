@@ -58,4 +58,4 @@ export async function scheduleRender(component, callback) {
 export function isScheduledRender(component) {
     return activeRenders.has(component);
 }
-//# map=scheduled-render.js.map
+//# sourceMappingURL=scheduled-render.js.map

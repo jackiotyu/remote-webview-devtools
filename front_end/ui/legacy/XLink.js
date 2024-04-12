@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 import * as Host from '../../core/host/host.js';
 import * as Platform from '../../core/platform/platform.js';
-import * as ComponentHelpers from '../components/helpers/helpers.js';
 import * as LitHtml from '../lit-html/lit-html.js';
+import * as VisualLogging from '../visual_logging/visual_logging.js';
 import * as ARIAUtils from './ARIAUtils.js';
 import { html } from './Fragment.js';
 import { Tooltip } from './Tooltip.js';
@@ -15,7 +15,7 @@ export class XLink extends XElement {
     clickable;
     onClick;
     onKeyDown;
-    static create(url, linkText, className, preventClick) {
+    static create(url, linkText, className, preventClick, jsLogContext) {
         if (!linkText) {
             linkText = url;
         }
@@ -24,7 +24,7 @@ export class XLink extends XElement {
         // TODO(dgozman): migrate css from 'devtools-link' to 'x-link'.
         const element = html `
   <x-link href='${url}' tabindex="0" class='${className} devtools-link' ${preventClick ? 'no-click' : ''}
-  >${Platform.StringUtilities.trimMiddle(linkText, MaxLengthForDisplayedURLs)}</x-link>`;
+  jslog=${VisualLogging.link().track({ click: true, keydown: 'Enter|Space' }).context(jsLogContext)}>${Platform.StringUtilities.trimMiddle(linkText, MaxLengthForDisplayedURLs)}</x-link>`;
         // clang-format on
         return element;
     }
@@ -56,7 +56,7 @@ export class XLink extends XElement {
     }
     static get observedAttributes() {
         // TODO(dgozman): should be super.observedAttributes, but it does not compile.
-        return XElement.observedAttributes.concat(['href', 'no-click']);
+        return XElement.observedAttributes.concat(['href', 'no-click', 'title']);
     }
     get href() {
         return this.hrefInternal;
@@ -84,7 +84,9 @@ export class XLink extends XElement {
                 href = null;
             }
             this.hrefInternal = href;
-            Tooltip.install(this, newValue);
+            if (!this.hasAttribute('title')) {
+                Tooltip.install(this, newValue);
+            }
             this.updateClick();
             return;
         }
@@ -103,16 +105,8 @@ export class XLink extends XElement {
         }
     }
 }
-let contextMenuProviderInstance;
 export class ContextMenuProvider {
-    static instance(opts = { forceNew: null }) {
-        const { forceNew } = opts;
-        if (!contextMenuProviderInstance || forceNew) {
-            contextMenuProviderInstance = new ContextMenuProvider();
-        }
-        return contextMenuProviderInstance;
-    }
-    appendApplicableItems(event, contextMenu, target) {
+    appendApplicableItems(_event, contextMenu, target) {
         let targetNode = target;
         while (targetNode && !(targetNode instanceof XLink)) {
             targetNode = targetNode.parentNodeOrShadowHost();
@@ -125,14 +119,14 @@ export class ContextMenuProvider {
             if (node.href) {
                 Host.InspectorFrontendHost.InspectorFrontendHostInstance.openInNewTab(node.href);
             }
-        });
+        }, { jslogContext: 'open-in-new-tab' });
         contextMenu.revealSection().appendItem(copyLinkAddressLabel(), () => {
             if (node.href) {
                 Host.InspectorFrontendHost.InspectorFrontendHostInstance.copyText(node.href);
             }
-        });
+        }, { jslogContext: 'copy-link-address' });
     }
 }
-ComponentHelpers.CustomElements.defineComponent('x-link', XLink);
+customElements.define('x-link', XLink);
 export const sample = LitHtml.html `<p>Hello, <x-link>world!</x-link></p>`;
-//# map=XLink.js.map
+//# sourceMappingURL=XLink.js.map

@@ -3,8 +3,10 @@
 // found in the LICENSE file.
 import * as Common from '../../core/common/common.js';
 import * as i18n from '../../core/i18n/i18n.js';
+import * as Platform from '../../core/platform/platform.js';
 import * as SDK from '../../core/sdk/sdk.js';
 import * as UI from '../../ui/legacy/legacy.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import * as MobileThrottling from '../mobile_throttling/mobile_throttling.js';
 import * as EmulationComponents from '../settings/emulation/components/components.js';
 import networkConfigViewStyles from './networkConfigView.css.js';
@@ -61,6 +63,7 @@ let networkConfigViewInstance;
 export class NetworkConfigView extends UI.Widget.VBox {
     constructor() {
         super(true);
+        this.element.setAttribute('jslog', `${VisualLogging.panel('network-conditions').track({ resize: true })}`);
         this.contentElement.classList.add('network-config');
         this.createCacheSection();
         this.contentElement.createChild('div').classList.add('panel-section-separator');
@@ -78,22 +81,24 @@ export class NetworkConfigView extends UI.Widget.VBox {
         return networkConfigViewInstance;
     }
     static createUserAgentSelectAndInput(title) {
-        const userAgentSetting = Common.Settings.Settings.instance().createSetting('customUserAgent', '');
-        const userAgentMetadataSetting = Common.Settings.Settings.instance().createSetting('customUserAgentMetadata', null);
+        const userAgentSetting = Common.Settings.Settings.instance().createSetting('custom-user-agent', '');
+        const userAgentMetadataSetting = Common.Settings.Settings.instance().createSetting('custom-user-agent-metadata', null);
         const userAgentSelectElement = document.createElement('select');
+        userAgentSelectElement.setAttribute('jslog', `${VisualLogging.dropDown().track({ change: true }).context(userAgentSetting.name)}`);
         UI.ARIAUtils.setLabel(userAgentSelectElement, title);
         const customOverride = { title: i18nString(UIStrings.custom), value: 'custom' };
-        userAgentSelectElement.appendChild(new Option(customOverride.title, customOverride.value));
+        userAgentSelectElement.appendChild(UI.UIUtils.createOption(customOverride.title, customOverride.value, 'custom'));
         for (const userAgentDescriptor of userAgentGroups) {
             const groupElement = userAgentSelectElement.createChild('optgroup');
             groupElement.label = userAgentDescriptor.title;
             for (const userAgentVersion of userAgentDescriptor.values) {
                 const userAgentValue = SDK.NetworkManager.MultitargetNetworkManager.patchUserAgentWithChromeVersion(userAgentVersion.value);
-                groupElement.appendChild(new Option(userAgentVersion.title, userAgentValue));
+                groupElement.appendChild(UI.UIUtils.createOption(userAgentVersion.title, userAgentValue, Platform.StringUtilities.toKebabCase(userAgentVersion.title)));
             }
         }
         userAgentSelectElement.selectedIndex = 0;
         const otherUserAgentElement = UI.UIUtils.createInput('', 'text');
+        otherUserAgentElement.setAttribute('jslog', `${VisualLogging.textField().track({ keydown: true }).context(userAgentSetting.name)}`);
         otherUserAgentElement.value = userAgentSetting.get();
         UI.Tooltip.Tooltip.install(otherUserAgentElement, userAgentSetting.get());
         otherUserAgentElement.placeholder = i18nString(UIStrings.enterACustomUserAgent);
@@ -166,7 +171,7 @@ export class NetworkConfigView extends UI.Widget.VBox {
     }
     createCacheSection() {
         const section = this.createSection(i18nString(UIStrings.caching), 'network-config-disable-cache');
-        section.appendChild(UI.SettingsUI.createSettingCheckbox(i18nString(UIStrings.disableCache), Common.Settings.Settings.instance().moduleSetting('cacheDisabled'), true));
+        section.appendChild(UI.SettingsUI.createSettingCheckbox(i18nString(UIStrings.disableCache), Common.Settings.Settings.instance().moduleSetting('cache-disabled'), true));
     }
     createNetworkThrottlingSection() {
         const title = i18nString(UIStrings.networkThrottling);
@@ -176,13 +181,13 @@ export class NetworkConfigView extends UI.Widget.VBox {
         UI.ARIAUtils.setLabel(networkThrottlingSelect, title);
     }
     createUserAgentSection() {
+        const userAgentMetadataSetting = Common.Settings.Settings.instance().createSetting('custom-user-agent-metadata', null);
+        const customUserAgentSetting = Common.Settings.Settings.instance().createSetting('custom-user-agent', '');
         const title = i18nString(UIStrings.userAgent);
         const section = this.createSection(title, 'network-config-ua');
-        const checkboxLabel = UI.UIUtils.CheckboxLabel.create(i18nString(UIStrings.selectAutomatically), true);
+        const checkboxLabel = UI.UIUtils.CheckboxLabel.create(i18nString(UIStrings.selectAutomatically), true, undefined, customUserAgentSetting.name);
         section.appendChild(checkboxLabel);
         const autoCheckbox = checkboxLabel.checkboxElement;
-        const userAgentMetadataSetting = Common.Settings.Settings.instance().createSetting('customUserAgentMetadata', null);
-        const customUserAgentSetting = Common.Settings.Settings.instance().createSetting('customUserAgent', '');
         customUserAgentSetting.addChangeListener(() => {
             if (autoCheckbox.checked) {
                 return;
@@ -245,13 +250,13 @@ export class NetworkConfigView extends UI.Widget.VBox {
         }
     }
     createAcceptedEncodingSection() {
+        const useCustomAcceptedEncodingSetting = Common.Settings.Settings.instance().createSetting('use-custom-accepted-encodings', false);
+        const customAcceptedEncodingSetting = Common.Settings.Settings.instance().createSetting('custom-accepted-encodings', `${"gzip" /* Protocol.Network.ContentEncoding.Gzip */},${"br" /* Protocol.Network.ContentEncoding.Br */},${"deflate" /* Protocol.Network.ContentEncoding.Deflate */}`);
         const title = i18nString(UIStrings.acceptedEncoding);
         const section = this.createSection(title, 'network-config-accepted-encoding');
-        const checkboxLabel = UI.UIUtils.CheckboxLabel.create(i18nString(UIStrings.selectAutomatically), true);
+        const checkboxLabel = UI.UIUtils.CheckboxLabel.create(i18nString(UIStrings.selectAutomatically), true, undefined, useCustomAcceptedEncodingSetting.name);
         section.appendChild(checkboxLabel);
         const autoCheckbox = checkboxLabel.checkboxElement;
-        const useCustomAcceptedEncodingSetting = Common.Settings.Settings.instance().createSetting('useCustomAcceptedEncodings', false);
-        const customAcceptedEncodingSetting = Common.Settings.Settings.instance().createSetting('customAcceptedEncodings', `${"gzip" /* Protocol.Network.ContentEncoding.Gzip */},${"br" /* Protocol.Network.ContentEncoding.Br */},${"deflate" /* Protocol.Network.ContentEncoding.Deflate */}`);
         function onSettingChange() {
             if (!useCustomAcceptedEncodingSetting.get()) {
                 SDK.NetworkManager.MultitargetNetworkManager.instance().clearCustomAcceptedEncodingsOverride();
@@ -265,6 +270,7 @@ export class NetworkConfigView extends UI.Widget.VBox {
         customAcceptedEncodingSetting.addChangeListener(onSettingChange);
         useCustomAcceptedEncodingSetting.addChangeListener(onSettingChange);
         const encodingsSection = section.createChild('div', 'network-config-accepted-encoding-custom');
+        encodingsSection.setAttribute('jslog', `${VisualLogging.section().context(customAcceptedEncodingSetting.name)}`);
         autoCheckbox.checked = !useCustomAcceptedEncodingSetting.get();
         autoCheckbox.addEventListener('change', acceptedEncodingsChanged);
         const checkboxes = new Map();
@@ -275,7 +281,7 @@ export class NetworkConfigView extends UI.Widget.VBox {
             Zstd: "zstd" /* Protocol.Network.ContentEncoding.Zstd */,
         };
         for (const encoding of Object.values(contentEncodings)) {
-            const label = UI.UIUtils.CheckboxLabel.create(encoding, true);
+            const label = UI.UIUtils.CheckboxLabel.create(encoding, true, undefined, encoding);
             encodingsSection.appendChild(label);
             checkboxes.set(encoding, label.checkboxElement);
         }
@@ -744,4 +750,4 @@ export const userAgentGroups = [
         ],
     },
 ];
-//# map=NetworkConfigView.js.map
+//# sourceMappingURL=NetworkConfigView.js.map

@@ -65,4 +65,4 @@ export const determineElementTitle = (domNode) => {
             return makeCrumbTitle(domNode.nodeNameNicelyCased);
     }
 };
-//# map=ElementsBreadcrumbsUtils.js.map
+//# sourceMappingURL=ElementsBreadcrumbsUtils.js.map

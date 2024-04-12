@@ -12,4 +12,10 @@ export const codeBlockRenderer = (value) => {
     const stringValue = String(value);
     return LitHtml.html `<code>${stringValue}</code>`;
 };
-//# map=DataGridRenderers.js.map
+export const iconRenderer = (icon) => {
+    if (!icon) {
+        return LitHtml.nothing;
+    }
+    return LitHtml.html `<div style="display: flex; justify-content: center;">${icon}</div>`;
+};
+//# sourceMappingURL=DataGridRenderers.js.map

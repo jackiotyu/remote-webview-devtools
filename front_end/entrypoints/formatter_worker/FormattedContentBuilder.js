@@ -114,4 +114,4 @@ export class FormattedContentBuilder {
         this.#lastFormattedPosition = this.#formattedContentLength;
     }
 }
-//# map=FormattedContentBuilder.js.map
+//# sourceMappingURL=FormattedContentBuilder.js.map

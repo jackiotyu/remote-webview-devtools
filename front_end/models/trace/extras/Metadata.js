@@ -2,8 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as SDK from '../../../core/sdk/sdk.js';
-export async function forNewRecording(recordStartTime) {
+import * as Types from '../types/types.js';
+export async function forNewRecording(isCpuProfile, recordStartTime) {
     try {
+        if (isCpuProfile) {
+            // For CPU profile, only specify data origin
+            return {
+                dataOrigin: "CPUProfile" /* Types.File.DataOrigin.CPUProfile */,
+            };
+        }
         const cpuThrottlingManager = SDK.CPUThrottlingManager.CPUThrottlingManager.instance();
         // If the CPU Throttling manager has yet to have its primary page target
         // set, it will block on the call to get the current hardware concurrency
@@ -28,10 +35,11 @@ export async function forNewRecording(recordStartTime) {
         const networkTitle = typeof networkConditions.title === 'function' ? networkConditions.title() : networkConditions.title;
         return {
             source: 'DevTools',
-            startTime: recordStartTime ? new Date(recordStartTime).toJSON() : undefined,
+            startTime: recordStartTime ? new Date(recordStartTime).toJSON() : undefined, // ISO-8601 timestamp
             cpuThrottling,
             networkThrottling: networkTitle,
             hardwareConcurrency,
+            dataOrigin: "TraceEvents" /* Types.File.DataOrigin.TraceEvents */,
         };
     }
     catch {
@@ -41,4 +49,4 @@ export async function forNewRecording(recordStartTime) {
         return {};
     }
 }
-//# map=Metadata.js.map
+//# sourceMappingURL=Metadata.js.map

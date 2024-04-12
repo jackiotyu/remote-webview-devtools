@@ -22,4 +22,4 @@ export class CSSSupports extends CSSQuery {
         return this.#active;
     }
 }
-//# map=CSSSupports.js.map
+//# sourceMappingURL=CSSSupports.js.map

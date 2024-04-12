@@ -4,5 +4,6 @@
 import * as Breadcrumbs from './Breadcrumbs.js';
 import * as BreadcrumbsUI from './BreadcrumbsUI.js';
 import * as DetailsView from './DetailsView.js';
-export { Breadcrumbs, BreadcrumbsUI, DetailsView, };
-//# map=components.js.map
+import * as InteractionBreakdown from './InteractionBreakdown.js';
+export { Breadcrumbs, BreadcrumbsUI, DetailsView, InteractionBreakdown, };
+//# sourceMappingURL=components.js.map

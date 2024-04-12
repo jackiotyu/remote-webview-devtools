@@ -1,7 +1,6 @@
 // Copyright 2020 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import { Capability } from './Target.js';
 import { SDKModel } from './SDKModel.js';
 export class WebAuthnModel extends SDKModel {
     #agent;
@@ -52,5 +51,5 @@ class WebAuthnDispatcher {
         this.#model.credentialAsserted(params);
     }
 }
-SDKModel.register(WebAuthnModel, { capabilities: Capability.WebAuthn, autostart: false });
-//# map=WebAuthnModel.js.map
+SDKModel.register(WebAuthnModel, { capabilities: 65536 /* Capability.WebAuthn */, autostart: false });
+//# sourceMappingURL=WebAuthnModel.js.map

@@ -331,4 +331,4 @@ export class XMLViewNode extends UI.TreeOutline.TreeElement {
         this.appendChild(new XMLViewNode(this.node, true, this.xmlView));
     }
 }
-//# map=XMLView.js.map
+//# sourceMappingURL=XMLView.js.map

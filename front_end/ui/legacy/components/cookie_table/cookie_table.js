@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as CookiesTable from './CookiesTable.js';
 export { CookiesTable, };
-//# map=cookie_table.js.map
+//# sourceMappingURL=cookie_table.js.map

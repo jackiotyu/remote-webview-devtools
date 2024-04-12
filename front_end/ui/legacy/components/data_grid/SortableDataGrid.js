@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as Platform from '../../../../core/platform/platform.js';
-import { Events } from './DataGrid.js';
 import { ViewportDataGrid, ViewportDataGridNode } from './ViewportDataGrid.js';
 export class SortableDataGrid extends ViewportDataGrid {
     sortingFunction;
@@ -62,7 +61,7 @@ export class SortableDataGrid extends ViewportDataGrid {
         for (let i = 0; i < length; ++i) {
             rootNode.appendChild(nodes[i]);
         }
-        dataGrid.addEventListener(Events.SortingChanged, sortDataGrid);
+        dataGrid.addEventListener("SortingChanged" /* Events.SortingChanged */, sortDataGrid);
         function sortDataGrid() {
             const nodes = dataGrid.rootNode().children;
             const sortColumnId = dataGrid.sortColumnId();
@@ -119,4 +118,4 @@ export class SortableDataGridNode extends ViewportDataGridNode {
         }
     }
 }
-//# map=SortableDataGrid.js.map
+//# sourceMappingURL=SortableDataGrid.js.map

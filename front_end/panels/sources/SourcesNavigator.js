@@ -98,8 +98,8 @@ const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 let networkNavigatorViewInstance;
 export class NetworkNavigatorView extends NavigatorView {
     constructor() {
-        super(true);
-        SDK.TargetManager.TargetManager.instance().addEventListener(SDK.TargetManager.Events.InspectedURLChanged, this.inspectedURLChanged, this);
+        super('navigator-network', true);
+        SDK.TargetManager.TargetManager.instance().addEventListener("InspectedURLChanged" /* SDK.TargetManager.Events.InspectedURLChanged */, this.inspectedURLChanged, this);
         // Record the sources tool load time after the file navigator has loaded.
         Host.userMetrics.panelLoaded('sources', 'DevTools.Launch.Sources');
         SDK.TargetManager.TargetManager.instance().addScopeChangeListener(this.onScopeChange.bind(this));
@@ -155,15 +155,14 @@ export class NetworkNavigatorView extends NavigatorView {
         }
     }
 }
-let filesNavigatorViewInstance;
 export class FilesNavigatorView extends NavigatorView {
     constructor() {
-        super();
+        super('navigator-files');
         const placeholder = new UI.EmptyWidget.EmptyWidget('');
         this.setPlaceholder(placeholder);
         placeholder.appendParagraph().appendChild(UI.Fragment.html `
   <div>${i18nString(UIStrings.explainWorkspace)}</div><br />
-  ${UI.XLink.XLink.create('https://goo.gle/devtools-workspace', i18nString(UIStrings.learnMore))}
+  ${UI.XLink.XLink.create('https://goo.gle/devtools-workspace', i18nString(UIStrings.learnMore), undefined, undefined, 'learn-more')}
   `);
         const toolbar = new UI.Toolbar.Toolbar('navigator-toolbar');
         void toolbar.appendItemsAtLocation('files-navigator-toolbar').then(() => {
@@ -171,12 +170,6 @@ export class FilesNavigatorView extends NavigatorView {
                 this.contentElement.insertBefore(toolbar.element, this.contentElement.firstChild);
             }
         });
-    }
-    static instance() {
-        if (!filesNavigatorViewInstance) {
-            filesNavigatorViewInstance = new FilesNavigatorView();
-        }
-        return filesNavigatorViewInstance;
     }
     sourceSelected(uiSourceCode, focusSource) {
         Host.userMetrics.actionTaken(Host.UserMetrics.Action.WorkspaceSourceSelected);
@@ -197,16 +190,16 @@ let overridesNavigatorViewInstance;
 export class OverridesNavigatorView extends NavigatorView {
     toolbar;
     constructor() {
-        super();
+        super('navigator-overrides');
         const placeholder = new UI.EmptyWidget.EmptyWidget('');
         this.setPlaceholder(placeholder);
         placeholder.appendParagraph().appendChild(UI.Fragment.html `
   <div>${i18nString(UIStrings.explainLocalOverrides)}</div><br />
-  ${UI.XLink.XLink.create('https://goo.gle/devtools-overrides', i18nString(UIStrings.learnMore))}
+  ${UI.XLink.XLink.create('https://goo.gle/devtools-overrides', i18nString(UIStrings.learnMore), undefined, undefined, 'learn-more')}
   `);
         this.toolbar = new UI.Toolbar.Toolbar('navigator-toolbar');
         this.contentElement.insertBefore(this.toolbar.element, this.contentElement.firstChild);
-        Persistence.NetworkPersistenceManager.NetworkPersistenceManager.instance().addEventListener(Persistence.NetworkPersistenceManager.Events.ProjectChanged, this.updateProjectAndUI, this);
+        Persistence.NetworkPersistenceManager.NetworkPersistenceManager.instance().addEventListener("ProjectChanged" /* Persistence.NetworkPersistenceManager.Events.ProjectChanged */, this.updateProjectAndUI, this);
         this.workspace().addEventListener(Workspace.Workspace.Events.ProjectAdded, this.onProjectAddOrRemoved, this);
         this.workspace().addEventListener(Workspace.Workspace.Events.ProjectRemoved, this.onProjectAddOrRemoved, this);
         this.updateProjectAndUI();
@@ -238,12 +231,12 @@ export class OverridesNavigatorView extends NavigatorView {
         this.toolbar.removeToolbarItems();
         const project = Persistence.NetworkPersistenceManager.NetworkPersistenceManager.instance().project();
         if (project) {
-            const enableCheckbox = new UI.Toolbar.ToolbarSettingCheckbox(Common.Settings.Settings.instance().moduleSetting('persistenceNetworkOverridesEnabled'));
+            const enableCheckbox = new UI.Toolbar.ToolbarSettingCheckbox(Common.Settings.Settings.instance().moduleSetting('persistence-network-overrides-enabled'));
             this.toolbar.appendToolbarItem(enableCheckbox);
             this.toolbar.appendToolbarItem(new UI.Toolbar.ToolbarSeparator(true));
             const clearButton = new UI.Toolbar.ToolbarButton(i18nString(UIStrings.clearConfiguration), 'clear');
-            clearButton.addEventListener(UI.Toolbar.ToolbarButton.Events.Click, () => {
-                Common.Settings.Settings.instance().moduleSetting('persistenceNetworkOverridesEnabled').set(false);
+            clearButton.addEventListener("Click" /* UI.Toolbar.ToolbarButton.Events.Click */, () => {
+                Common.Settings.Settings.instance().moduleSetting('persistence-network-overrides-enabled').set(false);
                 project.remove();
             });
             this.toolbar.appendToolbarItem(clearButton);
@@ -251,7 +244,7 @@ export class OverridesNavigatorView extends NavigatorView {
         }
         const title = i18nString(UIStrings.selectFolderForOverrides);
         const setupButton = new UI.Toolbar.ToolbarButton(title, 'plus', title);
-        setupButton.addEventListener(UI.Toolbar.ToolbarButton.Events.Click, _event => {
+        setupButton.addEventListener("Click" /* UI.Toolbar.ToolbarButton.Events.Click */, _event => {
             void this.setupNewWorkspace();
         }, this);
         this.toolbar.appendToolbarItem(setupButton);
@@ -261,7 +254,7 @@ export class OverridesNavigatorView extends NavigatorView {
         if (!fileSystem) {
             return;
         }
-        Common.Settings.Settings.instance().moduleSetting('persistenceNetworkOverridesEnabled').set(true);
+        Common.Settings.Settings.instance().moduleSetting('persistence-network-overrides-enabled').set(true);
     }
     sourceSelected(uiSourceCode, focusSource) {
         Host.userMetrics.actionTaken(Host.UserMetrics.Action.OverridesSourceSelected);
@@ -271,88 +264,65 @@ export class OverridesNavigatorView extends NavigatorView {
         return project === Persistence.NetworkPersistenceManager.NetworkPersistenceManager.instance().project();
     }
 }
-let contentScriptsNavigatorViewInstance;
 export class ContentScriptsNavigatorView extends NavigatorView {
     constructor() {
-        super();
+        super('navigator-content-scripts');
         const placeholder = new UI.EmptyWidget.EmptyWidget('');
         this.setPlaceholder(placeholder);
         placeholder.appendParagraph().appendChild(UI.Fragment.html `
   <div>${i18nString(UIStrings.explainContentScripts)}</div><br />
-  ${UI.XLink.XLink.create('https://developer.chrome.com/extensions/content_scripts', i18nString(UIStrings.learnMore))}
+  ${UI.XLink.XLink.create('https://developer.chrome.com/extensions/content_scripts', i18nString(UIStrings.learnMore), undefined, undefined, 'learn-more')}
   `);
-    }
-    static instance(opts = { forceNew: null }) {
-        const { forceNew } = opts;
-        if (!contentScriptsNavigatorViewInstance || forceNew) {
-            contentScriptsNavigatorViewInstance = new ContentScriptsNavigatorView();
-        }
-        return contentScriptsNavigatorViewInstance;
     }
     acceptProject(project) {
         return project.type() === Workspace.Workspace.projectTypes.ContentScripts;
     }
 }
-let snippetsNavigatorViewInstance;
 export class SnippetsNavigatorView extends NavigatorView {
     constructor() {
-        super();
+        super('navigator-snippets');
         const placeholder = new UI.EmptyWidget.EmptyWidget('');
         this.setPlaceholder(placeholder);
         placeholder.appendParagraph().appendChild(UI.Fragment.html `
   <div>${i18nString(UIStrings.explainSnippets)}</div><br />
-  ${UI.XLink.XLink.create('https://goo.gle/devtools-snippets', i18nString(UIStrings.learnMore))}
+  ${UI.XLink.XLink.create('https://goo.gle/devtools-snippets', i18nString(UIStrings.learnMore), undefined, undefined, 'learn-more')}
   `);
         const toolbar = new UI.Toolbar.Toolbar('navigator-toolbar');
-        const newButton = new UI.Toolbar.ToolbarButton(i18nString(UIStrings.newSnippet), 'plus', i18nString(UIStrings.newSnippet));
-        newButton.addEventListener(UI.Toolbar.ToolbarButton.Events.Click, _event => {
+        const newButton = new UI.Toolbar.ToolbarButton(i18nString(UIStrings.newSnippet), 'plus', i18nString(UIStrings.newSnippet), 'sources.new-snippet');
+        newButton.addEventListener("Click" /* UI.Toolbar.ToolbarButton.Events.Click */, _event => {
             void this.create(Snippets.ScriptSnippetFileSystem.findSnippetsProject(), '');
         });
         toolbar.appendToolbarItem(newButton);
         this.contentElement.insertBefore(toolbar.element, this.contentElement.firstChild);
-    }
-    static instance() {
-        if (!snippetsNavigatorViewInstance) {
-            snippetsNavigatorViewInstance = new SnippetsNavigatorView();
-        }
-        return snippetsNavigatorViewInstance;
     }
     acceptProject(project) {
         return Snippets.ScriptSnippetFileSystem.isSnippetsProject(project);
     }
     handleContextMenu(event) {
         const contextMenu = new UI.ContextMenu.ContextMenu(event);
-        contextMenu.headerSection().appendItem(i18nString(UIStrings.createNewSnippet), () => this.create(Snippets.ScriptSnippetFileSystem.findSnippetsProject(), ''));
+        contextMenu.headerSection().appendItem(i18nString(UIStrings.createNewSnippet), () => this.create(Snippets.ScriptSnippetFileSystem.findSnippetsProject(), ''), { jslogContext: 'create-new-snippet' });
         void contextMenu.show();
     }
     handleFileContextMenu(event, node) {
         const uiSourceCode = node.uiSourceCode();
         const contextMenu = new UI.ContextMenu.ContextMenu(event);
-        contextMenu.headerSection().appendItem(i18nString(UIStrings.run), () => Snippets.ScriptSnippetFileSystem.evaluateScriptSnippet(uiSourceCode));
-        contextMenu.editSection().appendItem(i18nString(UIStrings.rename), () => this.rename(node, false));
-        contextMenu.editSection().appendItem(i18nString(UIStrings.remove), () => uiSourceCode.project().deleteFile(uiSourceCode));
-        contextMenu.saveSection().appendItem(i18nString(UIStrings.saveAs), this.handleSaveAs.bind(this, uiSourceCode));
+        contextMenu.headerSection().appendItem(i18nString(UIStrings.run), () => Snippets.ScriptSnippetFileSystem.evaluateScriptSnippet(uiSourceCode), { jslogContext: 'run' });
+        contextMenu.editSection().appendItem(i18nString(UIStrings.rename), () => this.rename(node, false), { jslogContext: 'rename' });
+        contextMenu.editSection().appendItem(i18nString(UIStrings.remove), () => uiSourceCode.project().deleteFile(uiSourceCode), { jslogContext: 'remove' });
+        contextMenu.saveSection().appendItem(i18nString(UIStrings.saveAs), this.handleSaveAs.bind(this, uiSourceCode), { jslogContext: 'save-as' });
         void contextMenu.show();
     }
     async handleSaveAs(uiSourceCode) {
         uiSourceCode.commitWorkingCopy();
         const { content } = await uiSourceCode.requestContent();
-        void Workspace.FileManager.FileManager.instance().save(this.addJSExtension(uiSourceCode.url()), content || '', true);
+        await Workspace.FileManager.FileManager.instance().save(this.addJSExtension(uiSourceCode.url()), content || '', true);
         Workspace.FileManager.FileManager.instance().close(uiSourceCode.url());
     }
     addJSExtension(url) {
         return Common.ParsedURL.ParsedURL.concatenate(url, '.js');
     }
 }
-let actionDelegateInstance;
 export class ActionDelegate {
-    static instance(opts = { forceNew: null }) {
-        const { forceNew } = opts;
-        if (!actionDelegateInstance || forceNew) {
-            actionDelegateInstance = new ActionDelegate();
-        }
-        return actionDelegateInstance;
-    }
     handleAction(context, actionId) {
         switch (actionId) {
             case 'sources.create-snippet':
@@ -367,4 +337,4 @@ export class ActionDelegate {
         return false;
     }
 }
-//# map=SourcesNavigator.js.map
+//# sourceMappingURL=SourcesNavigator.js.map

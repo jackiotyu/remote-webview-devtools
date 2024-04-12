@@ -106,4 +106,4 @@ export class AffectedSharedArrayBufferIssueDetailsView extends AffectedResources
         this.#appendDetails(this.issue.getSharedArrayBufferIssues());
     }
 }
-//# map=AffectedSharedArrayBufferIssueDetailsView.js.map
+//# sourceMappingURL=AffectedSharedArrayBufferIssueDetailsView.js.map

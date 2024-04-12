@@ -1,36 +1,6 @@
 // Copyright 2021 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-/*
- * Copyright (C) 2009, 2010 Google Inc. All rights reserved.
- * Copyright (C) 2009 Joseph Pecoraro
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- *
- *     * Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above
- * copyright notice, this list of conditions and the following disclaimer
- * in the documentation and/or other materials provided with the
- * distribution.
- *     * Neither the #name of Google Inc. nor the names of its
- * contributors may be used to endorse or promote products derived from
- * this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 import * as Common from '../common/common.js';
 import * as Host from '../host/host.js';
 import * as Platform from '../platform/platform.js';
@@ -38,11 +8,11 @@ import * as Root from '../root/root.js';
 import { CSSModel } from './CSSModel.js';
 import { FrameManager } from './FrameManager.js';
 import { OverlayModel } from './OverlayModel.js';
+import { RemoteObject } from './RemoteObject.js';
+import { ResourceTreeModel } from './ResourceTreeModel.js';
 import { RuntimeModel } from './RuntimeModel.js';
-import { Capability } from './Target.js';
 import { SDKModel } from './SDKModel.js';
 import { TargetManager } from './TargetManager.js';
-import { ResourceTreeModel } from './ResourceTreeModel.js';
 export class DOMNode {
     #domModelInternal;
     #agent;
@@ -67,8 +37,6 @@ export class DOMNode {
     assignedSlot;
     shadowRootsInternal;
     #attributesInternal;
-    // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     #markers;
     #subtreeMarkerCount;
     childNodeCountInternal;
@@ -209,6 +177,21 @@ export class DOMNode {
     }
     isSVGNode() {
         return this.#isSVGNodeInternal;
+    }
+    isMediaNode() {
+        return this.#nodeNameInternal === 'AUDIO' || this.#nodeNameInternal === 'VIDEO';
+    }
+    isViewTransitionPseudoNode() {
+        if (!this.#pseudoTypeInternal) {
+            return false;
+        }
+        return [
+            "view-transition" /* Protocol.DOM.PseudoType.ViewTransition */,
+            "view-transition-group" /* Protocol.DOM.PseudoType.ViewTransitionGroup */,
+            "view-transition-image-pair" /* Protocol.DOM.PseudoType.ViewTransitionImagePair */,
+            "view-transition-old" /* Protocol.DOM.PseudoType.ViewTransitionOld */,
+            "view-transition-new" /* Protocol.DOM.PseudoType.ViewTransitionNew */,
+        ].includes(this.#pseudoTypeInternal);
     }
     creationStackTrace() {
         if (this.#creationStackTraceInternal) {
@@ -677,8 +660,6 @@ export class DOMNode {
     isXMLNode() {
         return Boolean(this.#xmlVersion);
     }
-    // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setMarker(name, value) {
         if (value === null) {
             if (!this.#markers.has(name)) {
@@ -743,8 +724,8 @@ export class DOMNode {
     highlightForTwoSeconds() {
         this.#domModelInternal.overlayModel().highlightInOverlayForTwoSeconds({ node: this, selectorList: undefined });
     }
-    async resolveToObject(objectGroup) {
-        const { object } = await this.#agent.invoke_resolveNode({ nodeId: this.id, backendNodeId: undefined, objectGroup });
+    async resolveToObject(objectGroup, executionContextId) {
+        const { object } = await this.#agent.invoke_resolveNode({ nodeId: this.id, backendNodeId: undefined, executionContextId, objectGroup });
         return object && this.#domModelInternal.runtimeModelInternal.createRemoteObject(object) || null;
     }
     async boxModel() {
@@ -783,21 +764,31 @@ export class DOMNode {
         }
         return node;
     }
+    async callFunction(fn, args = []) {
+        const object = await this.resolveToObject();
+        if (!object) {
+            return null;
+        }
+        const result = await object.callFunction(fn, args.map(arg => RemoteObject.toCallArgument(arg)));
+        object.release();
+        if (result.wasThrown || !result.object) {
+            return null;
+        }
+        return {
+            value: result.object.value,
+        };
+    }
     async scrollIntoView() {
         const node = this.enclosingElementOrSelf();
         if (!node) {
             return;
         }
-        const object = await node.resolveToObject();
-        if (!object) {
+        const result = await node.callFunction(scrollIntoViewInPage);
+        if (!result) {
             return;
         }
-        // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
-        // @ts-expect-error
-        void object.callFunction(scrollIntoView);
-        object.release();
         node.highlightForTwoSeconds();
-        function scrollIntoView() {
+        function scrollIntoViewInPage() {
             this.scrollIntoViewIfNeeded(true);
         }
     }
@@ -806,14 +797,10 @@ export class DOMNode {
         if (!node) {
             throw new Error('DOMNode.focus expects node to not be null.');
         }
-        const object = await node.resolveToObject();
-        if (!object) {
+        const result = await node.callFunction(focusInPage);
+        if (!result) {
             return;
         }
-        // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
-        // @ts-expect-error
-        await object.callFunction(focusInPage);
-        object.release();
         node.highlightForTwoSeconds();
         await this.#domModelInternal.target().pageAgent().invoke_bringToFront();
         function focusInPage() {
@@ -838,12 +825,13 @@ export class DOMNode {
             const classList = classes.trim().split(/\s+/g);
             return (lowerCaseName === 'div' ? '' : lowerCaseName) + '.' + classList.map(cls => CSS.escape(cls)).join('.');
         }
+        if (this.pseudoIdentifier()) {
+            return `${lowerCaseName}(${this.pseudoIdentifier()})`;
+        }
         return lowerCaseName;
     }
 }
 (function (DOMNode) {
-    // TODO(crbug.com/1167717): Make this a const enum again
-    // eslint-disable-next-line rulesdir/const_enum
     let ShadowRootTypes;
     (function (ShadowRootTypes) {
         ShadowRootTypes["UserAgent"] = "user-agent";
@@ -921,7 +909,7 @@ export class DOMModel extends SDKModel {
         if (!target.suspended()) {
             void this.agent.invoke_enable({});
         }
-        if (Root.Runtime.experiments.isEnabled('captureNodeCreationStacks')) {
+        if (Root.Runtime.experiments.isEnabled('capture-node-creation-stacks')) {
             void this.agent.invoke_setNodeStackTracesEnabled({ enable: true });
         }
     }
@@ -1095,11 +1083,16 @@ export class DOMModel extends SDKModel {
         return nodeId ? this.idToDOMNode.get(nodeId) || null : null;
     }
     documentUpdated() {
+        // If this frame doesn't have a document now,
+        // it means that its document is not requested yet and
+        // it will be requested when needed. (ex: setChildNodes event is received for the frame owner node)
+        // So, we don't need to request the document if we don't
+        // already have a document.
+        const alreadyHasDocument = Boolean(this.#document);
+        this.setDocument(null);
         // If we have this.#pendingDocumentRequestPromise in flight,
         // it will contain most recent result.
-        const documentWasRequested = this.#pendingDocumentRequestPromise;
-        this.setDocument(null);
-        if (this.parentModel() && !documentWasRequested) {
+        if (this.parentModel() && alreadyHasDocument && !this.#pendingDocumentRequestPromise) {
             void this.requestDocument();
         }
     }
@@ -1115,6 +1108,9 @@ export class DOMModel extends SDKModel {
         if (!this.parentModel()) {
             this.dispatchEventToListeners(Events.DocumentUpdated, this);
         }
+    }
+    setDocumentForTest(document) {
+        this.setDocument(document);
     }
     setDetachedRoot(payload) {
         if (payload.nodeName === '#document') {
@@ -1206,7 +1202,9 @@ export class DOMModel extends SDKModel {
         }
         const currentPseudoElements = parent.pseudoElements().get(pseudoType);
         if (currentPseudoElements) {
-            Platform.DCHECK(() => pseudoType.startsWith('view-transition'), 'DOMModel.pseudoElementAdded expects parent to not already have this pseudo type added; only view-transition* pseudo elements can coexist under the same parent.');
+            if (!pseudoType.startsWith('view-transition')) {
+                throw new Error('DOMModel.pseudoElementAdded expects parent to not already have this pseudo type added; only view-transition* pseudo elements can coexist under the same parent.');
+            }
             currentPseudoElements.push(node);
         }
         else {
@@ -1345,8 +1343,6 @@ export class DOMModel extends SDKModel {
         this.idToDOMNode.set(node.id, node);
     }
 }
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
 export var Events;
 (function (Events) {
     Events["AttrModified"] = "AttrModified";
@@ -1412,9 +1408,7 @@ class DOMDispatcher {
         this.#domModel.topLayerElementsUpdated();
     }
 }
-// TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
-// eslint-disable-next-line @typescript-eslint/naming-convention
-let DOMModelUndoStackInstance;
+let domModelUndoStackInstance = null;
 export class DOMModelUndoStack {
     #stack;
     #index;
@@ -1426,10 +1420,10 @@ export class DOMModelUndoStack {
     }
     static instance(opts = { forceNew: null }) {
         const { forceNew } = opts;
-        if (!DOMModelUndoStackInstance || forceNew) {
-            DOMModelUndoStackInstance = new DOMModelUndoStack();
+        if (!domModelUndoStackInstance || forceNew) {
+            domModelUndoStackInstance = new DOMModelUndoStack();
         }
-        return DOMModelUndoStackInstance;
+        return domModelUndoStackInstance;
     }
     async markUndoableState(model, minorChange) {
         // Both minor and major changes get into the #stack, but minor updates are coalesced.
@@ -1485,5 +1479,5 @@ export class DOMModelUndoStack {
         }
     }
 }
-SDKModel.register(DOMModel, { capabilities: Capability.DOM, autostart: true });
-//# map=DOMModel.js.map
+SDKModel.register(DOMModel, { capabilities: 2 /* Capability.DOM */, autostart: true });
+//# sourceMappingURL=DOMModel.js.map

@@ -109,16 +109,16 @@ export class ContrastDetails extends Common.ObjectWrapper.ObjectWrapper {
         this.contrastValueBubble = contrastValueRowContents.createChild('span', 'contrast-details-value');
         this.contrastValue = this.contrastValueBubble.createChild('span');
         this.contrastValueBubbleIcons = [];
-        this.contrastValueBubbleIcons.push(this.contrastValueBubble.appendChild(UI.Icon.Icon.create('checkmark')));
-        this.contrastValueBubbleIcons.push(this.contrastValueBubble.appendChild(UI.Icon.Icon.create('check-double')));
-        this.contrastValueBubbleIcons.push(this.contrastValueBubble.appendChild(UI.Icon.Icon.create('clear')));
+        this.contrastValueBubbleIcons.push(this.contrastValueBubble.appendChild(IconButton.Icon.create('checkmark')));
+        this.contrastValueBubbleIcons.push(this.contrastValueBubble.appendChild(IconButton.Icon.create('check-double')));
+        this.contrastValueBubbleIcons.push(this.contrastValueBubble.appendChild(IconButton.Icon.create('clear')));
         this.contrastValueBubbleIcons.forEach(button => button.addEventListener('click', (event) => {
             ContrastDetails.showHelp();
             event.consume(false);
         }));
         const expandToolbar = new UI.Toolbar.Toolbar('expand', contrastValueRowContents);
         this.expandButton = new UI.Toolbar.ToolbarButton(i18nString(UIStrings.showMore), 'chevron-down');
-        this.expandButton.addEventListener(UI.Toolbar.ToolbarButton.Events.Click, this.expandButtonClicked.bind(this));
+        this.expandButton.addEventListener("Click" /* UI.Toolbar.ToolbarButton.Events.Click */, this.expandButtonClicked.bind(this));
         UI.ARIAUtils.setExpanded(this.expandButton.element, false);
         expandToolbar.appendToolbarItem(this.expandButton);
         this.expandedDetails = this.elementInternal.createChild('div', 'expanded-details');
@@ -135,7 +135,7 @@ export class ContrastDetails extends Common.ObjectWrapper.ObjectWrapper {
         const bgColorContainer = this.expandedDetails.createChild('div', 'background-color');
         const pickerToolbar = new UI.Toolbar.Toolbar('spectrum-eye-dropper', bgColorContainer);
         this.bgColorPickerButton = new UI.Toolbar.ToolbarToggle(i18nString(UIStrings.toggleBackgroundColorPicker), 'color-picker', 'color-picker-filled');
-        this.bgColorPickerButton.addEventListener(UI.Toolbar.ToolbarButton.Events.Click, this.toggleBackgroundColorPickerInternal.bind(this, undefined, true));
+        this.bgColorPickerButton.addEventListener("Click" /* UI.Toolbar.ToolbarButton.Events.Click */, this.toggleBackgroundColorPickerInternal.bind(this, undefined, true));
         pickerToolbar.appendToolbarItem(this.bgColorPickerButton);
         this.bgColorPickedBound = this.bgColorPicked.bind(this);
         this.bgColorSwatch = new Swatch(bgColorContainer);
@@ -197,7 +197,7 @@ export class ContrastDetails extends Common.ObjectWrapper.ObjectWrapper {
         }
         this.setVisible(true);
         this.hideNoContrastInfoAvailableMessage();
-        const isAPCAEnabled = Root.Runtime.experiments.isEnabled('APCA');
+        const isAPCAEnabled = Root.Runtime.experiments.isEnabled('apca');
         const fgColor = this.contrastInfo.color();
         const bgColor = this.contrastInfo.bgColor();
         if (isAPCAEnabled) {
@@ -418,4 +418,4 @@ export class Swatch {
         this.swatchElement.classList.toggle('swatch-inner-white', bgColor.as("hsl" /* Common.Color.Format.HSL */).l > 0.9);
     }
 }
-//# map=ContrastDetails.js.map
+//# sourceMappingURL=ContrastDetails.js.map

@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as ComponentHelpers from '../../../../../front_end/ui/components/helpers/helpers.js';
-import * as FrontendHelpers from '../../../../../test/unittests/front_end/helpers/EnvironmentHelpers.js'; // eslint-disable-line rulesdir/es_modules_import
 import * as RecorderComponents from '../../../../panels/recorder/components/components.js';
 import * as Models from '../../../../panels/recorder/models/models.js';
+import * as FrontendHelpers from '../../../../testing/EnvironmentHelpers.js'; // eslint-disable-line rulesdir/es_modules_import
 await ComponentHelpers.ComponentServerSetup.setup();
 await FrontendHelpers.initializeGlobalVars();
 async function initializeGlobalActions() {
@@ -93,4 +93,4 @@ const data = {
 const component1 = new RecorderComponents.RecordingView.RecordingView();
 component1.data = data;
 document.getElementById('container')?.appendChild(component1);
-//# map=basic.js.map
+//# sourceMappingURL=basic.js.map

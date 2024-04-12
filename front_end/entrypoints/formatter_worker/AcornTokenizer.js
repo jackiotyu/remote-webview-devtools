@@ -129,4 +129,4 @@ export class AcornTokenizer {
     }
 }
 export const ECMA_VERSION = 2022;
-//# map=AcornTokenizer.js.map
+//# sourceMappingURL=AcornTokenizer.js.map

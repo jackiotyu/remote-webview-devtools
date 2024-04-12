@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as RequestLinkIcon from './RequestLinkIcon.js';
 export { RequestLinkIcon, };
-//# map=request_link_icon.js.map
+//# sourceMappingURL=request_link_icon.js.map

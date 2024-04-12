@@ -5,6 +5,7 @@ import * as i18n from '../../core/i18n/i18n.js';
 import * as SDK from '../../core/sdk/sdk.js';
 import * as IconButton from '../../ui/components/icon_button/icon_button.js';
 import * as UI from '../../ui/legacy/legacy.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import threadsSidebarPaneStyles from './threadsSidebarPane.css.js';
 const UIStrings = {
     /**
@@ -14,13 +15,13 @@ const UIStrings = {
 };
 const str_ = i18n.i18n.registerUIStrings('panels/sources/ThreadsSidebarPane.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-let threadsSidebarPaneInstance;
 export class ThreadsSidebarPane extends UI.Widget.VBox {
     items;
     list;
     selectedModel;
     constructor() {
         super(true);
+        this.contentElement.setAttribute('jslog', `${VisualLogging.section('sources.threads')}`);
         this.items = new UI.ListModel.ListModel();
         this.list = new UI.ListControl.ListControl(this.items, this, UI.ListControl.ListMode.NonViewport);
         const currentTarget = UI.Context.Context.instance().flavor(SDK.Target.Target);
@@ -28,12 +29,6 @@ export class ThreadsSidebarPane extends UI.Widget.VBox {
         this.contentElement.appendChild(this.list.element);
         UI.Context.Context.instance().addFlavorChangeListener(SDK.Target.Target, this.targetFlavorChanged, this);
         SDK.TargetManager.TargetManager.instance().observeModels(SDK.DebuggerModel.DebuggerModel, this);
-    }
-    static instance() {
-        if (!threadsSidebarPaneInstance) {
-            threadsSidebarPaneInstance = new ThreadsSidebarPane();
-        }
-        return threadsSidebarPaneInstance;
     }
     static shouldBeShown() {
         return SDK.TargetManager.TargetManager.instance().models(SDK.DebuggerModel.DebuggerModel).length >= 2;
@@ -77,7 +72,7 @@ export class ThreadsSidebarPane extends UI.Widget.VBox {
         debuggerModel.addEventListener(SDK.DebuggerModel.Events.DebuggerPaused, updatePausedState);
         debuggerModel.addEventListener(SDK.DebuggerModel.Events.DebuggerResumed, updatePausedState);
         debuggerModel.runtimeModel().addEventListener(SDK.RuntimeModel.Events.ExecutionContextChanged, updateTitle);
-        SDK.TargetManager.TargetManager.instance().addEventListener(SDK.TargetManager.Events.NameChanged, targetNameChanged);
+        SDK.TargetManager.TargetManager.instance().addEventListener("NameChanged" /* SDK.TargetManager.Events.NameChanged */, targetNameChanged);
         updatePausedState();
         updateTitle();
         return element;
@@ -136,4 +131,4 @@ export class ThreadsSidebarPane extends UI.Widget.VBox {
         this.registerCSSFiles([threadsSidebarPaneStyles]);
     }
 }
-//# map=ThreadsSidebarPane.js.map
+//# sourceMappingURL=ThreadsSidebarPane.js.map

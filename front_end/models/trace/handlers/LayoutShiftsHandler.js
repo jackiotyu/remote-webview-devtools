@@ -1,11 +1,10 @@
 // Copyright 2022 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import * as Helpers from '../helpers/helpers.js';
-import { data as metaHandlerData } from './MetaHandler.js';
-import { data as screenshotsHandlerData } from './ScreenshotsHandler.js';
 import * as Platform from '../../../core/platform/platform.js';
+import * as Helpers from '../helpers/helpers.js';
 import * as Types from '../types/types.js';
+import { data as metaHandlerData } from './MetaHandler.js';
 // This represents the maximum #time we will allow a cluster to go before we
 // reset it.
 export const MAX_CLUSTER_DURATION = Helpers.Timing.millisecondsToMicroseconds(Types.Timing.MilliSeconds(5000));
@@ -23,7 +22,9 @@ const layoutShiftEvents = [];
 // These events denote potential node resizings. We store them to link captured
 // layout shifts to the resizing of unsized elements.
 const layoutInvalidationEvents = [];
+const scheduleStyleInvalidationEvents = [];
 const styleRecalcInvalidationEvents = [];
+const backendNodeIds = new Set();
 // Layout shifts happen during PrePaint as part of the rendering lifecycle.
 // We determine if a LayoutInvalidation event is a potential root cause of a layout
 // shift if the next PrePaint after the LayoutInvalidation is the parent
@@ -46,7 +47,10 @@ export function reset() {
     handlerState = 1 /* HandlerState.UNINITIALIZED */;
     layoutShiftEvents.length = 0;
     layoutInvalidationEvents.length = 0;
+    scheduleStyleInvalidationEvents.length = 0;
+    styleRecalcInvalidationEvents.length = 0;
     prePaintEvents.length = 0;
+    backendNodeIds.clear();
     clusters.length = 0;
     sessionMaxScore = 0;
     scoreRecords.length = 0;
@@ -60,11 +64,14 @@ export function handleEvent(event) {
         layoutShiftEvents.push(event);
         return;
     }
-    if (Types.TraceEvents.isTraceEventLayoutInvalidation(event)) {
+    if (Types.TraceEvents.isTraceEventLayoutInvalidationTracking(event)) {
         layoutInvalidationEvents.push(event);
         return;
     }
-    if (Types.TraceEvents.isTraceEventStyleRecalcInvalidation(event)) {
+    if (Types.TraceEvents.isTraceEventScheduleStyleInvalidationTracking(event)) {
+        scheduleStyleInvalidationEvents.push(event);
+    }
+    if (Types.TraceEvents.isTraceEventStyleRecalcInvalidationTracking(event)) {
         styleRecalcInvalidationEvents.push(event);
     }
     if (Types.TraceEvents.isTraceEventPrePaint(event)) {
@@ -82,17 +89,6 @@ function traceWindowFromTime(time) {
 function updateTraceWindowMax(traceWindow, newMax) {
     traceWindow.max = newMax;
     traceWindow.range = Types.Timing.MicroSeconds(traceWindow.max - traceWindow.min);
-}
-function findNextScreenshotSource(timestamp) {
-    const screenshots = screenshotsHandlerData();
-    const screenshotIndex = findNextScreenshotEventIndex(screenshots, timestamp);
-    if (!screenshotIndex) {
-        return undefined;
-    }
-    return `data:img/png;base64,${screenshots[screenshotIndex].args.snapshot}`;
-}
-export function findNextScreenshotEventIndex(screenshots, timestamp) {
-    return Platform.ArrayUtilities.nearestIndexFromBeginning(screenshots, frame => frame.ts > timestamp);
 }
 function buildScoreRecords() {
     const { traceBounds } = metaHandlerData();
@@ -113,6 +109,35 @@ function buildScoreRecords() {
         scoreRecords.push({ ts: cluster.clusterWindow.max, score: 0 });
     }
 }
+/**
+ * Collects backend node ids coming from LayoutShift and LayoutInvalidation
+ * events.
+ */
+function collectNodes() {
+    backendNodeIds.clear();
+    // Collect the node ids present in the shifts.
+    for (const layoutShift of layoutShiftEvents) {
+        if (!layoutShift.args.data?.impacted_nodes) {
+            continue;
+        }
+        for (const node of layoutShift.args.data.impacted_nodes) {
+            backendNodeIds.add(node.node_id);
+        }
+    }
+    // Collect the node ids present in LayoutInvalidation & scheduleStyleInvalidation events.
+    for (const layoutInvalidation of layoutInvalidationEvents) {
+        if (!layoutInvalidation.args.data?.nodeId) {
+            continue;
+        }
+        backendNodeIds.add(layoutInvalidation.args.data.nodeId);
+    }
+    for (const scheduleStyleInvalidation of scheduleStyleInvalidationEvents) {
+        if (!scheduleStyleInvalidation.args.data?.nodeId) {
+            continue;
+        }
+        backendNodeIds.add(scheduleStyleInvalidation.args.data.nodeId);
+    }
+}
 export async function finalize() {
     // Ensure the events are sorted by #time ascending.
     layoutShiftEvents.sort((a, b) => a.ts - b.ts);
@@ -122,6 +147,7 @@ export async function finalize() {
     // is important.
     await buildLayoutShiftsClusters();
     buildScoreRecords();
+    collectNodes();
     handlerState = 3 /* HandlerState.FINALIZED */;
 }
 async function buildLayoutShiftsClusters() {
@@ -202,7 +228,6 @@ async function buildLayoutShiftsClusters() {
                 },
             },
             parsedData: {
-                screenshotSource: findNextScreenshotSource(event.ts),
                 timeFromNavigation,
                 cumulativeWeightedScoreInWindow: currentCluster.clusterCumulativeScore,
                 // The score of the session window is temporarily set to 0 just
@@ -295,13 +320,16 @@ export function data() {
         throw new Error('Layout Shifts Handler is not finalized');
     }
     return {
-        clusters: [...clusters],
+        clusters,
         sessionMaxScore: sessionMaxScore,
         clsWindowID,
-        prePaintEvents: [...prePaintEvents],
-        layoutInvalidationEvents: [...layoutInvalidationEvents],
+        prePaintEvents,
+        layoutInvalidationEvents,
+        scheduleStyleInvalidationEvents,
         styleRecalcInvalidationEvents: [],
-        scoreRecords: [...scoreRecords],
+        scoreRecords,
+        // TODO(crbug/41484172): change the type so no need to clone
+        backendNodeIds: [...backendNodeIds],
     };
 }
 export function deps() {
@@ -317,4 +345,4 @@ export function stateForLayoutShiftScore(score) {
     }
     return state;
 }
-//# map=LayoutShiftsHandler.js.map
+//# sourceMappingURL=LayoutShiftsHandler.js.map

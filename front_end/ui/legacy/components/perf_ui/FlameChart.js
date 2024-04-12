@@ -30,6 +30,7 @@
 import * as Common from '../../../../core/common/common.js';
 import * as i18n from '../../../../core/i18n/i18n.js';
 import * as Platform from '../../../../core/platform/platform.js';
+import * as Root from '../../../../core/root/root.js';
 import * as TraceEngine from '../../../../models/trace/trace.js';
 import * as UI from '../../legacy.js';
 import * as ThemeSupport from '../../theme_support/theme_support.js';
@@ -62,9 +63,93 @@ const UIStrings = {
      *@example {Network} PH1
      */
     sCollapsed: '{PH1} collapsed',
+    /**
+     *@description Text for Hiding a function from the Flame Chart
+     */
+    hideFunction: 'Hide function',
+    /**
+     *@description Text for Hiding all children of a function from the Flame Chart
+     */
+    hideChildren: 'Hide children',
+    /**
+     *@description Text for Hiding all repeating child entries of a function from the Flame Chart
+     */
+    hideRepeatingChildren: 'Hide repeating children',
+    /**
+     *@description Text for an action that shows all of the hidden children of an entry
+     */
+    resetChildren: 'Reset children',
+    /**
+     *@description Text for an action that shows all of the hidden entries of the Flame Chart
+     */
+    resetTrace: 'Reset trace',
 };
 const str_ = i18n.i18n.registerUIStrings('ui/legacy/components/perf_ui/FlameChart.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
+/**
+ * The expansion arrow is drawn from the center, so the indent is in fact the center of the arrow.
+ * See `drawExpansionArrow` function to understand how we draw the arrow.
+ * |headerLeftPadding|Arrow|
+ * |expansionArrowIndent|
+ *
+ * Normal mode:
+ * - Nesting Level 0
+ * |ICON_WIDTH|expansionArrowIndent|
+ * |headerLeftPadding|EDIT  ICON|Arrow|LabelXPadding|Title|LabelXPadding|
+ *                   |ICON WIDTH|<--            labelWidth           -->|
+ *
+ * - Nesting Level 1
+ * |ICON_WIDTH|expansionArrowIndent|expansionArrowIndent|
+ * |headerLeftPadding|EDIT  ICON|                    |Arrow|LabelXPadding|Title|LabelXPadding|
+ *                   |ICON WIDTH|<--                      labelWidth                      -->|
+ *
+ * - Nesting Level 2
+ * |ICON_WIDTH|expansionArrowIndent|expansionArrowIndent|expansionArrowIndent|
+ * |headerLeftPadding|EDIT  ICON|                                         |Arrow|LabelXPadding|Title|LabelXPadding|
+ *                   |ICON WIDTH|<--                                labelWidth                                 -->|
+ *
+ * Edit mode:
+ * - Nesting Level 0
+ * |       EDITION_MODE_INDENT      |expansionArrowIndent|
+ * |headerLeftPadding| UP   ICON|DOWN  ICON|HIDE  ICON|Arrow|LabelXPadding|Title|LabelXPadding|SAVE  ICON|
+ *                   |<-    EDITION_MODE_INDENT     ->|<--            labelWidth           -->|
+ *
+ * - Nesting Level 1
+ * |       EDITION_MODE_INDENT      |expansionArrowIndent|expansionArrowIndent|
+ * |headerLeftPadding| UP   ICON|DOWN  ICON|HIDE  ICON|                    |Arrow|LabelXPadding|Title|LabelXPadding|SAVE  ICON|
+ *                   |<-    EDITION_MODE_INDENT     ->|<--                      labelWidth                      -->|
+ *
+ * - Nesting Level 2
+ * |       EDITION_MODE_INDENT      |expansionArrowIndent|expansionArrowIndent|expansionArrowIndent|
+ * |headerLeftPadding| UP   ICON|DOWN  ICON|HIDE  ICON|                                         |Arrow|LabelXPadding|Title|LabelXPadding|SAVE  ICON|
+ *                   |<-    EDITION_MODE_INDENT     ->|<--                                labelWidth                                 -->|
+ */
+const HEADER_LEFT_PADDING = 6;
+const ARROW_SIDE = 8;
+const EXPANSION_ARROW_INDENT = HEADER_LEFT_PADDING + ARROW_SIDE / 2;
+const HEADER_LABEL_X_PADDING = 3;
+const HEADER_LABEL_Y_PADDING = 2;
+const ICON_LEFT_PADDING = HEADER_LEFT_PADDING;
+// This number is get from front_end/ui/components/buttons/button.css
+const EDIT_BUTTON_SIZE = 16;
+const EDITION_MODE_INDENT = EDIT_BUTTON_SIZE * 3;
+const UP_ICON_LEFT = ICON_LEFT_PADDING;
+const DOWN_ICON_LEFT = UP_ICON_LEFT + EDIT_BUTTON_SIZE;
+const HIDE_ICON_LEFT = DOWN_ICON_LEFT + EDIT_BUTTON_SIZE;
+const EDIT_ICON_LEFT = ICON_LEFT_PADDING;
+// These are copied from front_end/images/*.svg, because we need to draw them with canvas.
+// edit.svg
+const editIconPath = 'M4.5 15.5h.875l7.875-7.875-.438-.437-.437-.438L4.5 14.625v.875ZM3 17v-3L13.708 3.292A.965.965 0 0 1 14.417 3c.277 0 .513.097.708.292l1.583 1.583c.195.195.292.43.292.708a.965.965 0 0 1-.292.709L6 17H3Zm10.25-9.375-.438-.437-.437-.438.875.875Z';
+// checkmark.svg
+const saveIconPath = 'm8.229 14.062-3.521-3.541L5.75 9.479l2.479 2.459 6.021-6L15.292 7l-7.063 7.062Z';
+// arrow-up.svg
+const moveUpIconPath = 'M9.25 17V5.875L7.062 8.062L6 7L10 3L14 7L12.938 8.062L10.75 5.875V17H9.25Z';
+// arrow-down.svg
+const moveDownIconPath = 'M9.25 3V14.125L7.062 11.938L6 13L10 17L14 13L12.938 11.938L10.75 14.125V3H9.25Z';
+// eye-crossed.svg
+const hideIconPath = 'M13.2708 11.1459L11.9792 9.85419C12.0347 9.32641 11.875 8.87155 11.5 8.4896C11.125 8.10766 10.6736 7.94446 10.1458 8.00002L8.85417 6.70835C9.03472 6.63891 9.22222 6.58683 9.41667 6.5521C9.61111 6.51738 9.80556 6.50002 10 6.50002C10.9722 6.50002 11.7986 6.8403 12.4792 7.52085C13.1597 8.20141 13.5 9.0278 13.5 10C13.5 10.1945 13.4826 10.3889 13.4479 10.5834C13.4132 10.7778 13.3542 10.9653 13.2708 11.1459ZM16.0417 13.9167L14.9583 12.8334C15.4583 12.4445 15.9132 12.0174 16.3229 11.5521C16.7326 11.0868 17.0764 10.5695 17.3542 10C16.6736 8.59724 15.6701 7.49655 14.3438 6.69794C13.0174 5.89933 11.5694 5.50002 10 5.50002C9.63889 5.50002 9.28472 5.52085 8.9375 5.56252C8.59028 5.60419 8.25 5.67363 7.91667 5.77085L6.70833 4.56252C7.23611 4.35419 7.77431 4.20835 8.32292 4.12502C8.87153 4.04169 9.43056 4.00002 10 4.00002C11.9861 4.00002 13.8021 4.53821 15.4479 5.6146C17.0938 6.69099 18.2778 8.1528 19 10C18.6944 10.7917 18.2882 11.5104 17.7813 12.1563C17.2743 12.8021 16.6944 13.3889 16.0417 13.9167ZM16 18.125L13.2917 15.4167C12.7639 15.6111 12.2257 15.757 11.6771 15.8542C11.1285 15.9514 10.5694 16 10 16C8.01389 16 6.19792 15.4618 4.55208 14.3854C2.90625 13.309 1.72222 11.8472 1 10C1.30556 9.20835 1.70833 8.48613 2.20833 7.83335C2.70833 7.18058 3.29167 6.5903 3.95833 6.06252L1.875 3.97919L2.9375 2.91669L17.0625 17.0625L16 18.125ZM5.02083 7.14585C4.53472 7.53474 4.08333 7.96183 3.66667 8.4271C3.25 8.89238 2.90972 9.41669 2.64583 10C3.32639 11.4028 4.32986 12.5035 5.65625 13.3021C6.98264 14.1007 8.43056 14.5 10 14.5C10.3611 14.5 10.7153 14.4757 11.0625 14.4271C11.4097 14.3785 11.7569 14.3125 12.1042 14.2292L11.1667 13.2917C10.9722 13.3611 10.7778 13.4132 10.5833 13.4479C10.3889 13.4827 10.1944 13.5 10 13.5C9.02778 13.5 8.20139 13.1597 7.52083 12.4792C6.84028 11.7986 6.5 10.9722 6.5 10C6.5 9.80558 6.52431 9.61113 6.57292 9.41669C6.62153 9.22224 6.66667 9.0278 6.70833 8.83335L5.02083 7.14585Z';
+// eye.svg
+const showIconPath = 'M10 13.5C10.972 13.5 11.7983 13.1597 12.479 12.479C13.1597 11.7983 13.5 10.972 13.5 10C13.5 9.028 13.1597 8.20167 12.479 7.521C11.7983 6.84033 10.972 6.5 10 6.5C9.028 6.5 8.20167 6.84033 7.521 7.521C6.84033 8.20167 6.5 9.028 6.5 10C6.5 10.972 6.84033 11.7983 7.521 12.479C8.20167 13.1597 9.028 13.5 10 13.5ZM10 12C9.44467 12 8.97233 11.8057 8.583 11.417C8.19433 11.0277 8 10.5553 8 10C8 9.44467 8.19433 8.97233 8.583 8.583C8.97233 8.19433 9.44467 8 10 8C10.5553 8 11.0277 8.19433 11.417 8.583C11.8057 8.97233 12 9.44467 12 10C12 10.5553 11.8057 11.0277 11.417 11.417C11.0277 11.8057 10.5553 12 10 12ZM10 16C8.014 16 6.20833 15.455 4.583 14.365C2.95833 13.2743 1.764 11.8193 1 10C1.764 8.18067 2.95833 6.72567 4.583 5.635C6.20833 4.545 8.014 4 10 4C11.986 4 13.7917 4.545 15.417 5.635C17.0417 6.72567 18.236 8.18067 19 10C18.236 11.8193 17.0417 13.2743 15.417 14.365C13.7917 15.455 11.986 16 10 16ZM10 14.5C11.5553 14.5 12.9927 14.0973 14.312 13.292C15.632 12.486 16.646 11.3887 17.354 10C16.646 8.61133 15.632 7.514 14.312 6.708C12.9927 5.90267 11.5553 5.5 10 5.5C8.44467 5.5 7.00733 5.90267 5.688 6.708C4.368 7.514 3.354 8.61133 2.646 10C3.354 11.3887 4.368 12.486 5.688 13.292C7.00733 14.0973 8.44467 14.5 10 14.5Z';
 export class FlameChartDelegate {
     windowChanged(_startTime, _endTime, _animate) {
     }
@@ -81,21 +166,21 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
     chartViewport;
     dataProvider;
     candyStripePattern;
+    contextMenu;
     viewportElement;
     canvas;
     entryInfo;
     markerHighlighElement;
     highlightElement;
+    revealDescendantsArrowHighlightElement;
     selectedElement;
     rulerEnabled;
     barHeight;
+    // Additional space around an entry that is added for operations with entry.
+    // It allows for less pecision while selecting/hovering over an entry.
+    hitMarginPx;
     textBaseline;
     textPadding;
-    headerLeftPadding;
-    arrowSide;
-    expansionArrowIndent;
-    headerLabelXPadding;
-    headerLabelYPadding;
     highlightedMarkerIndex;
     /**
      * Represents the index of the entry that the user's mouse cursor is over.
@@ -111,7 +196,7 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
     rawTimelineDataLength;
     markerPositions;
     lastMouseOffsetX;
-    selectedGroup;
+    selectedGroupIndex;
     keyboardFocusedGroup;
     offsetWidth;
     offsetHeight;
@@ -123,13 +208,18 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
     timelineLevels;
     visibleLevelOffsets;
     visibleLevels;
+    visibleLevelHeights;
     groupOffsets;
     rawTimelineData;
     forceDecorationCache;
     entryColorsCache;
-    visibleLevelHeights;
     totalTime;
+    lastPopoverState;
     #font;
+    #groupTreeRoot;
+    #searchResultEntryIndex;
+    #searchResultHighlightElements = [];
+    #editMode = false;
     constructor(dataProvider, flameChartDelegate, groupExpansionSetting) {
         super(true);
         this.#font = `${DEFAULT_FONT_SIZE} ${getFontFamilyForCanvas()}`;
@@ -154,32 +244,35 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         this.canvas.addEventListener('mouseout', this.onMouseOut.bind(this), false);
         this.canvas.addEventListener('click', this.onClick.bind(this), false);
         this.canvas.addEventListener('keydown', this.onKeyDown.bind(this), false);
-        this.canvas.addEventListener('contextmenu', this.#onContextMenu.bind(this), false);
+        this.canvas.addEventListener('contextmenu', this.onContextMenu.bind(this), false);
         this.entryInfo = this.viewportElement.createChild('div', 'flame-chart-entry-info');
         this.markerHighlighElement = this.viewportElement.createChild('div', 'flame-chart-marker-highlight-element');
         this.highlightElement = this.viewportElement.createChild('div', 'flame-chart-highlight-element');
+        this.revealDescendantsArrowHighlightElement =
+            this.viewportElement.createChild('div', 'reveal-descendants-arrow-highlight-element');
         this.selectedElement = this.viewportElement.createChild('div', 'flame-chart-selected-element');
         this.canvas.addEventListener('focus', () => {
-            this.dispatchEventToListeners(Events.CanvasFocused);
+            this.dispatchEventToListeners("CanvasFocused" /* Events.CanvasFocused */);
         }, false);
         UI.UIUtils.installDragHandle(this.viewportElement, this.startDragging.bind(this), this.dragging.bind(this), this.endDragging.bind(this), null);
         this.rulerEnabled = true;
         this.barHeight = 17;
+        this.hitMarginPx = 3;
         this.textBaseline = 5;
         this.textPadding = 5;
         this.chartViewport.setWindowTimes(dataProvider.minimumBoundary(), dataProvider.minimumBoundary() + dataProvider.totalTime());
-        this.headerLeftPadding = 6;
-        this.arrowSide = 8;
-        this.expansionArrowIndent = this.headerLeftPadding + this.arrowSide / 2;
-        this.headerLabelXPadding = 3;
-        this.headerLabelYPadding = 2;
         this.highlightedMarkerIndex = -1;
         this.highlightedEntryIndex = -1;
         this.selectedEntryIndex = -1;
+        this.#searchResultEntryIndex = -1;
         this.rawTimelineDataLength = 0;
         this.markerPositions = new Map();
         this.lastMouseOffsetX = 0;
-        this.selectedGroup = -1;
+        this.selectedGroupIndex = -1;
+        this.lastPopoverState = {
+            entryIndex: -1,
+            hiddenEntriesPopover: false,
+        };
         // Keyboard focused group is used to navigate groups irrespective of whether they are selectable or not
         this.keyboardFocusedGroup = -1;
         ThemeSupport.ThemeSupport.instance().addEventListener(ThemeSupport.ThemeChangeEvent.eventName, () => {
@@ -188,6 +281,9 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
     }
     willHide() {
         this.hideHighlight();
+    }
+    getBarHeight() {
+        return this.barHeight;
     }
     setBarHeight(value) {
         this.barHeight = value;
@@ -216,13 +312,36 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         }
         this.highlightedEntryIndex = entryIndex;
         this.updateElementPosition(this.highlightElement, this.highlightedEntryIndex);
-        this.dispatchEventToListeners(Events.EntryHighlighted, entryIndex);
+        this.dispatchEventToListeners("EntryHighlighted" /* Events.EntryHighlighted */, entryIndex);
+    }
+    highlightAllEntries(entries) {
+        for (const entry of entries) {
+            const searchElement = this.viewportElement.createChild('div', 'flame-chart-search-element');
+            this.#searchResultHighlightElements.push(searchElement);
+            searchElement.id = entry.toString();
+            this.updateElementPosition(searchElement, entry);
+        }
+    }
+    removeSearchResultHighlights() {
+        for (const element of this.#searchResultHighlightElements) {
+            element.remove();
+        }
+        this.#searchResultHighlightElements = [];
     }
     hideHighlight() {
-        this.entryInfo.removeChildren();
+        if (this.#searchResultEntryIndex === -1) {
+            this.entryInfo.removeChildren();
+            this.lastPopoverState = {
+                entryIndex: -1,
+                hiddenEntriesPopover: false,
+            };
+        }
+        if (this.highlightedEntryIndex === -1) {
+            return;
+        }
         this.highlightedEntryIndex = -1;
         this.updateElementPosition(this.highlightElement, this.highlightedEntryIndex);
-        this.dispatchEventToListeners(Events.EntryHighlighted, -1);
+        this.dispatchEventToListeners("EntryHighlighted" /* Events.EntryHighlighted */, -1);
     }
     createCandyStripePattern() {
         // Set the candy stripe pattern to 17px so it repeats well.
@@ -277,11 +396,11 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
     endDragging(_event) {
         this.updateHighlight();
     }
-    timelineData() {
+    timelineData(rebuid) {
         if (!this.dataProvider) {
             return null;
         }
-        const timelineData = this.dataProvider.timelineData();
+        const timelineData = this.dataProvider.timelineData(rebuid);
         if (timelineData !== this.rawTimelineData ||
             (timelineData && timelineData.entryStartTimes.length !== this.rawTimelineDataLength)) {
             this.processTimelineData(timelineData);
@@ -318,6 +437,7 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         this.updateHighlight();
     }
     onMouseMove(event) {
+        this.#searchResultEntryIndex = -1;
         const mouseEvent = event;
         this.lastMouseOffsetX = mouseEvent.offsetX;
         this.lastMouseOffsetY = mouseEvent.offsetY;
@@ -327,27 +447,52 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         if (this.chartViewport.isDragging()) {
             return;
         }
-        if (this.coordinatesToGroupIndex(mouseEvent.offsetX, mouseEvent.offsetY, true /* headerOnly */) >= 0) {
+        // Check if the mouse is hovering any group's header area
+        const { groupIndex: groupIndexHeaderArea } = this.coordinatesToGroupIndexAndButton(mouseEvent.offsetX, mouseEvent.offsetY, true /* headerOnly */);
+        if (groupIndexHeaderArea >= 0) {
             this.hideHighlight();
             this.viewportElement.style.cursor = 'pointer';
+            // Show edit icon for the hovered group
+            this.resetCanvas();
+            this.draw(/* hoveredGroupIndex= */ groupIndexHeaderArea);
             return;
+        }
+        // Check if the mouse is hovering any group's non-header area
+        const { groupIndex } = this.coordinatesToGroupIndexAndButton(mouseEvent.offsetX, mouseEvent.offsetY);
+        if (groupIndex >= 0) {
+            // Show edit icon for the hovered group
+            this.resetCanvas();
+            this.draw(/* hoveredGroupIndex= */ groupIndex);
+        }
+        else {
+            // No group is hovered.
+            // Redraw the flame chart to clear the potentially previously draw edit icon.
+            this.resetCanvas();
+            this.draw();
         }
         this.updateHighlight();
     }
     updateHighlight() {
         const entryIndex = this.coordinatesToEntryIndex(this.lastMouseOffsetX, this.lastMouseOffsetY);
+        // Each time the entry highlight is updated, we need to check if the mouse is hovering over a
+        // button that indicates hidden child elements and if so, update the button highlight.
+        this.updateHiddenChildrenArrowHighlighPosition(entryIndex);
+        // No entry is hovered.
         if (entryIndex === -1) {
             this.hideHighlight();
-            const group = this.coordinatesToGroupIndex(this.lastMouseOffsetX, this.lastMouseOffsetY, false /* headerOnly */);
-            if (group >= 0 && this.rawTimelineData && this.rawTimelineData.groups &&
-                this.rawTimelineData.groups[group].selectable) {
+            const { groupIndex } = this.coordinatesToGroupIndexAndButton(this.lastMouseOffsetX, this.lastMouseOffsetY, false /* headerOnly */);
+            if (groupIndex >= 0 && this.rawTimelineData && this.rawTimelineData.groups &&
+                this.rawTimelineData.groups[groupIndex].selectable) {
+                // This means the mouse is in a selectable group's area, and not hovering any entry.
                 this.viewportElement.style.cursor = 'pointer';
             }
             else {
+                // This means the mouse is not hovering any selectable track, and not hovering any entry.
                 this.viewportElement.style.cursor = 'default';
             }
             return;
         }
+        // Some entry is hovered.
         if (this.chartViewport.isDragging()) {
             return;
         }
@@ -360,21 +505,47 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         this.lastMouseOffsetY = -1;
         this.hideHighlight();
     }
+    showPopoverForSearchResult(selectedSearchResult) {
+        this.#searchResultEntryIndex = selectedSearchResult;
+        this.updatePopover(selectedSearchResult);
+    }
     updatePopover(entryIndex) {
-        if (entryIndex === this.highlightedEntryIndex) {
-            this.updatePopoverOffset();
-            return;
+        // Just update position if cursor is hovering the same entry.
+        const isMouseOverRevealChildrenArrow = this.isMouseOverRevealChildrenArrow(this.lastMouseOffsetX, entryIndex);
+        if (entryIndex === this.lastPopoverState.entryIndex &&
+            isMouseOverRevealChildrenArrow === this.lastPopoverState.hiddenEntriesPopover) {
+            return this.updatePopoverOffset();
         }
         this.entryInfo.removeChildren();
-        const popoverElement = this.dataProvider.prepareHighlightedEntryInfo(entryIndex);
+        const data = this.timelineData();
+        if (!data) {
+            return;
+        }
+        const group = data.groups.at(this.selectedGroupIndex);
+        // If the mouse is hovering over the hidden descendants arrow, get an element that shows how many children are hidden, otherwise an element with the event name and length
+        const popoverElement = (isMouseOverRevealChildrenArrow && group) ?
+            this.dataProvider.prepareHighlightedHiddenEntriesArrowInfo &&
+                this.dataProvider.prepareHighlightedHiddenEntriesArrowInfo(entryIndex) :
+            this.dataProvider.prepareHighlightedEntryInfo(entryIndex);
         if (popoverElement) {
             this.entryInfo.appendChild(popoverElement);
             this.updatePopoverOffset();
         }
+        this.lastPopoverState = {
+            entryIndex,
+            hiddenEntriesPopover: isMouseOverRevealChildrenArrow,
+        };
     }
     updatePopoverOffset() {
-        const mouseX = this.lastMouseOffsetX;
-        const mouseY = this.lastMouseOffsetY;
+        let mouseX = this.lastMouseOffsetX;
+        let mouseY = this.lastMouseOffsetY;
+        // If the popover is being updated from a search, we calculate the coordinates manually
+        if (this.#searchResultEntryIndex !== -1) {
+            const coordinate = this.entryIndexToCoordinates(this.selectedEntryIndex);
+            const { x: canvasViewportOffsetX, y: canvasViewportOffsetY } = this.canvas.getBoundingClientRect();
+            mouseX = coordinate?.x ? coordinate.x - canvasViewportOffsetX : mouseX;
+            mouseY = coordinate?.y ? coordinate.y - canvasViewportOffsetY : mouseY;
+        }
         const parentWidth = this.entryInfo.parentElement ? this.entryInfo.parentElement.clientWidth : 0;
         const parentHeight = this.entryInfo.parentElement ? this.entryInfo.parentElement.clientHeight : 0;
         const infoWidth = this.entryInfo.clientWidth;
@@ -405,8 +576,40 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         if (this.maxDragOffset > clickThreshold) {
             return;
         }
-        this.selectGroup(this.coordinatesToGroupIndex(mouseEvent.offsetX, mouseEvent.offsetY, false /* headerOnly */));
-        this.toggleGroupExpand(this.coordinatesToGroupIndex(mouseEvent.offsetX, mouseEvent.offsetY, true /* headerOnly */));
+        const trackConfigurationEnabled = Root.Runtime.experiments.isEnabled("timeline-track-configuration" /* Root.Runtime.ExperimentName.TIMELINE_TRACK_CONFIGURATION */);
+        if (trackConfigurationEnabled) {
+            // If any button is clicked, we should handle the action only and ignore others.
+            const { groupIndex, editButtonType } = this.coordinatesToGroupIndexAndButton(mouseEvent.offsetX, mouseEvent.offsetY);
+            if (groupIndex >= 0) {
+                switch (editButtonType) {
+                    case "UP" /* EditButtonType.UP */:
+                        this.moveGroupUp(groupIndex);
+                        return;
+                    case "DOWN" /* EditButtonType.DOWN */:
+                        this.moveGroupDown(groupIndex);
+                        return;
+                    case "HIDE" /* EditButtonType.HIDE */:
+                        this.#toggleGroupHiddenState(groupIndex, !this.rawTimelineData?.groups[groupIndex].hidden);
+                        return;
+                    case "SAVE" /* EditButtonType.SAVE */:
+                    case "EDIT" /* EditButtonType.EDIT */:
+                        this.#editMode = !this.#editMode;
+                        this.updateLevelPositions();
+                        this.resetCanvas();
+                        this.draw();
+                        return;
+                }
+            }
+            // Ignore any other actions when user is customizing the tracks.
+            // For example, we won't toggle the expand status in the editing mode.
+            if (this.#editMode) {
+                return;
+            }
+        }
+        const { groupIndex: groupIndexForSelection } = this.coordinatesToGroupIndexAndButton(mouseEvent.offsetX, mouseEvent.offsetY, false /* headerOnly */);
+        const { groupIndex: groupIndexForToggleExpand } = this.coordinatesToGroupIndexAndButton(mouseEvent.offsetX, mouseEvent.offsetY, true /* headerOnly */);
+        this.selectGroup(groupIndexForSelection);
+        this.toggleGroupExpand(groupIndexForToggleExpand);
         const timelineData = this.timelineData();
         if (mouseEvent.shiftKey && this.highlightedEntryIndex !== -1 && timelineData) {
             const start = timelineData.entryStartTimes[this.highlightedEntryIndex];
@@ -415,11 +618,11 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         }
         else {
             this.chartViewport.onClick(mouseEvent);
-            this.dispatchEventToListeners(Events.EntryInvoked, this.highlightedEntryIndex);
+            this.dispatchEventToListeners("EntryInvoked" /* Events.EntryInvoked */, this.highlightedEntryIndex);
         }
     }
     selectGroup(groupIndex) {
-        if (groupIndex < 0 || this.selectedGroup === groupIndex) {
+        if (groupIndex < 0 || this.selectedGroupIndex === groupIndex) {
             return;
         }
         if (!this.rawTimelineData) {
@@ -437,7 +640,7 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
             UI.ARIAUtils.alert(i18nString(UIStrings.sHovered, { PH1: groupName }));
         }
         else {
-            this.selectedGroup = groupIndex;
+            this.selectedGroupIndex = groupIndex;
             this.flameChartDelegate.updateSelectedGroup(this, groups[groupIndex]);
             this.resetCanvas();
             this.draw();
@@ -445,18 +648,19 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         }
     }
     deselectAllGroups() {
-        this.selectedGroup = -1;
+        this.selectedGroupIndex = -1;
         this.flameChartDelegate.updateSelectedGroup(this, null);
         this.resetCanvas();
         this.draw();
     }
     deselectAllEntries() {
         this.selectedEntryIndex = -1;
+        this.rawTimelineData?.resetFlowData();
         this.resetCanvas();
         this.draw();
     }
     isGroupFocused(index) {
-        return index === this.selectedGroup || index === this.keyboardFocusedGroup;
+        return index === this.selectedGroupIndex || index === this.keyboardFocusedGroup;
     }
     scrollGroupIntoView(index) {
         if (index < 0) {
@@ -516,6 +720,8 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
                 if (this.selectedEntryIndex >= 0 && level >= group.startLevel &&
                     (groupIndex >= groups.length - 1 || groups[groupIndex + 1].startLevel > level)) {
                     this.selectedEntryIndex = -1;
+                    // Reset all flow arrows when we deselect the entry.
+                    this.rawTimelineData.resetFlowData();
                 }
             }
         }
@@ -530,6 +736,60 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
                 i18nString(UIStrings.sCollapsed, { PH1: groupName });
             UI.ARIAUtils.alert(content);
         }
+    }
+    moveGroupUp(groupIndex) {
+        if (groupIndex < 0) {
+            return;
+        }
+        if (!this.rawTimelineData || !this.rawTimelineData.groups) {
+            return;
+        }
+        if (!this.#groupTreeRoot) {
+            return;
+        }
+        for (let i = 0; i < this.#groupTreeRoot.children.length; i++) {
+            const child = this.#groupTreeRoot.children[i];
+            if (child.index === groupIndex) {
+                // exchange with previous one, only second or later group can do so
+                if (i >= 1) {
+                    this.#groupTreeRoot.children[i] = this.#groupTreeRoot.children[i - 1];
+                    this.#groupTreeRoot.children[i - 1] = child;
+                    break;
+                }
+            }
+        }
+        this.updateLevelPositions();
+        this.updateHighlight();
+        this.updateHeight();
+        this.resetCanvas();
+        this.draw();
+    }
+    moveGroupDown(groupIndex) {
+        if (groupIndex < 0) {
+            return;
+        }
+        if (!this.rawTimelineData || !this.rawTimelineData.groups) {
+            return;
+        }
+        if (!this.#groupTreeRoot) {
+            return;
+        }
+        for (let i = 0; i < this.#groupTreeRoot.children.length; i++) {
+            const child = this.#groupTreeRoot.children[i];
+            if (child.index === groupIndex) {
+                // exchange with previous one, only second to last or before group can do so
+                if (i <= this.#groupTreeRoot.children.length - 2) {
+                    this.#groupTreeRoot.children[i] = this.#groupTreeRoot.children[i + 1];
+                    this.#groupTreeRoot.children[i + 1] = child;
+                    break;
+                }
+            }
+        }
+        this.updateLevelPositions();
+        this.updateHighlight();
+        this.updateHeight();
+        this.resetCanvas();
+        this.draw();
     }
     hideGroup(groupIndex) {
         this.#toggleGroupHiddenState(groupIndex, /* hidden= */ true);
@@ -561,16 +821,21 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         this.resetCanvas();
         this.draw();
     }
-    #onContextMenu(_event) {
-        // The context menu only applies if the user is hovering over an individual entry.
-        if (this.highlightedEntryIndex === -1) {
-            return;
-        }
+    modifyTree(treeAction, index) {
         const data = this.timelineData();
         if (!data) {
             return;
         }
-        const group = data.groups.at(this.selectedGroup);
+        this.dataProvider.modifyTree?.(index, treeAction);
+        this.dataProvider.timelineData(true);
+        this.update();
+    }
+    getPossibleActions() {
+        const data = this.timelineData();
+        if (!data) {
+            return;
+        }
+        const group = data.groups.at(this.selectedGroupIndex);
         // Early exit here if there is no group or:
         // 1. The group is not expanded: it needs to be expanded to allow the
         //    context menu actions to occur.
@@ -579,24 +844,153 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         if (!group || !group.expanded || !group.showStackContextMenu) {
             return;
         }
-        // TODO(crbug.com/1469887): implement a context menu that supports stack editing options. See bug for more details.
-        // At this point once a context menu is implemented we will also want to
-        // update the selected index to match the highlighted index, which
+        // Check which actions are possible on an entry.
+        // If an action would not change the entries (for example it has no children to collapse), we do not need to show it.
+        return this.dataProvider.findPossibleContextMenuActions?.(this.selectedEntryIndex);
+    }
+    onContextMenu(_event) {
+        // The context menu only applies if the user is hovering over an individual entry.
+        if (this.highlightedEntryIndex === -1) {
+            return;
+        }
+        // Update the selected index to match the highlighted index, which
         // represents the entry under the cursor where the user has right clicked
         // to trigger a context menu.
+        this.dispatchEventToListeners("EntryInvoked" /* Events.EntryInvoked */, this.highlightedEntryIndex);
+        this.setSelectedEntry(this.highlightedEntryIndex);
+        const possibleActions = this.getPossibleActions();
+        if (!possibleActions) {
+            return;
+        }
+        this.contextMenu = new UI.ContextMenu.ContextMenu(_event, { useSoftMenu: true });
+        const hideEntryOption = this.contextMenu.defaultSection().appendItem(i18nString(UIStrings.hideFunction), () => {
+            this.modifyTree("MERGE_FUNCTION" /* TraceEngine.EntriesFilter.FilterAction.MERGE_FUNCTION */, this.selectedEntryIndex);
+        }, {
+            disabled: !possibleActions?.["MERGE_FUNCTION" /* TraceEngine.EntriesFilter.FilterAction.MERGE_FUNCTION */],
+            jslogContext: 'hide-function',
+        });
+        hideEntryOption.setShortcut('H');
+        const hideChildrenOption = this.contextMenu.defaultSection().appendItem(i18nString(UIStrings.hideChildren), () => {
+            this.modifyTree("COLLAPSE_FUNCTION" /* TraceEngine.EntriesFilter.FilterAction.COLLAPSE_FUNCTION */, this.selectedEntryIndex);
+        }, {
+            disabled: !possibleActions?.["COLLAPSE_FUNCTION" /* TraceEngine.EntriesFilter.FilterAction.COLLAPSE_FUNCTION */],
+            jslogContext: 'hide-children',
+        });
+        hideChildrenOption.setShortcut('C');
+        const hideRepeatingChildrenOption = this.contextMenu.defaultSection().appendItem(i18nString(UIStrings.hideRepeatingChildren), () => {
+            this.modifyTree("COLLAPSE_REPEATING_DESCENDANTS" /* TraceEngine.EntriesFilter.FilterAction.COLLAPSE_REPEATING_DESCENDANTS */, this.selectedEntryIndex);
+        }, {
+            disabled: !possibleActions?.["COLLAPSE_REPEATING_DESCENDANTS" /* TraceEngine.EntriesFilter.FilterAction.COLLAPSE_REPEATING_DESCENDANTS */],
+            jslogContext: 'hide-repeating-children',
+        });
+        hideRepeatingChildrenOption.setShortcut('R');
+        const resetChildrenOption = this.contextMenu.defaultSection().appendItem(i18nString(UIStrings.resetChildren), () => {
+            this.modifyTree("RESET_CHILDREN" /* TraceEngine.EntriesFilter.FilterAction.RESET_CHILDREN */, this.selectedEntryIndex);
+        }, {
+            disabled: !possibleActions?.["RESET_CHILDREN" /* TraceEngine.EntriesFilter.FilterAction.RESET_CHILDREN */],
+            jslogContext: 'reset-children',
+        });
+        resetChildrenOption.setShortcut('U');
+        this.contextMenu.defaultSection().appendItem(i18nString(UIStrings.resetTrace), () => {
+            this.modifyTree("UNDO_ALL_ACTIONS" /* TraceEngine.EntriesFilter.FilterAction.UNDO_ALL_ACTIONS */, this.selectedEntryIndex);
+        }, {
+            disabled: !possibleActions?.["UNDO_ALL_ACTIONS" /* TraceEngine.EntriesFilter.FilterAction.UNDO_ALL_ACTIONS */],
+            jslogContext: 'reset-trace',
+        });
+        void this.contextMenu.show();
+    }
+    handleFlameChartTransformEvent(event) {
+        // TODO(crbug.com/1469887): Indicate Shortcuts to the user when the designs are complete.
+        if (this.selectedEntryIndex === -1) {
+            return;
+        }
+        const possibleActions = this.getPossibleActions();
+        if (!possibleActions) {
+            return;
+        }
+        const keyboardEvent = event;
+        let handled = false;
+        if (keyboardEvent.code === 'KeyH' && possibleActions["MERGE_FUNCTION" /* TraceEngine.EntriesFilter.FilterAction.MERGE_FUNCTION */]) {
+            this.modifyTree("MERGE_FUNCTION" /* TraceEngine.EntriesFilter.FilterAction.MERGE_FUNCTION */, this.selectedEntryIndex);
+            handled = true;
+        }
+        else if (keyboardEvent.code === 'KeyC' && possibleActions["COLLAPSE_FUNCTION" /* TraceEngine.EntriesFilter.FilterAction.COLLAPSE_FUNCTION */]) {
+            this.modifyTree("COLLAPSE_FUNCTION" /* TraceEngine.EntriesFilter.FilterAction.COLLAPSE_FUNCTION */, this.selectedEntryIndex);
+            handled = true;
+        }
+        else if (keyboardEvent.code === 'KeyR' &&
+            possibleActions["COLLAPSE_REPEATING_DESCENDANTS" /* TraceEngine.EntriesFilter.FilterAction.COLLAPSE_REPEATING_DESCENDANTS */]) {
+            this.modifyTree("COLLAPSE_REPEATING_DESCENDANTS" /* TraceEngine.EntriesFilter.FilterAction.COLLAPSE_REPEATING_DESCENDANTS */, this.selectedEntryIndex);
+            handled = true;
+        }
+        else if (keyboardEvent.code === 'KeyU') {
+            this.modifyTree("RESET_CHILDREN" /* TraceEngine.EntriesFilter.FilterAction.RESET_CHILDREN */, this.selectedEntryIndex);
+            handled = true;
+        }
+        if (handled) {
+            keyboardEvent.consume(true);
+        }
     }
     onKeyDown(e) {
         if (!UI.KeyboardShortcut.KeyboardShortcut.hasNoModifiers(e) || !this.timelineData()) {
             return;
         }
-        const eventHandled = this.handleSelectionNavigation(e);
+        let eventHandled = this.handleSelectionNavigation(e);
         // Handle keyboard navigation in groups
         if (!eventHandled && this.rawTimelineData && this.rawTimelineData.groups) {
-            this.handleKeyboardGroupNavigation(e);
+            eventHandled = this.handleKeyboardGroupNavigation(e);
+        }
+        if (!eventHandled) {
+            this.handleFlameChartTransformEvent(e);
         }
     }
     bindCanvasEvent(eventName, onEvent) {
         this.canvas.addEventListener(eventName, onEvent);
+    }
+    drawTrackOnCanvas(trackName, context, minWidth) {
+        const timelineData = this.timelineData();
+        if (!timelineData) {
+            return null;
+        }
+        const canvasWidth = this.offsetWidth;
+        const canvasHeight = this.offsetHeight;
+        context.save();
+        const ratio = window.devicePixelRatio;
+        context.scale(ratio, ratio);
+        context.fillStyle = 'rgba(0, 0, 0, 0)';
+        context.fillRect(0, 0, canvasWidth, canvasHeight);
+        context.font = this.#font;
+        const groups = this.rawTimelineData?.groups || [];
+        const groupOffsets = this.groupOffsets;
+        if (!groups.length || !groupOffsets) {
+            return null;
+        }
+        const trackIndex = groups.findIndex(g => g.name.includes(trackName));
+        if (trackIndex < 0) {
+            return null;
+        }
+        this.scrollGroupIntoView(trackIndex);
+        const group = groups[trackIndex];
+        const startLevel = group.startLevel;
+        const endLevel = groups[trackIndex + 1].startLevel;
+        const groupTop = groupOffsets[trackIndex];
+        const nextOffset = groupOffsets[trackIndex + 1];
+        const { colorBuckets, titleIndices } = this.getDrawableData(context, timelineData);
+        const entryIndexIsInTrack = (index) => {
+            const barWidth = Math.min(this.#eventBarWidth(timelineData, index), canvasWidth);
+            return timelineData.entryLevels[index] >= startLevel && timelineData.entryLevels[index] < endLevel &&
+                barWidth > minWidth;
+        };
+        let allFilteredIndexes = [];
+        for (const [color, { indexes }] of colorBuckets) {
+            const filteredIndexes = indexes.filter(entryIndexIsInTrack);
+            allFilteredIndexes = [...allFilteredIndexes, ...filteredIndexes];
+            this.#drawGenericEvents(context, timelineData, color, filteredIndexes);
+        }
+        const filteredTitleIndices = titleIndices.filter(entryIndexIsInTrack);
+        this.drawEventTitles(context, timelineData, filteredTitleIndices, canvasWidth);
+        context.restore();
+        return { top: groupOffsets[trackIndex], height: nextOffset - groupTop, visibleEntries: new Set(allFilteredIndexes) };
     }
     handleKeyboardGroupNavigation(event) {
         const keyboardEvent = event;
@@ -631,6 +1025,7 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         if (handled) {
             keyboardEvent.consume(true);
         }
+        return handled;
     }
     selectFirstEntryInCurrentGroup() {
         if (!this.rawTimelineData) {
@@ -744,7 +1139,7 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
             indexOnLevel += keyboardEvent.keyCode === keys.Left.code ? -1 : 1;
             event.consume(true);
             if (indexOnLevel >= 0 && indexOnLevel < levelIndexes.length) {
-                this.dispatchEventToListeners(Events.EntrySelected, levelIndexes[indexOnLevel]);
+                this.dispatchEventToListeners("EntrySelected" /* Events.EntrySelected */, levelIndexes[indexOnLevel]);
             }
             return true;
         }
@@ -774,16 +1169,23 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
                 }
             }
             keyboardEvent.consume(true);
-            this.dispatchEventToListeners(Events.EntrySelected, levelIndexes[indexOnLevel]);
+            this.dispatchEventToListeners("EntrySelected" /* Events.EntrySelected */, levelIndexes[indexOnLevel]);
             return true;
         }
         if (event.key === 'Enter') {
             event.consume(true);
-            this.dispatchEventToListeners(Events.EntryInvoked, this.selectedEntryIndex);
+            this.dispatchEventToListeners("EntryInvoked" /* Events.EntryInvoked */, this.selectedEntryIndex);
             return true;
         }
         return false;
     }
+    /**
+     * Given offset of the cursor, returns the index of the entry.
+     * This function is public for test purpose.
+     * @param x
+     * @param y
+     * @returns the index of the entry
+     */
     coordinatesToEntryIndex(x, y) {
         if (x < 0 || y < 0) {
             return -1;
@@ -793,11 +1195,21 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
             return -1;
         }
         y += this.chartViewport.scrollOffset();
-        if (!this.visibleLevelOffsets) {
-            throw new Error('No visible level offsets');
+        if (!this.visibleLevelOffsets || !this.visibleLevelHeights || !this.visibleLevels) {
+            throw new Error('No visible level offsets or heights');
         }
-        const cursorLevel = Platform.ArrayUtilities.upperBound(this.visibleLevelOffsets, y, Platform.ArrayUtilities.DEFAULT_COMPARATOR) - 1;
-        if (cursorLevel < 0 || (this.visibleLevels && !this.visibleLevels[cursorLevel])) {
+        // The real order of the levels might be changed.
+        // So we just check each level, and check if the y is between the start and the end of this level. If yes, this is
+        // the level we want to find.
+        let cursorLevel = -1;
+        for (let i = 0; i < this.dataProvider.maxStackDepth(); i++) {
+            if (y >= this.visibleLevelOffsets[i] &&
+                y < this.visibleLevelOffsets[i] + (this.visibleLevels[i] ? this.visibleLevelHeights[i] : 0)) {
+                cursorLevel = i;
+                break;
+            }
+        }
+        if (cursorLevel < 0 || !this.visibleLevels[cursorLevel]) {
             return -1;
         }
         const offsetFromLevel = y - this.visibleLevelOffsets[cursorLevel];
@@ -833,8 +1245,7 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
             const duration = timelineData.entryTotalTimes[entryIndex];
             const startX = this.chartViewport.timeToPosition(startTime);
             const endX = this.chartViewport.timeToPosition(startTime + duration);
-            const barThresholdPx = 3;
-            return startX - barThresholdPx < x && x < endX + barThresholdPx;
+            return startX - this.hitMarginPx < x && x < endX + this.hitMarginPx;
         }
         let entryIndex = entriesOnLevel[indexOnLevel];
         if (checkEntryHit.call(this, entryIndex)) {
@@ -846,35 +1257,161 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         }
         return -1;
     }
-    coordinatesToGroupIndex(x, y, headerOnly) {
+    /**
+     * Given an entry's index and an X coordinate of a mouse click, returns
+     * whether the mouse is hovering over the arrow button that reveals hidden children
+     */
+    isMouseOverRevealChildrenArrow(x, index) {
+        // Check if given entry has an arrow
+        if (!this.entryHasDecoration(index, "HIDDEN_DESCENDANTS_ARROW" /* FlameChartDecorationType.HIDDEN_DESCENDANTS_ARROW */)) {
+            return false;
+        }
+        const timelineData = this.timelineData();
+        if (!timelineData) {
+            return false;
+        }
+        const startTime = timelineData.entryStartTimes[index];
+        const duration = timelineData.entryTotalTimes[index];
+        const endX = this.chartViewport.timeToPosition(startTime + duration);
+        // The arrow icon is square, thefore the width is equal to the bar height
+        const barHeight = this.#eventBarHeight(timelineData, index);
+        const arrowWidth = barHeight;
+        if (endX - arrowWidth - this.hitMarginPx < x && x < endX + this.hitMarginPx) {
+            return true;
+        }
+        return false;
+    }
+    /**
+     * Given an entry's index, returns its coordinates relative to the
+     * viewport.
+     * This function is public for test purpose.
+     */
+    entryIndexToCoordinates(entryIndex) {
+        const timelineData = this.timelineData();
+        const { x: canvasViewportOffsetX, y: canvasViewportOffsetY } = this.canvas.getBoundingClientRect();
+        if (!timelineData || !this.visibleLevelOffsets) {
+            return null;
+        }
+        const x = this.chartViewport.timeToPosition(timelineData.entryStartTimes[entryIndex]) + canvasViewportOffsetX;
+        const y = this.visibleLevelOffsets[timelineData.entryLevels[entryIndex]] - this.chartViewport.scrollOffset() +
+            canvasViewportOffsetY;
+        return { x, y };
+    }
+    /**
+     * Given an entry's index, returns its title
+     */
+    entryTitle(entryIndex) {
+        return this.dataProvider.entryTitle(entryIndex);
+    }
+    /**
+     * Returns the offset of the canvas relative to the viewport.
+     */
+    getCanvasOffset() {
+        return this.canvas.getBoundingClientRect();
+    }
+    getCanvas() {
+        return this.canvas;
+    }
+    /**
+     * Returns the y scroll of the chart viewport.
+     */
+    getScrollOffset() {
+        return this.chartViewport.scrollOffset();
+    }
+    getContextMenu() {
+        return this.contextMenu;
+    }
+    /**
+     * Given offset of the cursor, returns the index of the group and the button user clicked.
+     * Will return -1 for index if no group is clicked.
+     * And return undefined for button if no button is clicked.
+     * This function is public for test purpose.
+     * @param x
+     * @param y
+     * @returns the index of the group and the button user clicked. If there is no button the button type will be
+     * undefined.
+     */
+    coordinatesToGroupIndexAndButton(x, y, headerOnly = false) {
         if (!this.rawTimelineData || !this.rawTimelineData.groups || !this.groupOffsets) {
-            return -1;
+            return { groupIndex: -1 };
         }
         if (x < 0 || y < 0) {
-            return -1;
+            return { groupIndex: -1 };
         }
         y += this.chartViewport.scrollOffset();
         const groups = this.rawTimelineData.groups || [];
-        const group = Platform.ArrayUtilities.upperBound(this.groupOffsets, y, Platform.ArrayUtilities.DEFAULT_COMPARATOR) - 1;
-        if (group < 0 || group >= groups.length) {
-            return -1;
+        let groupIndex = -1;
+        // The real order of the groups is the preorder traversal, and it will match the order in the sortedGroup.
+        // So we first do a preorder traversal to get an array of GroupIndex. And then based on the visual index we got
+        // before, we can get the real group index.
+        if (this.#groupTreeRoot) {
+            const sortedGroupIndexes = [];
+            function traverse(root) {
+                sortedGroupIndexes.push(root.index);
+                for (const child of root.children) {
+                    traverse(child);
+                }
+            }
+            traverse(this.#groupTreeRoot);
+            // Skip the one whose index is -1, because we added to represent the top
+            // level to be the parent of all groups.
+            sortedGroupIndexes.shift();
+            // This shouldn't happen, because the tree should have the fake root and all groups. Add a sanity check to avoid
+            // error.
+            if (sortedGroupIndexes.length !== groups.length) {
+                console.warn('The data from the group tree doesn\'t match the data from DataProvider.');
+                return { groupIndex: -1 };
+            }
+            // Add an extra index, which is equal to the length of the |groups|, this
+            // will be used for the coordinates after the last group.
+            // If the coordinates after the last group, it will return in later check
+            // `groupIndex >= groups.length` anyway. But add one more element to make
+            // this array same length as the |groupOffsets|.
+            sortedGroupIndexes.push(groups.length);
+            for (let i = 0; i < sortedGroupIndexes.length; i++) {
+                const index = sortedGroupIndexes[i];
+                const nextIndex = sortedGroupIndexes[i + 1] ?? sortedGroupIndexes.length;
+                if (y >= this.groupOffsets[index] && y < this.groupOffsets[nextIndex]) {
+                    if (!headerOnly || y < this.groupOffsets[index] + groups[index].style.height) {
+                        groupIndex = index;
+                    }
+                    break;
+                }
+            }
         }
-        const height = headerOnly ? groups[group].style.height : this.groupOffsets[group + 1] - this.groupOffsets[group];
-        if (y - this.groupOffsets[group] >= height) {
-            return -1;
-        }
-        if (!headerOnly) {
-            return group;
+        if (groupIndex < 0 || groupIndex >= groups.length) {
+            return { groupIndex: -1 };
         }
         const context = this.canvas.getContext('2d');
         context.save();
         context.font = this.#font;
-        const right = this.headerLeftPadding + this.labelWidthForGroup(context, groups[group]);
+        const saveIconLeft = HEADER_LEFT_PADDING + EDITION_MODE_INDENT + this.labelWidthForGroup(context, groups[groupIndex]);
+        const headerRight = HEADER_LEFT_PADDING + (this.#editMode ? EDITION_MODE_INDENT : EDIT_BUTTON_SIZE) +
+            this.labelWidthForGroup(context, groups[groupIndex]);
         context.restore();
-        if (x > right) {
-            return -1;
+        if (this.#editMode) {
+            if (UP_ICON_LEFT <= x && x < UP_ICON_LEFT + EDIT_BUTTON_SIZE) {
+                return { groupIndex, editButtonType: "UP" /* EditButtonType.UP */ };
+            }
+            if (DOWN_ICON_LEFT <= x && x < DOWN_ICON_LEFT + EDIT_BUTTON_SIZE) {
+                return { groupIndex, editButtonType: "DOWN" /* EditButtonType.DOWN */ };
+            }
+            if (HIDE_ICON_LEFT <= x && x < HIDE_ICON_LEFT + EDIT_BUTTON_SIZE) {
+                return { groupIndex, editButtonType: "HIDE" /* EditButtonType.HIDE */ };
+            }
+            if (saveIconLeft <= x && x < saveIconLeft + EDIT_BUTTON_SIZE) {
+                return { groupIndex, editButtonType: "SAVE" /* EditButtonType.SAVE */ };
+            }
         }
-        return group;
+        else {
+            if (EDIT_ICON_LEFT <= x && x < EDIT_ICON_LEFT + EDIT_BUTTON_SIZE) {
+                return { groupIndex, editButtonType: "EDIT" /* EditButtonType.EDIT */ };
+            }
+        }
+        if (headerOnly && x > headerRight) {
+            return { groupIndex: -1 };
+        }
+        return { groupIndex };
     }
     markerIndexBeforeTime(time) {
         const timelineData = this.timelineData();
@@ -887,7 +1424,7 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         }
         return Platform.ArrayUtilities.lowerBound(timelineData.markers, time, (markerTimestamp, marker) => markerTimestamp - marker.startTime());
     }
-    draw() {
+    draw(hoveredGroupIndex) {
         const timelineData = this.timelineData();
         if (!timelineData) {
             return;
@@ -913,16 +1450,34 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
             }
         });
         context.restore();
+        const groups = this.rawTimelineData?.groups || [];
+        const trackIndex = groups.findIndex(g => g.name.includes('Main'));
+        const group = groups.at(trackIndex);
+        const startLevel = group?.startLevel;
+        const endLevel = groups.at(trackIndex + 1)?.startLevel;
+        const entryIndexIsInTrack = (index) => {
+            if (trackIndex < 0 || startLevel === undefined || endLevel === undefined) {
+                return false;
+            }
+            const barWidth = Math.min(this.#eventBarWidth(timelineData, index), canvasWidth);
+            return timelineData.entryLevels[index] >= startLevel && timelineData.entryLevels[index] < endLevel &&
+                barWidth > 10;
+        };
+        let wideEntryExists = false;
         for (const [color, { indexes }] of colorBuckets) {
+            if (!wideEntryExists) {
+                wideEntryExists = indexes.some(entryIndexIsInTrack);
+            }
             this.#drawGenericEvents(context, timelineData, color, indexes);
         }
+        this.dispatchEventToListeners("ChartPlayableStateChange" /* Events.ChartPlayableStateChange */, wideEntryExists);
         const allIndexes = Array.from(colorBuckets.values()).map(x => x.indexes).flat();
         this.#drawDecorations(context, timelineData, allIndexes);
         this.drawMarkers(context, timelineData, markerIndices);
         this.drawEventTitles(context, timelineData, titleIndices, canvasWidth);
         context.restore();
-        this.drawGroupHeaders(canvasWidth, canvasHeight);
-        this.drawFlowEvents(context, canvasWidth, canvasHeight);
+        this.drawGroupHeaders(canvasWidth, canvasHeight, hoveredGroupIndex);
+        this.drawFlowEvents(context, timelineData);
         this.drawMarkerLines();
         const dividersData = TimelineGrid.calculateGridOffsets(this);
         const navStartTimes = this.dataProvider.mainFrameNavigationStartEvents?.() || [];
@@ -955,6 +1510,12 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         }
         this.updateElementPosition(this.highlightElement, this.highlightedEntryIndex);
         this.updateElementPosition(this.selectedElement, this.selectedEntryIndex);
+        if (this.#searchResultEntryIndex !== -1) {
+            this.showPopoverForSearchResult(this.#searchResultEntryIndex);
+        }
+        for (const element of this.#searchResultHighlightElements) {
+            this.updateElementPosition(element, Number(element.id));
+        }
         this.updateMarkerHighlight();
     }
     /**
@@ -989,49 +1550,99 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
                 sortDecorationsForRenderingOrder(decorationsForEvent);
             }
             const entryStartTime = entryStartTimes[entryIndex];
+            const duration = entryTotalTimes[entryIndex];
+            const barX = this.timeToPositionClipped(entryStartTime);
+            const barLevel = entryLevels[entryIndex];
+            const barHeight = this.#eventBarHeight(timelineData, entryIndex);
+            const barY = this.levelToOffset(barLevel);
+            let barWidth = this.#eventBarWidth(timelineData, entryIndex);
             for (const decoration of decorationsForEvent) {
-                const duration = entryTotalTimes[entryIndex];
-                if (decoration.type === 'CANDY') {
-                    const candyStripeStartTime = TraceEngine.Helpers.Timing.microSecondsToMilliseconds(decoration.startAtTime);
-                    if (duration < candyStripeStartTime) {
-                        // If the duration of the event is less than the start time to draw the candy stripes, then we have no stripes to draw.
-                        continue;
+                switch (decoration.type) {
+                    case "CANDY" /* FlameChartDecorationType.CANDY */: {
+                        const candyStripeStartTime = TraceEngine.Helpers.Timing.microSecondsToMilliseconds(decoration.startAtTime);
+                        if (duration < candyStripeStartTime) {
+                            // If the duration of the event is less than the start time to draw the candy stripes, then we have no stripes to draw.
+                            continue;
+                        }
+                        if (!this.candyStripePattern) {
+                            this.candyStripePattern = this.createCandyStripePattern();
+                        }
+                        context.save();
+                        context.beginPath();
+                        // Draw a rectangle over the event, starting at the X value of the
+                        // event's start time + the startDuration of the candy striping.
+                        const barXStart = this.timeToPositionClipped(entryStartTime + candyStripeStartTime);
+                        // If a custom end time was passed in, that is when we stop striping, else we stripe until the very end of the entry.
+                        const stripingEndTime = decoration.endAtTime ?
+                            TraceEngine.Helpers.Timing.microSecondsToMilliseconds(decoration.endAtTime) :
+                            entryStartTime + duration;
+                        const barXEnd = this.timeToPositionClipped(stripingEndTime);
+                        this.#drawEventRect(context, timelineData, entryIndex, {
+                            startX: barXStart,
+                            width: barXEnd - barXStart,
+                        });
+                        context.fillStyle = this.candyStripePattern;
+                        context.fill();
+                        context.restore();
+                        break;
                     }
-                    if (!this.candyStripePattern) {
-                        this.candyStripePattern = this.createCandyStripePattern();
+                    case "WARNING_TRIANGLE" /* FlameChartDecorationType.WARNING_TRIANGLE */: {
+                        if (typeof decoration.customEndTime !== 'undefined') {
+                            // The user can pass a customEndTime to tell us where the event's box ends and therefore where we should draw the triangle. So therefore we calculate the width by taking the end time off the start time.
+                            const endTimeMilli = TraceEngine.Helpers.Timing.microSecondsToMilliseconds(decoration.customEndTime);
+                            const endTimePixels = this.timeToPositionClipped(endTimeMilli);
+                            barWidth = endTimePixels - barX;
+                        }
+                        const triangleSize = 8;
+                        context.save();
+                        context.beginPath();
+                        context.rect(barX, barY, barWidth, barHeight);
+                        context.clip();
+                        context.beginPath();
+                        context.fillStyle = 'red';
+                        context.moveTo(barX + barWidth - triangleSize, barY);
+                        context.lineTo(barX + barWidth, barY);
+                        context.lineTo(barX + barWidth, barY + triangleSize);
+                        context.fill();
+                        context.restore();
+                        break;
                     }
-                    context.save();
-                    context.beginPath();
-                    // Draw a rectangle over the event, starting at the X value of the
-                    // event's start time + the startDuration of the candy striping.
-                    const barXStart = this.timeToPositionClipped(entryStartTime + candyStripeStartTime);
-                    const barXEnd = this.timeToPositionClipped(entryStartTime + duration);
-                    this.#drawEventRect(context, timelineData, entryIndex, {
-                        startX: barXStart,
-                        width: barXEnd - barXStart,
-                    });
-                    context.fillStyle = this.candyStripePattern;
-                    context.fill();
-                    context.restore();
-                }
-                else if (decoration.type === 'WARNING_TRIANGLE') {
-                    const barX = this.timeToPositionClipped(entryStartTime);
-                    const barLevel = entryLevels[entryIndex];
-                    const barHeight = this.#eventBarHeight(timelineData, entryIndex);
-                    const barY = this.levelToOffset(barLevel);
-                    const barWidth = this.#eventBarWidth(timelineData, entryIndex);
-                    const triangleSize = 8;
-                    context.save();
-                    context.beginPath();
-                    context.rect(barX, barY, barWidth, barHeight);
-                    context.clip();
-                    context.beginPath();
-                    context.fillStyle = 'red';
-                    context.moveTo(barX + barWidth - triangleSize, barY);
-                    context.lineTo(barX + barWidth, barY);
-                    context.lineTo(barX + barWidth, barY + triangleSize);
-                    context.fill();
-                    context.restore();
+                    case "HIDDEN_DESCENDANTS_ARROW" /* FlameChartDecorationType.HIDDEN_DESCENDANTS_ARROW */: {
+                        context.save();
+                        context.beginPath();
+                        context.rect(barX, barY, barWidth, barHeight);
+                        const arrowSize = barHeight;
+                        // If the bar is wider than double the arrow button, draw the button. Otherwise, draw a corner triangle to indicate some entries are hidden
+                        if (barWidth > arrowSize * 2) {
+                            const triangleSize = 7;
+                            const triangleHorizontalPadding = 5;
+                            const triangleVerrticalPadding = 6;
+                            context.clip();
+                            context.beginPath();
+                            context.fillStyle = '#474747';
+                            const arrowAX = barX + barWidth - triangleSize - triangleHorizontalPadding;
+                            const arrowAY = barY + triangleVerrticalPadding;
+                            context.moveTo(arrowAX, arrowAY);
+                            const arrowBX = barX + barWidth - triangleHorizontalPadding;
+                            const arrowBY = barY + triangleVerrticalPadding;
+                            context.lineTo(arrowBX, arrowBY);
+                            const arrowCX = barX + barWidth - triangleHorizontalPadding - triangleSize / 2;
+                            const arrowCY = barY + barHeight - triangleVerrticalPadding;
+                            context.lineTo(arrowCX, arrowCY);
+                        }
+                        else {
+                            const triangleSize = 8;
+                            context.clip();
+                            context.beginPath();
+                            context.fillStyle = '#474747';
+                            context.moveTo(barX + barWidth - triangleSize, barY + barHeight);
+                            context.lineTo(barX + barWidth, barY + barHeight);
+                            context.lineTo(barX + barWidth, barY + triangleSize);
+                        }
+                        context.fill();
+                        context.restore();
+                        break;
+                    }
                 }
             }
         }
@@ -1074,6 +1685,13 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         const barHeight = this.levelHeight(barLevel);
         return barHeight;
     }
+    entryWidth(entryIndex) {
+        const timelineData = this.timelineData();
+        if (!timelineData) {
+            return 0;
+        }
+        return this.#eventBarWidth(timelineData, entryIndex);
+    }
     #eventBarWidth(timelineData, entryIndex) {
         const { entryTotalTimes, entryStartTimes } = timelineData;
         const duration = entryTotalTimes[entryIndex];
@@ -1103,28 +1721,27 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         const { entryTotalTimes, entryStartTimes } = timelineData;
         const height = this.offsetHeight;
         const top = this.chartViewport.scrollOffset();
-        const visibleLevelOffsets = this.visibleLevelOffsets ? this.visibleLevelOffsets : new Uint32Array();
         const textPadding = this.textPadding;
         // How wide in pixels / long in duration an event needs to be to make it
         // worthwhile rendering the text inside it.
         const minTextWidth = 2 * textPadding + UI.UIUtils.measureTextWidth(context, '…');
         const minTextWidthDuration = this.chartViewport.pixelToTimeOffset(minTextWidth);
-        const minVisibleBarLevel = Math.max(Platform.ArrayUtilities.upperBound(visibleLevelOffsets, top, Platform.ArrayUtilities.DEFAULT_COMPARATOR) - 1, 0);
         // As we parse each event, we bucket them into groups based on the color we
         // will render them with. The key of this map will be a color, and all
         // events stored in the `indexes` array for that color will be painted as
         // such. This way, when rendering events, we can render them based on
         // color, and ensure the minimum amount of changes to context.fillStyle.
         const colorBuckets = new Map();
-        for (let level = minVisibleBarLevel; level < this.dataProvider.maxStackDepth(); ++level) {
-            if (this.levelToOffset(level) > top + height) {
-                break;
+        for (let level = 0; level < this.dataProvider.maxStackDepth(); ++level) {
+            // Since tracks can be reordered the |visibleLevelOffsets| is not necessarily sorted, so we need to check all levels.
+            if (this.levelToOffset(level) < top || this.levelToOffset(level) > top + height) {
+                continue;
             }
             if (!this.visibleLevels || !this.visibleLevels[level]) {
                 continue;
             }
             if (!this.timelineLevels) {
-                continue;
+                break;
             }
             // Entries are ordered by start time within a level, so find the last visible entry.
             const levelIndexes = this.timelineLevels[level];
@@ -1170,7 +1787,16 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         }
         return { colorBuckets, titleIndices, markerIndices };
     }
-    drawGroupHeaders(width, height) {
+    /**
+     * The function to draw the group headers. It will draw the title by default.
+     * And when a group is hovered, it will add a edit button.
+     * And will draw the move up/down, hide and save button if user enter the editing mode.
+     * @param width
+     * @param height
+     * @param hoveredGroupIndex This is used to show the edit icon for hovered group. If it is undefined or -1, it means
+     * there is no group being hovered.
+     */
+    drawGroupHeaders(width, height, hoveredGroupIndex) {
         const context = this.canvas.getContext('2d');
         const top = this.chartViewport.scrollOffset();
         const ratio = window.devicePixelRatio;
@@ -1190,7 +1816,8 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         context.scale(ratio, ratio);
         context.translate(0, -top);
         context.font = this.#font;
-        context.fillStyle = ThemeSupport.ThemeSupport.instance().getComputedValue('--color-background');
+        context.fillStyle = ThemeSupport.ThemeSupport.instance().getComputedValue('--sys-color-cdt-base-container');
+        // Fill the gap between groups.
         this.forEachGroupInViewport((offset, index, group) => {
             const paddingHeight = group.style.padding;
             if (paddingHeight < 5) {
@@ -1198,10 +1825,12 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
             }
             context.fillRect(0, offset - paddingHeight + 2, width, paddingHeight - 4);
         });
+        // Fill the gap between last group and the bottom of canvas view.
         if (groups.length && lastGroupOffset < top + height) {
             context.fillRect(0, lastGroupOffset + 2, width, top + height - lastGroupOffset);
         }
-        context.strokeStyle = ThemeSupport.ThemeSupport.instance().getComputedValue('--color-background-elevation-1');
+        // The separating line between top level groups.
+        context.strokeStyle = ThemeSupport.ThemeSupport.instance().getComputedValue('--sys-color-neutral-container');
         context.beginPath();
         this.forEachGroupInViewport((offset, index, group, isFirst) => {
             if (isFirst || group.style.padding < 4) {
@@ -1230,10 +1859,17 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
             this.drawCollapsedOverviewForGroup(group, offset, endLevel);
         });
         context.save();
+        const trackConfigurationEnabled = Root.Runtime.experiments.isEnabled("timeline-track-configuration" /* Root.Runtime.ExperimentName.TIMELINE_TRACK_CONFIGURATION */);
+        // If there is only one track, we won't allow the track reordering or hiding.
+        const trackConfigurationAllowed = groups.length > 1;
+        // When it is normal mode, there is only an edit icon in the group headers.
+        // When it is in edit mode, there are three icons to customize the groups.
+        const iconsWidth = this.#editMode ? EDITION_MODE_INDENT : EDIT_BUTTON_SIZE;
         this.forEachGroupInViewport((offset, index, group) => {
             context.font = this.#font;
             if (this.isGroupCollapsible(index) && !group.expanded || group.style.shareHeaderLine) {
-                const width = this.labelWidthForGroup(context, group) + 2;
+                // In edit mode, we draw an extra rectangle for the save icon.
+                const labelBackgroundWidth = this.labelWidthForGroup(context, group) + (this.#editMode ? EDIT_BUTTON_SIZE : 0);
                 if (this.isGroupFocused(index)) {
                     context.fillStyle =
                         ThemeSupport.ThemeSupport.instance().getComputedValue('--selected-group-background', this.contentElement);
@@ -1244,21 +1880,53 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
                         context.fillStyle = parsedColor.setAlpha(0.8).asString();
                     }
                 }
-                context.fillRect(this.headerLeftPadding - this.headerLabelXPadding, offset + this.headerLabelYPadding, width, group.style.height - 2 * this.headerLabelYPadding);
+                context.fillRect(iconsWidth + HEADER_LEFT_PADDING, offset + HEADER_LABEL_Y_PADDING, labelBackgroundWidth, group.style.height - 2 * HEADER_LABEL_Y_PADDING);
             }
-            context.fillStyle = group.style.color;
-            context.fillText(group.name, Math.floor(this.expansionArrowIndent * (group.style.nestingLevel + 1) + this.arrowSide), offset + group.style.height - this.textBaseline);
+            context.fillStyle = (this.#editMode && group.hidden) ?
+                ThemeSupport.ThemeSupport.instance().getComputedValue('--sys-color-token-subtle', this.contentElement) :
+                group.style.color;
+            // The arrow is drawn from the center, so the indent is in fact the center of the arrow. See `drawExpansionArrow`
+            // function to understand how we draw the arrow.
+            // So the header looks like this:
+            // |ICON_WIDTH|expansionArrowIndent * (nesting level + 1)|
+            // |headerLeftPadding|EDIT  ICON|                     |Arrow|LabelXPadding|Title|LabelXPadding|
+            //                                                                        ^ titleStart
+            const titleStart = iconsWidth + EXPANSION_ARROW_INDENT * (group.style.nestingLevel + 1) + ARROW_SIDE / 2 +
+                HEADER_LABEL_X_PADDING;
+            context.fillText(group.name, titleStart, offset + group.style.height - this.textBaseline);
+            if (this.#editMode && group.hidden) {
+                // Draw a strikethrough line for the hidden tracks.
+                context.fillRect(titleStart, offset + group.style.height / 2, UI.UIUtils.measureTextWidth(context, group.name), 1);
+            }
+            // The icon and track title will look like this
+            // Normal mode:
+            // [Edit]Track title
+            // Edit mode:
+            // [ Up ][Down][Hide]Track title[Save]
+            if (trackConfigurationEnabled && trackConfigurationAllowed) {
+                if (this.#editMode) {
+                    const iconColor = group.hidden ? '--sys-color-token-subtle' : '--sys-color-on-surface';
+                    // We only allow to reorder the top level groups.
+                    if (group.style.nestingLevel === 0) {
+                        drawIcon(UP_ICON_LEFT, offset, moveUpIconPath, iconColor);
+                        drawIcon(DOWN_ICON_LEFT, offset, moveDownIconPath, iconColor);
+                    }
+                    drawIcon(HIDE_ICON_LEFT, offset, group.hidden ? showIconPath : hideIconPath, iconColor);
+                    drawIcon(HEADER_LEFT_PADDING + EDITION_MODE_INDENT + this.labelWidthForGroup(context, group), offset, saveIconPath, iconColor);
+                }
+                else if (hoveredGroupIndex === index) {
+                    drawIcon(EDIT_ICON_LEFT, offset, editIconPath);
+                }
+            }
         });
         context.restore();
-        context.fillStyle = ThemeSupport.ThemeSupport.instance().getComputedValue('--color-text-secondary');
-        context.beginPath();
+        context.fillStyle = ThemeSupport.ThemeSupport.instance().getComputedValue('--sys-color-token-subtle');
         this.forEachGroupInViewport((offset, index, group) => {
             if (this.isGroupCollapsible(index)) {
-                drawExpansionArrow.call(this, this.expansionArrowIndent * (group.style.nestingLevel + 1), offset + group.style.height - this.textBaseline - this.arrowSide / 2, Boolean(group.expanded));
+                drawExpansionArrow.call(this, iconsWidth + EXPANSION_ARROW_INDENT * (group.style.nestingLevel + 1), offset + group.style.height - this.textBaseline - ARROW_SIDE / 2, this.#editMode ? false : Boolean(group.expanded));
             }
         });
-        context.fill();
-        context.strokeStyle = ThemeSupport.ThemeSupport.instance().getComputedValue('--color-details-hairline-light');
+        context.strokeStyle = ThemeSupport.ThemeSupport.instance().getComputedValue('--sys-color-neutral-outline');
         context.beginPath();
         context.stroke();
         this.forEachGroupInViewport((offset, index, group, isFirst, groupHeight) => {
@@ -1267,9 +1935,20 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
                 const bracketLength = 10;
                 context.fillStyle =
                     ThemeSupport.ThemeSupport.instance().getComputedValue('--selected-group-border', this.contentElement);
-                context.fillRect(0, offset - lineWidth, lineWidth, groupHeight - group.style.padding + 2 * lineWidth);
-                context.fillRect(0, offset - lineWidth, bracketLength, lineWidth);
-                context.fillRect(0, offset + groupHeight - group.style.padding, bracketLength, lineWidth);
+                // The selected group indicator will be blue and in this kind of shape. And we will draw it with three
+                // rectangles.
+                // +-+---+
+                // |-|---+
+                // | |
+                // | |
+                // |-|---+
+                // +-+---+
+                // The vertical stroke
+                context.fillRect(iconsWidth, offset - lineWidth, lineWidth, groupHeight - group.style.padding + 2 * lineWidth);
+                // The top horizontal stroke
+                context.fillRect(iconsWidth, offset - lineWidth, bracketLength, lineWidth);
+                // The top horizontal stroke
+                context.fillRect(iconsWidth, offset + groupHeight - group.style.padding, bracketLength, lineWidth);
             }
         });
         context.restore();
@@ -1278,14 +1957,40 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
             context.lineTo(width, y);
         }
         function drawExpansionArrow(x, y, expanded) {
-            const arrowHeight = this.arrowSide * Math.sqrt(3) / 2;
+            // We will draw a equilateral triangle, so first calculate the height of the triangle.
+            const arrowHeight = ARROW_SIDE * Math.sqrt(3) / 2;
             const arrowCenterOffset = Math.round(arrowHeight / 2);
             context.save();
+            context.beginPath();
             context.translate(x, y);
             context.rotate(expanded ? Math.PI / 2 : 0);
-            context.moveTo(-arrowCenterOffset, -this.arrowSide / 2);
-            context.lineTo(-arrowCenterOffset, this.arrowSide / 2);
+            // The final triangle will be this shape: (the rotation will be handled by `context.rotate`)
+            // |\
+            // | \
+            // | /
+            // |/
+            // Move to the top vertex
+            context.moveTo(-arrowCenterOffset, -ARROW_SIDE / 2);
+            // Line to the bottom vertex
+            context.lineTo(-arrowCenterOffset, ARROW_SIDE / 2);
+            // Line to the right vertex
             context.lineTo(arrowHeight - arrowCenterOffset, 0);
+            context.fill();
+            context.restore();
+        }
+        function drawIcon(x, y, pathData, iconColor = '--sys-color-on-surface') {
+            const p = new Path2D(pathData);
+            context.save();
+            context.translate(x, y);
+            // This color is same as the background of the whole flame chart.
+            context.fillStyle = ThemeSupport.ThemeSupport.instance().getComputedValue('--sys-color-cdt-base-container');
+            context.fillRect(0, 0, EDIT_BUTTON_SIZE, EDIT_BUTTON_SIZE);
+            context.fillStyle = ThemeSupport.ThemeSupport.instance().getComputedValue(iconColor);
+            // The pathData from front_end/images folder is for a 20 pixel icon.
+            // So we add a scale to draw the icon in a correct size.
+            const scale = EDIT_BUTTON_SIZE / 20;
+            context.scale(scale, scale);
+            context.fill(p);
             context.restore();
         }
     }
@@ -1355,12 +2060,18 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
             const barLevel = entryLevels[entryIndex];
             const barY = this.levelToOffset(barLevel);
             let text = this.dataProvider.entryTitle(entryIndex);
+            const barHeight = this.#eventBarHeight(timelineData, entryIndex);
             if (text && text.length) {
                 context.font = this.#font;
-                text = UI.UIUtils.trimTextMiddle(context, text, barWidth - 2 * textPadding);
+                const hasArrowDecoration = this.entryHasDecoration(entryIndex, "HIDDEN_DESCENDANTS_ARROW" /* FlameChartDecorationType.HIDDEN_DESCENDANTS_ARROW */);
+                // Set the max width to be the width of the bar plus some padding. If the bar has an arrow decoration and the bar is wide enough for the larger
+                // version of the decoration that is a square button, also substract the width of the decoration.
+                // Because the decoration is square, it's width is equal to this.barHeight
+                const maxBarWidth = (hasArrowDecoration && barWidth > barHeight * 2) ? barWidth - textPadding - this.barHeight :
+                    barWidth - 2 * textPadding;
+                text = UI.UIUtils.trimTextMiddle(context, text, maxBarWidth);
             }
             const unclippedBarX = this.chartViewport.timeToPosition(entryStartTime);
-            const barHeight = this.#eventBarHeight(timelineData, entryIndex);
             if (this.dataProvider.decorateEntry(entryIndex, context, text, barX, barY, barWidth, barHeight, unclippedBarX, timeToPixel)) {
                 continue;
             }
@@ -1372,6 +2083,18 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         }
         context.restore();
     }
+    /**
+     * @callback GroupCallback
+     * @param groupTop pixels between group top and the top of the flame chart.
+     * @param groupIndex
+     * @param group
+     * @param isFirstGroup if the group is the first one of this nesting level.
+     * @param height pixels of height of this group
+     */
+    /**
+     * Process the pixels of start and end, and other data of each group, which are used in drawing the group.
+     * @param {GroupCallback} callback
+     */
     forEachGroup(callback) {
         if (!this.rawTimelineData) {
             return;
@@ -1399,8 +2122,36 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
             const parentGroupVisible = last ? last.visible : false;
             const thisGroupVisible = !group.hidden && parentGroupVisible && (!this.isGroupCollapsible(i) || group.expanded);
             groupStack.push({ nestingLevel: group.style.nestingLevel, visible: Boolean(thisGroupVisible) });
-            const nextOffset = i === groups.length - 1 ? groupOffsets[i + 1] + group.style.padding : groupOffsets[i + 1];
-            if (!parentGroupVisible || group.hidden) {
+            if (!this.#groupTreeRoot) {
+                return;
+            }
+            const sortedGroupIndexes = [];
+            function traverse(root) {
+                sortedGroupIndexes.push(root.index);
+                for (const child of root.children) {
+                    traverse(child);
+                }
+            }
+            traverse(this.#groupTreeRoot);
+            // Skip the one whose index is -1, because we added to represent the top
+            // level to be the parent of all groups.
+            sortedGroupIndexes.shift();
+            // This shouldn't happen, because the tree should have the fake root and all groups. Add a sanity check to avoid
+            // error.
+            if (sortedGroupIndexes.length !== groups.length) {
+                console.warn('The data from the group tree doesn\'t match the data from DataProvider.');
+                return;
+            }
+            // Add an extra index, which is equal to the length of the |groups|, this
+            // will be used for the coordinates after the last group.
+            // If the coordinates after the last group, it will return in later check
+            // `groupIndex >= groups.length` anyway. But add one more element to make
+            // this array same length as the |groupOffsets|.
+            sortedGroupIndexes.push(groups.length);
+            const currentIndex = sortedGroupIndexes.indexOf(i);
+            const nextOffset = groupOffsets[sortedGroupIndexes[currentIndex + 1]];
+            // In edit mode all the groups are visible.
+            if (!this.#editMode && (!parentGroupVisible || group.hidden)) {
                 continue;
             }
             callback(groupTop, i, group, firstGroup, nextOffset - groupTop);
@@ -1418,9 +2169,19 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
             callback(groupTop, index, group, firstGroup, height);
         });
     }
+    /**
+     * Returns the width of the title label of the group, which include the left padding, arrow and the group header text.
+     * This function is public for test reason.
+     * |ICON_WIDTH|expansionArrowIndent * (nestingLevel + 1)|
+     * |headerLeftPadding|EDIT  ICON|                    |Arrow|LabelXPadding|Title|LabelXPadding|
+     *                              |<--                      labelWidth                      -->|
+     * @param context canvas context
+     * @param group
+     * @returns the width of the label of the group.
+     */
     labelWidthForGroup(context, group) {
-        return UI.UIUtils.measureTextWidth(context, group.name) +
-            this.expansionArrowIndent * (group.style.nestingLevel + 1) + 2 * this.headerLabelXPadding;
+        return EXPANSION_ARROW_INDENT * (group.style.nestingLevel + 1) + ARROW_SIDE / 2 + HEADER_LABEL_X_PADDING +
+            UI.UIUtils.measureTextWidth(context, group.name) + HEADER_LABEL_X_PADDING - HEADER_LEFT_PADDING;
     }
     drawCollapsedOverviewForGroup(group, y, endLevel) {
         const range = new Common.SegmentedRange.SegmentedRange(mergeCallback);
@@ -1483,63 +2244,109 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
             return a.data === b.data && a.end + 0.4 > b.end ? a : null;
         }
     }
-    drawFlowEvents(context, _width, _height) {
-        context.save();
-        const ratio = window.devicePixelRatio;
-        const top = this.chartViewport.scrollOffset();
-        const arrowWidth = 6;
-        context.scale(ratio, ratio);
-        context.translate(0, -top);
-        context.fillStyle = '#7f5050';
-        context.strokeStyle = '#7f5050';
+    drawFlowEvents(context, timelineData) {
         const td = this.timelineData();
         if (!td) {
             return;
         }
-        const endIndex = Platform.ArrayUtilities.lowerBound(td.flowStartTimes, this.chartViewport.windowRightTime(), Platform.ArrayUtilities.DEFAULT_COMPARATOR);
-        context.lineWidth = 0.5;
-        for (let i = 0; i < endIndex; ++i) {
-            if (!td.flowEndTimes[i] || td.flowEndTimes[i] < this.chartViewport.windowLeftTime()) {
+        const { entryTotalTimes, entryStartTimes, entryLevels } = timelineData;
+        const ratio = window.devicePixelRatio;
+        const top = this.chartViewport.scrollOffset();
+        const arrowLineWidth = 6;
+        const arrowWidth = 3;
+        context.save();
+        context.scale(ratio, ratio);
+        context.translate(0, -top);
+        context.fillStyle = '#7f5050';
+        context.strokeStyle = '#7f5050';
+        for (let i = 0; i < td.initiatorsData.length; ++i) {
+            const initiatorsData = td.initiatorsData[i];
+            const initiatorArrowStartTime = entryStartTimes[initiatorsData.initiatorIndex] + entryTotalTimes[initiatorsData.initiatorIndex];
+            const initiatorArrowEndTime = entryStartTimes[initiatorsData.eventIndex];
+            // Do not draw the initiator if it is out of the viewport
+            if (initiatorArrowEndTime < this.chartViewport.windowLeftTime()) {
                 continue;
             }
-            const startX = this.chartViewport.timeToPosition(td.flowStartTimes[i]);
-            const endX = this.chartViewport.timeToPosition(td.flowEndTimes[i]);
-            const startLevel = td.flowStartLevels[i];
-            const endLevel = td.flowEndLevels[i];
+            let startX = this.chartViewport.timeToPosition(initiatorArrowStartTime);
+            let endX = this.chartViewport.timeToPosition(initiatorArrowEndTime);
+            // Draw a circle arround 'collapsed entries' arrow to indicate that the initiated entry is hidden
+            if (initiatorsData.isInitiatorHidden) {
+                const { circleEndX } = this.drawCircleArroundCollapseArrow(initiatorsData.initiatorIndex, context, timelineData);
+                // If the circle exists around the initiator, start the initiator arrow from the circle end
+                if (circleEndX) {
+                    startX = circleEndX;
+                }
+            }
+            if (initiatorsData.isEntryHidden) {
+                const { circleStartX } = this.drawCircleArroundCollapseArrow(initiatorsData.eventIndex, context, timelineData);
+                // If the circle exists around the initiated event, draw the initiator arrow until the circle beginning
+                if (circleStartX) {
+                    endX = circleStartX;
+                }
+            }
+            const startLevel = entryLevels[initiatorsData.initiatorIndex];
+            const endLevel = entryLevels[initiatorsData.eventIndex];
             const startY = this.levelToOffset(startLevel) + this.levelHeight(startLevel) / 2;
             const endY = this.levelToOffset(endLevel) + this.levelHeight(endLevel) / 2;
-            const segment = Math.min((endX - startX) / 4, 40);
-            const distanceTime = td.flowEndTimes[i] - td.flowStartTimes[i];
-            const distanceY = (endY - startY) / 10;
-            const spread = 30;
-            const lineY = distanceTime < 1 ? startY : spread + Math.max(0, startY + distanceY * (i % spread));
-            const p = [];
-            p.push({ x: startX, y: startY });
-            p.push({ x: startX + arrowWidth, y: startY });
-            p.push({ x: startX + segment + 2 * arrowWidth, y: startY });
-            p.push({ x: startX + segment, y: lineY });
-            p.push({ x: startX + segment * 2, y: lineY });
-            p.push({ x: endX - segment * 2, y: lineY });
-            p.push({ x: endX - segment, y: lineY });
-            p.push({ x: endX - segment - 2 * arrowWidth, y: endY });
-            p.push({ x: endX - arrowWidth, y: endY });
+            const lineLength = endX - startX;
+            // Draw an arrow in an 'elbow connector' shape
             context.beginPath();
-            context.moveTo(p[0].x, p[0].y);
-            context.lineTo(p[1].x, p[1].y);
-            context.bezierCurveTo(p[2].x, p[2].y, p[3].x, p[3].y, p[4].x, p[4].y);
-            context.lineTo(p[5].x, p[5].y);
-            context.bezierCurveTo(p[6].x, p[6].y, p[7].x, p[7].y, p[8].x, p[8].y);
+            context.moveTo(startX, startY);
+            context.lineTo(startX + lineLength / 2, startY);
+            context.lineTo(startX + lineLength / 2, endY);
+            context.lineTo(endX, endY);
             context.stroke();
-            context.beginPath();
-            context.arc(startX, startY, 2, -Math.PI / 2, Math.PI / 2, false);
-            context.fill();
-            context.beginPath();
-            context.moveTo(endX, endY);
-            context.lineTo(endX - arrowWidth, endY - 3);
-            context.lineTo(endX - arrowWidth, endY + 3);
-            context.fill();
+            // Make line an arrow if the line is long enough to fit the arrow head. Othewise, draw a thinner line without the arrow head.
+            if (lineLength > arrowWidth) {
+                context.lineWidth = 0.5;
+                context.beginPath();
+                context.moveTo(endX, endY);
+                context.lineTo(endX - arrowLineWidth, endY - 3);
+                context.lineTo(endX - arrowLineWidth, endY + 3);
+                context.fill();
+            }
+            else {
+                context.lineWidth = 0.2;
+            }
         }
         context.restore();
+    }
+    drawCircleArroundCollapseArrow(entryIndex, context, timelineData) {
+        const decorationsForEvent = timelineData.entryDecorations.at(entryIndex);
+        // The circle is only drawn when the initiator arrow is going to/from some hidden entry. Make sure that the entry also has a decoration for hidden children.
+        if (!decorationsForEvent ||
+            !decorationsForEvent.find(decoration => decoration.type === "HIDDEN_DESCENDANTS_ARROW" /* FlameChartDecorationType.HIDDEN_DESCENDANTS_ARROW */)) {
+            // This should not happen, break if it does.
+            return {};
+        }
+        const { entryStartTimes, entryLevels } = timelineData;
+        // The large version of 'hidden entries' is displayed
+        // only when the bar width is over double the height.
+        // We do not want to draw the circle if the arrow is not visible.
+        const barWidth = this.#eventBarWidth(timelineData, entryIndex);
+        if (barWidth < this.barHeight * 2) {
+            return {};
+        }
+        const entryStartTime = entryStartTimes[entryIndex];
+        const barX = this.timeToPositionClipped(entryStartTime);
+        const barLevel = entryLevels[entryIndex];
+        const barHeight = this.#eventBarHeight(timelineData, entryIndex);
+        const barY = this.levelToOffset(barLevel);
+        context.save();
+        context.beginPath();
+        context.rect(barX, barY, barWidth, barHeight);
+        context.clip();
+        context.lineWidth = 1;
+        context.beginPath();
+        context.fillStyle = '#474747';
+        const triangleCenterX = barX + barWidth - this.barHeight / 2;
+        const triangleCenterY = barY + this.barHeight / 2;
+        const circleRadius = 6;
+        context.beginPath();
+        context.arc(triangleCenterX, triangleCenterY, circleRadius, 0, 2 * Math.PI);
+        context.stroke();
+        context.restore();
+        return { circleStartX: triangleCenterX - circleRadius, circleEndX: triangleCenterX + circleRadius };
     }
     /**
      * Draws the vertical dashed lines in the timeline marking where the "Marker" events
@@ -1600,7 +2407,8 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
             this.forceDecorationCache = null;
             this.entryColorsCache = null;
             this.rawTimelineDataLength = 0;
-            this.selectedGroup = -1;
+            this.#groupTreeRoot = null;
+            this.selectedGroupIndex = -1;
             this.keyboardFocusedGroup = -1;
             this.flameChartDelegate.updateSelectedGroup(this, null);
             return;
@@ -1638,110 +2446,291 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
                 groups[i].hidden = hidden;
             }
         }
+        if (!this.#groupTreeRoot) {
+            this.#groupTreeRoot = this.buildGroupTree(groups);
+        }
+        else {
+            // When the |groupTreeRoot| is already existing, and a "new" timeline data comes, this means the new timeline data
+            // is just a modification of original, so we should update the tree instead of rebuild it.
+            // For example,
+            // [
+            //   { name: 'Test Group 0', startLevel: 0, ...},
+            //   { name: 'Test Group 1', startLevel: 1, ...},
+            //   { name: 'Test Group 2', startLevel: 2, ...},
+            // ], and [
+            //   { name: 'Test Group 0', startLevel: 0, ...},
+            //   { name: 'Test Group 1', startLevel: 2, ...},
+            //   { name: 'Test Group 2', startLevel: 4, ...},
+            // ],
+            // are the same.
+            // But they and [
+            //   { name: 'Test Group 0', startLevel: 0, ...},
+            //   { name: 'Test Group 2', startLevel: 1, ...},
+            //   { name: 'Test Group 1', startLevel: 2, ...},
+            // ] are different.
+            // But if the |groups| is changed (this means the group order inside the |groups| is changed), it means the
+            // timeline data is a real new one, then please call |reset()| before rendering.
+            this.updateGroupTree(groups, this.#groupTreeRoot);
+        }
         this.updateLevelPositions();
         this.updateHeight();
-        this.selectedGroup = timelineData.selectedGroup ? groups.indexOf(timelineData.selectedGroup) : -1;
-        this.keyboardFocusedGroup = this.selectedGroup;
+        // If this is a new trace, we will call the reset()(See TimelineFlameChartView > setModel()), which will set the
+        // |selectedGroupIndex| to -1.
+        // So when |selectedGroupIndex| is not -1, it means it is the same trace file, but might have some modification
+        // (like reorder the track, merge an entry, etc).
+        if (this.selectedGroupIndex === -1) {
+            this.selectedGroupIndex = timelineData.selectedGroup ? groups.indexOf(timelineData.selectedGroup) : -1;
+        }
+        this.keyboardFocusedGroup = this.selectedGroupIndex;
         this.flameChartDelegate.updateSelectedGroup(this, timelineData.selectedGroup);
     }
+    /**
+     * Builds a tree node for a group. For each group the start level is inclusive and the end level is exclusive.
+     * @param group
+     * @param index index of the group in the |FlameChartTimelineData.groups[]|
+     * @param endLevel The end level of this group, which is also the start level of the next group or the end of all
+     * groups
+     * @returns the tree node for the group
+     */
+    #buildGroupTreeNode(group, index, endLevel) {
+        return {
+            index,
+            nestingLevel: group.style.nestingLevel,
+            startLevel: group.startLevel,
+            endLevel,
+            children: [],
+        };
+    }
+    /**
+     * Builds a tree for the given group array, the tree will be builded based on the nesting level.
+     * We will add one fake root to represent the top level parent, and the for each tree node, its children means the
+     * group nested in. The order of the children matters because it represent the order of groups.
+     * So for example if there are Group 0-7, Group 0, 3, 4 have nestingLevel 0, Group 1, 2, 5, 6, 7 have nestingLevel 1.
+     * Then we will get a tree like this.
+     *              -1(fake root to represent the top level parent)
+     *             / | \
+     *            /  |  \
+     *           0   3   4
+     *          / \    / | \
+     *         1   2  5  6  7
+     * This function is public for test purpose.
+     * @param groups the array of all groups, it should be the one from FlameChartTimelineData
+     * @returns the root of the Group tree. The root is the fake one we added, which represent the parent for all groups
+     */
+    buildGroupTree(groups) {
+        // Add an extra top level. This will be used as a parent for all groups, and
+        // will be used to contain the levels that not belong to any group.
+        const treeRoot = {
+            index: -1,
+            nestingLevel: -1,
+            startLevel: 0,
+            // If there is no |groups| (for example the JS Profiler), it means all the
+            // levels belong to the top level, so just use the max level as the end.
+            endLevel: groups.length ? groups[0].startLevel : this.dataProvider.maxStackDepth(),
+            children: [],
+        };
+        const groupStack = [treeRoot];
+        for (let i = 0; i < groups.length; i++) {
+            const group = groups[i];
+            const currentGroupNestingLevel = group.style.nestingLevel;
+            let parentGroup = groupStack[groupStack.length - 1];
+            while (parentGroup && parentGroup.nestingLevel >= currentGroupNestingLevel) {
+                groupStack.pop();
+                parentGroup = groupStack[groupStack.length - 1];
+            }
+            const nextGroup = groups[i + 1];
+            // If this group is the last one, it means all the remaining levels belong
+            // to this level, so just use the max level as the end.
+            const endLevel = nextGroup?.startLevel ?? this.dataProvider.maxStackDepth();
+            const currentGroupNode = this.#buildGroupTreeNode(group, i, endLevel);
+            parentGroup.children.push(currentGroupNode);
+            groupStack.push(currentGroupNode);
+        }
+        return treeRoot;
+    }
+    /**
+     * Updates the tree for the given group array.
+     * For a new timeline data, if the groups remains the same (the same here mean the group order inside the |groups|,
+     * the start level, style and other attribute can be changed), but other parts are different.
+     * For example the |entryLevels[]| or |maxStackDepth| is changed, then we should update the group tree instead of
+     * re-build it.
+     * So we can keep the order that user manually set.
+     * To do this, we go through the tree, and update the start and end level of each group.
+     * This function is public for test purpose.
+     * @param groups the array of all groups, it should be the one from FlameChartTimelineData
+     * @returns the root of the Group tree. The root is the fake one we added, which represent the parent for all groups
+     */
+    updateGroupTree(groups, root) {
+        const maxStackDepth = this.dataProvider.maxStackDepth();
+        function traverse(treeNode) {
+            const index = treeNode.index;
+            if (index < 0) {
+                // For the extra top level. This will be used as a parent for all
+                // groups, so it will start from level 0.
+                treeNode.startLevel = 0;
+                // If there is no |groups| (for example the JS Profiler), it means all the
+                // levels belong to the top level, so just use the max level as the end.
+                treeNode.endLevel = groups.length ? groups[0].startLevel : maxStackDepth;
+            }
+            else {
+                // This shouldn't happen. If this happen, it means the |groups| from data provider is changed. Add a sanity
+                // check to avoid error.
+                if (!groups[index]) {
+                    console.warn('The |groups| is changed. ' +
+                        'Please make sure the flamechart is reset after data change in the data provider');
+                    return;
+                }
+                treeNode.startLevel = groups[index].startLevel;
+                const nextGroup = groups[index + 1];
+                // If this group is the last one, it means all the remaining levels belong
+                // to this level, so just use the max level as the end.
+                treeNode.endLevel = nextGroup?.startLevel ?? maxStackDepth;
+            }
+            for (const child of treeNode.children) {
+                traverse(child);
+            }
+        }
+        traverse(root);
+    }
+    /**
+     * Given a tree, do a preorder traversal, and process the group and the levels in this group.
+     * So for a tree like this:
+     *              -1
+     *             / | \
+     *            /  |  \
+     *           0   3   4
+     *          / \    / | \
+     *         1   2  5  6  7
+     * The traverse order will be: -1, 0, 1, 2, 3, 4, 5, 6, 7.
+     * @param groupNode TreeNode for current group
+     * @param currentOffset
+     * @param parentGroupIsVisible used to determine if current group's header and its levels are visible
+     * @returns the offset (in pixels) after processing current group
+     */
+    #traverseGroupTreeAndUpdateLevelPositionsForTheGroup(groupNode, currentOffset, parentGroupIsVisible) {
+        if (!this.visibleLevels || !this.visibleLevelOffsets || !this.visibleLevelHeights || !this.groupOffsets) {
+            return currentOffset;
+        }
+        const groups = this.rawTimelineData?.groups;
+        if (!groups) {
+            return currentOffset;
+        }
+        // This shouldn't happen. If this happen, it means the group tree is outdated. Add a sanity check to avoid error.
+        if (groupNode.index >= groups.length) {
+            console.warn('The data from the group tree is outdated. ' +
+                'Please make sure the flamechart is reset after data change in the data provider');
+            return currentOffset;
+        }
+        if (groupNode.index >= 0) {
+            this.groupOffsets[groupNode.index] = currentOffset;
+            // If |shareHeaderLine| is false, we add the height of one more level to
+            // the current offset, which will be used for the start level of current
+            // group.
+            // If it's in edit mode, all the groups are shown.
+            if (this.#editMode ||
+                (!groups[groupNode.index].hidden && parentGroupIsVisible && !groups[groupNode.index].style.shareHeaderLine)) {
+                currentOffset += groups[groupNode.index].style.height;
+            }
+        }
+        // If this is the top level, it is always shown.
+        // Otherwise, if the parent group is visible and current group is not hidden, and this group is expanded, then this
+        // group is visible.
+        let thisGroupIsVisible = false;
+        if (groupNode.index < 0) {
+            thisGroupIsVisible = true;
+        }
+        else {
+            const thisGroupIsExpanded = !(this.isGroupCollapsible(groupNode.index) && !groups[groupNode.index].expanded);
+            thisGroupIsVisible = !groups[groupNode.index].hidden && thisGroupIsExpanded;
+        }
+        const thisGroupLevelsAreVisible = thisGroupIsVisible && parentGroupIsVisible;
+        for (let level = groupNode.startLevel; level < groupNode.endLevel; level++) {
+            // This shouldn't happen. If this happen, it means the group tree is outdated. Add a sanity check to avoid error.
+            if (level >= this.dataProvider.maxStackDepth()) {
+                console.warn('The data from the group tree is outdated. ' +
+                    'Please make sure the flamechart is reset after data change in the data provider');
+                return currentOffset;
+            }
+            // Handle offset and visibility of each level inside this group.
+            const isFirstOnLevel = level === groupNode.startLevel;
+            // If this is the top level group, all the levels in this group are always shown.
+            // Otherwise it depends on the visibility of parent group and this group.
+            let thisLevelIsVisible;
+            if (groupNode.index < 0) {
+                thisLevelIsVisible = true;
+            }
+            else {
+                const isFirstLevelAndForOverview = isFirstOnLevel && groups[groupNode.index].style.useFirstLineForOverview;
+                thisLevelIsVisible = !groups[groupNode.index].hidden &&
+                    (parentGroupIsVisible && (thisGroupLevelsAreVisible || isFirstLevelAndForOverview));
+            }
+            let height;
+            if (groups[groupNode.index]) {
+                // |shareHeaderLine| is false means the first level of this group is on the next level of the header.
+                const isFirstLevelAndNotShareHeaderLine = isFirstOnLevel && !groups[groupNode.index].style.shareHeaderLine;
+                // A group is collapsed means only ite header is visible.
+                const thisGroupIsCollapsed = this.isGroupCollapsible(groupNode.index) && !groups[groupNode.index].expanded;
+                if (isFirstLevelAndNotShareHeaderLine || thisGroupIsCollapsed) {
+                    // This means this level is only the header, so we use the height of the header for this level.
+                    height = groups[groupNode.index].style.height;
+                }
+                else {
+                    height = groups[groupNode.index].style.itemsHeight ?? this.barHeight;
+                }
+            }
+            else {
+                height = this.barHeight;
+            }
+            // If it's in edit mode, all the levels are hidden.
+            this.visibleLevels[level] = this.#editMode ? false : Boolean(thisLevelIsVisible);
+            this.visibleLevelOffsets[level] = currentOffset;
+            this.visibleLevelHeights[level] = this.#editMode ? 0 : height;
+            // If this level not belong to any group, it is always shown, otherwise we need to check if it is visible.
+            if (groupNode.index < 0 ||
+                (!groups[groupNode.index].hidden) &&
+                    (thisLevelIsVisible ||
+                        (parentGroupIsVisible && groups[groupNode.index].style.shareHeaderLine && isFirstOnLevel))) {
+                currentOffset += this.visibleLevelHeights[level];
+            }
+        }
+        if (groupNode.children.length === 0) {
+            return currentOffset;
+        }
+        for (const child of groupNode.children) {
+            // If the child is not the first child, we will add a padding top.
+            if (this.#editMode ||
+                (thisGroupLevelsAreVisible && !groups[child.index]?.hidden && child !== groupNode.children[0])) {
+                currentOffset += (groups[child.index].style.padding ?? 0);
+            }
+            currentOffset =
+                this.#traverseGroupTreeAndUpdateLevelPositionsForTheGroup(child, currentOffset, thisGroupLevelsAreVisible);
+        }
+        return currentOffset;
+    }
     updateLevelPositions() {
+        if (!this.#groupTreeRoot) {
+            console.warn('Please make sure the new timeline data is processed before update the level positions.');
+            return;
+        }
         const levelCount = this.dataProvider.maxStackDepth();
-        const groups = this.rawTimelineData ? (this.rawTimelineData.groups || []) : [];
+        const groups = this.rawTimelineData?.groups || [];
         // Add an extra number in visibleLevelOffsets to store the end of last level
         this.visibleLevelOffsets = new Uint32Array(levelCount + 1);
         this.visibleLevelHeights = new Uint32Array(levelCount);
         this.visibleLevels = new Array(levelCount);
         // Add an extra number in groupOffsets to store the end of last group
         this.groupOffsets = new Uint32Array(groups.length + 1);
-        // For some flame chart (like the one in JS Profiler), we don't use group
-        // for them, so in this case, use -1 to avoid any group header related
-        // calculation.
-        let groupIndex = -1;
         let currentOffset = this.rulerEnabled ? RulerHeight + 2 : 2;
-        let visible = true;
-        // For the group we added from data provider, the nesting level should start
-        // from 0.
-        // Adding this fake groupStack to be the parent of all the groups.
-        const groupStack = [{ nestingLevel: -1, visible: true }];
-        // For some flame chart (like the one in JS Profiler), we don't use group
-        // for them, so in this case, use the total level as the start level of last
-        // group.
-        const lastGroupLevel = Math.max(levelCount, groups.length ? groups[groups.length - 1].startLevel + 1 : 0);
-        let level;
-        for (level = 0; level < lastGroupLevel; ++level) {
-            let parentGroupIsVisible = true;
-            let currentGroupStyle;
-            // This while block will handle the offset of a group based on the nesting
-            // level and visibility of the group.
-            // This needs to be while because the nested group might have same start
-            // level with its parent.
-            while (groupIndex < groups.length - 1 && level === groups[groupIndex + 1].startLevel) {
-                ++groupIndex;
-                currentGroupStyle = groups[groupIndex].style;
-                let nextNestingLevel = true;
-                let parentGroup = groupStack[groupStack.length - 1];
-                while (parentGroup && parentGroup.nestingLevel >= currentGroupStyle.nestingLevel) {
-                    groupStack.pop();
-                    nextNestingLevel = false;
-                    parentGroup = groupStack[groupStack.length - 1];
-                }
-                const thisGroupIsVisible = !groups[groupIndex].hidden &&
-                    (groupIndex >= 0 && this.isGroupCollapsible(groupIndex) ? groups[groupIndex].expanded : true);
-                parentGroupIsVisible = parentGroup.visible ?? false;
-                // |groups[groupIndex].expanded| could be undefined, so we need to convert
-                // thisGroupIsVisible to boolean here.
-                visible = Boolean(thisGroupIsVisible) && parentGroupIsVisible;
-                groupStack.push({ nestingLevel: currentGroupStyle.nestingLevel, visible });
-                if (parentGroupIsVisible && !groups[groupIndex].hidden && !nextNestingLevel) {
-                    currentOffset += currentGroupStyle.padding;
-                }
-                this.groupOffsets[groupIndex] = currentOffset;
-                // If |shareHeaderLine| is false, we add the height of one more level to
-                // the current offset, which will be used for the start level of current
-                // group.
-                if (!groups[groupIndex].hidden && parentGroupIsVisible && !currentGroupStyle.shareHeaderLine) {
-                    currentOffset += currentGroupStyle.height;
-                }
-            }
-            // This shouldn't happen, if this is true, it means the lastGroupLevel is
-            // bigger than |dataProvider.maxStackDepth()|, which means
-            // |dataProvider.maxStackDepth()| is returning a wrong number.
-            if (level >= levelCount) {
-                continue;
-            }
-            // Handle offset and visibility of each level.
-            const isFirstOnLevel = groupIndex >= 0 && level === groups[groupIndex].startLevel;
-            const thisLevelIsVisible = !groups[groupIndex]?.hidden &&
-                (parentGroupIsVisible && (visible || (isFirstOnLevel && groups[groupIndex].style.useFirstLineForOverview)));
-            let height;
-            if (groupIndex >= 0) {
-                const group = groups[groupIndex];
-                const styleB = group.style;
-                height = isFirstOnLevel && !styleB.shareHeaderLine || (styleB.collapsible && !group.expanded) ?
-                    styleB.height :
-                    (styleB.itemsHeight || this.barHeight);
-            }
-            else {
-                height = this.barHeight;
-            }
-            this.visibleLevels[level] = thisLevelIsVisible ?? false;
-            this.visibleLevelOffsets[level] = currentOffset;
-            this.visibleLevelHeights[level] = height;
-            if (thisLevelIsVisible ||
-                (parentGroupIsVisible && currentGroupStyle && currentGroupStyle.shareHeaderLine && isFirstOnLevel)) {
-                currentOffset += this.visibleLevelHeights[level];
-            }
-        }
+        // The root is always visible, so just simply set the |parentGroupIsVisible| to visible.
+        currentOffset = this.#traverseGroupTreeAndUpdateLevelPositionsForTheGroup(this.#groupTreeRoot, currentOffset, /* parentGroupIsVisible= */ true);
         // Set the final offset to the last element of |groupOffsets| and
         // |visibleLevelOffsets|. This number represent the end of last group and
         // level.
-        if (groupIndex >= 0) {
-            this.groupOffsets[groupIndex + 1] = currentOffset;
-        }
-        this.visibleLevelOffsets[level] = currentOffset;
+        this.groupOffsets[groups.length] = currentOffset;
+        this.visibleLevelOffsets[levelCount] = currentOffset;
     }
     isGroupCollapsible(index) {
-        if (!this.rawTimelineData) {
+        if (!this.rawTimelineData || index < 0) {
             return;
         }
         const groups = this.rawTimelineData.groups || [];
@@ -1762,6 +2751,11 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         return style.height !== style.itemsHeight;
     }
     setSelectedEntry(entryIndex) {
+        // Check if the button that resets children of the entry is clicked. We need to check it even if the entry
+        // clicked is not selected to avoid needing to double click
+        if (this.isMouseOverRevealChildrenArrow(this.lastMouseOffsetX, entryIndex)) {
+            this.modifyTree("RESET_CHILDREN" /* TraceEngine.EntriesFilter.FilterAction.RESET_CHILDREN */, entryIndex);
+        }
         if (this.selectedEntryIndex === entryIndex) {
             return;
         }
@@ -1771,8 +2765,24 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         this.selectedEntryIndex = entryIndex;
         this.revealEntry(entryIndex);
         this.updateElementPosition(this.selectedElement, this.selectedEntryIndex);
+        this.update();
     }
-    updateElementPosition(element, entryIndex) {
+    entryHasDecoration(entryIndex, decorationType) {
+        const timelineData = this.timelineData();
+        if (!timelineData) {
+            return false;
+        }
+        const decorationsForEvent = timelineData.entryDecorations.at(entryIndex);
+        if (decorationsForEvent && decorationsForEvent.length >= 1) {
+            return decorationsForEvent.some(decoration => decoration.type === decorationType);
+        }
+        return false;
+    }
+    /**
+     * Update position of an Element. By default, the element is treated as a full entry and it's dimentions are set to the full entry width/length/height.
+     * If isDecoration parameter is set to true, the element will be positioned on the right side of the entry and have a square shape where width == height of the entry.
+     */
+    updateElementPosition(element, entryIndex, isDecoration) {
         const elementMinWidthPx = 2;
         element.classList.add('hidden');
         if (entryIndex === -1) {
@@ -1811,19 +2821,39 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
         const barY = this.levelToOffset(entryLevel) - this.chartViewport.scrollOffset();
         const barHeight = this.levelHeight(entryLevel);
         const style = element.style;
-        style.left = barX + 'px';
-        style.top = barY + 'px';
-        style.width = barWidth + 'px';
-        style.height = barHeight - 1 + 'px';
+        if (isDecoration) {
+            style.top = barY + 'px';
+            style.width = barHeight + 'px';
+            style.height = barHeight + 'px';
+            style.left = barX + barWidth - barHeight + 'px';
+        }
+        else {
+            style.top = barY + 'px';
+            style.width = barWidth + 'px';
+            style.height = barHeight - 1 + 'px';
+            style.left = barX + 'px';
+        }
         element.classList.toggle('hidden', !visible);
         this.viewportElement.appendChild(element);
+    }
+    // Updates the highlight of an Arrow button that is shown on an entry if it has hidden child entries
+    updateHiddenChildrenArrowHighlighPosition(entryIndex) {
+        this.revealDescendantsArrowHighlightElement.classList.add('hidden');
+        /**
+         * No need to update the hidden descendants arrow highlight if
+         * 1. No entry is highlighted
+         * 2. Mouse is not hovering over the arrow button
+         */
+        if (entryIndex === -1 || !this.isMouseOverRevealChildrenArrow(this.lastMouseOffsetX, entryIndex)) {
+            return;
+        }
+        this.updateElementPosition(this.revealDescendantsArrowHighlightElement, entryIndex, true);
     }
     timeToPositionClipped(time) {
         return Platform.NumberUtilities.clamp(this.chartViewport.timeToPosition(time), 0, this.offsetWidth);
     }
     /**
-     * Returns the amount of pixels a group is vertically offset in the.
-     * flame chart.
+     * Returns the amount of pixels a group is vertically offset in the flame chart.
      * Now this function is only used for tests.
      */
     groupIndexToOffsetForTest(groupIndex) {
@@ -1831,6 +2861,13 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
             throw new Error('No visible group offsets');
         }
         return this.groupOffsets[groupIndex];
+    }
+    /**
+     * Set the edit mode.
+     * Now this function is only used for tests.
+     */
+    setEditModeForTest(editMode) {
+        this.#editMode = editMode;
     }
     /**
      * Returns the visibility of a level in the.
@@ -1883,14 +2920,21 @@ export class FlameChart extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) 
             this.updateHighlight();
         }
     }
+    // Reset the whole flame chart.
+    // It will reset the viewport, which will reset the scrollTop and scrollLeft. So should be careful when call this
+    // function. But when the data is "real" changed, especially when groups[] is changed, make sure call this before
+    // re-rendering.
+    // This will also clear all the selected entry, group, etc.
     reset() {
         this.chartViewport.reset();
         this.rawTimelineData = null;
         this.rawTimelineDataLength = 0;
+        this.#groupTreeRoot = null;
         this.highlightedMarkerIndex = -1;
         this.highlightedEntryIndex = -1;
         this.selectedEntryIndex = -1;
-        this.chartViewport.scheduleUpdate();
+        this.selectedGroupIndex = -1;
+        this.#editMode = false;
     }
     scheduleUpdate() {
         this.chartViewport.scheduleUpdate();
@@ -1924,6 +2968,7 @@ export const MinimalTimeWindowMs = 0.5;
 const decorationDrawOrder = {
     CANDY: 1,
     WARNING_TRIANGLE: 2,
+    HIDDEN_DESCENDANTS_ARROW: 3,
 };
 export function sortDecorationsForRenderingOrder(decorations) {
     decorations.sort((decoration1, decoration2) => {
@@ -1941,67 +2986,35 @@ export class FlameChartTimelineData {
     entryDecorations;
     groups;
     markers;
-    flowStartTimes;
-    flowStartLevels;
-    flowEndTimes;
-    flowEndLevels;
+    // These four arrays are used to draw the initiator arrows, and if there are
+    // multiple arrows, they should be a chain.
+    initiatorsData;
     selectedGroup;
-    constructor(entryLevels, entryTotalTimes, entryStartTimes, groups, entryDecorations = []) {
+    constructor(entryLevels, entryTotalTimes, entryStartTimes, groups, entryDecorations = [], initiatorsData = []) {
         this.entryLevels = entryLevels;
         this.entryTotalTimes = entryTotalTimes;
         this.entryStartTimes = entryStartTimes;
         this.entryDecorations = entryDecorations;
         this.groups = groups || [];
         this.markers = [];
-        this.flowStartTimes = [];
-        this.flowStartLevels = [];
-        this.flowEndTimes = [];
-        this.flowEndLevels = [];
+        this.initiatorsData = initiatorsData || [];
         this.selectedGroup = null;
     }
+    // TODO(crbug.com/1501055) Thinking about refactor this class, so we can avoid create a new object when modifying the
+    // flame chart.
     static create(data) {
-        return new FlameChartTimelineData(data.entryLevels, data.entryTotalTimes, data.entryStartTimes, data.groups, data.entryDecorations || []);
+        return new FlameChartTimelineData(data.entryLevels, data.entryTotalTimes, data.entryStartTimes, data.groups, data.entryDecorations || [], data.initiatorsData || []);
     }
+    // TODO(crbug.com/1501055) Thinking about refactor this class, so we can avoid create a new object when modifying the
+    // flame chart.
     static createEmpty() {
         return new FlameChartTimelineData([], // entry levels: what level on the timeline is an event on,
         [], // entry total times: the total duration of an event,
         [], // entry start times: the start time of a given event,
         []);
     }
+    resetFlowData() {
+        this.initiatorsData = [];
+    }
 }
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
-export var Events;
-(function (Events) {
-    /**
-     * Emitted when the <canvas> element of the FlameChart is focused by the user.
-     **/
-    Events["CanvasFocused"] = "CanvasFocused";
-    /**
-     * Emitted when an event is selected by either mouse click, or hitting
-     * <enter> on the keyboard - e.g. the same actions that would invoke a
-     * <button> element.
-     *
-     * Will be emitted with a number which is the index of the entry that has
-     * been selected, or -1 if no entry is selected (e.g the user has clicked
-     * away from any events)
-     */
-    Events["EntryInvoked"] = "EntryInvoked";
-    /**
-     * Emitted when an event is selected via keyboard navigation using the arrow
-     * keys.
-     *
-     * Will be emitted with a number which is the index of the entry that has
-     * been selected, or -1 if no entry is selected.
-     */
-    Events["EntrySelected"] = "EntrySelected";
-    /**
-     * Emitted when an event is hovered over with the mouse.
-     *
-     * Will be emitted with a number which is the index of the entry that has
-     * been hovered on, or -1 if no entry is selected (the user has moved their
-     * mouse off the event)
-     */
-    Events["EntryHighlighted"] = "EntryHighlighted";
-})(Events || (Events = {}));
-//# map=FlameChart.js.map
+//# sourceMappingURL=FlameChart.js.map

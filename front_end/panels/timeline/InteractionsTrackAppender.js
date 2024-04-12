@@ -1,8 +1,6 @@
-// Copyright 2023 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-import * as TraceEngine from '../../models/trace/trace.js';
 import * as i18n from '../../core/i18n/i18n.js';
+import * as TraceEngine from '../../models/trace/trace.js';
+import * as PerfUI from '../../ui/legacy/components/perf_ui/perf_ui.js';
 import { buildGroupStyle, buildTrackHeader, getFormattedTime } from './AppenderUtils.js';
 const UIStrings = {
     /**
@@ -16,12 +14,10 @@ export class InteractionsTrackAppender {
     appenderName = 'Interactions';
     #colorGenerator;
     #compatibilityBuilder;
-    #flameChartData;
     #traceParsedData;
-    constructor(compatibilityBuilder, flameChartData, traceParsedData, colorGenerator) {
+    constructor(compatibilityBuilder, traceParsedData, colorGenerator) {
         this.#compatibilityBuilder = compatibilityBuilder;
         this.#colorGenerator = colorGenerator;
-        this.#flameChartData = flameChartData;
         this.#traceParsedData = traceParsedData;
     }
     /**
@@ -66,29 +62,35 @@ export class InteractionsTrackAppender {
      */
     #appendInteractionsAtLevel(trackStartLevel) {
         const { interactionEventsWithNoNesting, interactionsOverThreshold } = this.#traceParsedData.UserInteractions;
-        // Render all top level interactions (see UserInteractionsHandler for an explanation on the nesting) onto the track.
-        const newLevel = this.#compatibilityBuilder.appendEventsAtLevel(interactionEventsWithNoNesting, trackStartLevel, this);
-        // Each interaction that we drew that is over the INP threshold needs to be
-        // candy-striped.
-        for (const interaction of interactionEventsWithNoNesting) {
-            const overThreshold = interactionsOverThreshold.has(interaction);
+        const addCandyStripeToLongInteraction = (event, index) => {
+            // Each interaction that we drew that is over the INP threshold needs to be
+            // candy-striped.
+            const overThreshold = interactionsOverThreshold.has(event);
             if (!overThreshold) {
-                continue;
+                return;
             }
-            const index = this.#compatibilityBuilder.indexForEvent(interaction);
             if (index !== undefined) {
-                this.#addCandyStripingForLongInteraction(index);
+                this.#addCandyStripeAndWarningForLongInteraction(event, index);
             }
-        }
+        };
+        // Render all top level interactions (see UserInteractionsHandler for an explanation on the nesting) onto the track.
+        const newLevel = this.#compatibilityBuilder.appendEventsAtLevel(interactionEventsWithNoNesting, trackStartLevel, this, addCandyStripeToLongInteraction);
         return newLevel;
     }
-    #addCandyStripingForLongInteraction(eventIndex) {
-        const decorationsForEvent = this.#flameChartData.entryDecorations[eventIndex] || [];
+    #addCandyStripeAndWarningForLongInteraction(entry, eventIndex) {
+        const decorationsForEvent = this.#compatibilityBuilder.getFlameChartTimelineData().entryDecorations[eventIndex] || [];
         decorationsForEvent.push({
-            type: 'CANDY',
+            type: "CANDY" /* PerfUI.FlameChart.FlameChartDecorationType.CANDY */,
             startAtTime: TraceEngine.Handlers.ModelHandlers.UserInteractions.LONG_INTERACTION_THRESHOLD,
+            // Interaction events have whiskers, so we do not want to candy stripe
+            // the entire duration. The box represents processing duration, so we only
+            // candystripe up to the end of processing.
+            endAtTime: entry.processingEnd,
+        }, {
+            type: "WARNING_TRIANGLE" /* PerfUI.FlameChart.FlameChartDecorationType.WARNING_TRIANGLE */,
+            customEndTime: entry.processingEnd,
         });
-        this.#flameChartData.entryDecorations[eventIndex] = decorationsForEvent;
+        this.#compatibilityBuilder.getFlameChartTimelineData().entryDecorations[eventIndex] = decorationsForEvent;
     }
     /*
       ------------------------------------------------------------------------------------
@@ -146,4 +148,4 @@ export function titleForInteractionEvent(event) {
     }
     return event.type;
 }
-//# map=InteractionsTrackAppender.js.map
+//# sourceMappingURL=InteractionsTrackAppender.js.map

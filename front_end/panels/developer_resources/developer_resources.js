@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as DeveloperResourcesView from './DeveloperResourcesView.js';
 export { DeveloperResourcesView };
-//# map=developer_resources.js.map
+//# sourceMappingURL=developer_resources.js.map

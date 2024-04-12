@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
+import * as VisualLogging from '../../../ui/visual_logging/visual_logging.js';
 import editableSpanStyles from './EditableSpan.css.js';
 const { render, html } = LitHtml;
 export class EditableSpan extends HTMLElement {
@@ -73,7 +74,13 @@ export class EditableSpan extends HTMLElement {
         }
         // Disabled until https://crbug.com/1079231 is fixed.
         // clang-format off
-        render(html `<span contenteditable="true" class="editable" tabindex="0" .innerText=${this.#value}></span>`, this.#shadow, { host: this });
+        render(html `<span
+        contenteditable="true"
+        class="editable"
+        tabindex="0"
+        .innerText=${this.#value}
+        jslog=${VisualLogging.value('header-editor').track({ keydown: 'Enter|Escape' })}
+    </span>`, this.#shadow, { host: this });
         // clang-format on
     }
     focus() {
@@ -83,5 +90,5 @@ export class EditableSpan extends HTMLElement {
         });
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-editable-span', EditableSpan);
-//# map=EditableSpan.js.map
+customElements.define('devtools-editable-span', EditableSpan);
+//# sourceMappingURL=EditableSpan.js.map

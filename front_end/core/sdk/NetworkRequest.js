@@ -5,12 +5,13 @@ import * as TextUtils from '../../models/text_utils/text_utils.js';
 import * as Common from '../common/common.js';
 import * as i18n from '../i18n/i18n.js';
 import * as Platform from '../platform/platform.js';
-import * as HttpReasonPhraseStrings from './HttpReasonPhraseStrings.js';
-import { Attributes } from './Cookie.js';
+import { CookieModel } from './CookieModel.js';
 import { CookieParser } from './CookieParser.js';
-import { NetworkManager, Events as NetworkManagerEvents } from './NetworkManager.js';
-import { Type } from './Target.js';
+import * as HttpReasonPhraseStrings from './HttpReasonPhraseStrings.js';
+import { Events as NetworkManagerEvents, NetworkManager } from './NetworkManager.js';
+import { ServerSentEvents } from './ServerSentEvents.js';
 import { ServerTiming } from './ServerTiming.js';
+import { Type } from './Target.js';
 // clang-format off
 const UIStrings = {
     /**
@@ -52,6 +53,10 @@ const UIStrings = {
     /**
      *@description Tooltip to explain why a cookie was blocked
      */
+    thirdPartyPhaseout: 'This cookie was blocked due to third-party cookie phaseout. Learn more in the Issues tab.',
+    /**
+     *@description Tooltip to explain why a cookie was blocked
+     */
     unknownError: 'An unknown error was encountered when trying to send this cookie.',
     /**
      *@description Tooltip to explain why a cookie was blocked due to Schemeful Same-Site
@@ -77,6 +82,10 @@ const UIStrings = {
      *@description Tooltip to explain why an attempt to set a cookie via `Set-Cookie` HTTP header on a request's response was blocked.
      */
     thisSetcookieWasBlockedDueToUser: 'This attempt to set a cookie via a `Set-Cookie` header was blocked due to user preferences.',
+    /**
+     *@description Tooltip to explain why an attempt to set a cookie via `Set-Cookie` HTTP header on a request's response was blocked.
+     */
+    thisSetcookieWasBlockedDueThirdPartyPhaseout: 'Setting this cookie was blocked due to third-party cookie phaseout. Learn more in the Issues tab.',
     /**
      *@description Tooltip to explain why an attempt to set a cookie via `Set-Cookie` HTTP header on a request's response was blocked.
      */
@@ -148,33 +157,50 @@ const UIStrings = {
      *@example {https://example.com} PH1
      */
     setcookieHeaderIsIgnoredIn: 'Set-Cookie header is ignored in response from url: {PH1}. The combined size of the name and value must be less than or equal to 4096 characters.',
+    /**
+     *@description Tooltip to explain why the cookie should have been blocked by third-party cookie phaseout but is exempted.
+     */
+    exemptionReasonUserSetting: 'This cookie is allowed by user preference.',
+    /**
+     *@description Tooltip to explain why the cookie should have been blocked by third-party cookie phaseout but is exempted.
+     */
+    exemptionReasonTPCDMetadata: 'This cookie is allowed by a third-party cookie deprecation trial grace period. Learn more: goo.gle/ps-dt.',
+    /**
+     *@description Tooltip to explain why the cookie should have been blocked by third-party cookie phaseout but is exempted.
+     */
+    exemptionReasonTPCDDeprecationTrial: 'This cookie is allowed by third-party cookie phaseout deprecation trial.',
+    /**
+     *@description Tooltip to explain why the cookie should have been blocked by third-party cookie phaseout but is exempted.
+     */
+    exemptionReasonTPCDHeuristics: 'This cookie is allowed by third-party cookie phaseout heuristics. Learn more: goo.gle/hbe',
+    /**
+     *@description Tooltip to explain why the cookie should have been blocked by third-party cookie phaseout but is exempted.
+     */
+    exemptionReasonEnterprisePolicy: 'This cookie is allowed by Chrome Enterprise policy. Learn more: goo.gle/ce-3pc',
+    /**
+     *@description Tooltip to explain why the cookie should have been blocked by third-party cookie phaseout but is exempted.
+     */
+    exemptionReasonStorageAccessAPI: 'This cookie is allowed by the Storage Access API. Learn more: goo.gle/saa',
+    /**
+     *@description Tooltip to explain why the cookie should have been blocked by third-party cookie phaseout but is exempted.
+     */
+    exemptionReasonTopLevelStorageAccessAPI: 'This cookie is allowed by the top-level Storage Access API. Learn more: goo.gle/saa-top',
+    /**
+     *@description Tooltip to explain why the cookie should have been blocked by third-party cookie phaseout but is exempted.
+     */
+    exemptionReasonCorsOptIn: 'This cookie is allowed by CORS opt-in. Learn more: goo.gle/cors',
 };
 // clang-format on
 const str_ = i18n.i18n.registerUIStrings('core/sdk/NetworkRequest.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum, @typescript-eslint/naming-convention
-export var MIME_TYPE;
-(function (MIME_TYPE) {
-    MIME_TYPE["HTML"] = "text/html";
-    MIME_TYPE["XML"] = "text/xml";
-    MIME_TYPE["PLAIN"] = "text/plain";
-    MIME_TYPE["XHTML"] = "application/xhtml+xml";
-    MIME_TYPE["SVG"] = "image/svg+xml";
-    MIME_TYPE["CSS"] = "text/css";
-    MIME_TYPE["XSL"] = "text/xsl";
-    MIME_TYPE["VTT"] = "text/vtt";
-    MIME_TYPE["PDF"] = "application/pdf";
-    MIME_TYPE["EVENTSTREAM"] = "text/event-stream";
-})(MIME_TYPE || (MIME_TYPE = {}));
 export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
     #requestIdInternal;
     #backendRequestIdInternal;
     #documentURLInternal;
     #frameIdInternal;
     #loaderIdInternal;
-    #initiatorInternal;
     #hasUserGesture;
+    #initiatorInternal;
     #redirectSourceInternal;
     #preflightRequestInternal;
     #preflightInitiatorRequestInternal;
@@ -199,8 +225,8 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
     #webBundleInnerRequestInfoInternal;
     #resourceTypeInternal;
     #contentDataInternal;
+    #streamingContentData;
     #framesInternal;
-    #eventSourceMessagesInternal;
     #responseHeaderValues;
     #responseHeadersTextInternal;
     #originalResponseHeaders;
@@ -225,6 +251,7 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
     #blockedRequestCookiesInternal;
     #includedRequestCookiesInternal;
     #blockedResponseCookiesInternal;
+    #exemptedResponseCookiesInternal;
     #responseCookiesPartitionKey;
     #responseCookiesPartitionKeyOpaque;
     #siteHasCookieInOtherPartition;
@@ -237,6 +264,7 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
     #canceledInternal;
     #preservedInternal;
     #mimeTypeInternal;
+    #charset;
     #parsedURLInternal;
     #nameInternal;
     #pathInternal;
@@ -251,10 +279,13 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
     #fromMemoryCache;
     #fromDiskCache;
     #fromPrefetchCacheInternal;
+    #fromEarlyHints;
     #fetchedViaServiceWorkerInternal;
+    #serviceWorkerRouterInfoInternal;
     #timingInternal;
     #requestHeadersTextInternal;
     #responseHeadersInternal;
+    #earlyHintsHeadersInternal;
     #sortedResponseHeadersInternal;
     #responseCookiesInternal;
     #serverTimingsInternal;
@@ -265,6 +296,8 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
     #wasIntercepted;
     #associatedData = new Map();
     #hasOverriddenContent;
+    #hasThirdPartyCookiePhaseoutIssue;
+    #serverSentEvents;
     constructor(requestId, backendRequestId, url, documentURL, frameId, loaderId, initiator, hasUserGesture) {
         super();
         this.#requestIdInternal = requestId;
@@ -299,8 +332,8 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
         this.#webBundleInnerRequestInfoInternal = null;
         this.#resourceTypeInternal = Common.ResourceType.resourceTypes.Other;
         this.#contentDataInternal = null;
+        this.#streamingContentData = null;
         this.#framesInternal = [];
-        this.#eventSourceMessagesInternal = [];
         this.#responseHeaderValues = {};
         this.#responseHeadersTextInternal = '';
         this.#originalResponseHeaders = [];
@@ -322,6 +355,7 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
         this.#blockedRequestCookiesInternal = [];
         this.#includedRequestCookiesInternal = [];
         this.#blockedResponseCookiesInternal = [];
+        this.#exemptedResponseCookiesInternal = [];
         this.#siteHasCookieInOtherPartition = false;
         this.#responseCookiesPartitionKey = null;
         this.#responseCookiesPartitionKeyOpaque = null;
@@ -329,6 +363,7 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
         this.#isSameSiteInternal = null;
         this.#wasIntercepted = false;
         this.#hasOverriddenContent = false;
+        this.#hasThirdPartyCookiePhaseoutIssue = false;
     }
     static create(backendRequestId, url, documentURL, frameId, loaderId, initiator, hasUserGesture) {
         return new NetworkRequest(backendRequestId, backendRequestId, url, documentURL, frameId, loaderId, initiator, hasUserGesture);
@@ -360,7 +395,7 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
         return this.#urlInternal;
     }
     isBlobRequest() {
-        return this.#urlInternal.startsWith('blob:');
+        return Common.ParsedURL.schemeIs(this.#urlInternal, 'blob:');
     }
     setUrl(x) {
         if (this.#urlInternal === x) {
@@ -573,6 +608,12 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
     setFromPrefetchCache() {
         this.#fromPrefetchCacheInternal = true;
     }
+    fromEarlyHints() {
+        return Boolean(this.#fromEarlyHints);
+    }
+    setFromEarlyHints() {
+        this.#fromEarlyHints = true;
+    }
     /**
      * Returns true if the request was intercepted by a service worker and it
      * provided its own response.
@@ -582,6 +623,12 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
     }
     set fetchedViaServiceWorker(x) {
         this.#fetchedViaServiceWorkerInternal = x;
+    }
+    get serviceWorkerRouterInfo() {
+        return this.#serviceWorkerRouterInfoInternal;
+    }
+    set serviceWorkerRouterInfo(x) {
+        this.#serviceWorkerRouterInfoInternal = x;
     }
     /**
      * Returns true if the request was sent by a service worker.
@@ -622,6 +669,10 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
     }
     set mimeType(x) {
         this.#mimeTypeInternal = x;
+        if (x === "text/event-stream" /* Platform.MimeType.MimeType.EVENTSTREAM */ && !this.#serverSentEvents) {
+            const parseFromStreamedData = this.resourceType() !== Common.ResourceType.resourceTypes.EventSource;
+            this.#serverSentEvents = new ServerSentEvents(this, parseFromStreamedData);
+        }
     }
     get displayName() {
         return this.#parsedURLInternal.displayName;
@@ -790,6 +841,12 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
         this.#responseHeaderValues = {};
         this.dispatchEventToListeners(Events.ResponseHeadersChanged);
     }
+    get earlyHintsHeaders() {
+        return this.#earlyHintsHeadersInternal || [];
+    }
+    set earlyHintsHeaders(x) {
+        this.#earlyHintsHeadersInternal = x;
+    }
     get originalResponseHeaders() {
         return this.#originalResponseHeaders;
     }
@@ -816,8 +873,7 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
         }
         this.#sortedResponseHeadersInternal = this.responseHeaders.slice();
         return this.#sortedResponseHeadersInternal.sort(function (a, b) {
-            return Platform.StringUtilities.compare(a.name.toLowerCase(), b.name.toLowerCase()) ||
-                Platform.StringUtilities.compare(a.value, b.value);
+            return Platform.StringUtilities.compare(a.name.toLowerCase(), b.name.toLowerCase());
         });
     }
     get sortedOriginalResponseHeaders() {
@@ -826,8 +882,7 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
         }
         this.#sortedOriginalResponseHeaders = this.originalResponseHeaders.slice();
         return this.#sortedOriginalResponseHeaders.sort(function (a, b) {
-            return Platform.StringUtilities.compare(a.name.toLowerCase(), b.name.toLowerCase()) ||
-                Platform.StringUtilities.compare(a.value, b.value);
+            return Platform.StringUtilities.compare(a.name.toLowerCase(), b.name.toLowerCase());
         });
     }
     get overrideTypes() {
@@ -846,20 +901,32 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
     set hasOverriddenContent(value) {
         this.#hasOverriddenContent = value;
     }
+    #deduplicateHeaders(sortedHeaders) {
+        const dedupedHeaders = [];
+        for (const header of sortedHeaders) {
+            if (dedupedHeaders.length && dedupedHeaders[dedupedHeaders.length - 1].name === header.name) {
+                dedupedHeaders[dedupedHeaders.length - 1].value += `, ${header.value}`;
+            }
+            else {
+                dedupedHeaders.push({ name: header.name, value: header.value });
+            }
+        }
+        return dedupedHeaders;
+    }
     hasOverriddenHeaders() {
         if (!this.#originalResponseHeaders.length) {
             return false;
         }
-        const sortedResponseHeaders = this.sortedResponseHeaders;
-        const sortedOriginalResponseHeaders = this.sortedOriginalResponseHeaders;
-        if (sortedOriginalResponseHeaders.length !== sortedResponseHeaders.length) {
+        const responseHeaders = this.#deduplicateHeaders(this.sortedResponseHeaders);
+        const originalResponseHeaders = this.#deduplicateHeaders(this.sortedOriginalResponseHeaders);
+        if (responseHeaders.length !== originalResponseHeaders.length) {
             return true;
         }
-        for (let i = 0; i < sortedResponseHeaders.length; i++) {
-            if (sortedResponseHeaders[i].name.toLowerCase() !== sortedOriginalResponseHeaders[i].name.toLowerCase()) {
+        for (let i = 0; i < responseHeaders.length; i++) {
+            if (responseHeaders[i].name.toLowerCase() !== originalResponseHeaders[i].name.toLowerCase()) {
                 return true;
             }
-            if (sortedResponseHeaders[i].value !== sortedOriginalResponseHeaders[i].value) {
+            if (responseHeaders[i].value !== originalResponseHeaders[i].value) {
                 return true;
             }
         }
@@ -878,17 +945,24 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
     setWasIntercepted(wasIntercepted) {
         this.#wasIntercepted = wasIntercepted;
     }
+    setEarlyHintsHeaders(headers) {
+        this.earlyHintsHeaders = headers;
+    }
     get responseCookies() {
         if (!this.#responseCookiesInternal) {
             this.#responseCookiesInternal =
                 CookieParser.parseSetCookie(this.responseHeaderValue('Set-Cookie'), this.domain) || [];
             if (this.#responseCookiesPartitionKey) {
                 for (const cookie of this.#responseCookiesInternal) {
-                    cookie.setPartitionKey(this.#responseCookiesPartitionKey);
+                    if (cookie.partitioned()) {
+                        cookie.setPartitionKey(this.#responseCookiesPartitionKey);
+                    }
                 }
             }
             else if (this.#responseCookiesPartitionKeyOpaque) {
                 for (const cookie of this.#responseCookiesInternal) {
+                    // Do not check cookie.partitioned() since most opaque partitions
+                    // are fenced/credentialless frames partitioned by default.
                     cookie.setPartitionKeyOpaque();
                 }
             }
@@ -900,7 +974,7 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
     }
     allCookiesIncludingBlockedOnes() {
         return [
-            ...this.includedRequestCookies(),
+            ...this.includedRequestCookies().map(includedRequestCookie => includedRequestCookie.cookie),
             ...this.responseCookies,
             ...this.blockedRequestCookies().map(blockedRequestCookie => blockedRequestCookie.cookie),
             ...this.blockedResponseCookies().map(blockedResponseCookie => blockedResponseCookie.cookie),
@@ -1068,6 +1142,21 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
         console.assert(!this.#contentDataInternal, 'contentData can only be set once.');
         this.#contentDataProvider = dataProvider;
     }
+    requestStreamingContent() {
+        if (this.#streamingContentData) {
+            return this.#streamingContentData;
+        }
+        const contentPromise = this.finished ? this.contentData() : NetworkManager.streamResponseBody(this);
+        this.#streamingContentData = contentPromise.then(contentData => {
+            if (TextUtils.ContentData.ContentData.isError(contentData)) {
+                return contentData;
+            }
+            // Note that this is save: "streamResponseBody()" always creates base64-based ContentData and
+            // for "contentData()" we'll never call "addChunk".
+            return TextUtils.StreamingContentData.StreamingContentData.from(contentData);
+        });
+        return this.#streamingContentData;
+    }
     contentURL() {
         return this.#urlInternal;
     }
@@ -1075,26 +1164,17 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
         return this.#resourceTypeInternal;
     }
     async requestContent() {
-        const { content, error, encoded } = await this.contentData();
-        return {
-            content,
-            error,
-            isEncoded: encoded,
-        };
+        return TextUtils.ContentData.ContentData.asDeferredContent(await this.contentData());
     }
     async searchInContent(query, caseSensitive, isRegex) {
         if (!this.#contentDataProvider) {
             return NetworkManager.searchInRequest(this, query, caseSensitive, isRegex);
         }
         const contentData = await this.contentData();
-        let content = contentData.content;
-        if (!content) {
+        if (TextUtils.ContentData.ContentData.isError(contentData) || !contentData.isTextContent) {
             return [];
         }
-        if (contentData.encoded) {
-            content = window.atob(content);
-        }
-        return TextUtils.TextUtils.performSearchInContent(content, query, caseSensitive, isRegex);
+        return TextUtils.TextUtils.performSearchInContent(contentData.text, query, caseSensitive, isRegex);
     }
     isHttpFamily() {
         return Boolean(this.url().match(/^https?:/i));
@@ -1136,8 +1216,11 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
         return this.#webBundleInnerRequestInfoInternal;
     }
     async populateImageSource(image) {
-        const { content, encoded } = await this.contentData();
-        let imageSrc = TextUtils.ContentProvider.contentAsDataURL(content, this.#mimeTypeInternal, encoded);
+        const contentData = await this.contentData();
+        if (TextUtils.ContentData.ContentData.isError(contentData)) {
+            return;
+        }
+        let imageSrc = contentData.asDataUrl();
         if (imageSrc === null && !this.#failedInternal) {
             const cacheControl = this.responseHeaderValue('cache-control') || '';
             if (!cacheControl.includes('no-cache')) {
@@ -1175,12 +1258,10 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
         this.dispatchEventToListeners(Events.WebsocketFrameAdded, frame);
     }
     eventSourceMessages() {
-        return this.#eventSourceMessagesInternal;
+        return this.#serverSentEvents?.eventSourceMessages ?? [];
     }
     addEventSourceMessage(time, eventName, eventId, data) {
-        const message = { time: this.pseudoWallTime(time), eventName: eventName, eventId: eventId, data: data };
-        this.#eventSourceMessagesInternal.push(message);
-        this.dispatchEventToListeners(Events.EventSourceMessageAdded, message);
+        this.#serverSentEvents?.onProtocolEventSourceMessageReceived(eventName, data, eventId, this.pseudoWallTime(time));
     }
     markAsRedirect(redirectCount) {
         this.#isRedirectInternal = true;
@@ -1194,18 +1275,10 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
         this.#requestIdInternal = requestId;
     }
     charset() {
-        const contentTypeHeader = this.responseHeaderValue('content-type');
-        if (!contentTypeHeader) {
-            return null;
-        }
-        const responseCharsets = contentTypeHeader.replace(/ /g, '')
-            .split(';')
-            .filter(parameter => parameter.toLowerCase().startsWith('charset='))
-            .map(parameter => parameter.slice('charset='.length));
-        if (responseCharsets.length) {
-            return responseCharsets[0];
-        }
-        return null;
+        return this.#charset ?? null;
+    }
+    setCharset(charset) {
+        this.#charset = charset;
     }
     addExtraRequestInfo(extraRequestInfo) {
         this.#blockedRequestCookiesInternal = extraRequestInfo.blockedRequestCookies;
@@ -1216,6 +1289,7 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
         this.#clientSecurityStateInternal = extraRequestInfo.clientSecurityState;
         this.setConnectTimingFromExtraInfo(extraRequestInfo.connectTiming);
         this.#siteHasCookieInOtherPartition = extraRequestInfo.siteHasCookieInOtherPartition ?? false;
+        this.#hasThirdPartyCookiePhaseoutIssue = this.#blockedRequestCookiesInternal.some(item => item.blockedReasons.includes("ThirdPartyPhaseout" /* Protocol.Network.CookieBlockedReason.ThirdPartyPhaseout */));
     }
     hasExtraRequestInfo() {
         return this.#hasExtraRequestInfoInternal;
@@ -1240,6 +1314,9 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
     }
     addExtraResponseInfo(extraResponseInfo) {
         this.#blockedResponseCookiesInternal = extraResponseInfo.blockedResponseCookies;
+        if (extraResponseInfo.exemptedResponseCookies) {
+            this.#exemptedResponseCookiesInternal = extraResponseInfo.exemptedResponseCookies;
+        }
         this.#responseCookiesPartitionKey = extraResponseInfo.cookiePartitionKey || null;
         this.#responseCookiesPartitionKeyOpaque = extraResponseInfo.cookiePartitionKeyOpaque || null;
         this.responseHeaders = extraResponseInfo.responseHeaders;
@@ -1270,13 +1347,34 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
         this.#hasExtraResponseInfoInternal = true;
         // TODO(crbug.com/1252463) Explore replacing this with a DevTools Issue.
         const networkManager = NetworkManager.forRequest(this);
-        if (networkManager) {
-            for (const blockedCookie of this.#blockedResponseCookiesInternal) {
-                if (blockedCookie.blockedReasons.includes("NameValuePairExceedsMaxSize" /* Protocol.Network.SetCookieBlockedReason.NameValuePairExceedsMaxSize */)) {
-                    const message = i18nString(UIStrings.setcookieHeaderIsIgnoredIn, { PH1: this.url() });
-                    networkManager.dispatchEventToListeners(NetworkManagerEvents.MessageGenerated, { message: message, requestId: this.#requestIdInternal, warning: true });
-                }
+        if (!networkManager) {
+            return;
+        }
+        for (const blockedCookie of this.#blockedResponseCookiesInternal) {
+            if (blockedCookie.blockedReasons.includes("NameValuePairExceedsMaxSize" /* Protocol.Network.SetCookieBlockedReason.NameValuePairExceedsMaxSize */)) {
+                const message = i18nString(UIStrings.setcookieHeaderIsIgnoredIn, { PH1: this.url() });
+                networkManager.dispatchEventToListeners(NetworkManagerEvents.MessageGenerated, { message: message, requestId: this.#requestIdInternal, warning: true });
             }
+        }
+        const cookieModel = networkManager.target().model(CookieModel);
+        if (!cookieModel) {
+            return;
+        }
+        for (const exemptedCookie of this.#exemptedResponseCookiesInternal) {
+            cookieModel.removeBlockedCookie(exemptedCookie.cookie);
+        }
+        for (const blockedCookie of this.#blockedResponseCookiesInternal) {
+            const cookie = blockedCookie.cookie;
+            if (!cookie) {
+                continue;
+            }
+            if (blockedCookie.blockedReasons.includes("ThirdPartyPhaseout" /* Protocol.Network.SetCookieBlockedReason.ThirdPartyPhaseout */)) {
+                this.#hasThirdPartyCookiePhaseoutIssue = true;
+            }
+            cookieModel.addBlockedCookie(cookie, blockedCookie.blockedReasons.map(blockedReason => ({
+                attribute: setCookieBlockedReasonToAttribute(blockedReason),
+                uiString: setCookieBlockedReasonToUiString(blockedReason),
+            })));
         }
     }
     hasExtraResponseInfo() {
@@ -1284,6 +1382,23 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
     }
     blockedResponseCookies() {
         return this.#blockedResponseCookiesInternal;
+    }
+    exemptedResponseCookies() {
+        return this.#exemptedResponseCookiesInternal;
+    }
+    nonBlockedResponseCookies() {
+        const blockedCookieLines = this.blockedResponseCookies().map(blockedCookie => blockedCookie.cookieLine);
+        // Use array and remove 1 by 1 to handle the (potential) case of multiple
+        // identical cookies, only some of which are blocked.
+        const responseCookies = this.responseCookies.filter(cookie => {
+            const index = blockedCookieLines.indexOf(cookie.getCookieLine());
+            if (index !== -1) {
+                blockedCookieLines[index] = null;
+                return false;
+            }
+            return true;
+        });
+        return responseCookies;
     }
     responseCookiesPartitionKey() {
         return this.#responseCookiesPartitionKey;
@@ -1326,9 +1441,24 @@ export class NetworkRequest extends Common.ObjectWrapper.ObjectWrapper {
     deleteAssociatedData(key) {
         this.#associatedData.delete(key);
     }
+    hasThirdPartyCookiePhaseoutIssue() {
+        return this.#hasThirdPartyCookiePhaseoutIssue;
+    }
+    addDataReceivedEvent({ timestamp, dataLength, encodedDataLength, data }) {
+        this.resourceSize += dataLength;
+        if (encodedDataLength !== -1) {
+            this.increaseTransferSize(encodedDataLength);
+        }
+        this.endTime = timestamp;
+        if (data) {
+            void this.#streamingContentData?.then(contentData => {
+                if (!TextUtils.StreamingContentData.isError(contentData)) {
+                    contentData.addChunk(data);
+                }
+            });
+        }
+    }
 }
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
 export var Events;
 (function (Events) {
     Events["FinishedLoading"] = "FinishedLoading";
@@ -1340,26 +1470,33 @@ export var Events;
     Events["EventSourceMessageAdded"] = "EventSourceMessageAdded";
     Events["TrustTokenResultAdded"] = "TrustTokenResultAdded";
 })(Events || (Events = {}));
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
-export var InitiatorType;
-(function (InitiatorType) {
-    InitiatorType["Other"] = "other";
-    InitiatorType["Parser"] = "parser";
-    InitiatorType["Redirect"] = "redirect";
-    InitiatorType["Script"] = "script";
-    InitiatorType["Preload"] = "preload";
-    InitiatorType["SignedExchange"] = "signedExchange";
-    InitiatorType["Preflight"] = "preflight";
-})(InitiatorType || (InitiatorType = {}));
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
 export var WebSocketFrameType;
 (function (WebSocketFrameType) {
     WebSocketFrameType["Send"] = "send";
     WebSocketFrameType["Receive"] = "receive";
     WebSocketFrameType["Error"] = "error";
 })(WebSocketFrameType || (WebSocketFrameType = {}));
+export const cookieExemptionReasonToUiString = function (exemptionReason) {
+    switch (exemptionReason) {
+        case "UserSetting" /* Protocol.Network.CookieExemptionReason.UserSetting */:
+            return i18nString(UIStrings.exemptionReasonUserSetting);
+        case "TPCDMetadata" /* Protocol.Network.CookieExemptionReason.TPCDMetadata */:
+            return i18nString(UIStrings.exemptionReasonTPCDMetadata);
+        case "TPCDDeprecationTrial" /* Protocol.Network.CookieExemptionReason.TPCDDeprecationTrial */:
+            return i18nString(UIStrings.exemptionReasonTPCDDeprecationTrial);
+        case "TPCDHeuristics" /* Protocol.Network.CookieExemptionReason.TPCDHeuristics */:
+            return i18nString(UIStrings.exemptionReasonTPCDHeuristics);
+        case "EnterprisePolicy" /* Protocol.Network.CookieExemptionReason.EnterprisePolicy */:
+            return i18nString(UIStrings.exemptionReasonEnterprisePolicy);
+        case "StorageAccess" /* Protocol.Network.CookieExemptionReason.StorageAccess */:
+            return i18nString(UIStrings.exemptionReasonStorageAccessAPI);
+        case "TopLevelStorageAccess" /* Protocol.Network.CookieExemptionReason.TopLevelStorageAccess */:
+            return i18nString(UIStrings.exemptionReasonTopLevelStorageAccessAPI);
+        case "CorsOptIn" /* Protocol.Network.CookieExemptionReason.CorsOptIn */:
+            return i18nString(UIStrings.exemptionReasonCorsOptIn);
+    }
+    return '';
+};
 export const cookieBlockedReasonToUiString = function (blockedReason) {
     switch (blockedReason) {
         case "SecureOnly" /* Protocol.Network.CookieBlockedReason.SecureOnly */:
@@ -1390,6 +1527,8 @@ export const cookieBlockedReasonToUiString = function (blockedReason) {
             return i18nString(UIStrings.samePartyFromCrossPartyContext);
         case "NameValuePairExceedsMaxSize" /* Protocol.Network.CookieBlockedReason.NameValuePairExceedsMaxSize */:
             return i18nString(UIStrings.nameValuePairExceedsMaxSize);
+        case "ThirdPartyPhaseout" /* Protocol.Network.CookieBlockedReason.ThirdPartyPhaseout */:
+            return i18nString(UIStrings.thirdPartyPhaseout);
     }
     return '';
 };
@@ -1433,17 +1572,19 @@ export const setCookieBlockedReasonToUiString = function (blockedReason) {
             return i18nString(UIStrings.thisSetcookieWasBlockedBecauseTheNameValuePairExceedsMaxSize);
         case "DisallowedCharacter" /* Protocol.Network.SetCookieBlockedReason.DisallowedCharacter */:
             return i18nString(UIStrings.thisSetcookieHadADisallowedCharacter);
+        case "ThirdPartyPhaseout" /* Protocol.Network.SetCookieBlockedReason.ThirdPartyPhaseout */:
+            return i18nString(UIStrings.thisSetcookieWasBlockedDueThirdPartyPhaseout);
     }
     return '';
 };
 export const cookieBlockedReasonToAttribute = function (blockedReason) {
     switch (blockedReason) {
         case "SecureOnly" /* Protocol.Network.CookieBlockedReason.SecureOnly */:
-            return Attributes.Secure;
+            return "secure" /* Attribute.Secure */;
         case "NotOnPath" /* Protocol.Network.CookieBlockedReason.NotOnPath */:
-            return Attributes.Path;
+            return "path" /* Attribute.Path */;
         case "DomainMismatch" /* Protocol.Network.CookieBlockedReason.DomainMismatch */:
-            return Attributes.Domain;
+            return "domain" /* Attribute.Domain */;
         case "SameSiteStrict" /* Protocol.Network.CookieBlockedReason.SameSiteStrict */:
         case "SameSiteLax" /* Protocol.Network.CookieBlockedReason.SameSiteLax */:
         case "SameSiteUnspecifiedTreatedAsLax" /* Protocol.Network.CookieBlockedReason.SameSiteUnspecifiedTreatedAsLax */:
@@ -1451,10 +1592,11 @@ export const cookieBlockedReasonToAttribute = function (blockedReason) {
         case "SchemefulSameSiteStrict" /* Protocol.Network.CookieBlockedReason.SchemefulSameSiteStrict */:
         case "SchemefulSameSiteLax" /* Protocol.Network.CookieBlockedReason.SchemefulSameSiteLax */:
         case "SchemefulSameSiteUnspecifiedTreatedAsLax" /* Protocol.Network.CookieBlockedReason.SchemefulSameSiteUnspecifiedTreatedAsLax */:
-            return Attributes.SameSite;
+            return "same-site" /* Attribute.SameSite */;
         case "SamePartyFromCrossPartyContext" /* Protocol.Network.CookieBlockedReason.SamePartyFromCrossPartyContext */:
         case "NameValuePairExceedsMaxSize" /* Protocol.Network.CookieBlockedReason.NameValuePairExceedsMaxSize */:
         case "UserPreferences" /* Protocol.Network.CookieBlockedReason.UserPreferences */:
+        case "ThirdPartyPhaseout" /* Protocol.Network.CookieBlockedReason.ThirdPartyPhaseout */:
         case "UnknownError" /* Protocol.Network.CookieBlockedReason.UnknownError */:
             return null;
     }
@@ -1464,7 +1606,7 @@ export const setCookieBlockedReasonToAttribute = function (blockedReason) {
     switch (blockedReason) {
         case "SecureOnly" /* Protocol.Network.SetCookieBlockedReason.SecureOnly */:
         case "OverwriteSecure" /* Protocol.Network.SetCookieBlockedReason.OverwriteSecure */:
-            return Attributes.Secure;
+            return "secure" /* Attribute.Secure */;
         case "SameSiteStrict" /* Protocol.Network.SetCookieBlockedReason.SameSiteStrict */:
         case "SameSiteLax" /* Protocol.Network.SetCookieBlockedReason.SameSiteLax */:
         case "SameSiteUnspecifiedTreatedAsLax" /* Protocol.Network.SetCookieBlockedReason.SameSiteUnspecifiedTreatedAsLax */:
@@ -1472,15 +1614,16 @@ export const setCookieBlockedReasonToAttribute = function (blockedReason) {
         case "SchemefulSameSiteStrict" /* Protocol.Network.SetCookieBlockedReason.SchemefulSameSiteStrict */:
         case "SchemefulSameSiteLax" /* Protocol.Network.SetCookieBlockedReason.SchemefulSameSiteLax */:
         case "SchemefulSameSiteUnspecifiedTreatedAsLax" /* Protocol.Network.SetCookieBlockedReason.SchemefulSameSiteUnspecifiedTreatedAsLax */:
-            return Attributes.SameSite;
+            return "same-site" /* Attribute.SameSite */;
         case "InvalidDomain" /* Protocol.Network.SetCookieBlockedReason.InvalidDomain */:
-            return Attributes.Domain;
+            return "domain" /* Attribute.Domain */;
         case "InvalidPrefix" /* Protocol.Network.SetCookieBlockedReason.InvalidPrefix */:
-            return Attributes.Name;
+            return "name" /* Attribute.Name */;
         case "SamePartyConflictsWithOtherAttributes" /* Protocol.Network.SetCookieBlockedReason.SamePartyConflictsWithOtherAttributes */:
         case "SamePartyFromCrossPartyContext" /* Protocol.Network.SetCookieBlockedReason.SamePartyFromCrossPartyContext */:
         case "NameValuePairExceedsMaxSize" /* Protocol.Network.SetCookieBlockedReason.NameValuePairExceedsMaxSize */:
         case "UserPreferences" /* Protocol.Network.SetCookieBlockedReason.UserPreferences */:
+        case "ThirdPartyPhaseout" /* Protocol.Network.SetCookieBlockedReason.ThirdPartyPhaseout */:
         case "SyntaxError" /* Protocol.Network.SetCookieBlockedReason.SyntaxError */:
         case "SchemeNotSupported" /* Protocol.Network.SetCookieBlockedReason.SchemeNotSupported */:
         case "UnknownError" /* Protocol.Network.SetCookieBlockedReason.UnknownError */:
@@ -1489,4 +1632,4 @@ export const setCookieBlockedReasonToAttribute = function (blockedReason) {
     }
     return null;
 };
-//# map=NetworkRequest.js.map
+//# sourceMappingURL=NetworkRequest.js.map

@@ -48,7 +48,7 @@ export class CommandMenu {
         return commandMenuInstance;
     }
     static createCommand(options) {
-        const { category, keys, title, shortcut, executeHandler, availableHandler, userActionCode, deprecationWarning, isPanelOrDrawer, } = options;
+        const { category, keys, title, shortcut, jslogContext, executeHandler, availableHandler, userActionCode, deprecationWarning, isPanelOrDrawer, } = options;
         let handler = executeHandler;
         if (userActionCode) {
             const actionCode = userActionCode;
@@ -57,7 +57,7 @@ export class CommandMenu {
                 executeHandler();
             };
         }
-        return new Command(category, title, keys, shortcut, handler, availableHandler, deprecationWarning, isPanelOrDrawer);
+        return new Command(category, title, keys, shortcut, jslogContext, handler, availableHandler, deprecationWarning, isPanelOrDrawer);
     }
     static createSettingCommand(setting, title, value) {
         const category = setting.category();
@@ -71,6 +71,7 @@ export class CommandMenu {
             keys: tags,
             title,
             shortcut: '',
+            jslogContext: setting.name,
             executeHandler: () => {
                 if (setting.deprecation?.disabled &&
                     (!setting.deprecation?.experiment || setting.deprecation.experiment.isEnabled())) {
@@ -78,6 +79,12 @@ export class CommandMenu {
                     return;
                 }
                 setting.set(value);
+                if (setting.name === 'emulate-page-focus') {
+                    Host.userMetrics.actionTaken(Host.UserMetrics.Action.ToggleEmulateFocusedPageFromCommandMenu);
+                }
+                if (setting.name === 'show-web-vitals') {
+                    Host.userMetrics.actionTaken(Host.UserMetrics.Action.ToggleShowWebVitals);
+                }
                 if (reloadRequired) {
                     UI.InspectorView.InspectorView.instance().displayReloadRequiredWarning(i18nString(UIStrings.oneOrMoreSettingsHaveChanged));
                 }
@@ -97,8 +104,8 @@ export class CommandMenu {
             throw new Error(`Creating '${action.title()}' action command failed. Action has no category.`);
         }
         let panelOrDrawer = undefined;
-        if (category === UI.ActionRegistration.ActionCategory.DRAWER) {
-            panelOrDrawer = PanelOrDrawer.DRAWER;
+        if (category === "DRAWER" /* UI.ActionRegistration.ActionCategory.DRAWER */) {
+            panelOrDrawer = "DRAWER" /* PanelOrDrawer.DRAWER */;
         }
         const shortcut = UI.ShortcutRegistry.ShortcutRegistry.instance().shortcutTitleForAction(action.id()) || '';
         return CommandMenu.createCommand({
@@ -106,6 +113,7 @@ export class CommandMenu {
             keys: action.tags() || '',
             title: action.title(),
             shortcut,
+            jslogContext: action.id(),
             executeHandler: action.execute.bind(action),
             userActionCode,
             availableHandler: undefined,
@@ -118,15 +126,15 @@ export class CommandMenu {
             throw new Error(`Creating '${title}' reveal view command failed. Reveal view has no category.`);
         }
         let panelOrDrawer = undefined;
-        if (category === UI.ViewManager.ViewLocationCategory.PANEL) {
-            panelOrDrawer = PanelOrDrawer.PANEL;
+        if (category === "PANEL" /* UI.ViewManager.ViewLocationCategory.PANEL */) {
+            panelOrDrawer = "PANEL" /* PanelOrDrawer.PANEL */;
         }
-        else if (category === UI.ViewManager.ViewLocationCategory.DRAWER) {
-            panelOrDrawer = PanelOrDrawer.DRAWER;
+        else if (category === "DRAWER" /* UI.ViewManager.ViewLocationCategory.DRAWER */) {
+            panelOrDrawer = "DRAWER" /* PanelOrDrawer.DRAWER */;
         }
         const executeHandler = () => {
             if (id === 'issues-pane') {
-                Host.userMetrics.issuesPanelOpenedFrom(Host.UserMetrics.IssueOpener.CommandMenu);
+                Host.userMetrics.issuesPanelOpenedFrom(5 /* Host.UserMetrics.IssueOpener.CommandMenu */);
             }
             return UI.ViewManager.ViewManager.instance().showView(id, /* userGesture */ true);
         };
@@ -135,6 +143,7 @@ export class CommandMenu {
             keys: tags,
             title,
             shortcut: '',
+            jslogContext: id,
             executeHandler,
             userActionCode,
             availableHandler: undefined,
@@ -181,16 +190,10 @@ export class CommandMenu {
         return this.commandsInternal;
     }
 }
-// eslint-disable-next-line rulesdir/const_enum
-export var PanelOrDrawer;
-(function (PanelOrDrawer) {
-    PanelOrDrawer["PANEL"] = "PANEL";
-    PanelOrDrawer["DRAWER"] = "DRAWER";
-})(PanelOrDrawer || (PanelOrDrawer = {}));
 export class CommandMenuProvider extends Provider {
     commands;
     constructor(commandsForTest = []) {
-        super();
+        super('command');
         this.commands = commandsForTest;
     }
     attach() {
@@ -206,9 +209,13 @@ export class CommandMenuProvider extends Provider {
             this.commands.push(CommandMenu.createActionCommand(options));
         }
         for (const command of allCommands) {
-            if (command.available()) {
-                this.commands.push(command);
+            if (!command.available()) {
+                continue;
             }
+            if (this.commands.find(({ title, category }) => title === command.title && category === command.category)) {
+                continue;
+            }
+            this.commands.push(command);
         }
         this.commands = this.commands.sort(commandComparator);
         function commandComparator(left, right) {
@@ -229,10 +236,10 @@ export class CommandMenuProvider extends Provider {
         const command = this.commands[itemIndex];
         let score = Diff.Diff.DiffWrapper.characterScore(query.toLowerCase(), command.title.toLowerCase());
         // Score panel/drawer reveals above regular actions.
-        if (command.isPanelOrDrawer === PanelOrDrawer.PANEL) {
+        if (command.isPanelOrDrawer === "PANEL" /* PanelOrDrawer.PANEL */) {
             score += 2;
         }
-        else if (command.isPanelOrDrawer === PanelOrDrawer.DRAWER) {
+        else if (command.isPanelOrDrawer === "DRAWER" /* PanelOrDrawer.DRAWER */) {
             score += 1;
         }
         return score;
@@ -257,8 +264,11 @@ export class CommandMenuProvider extends Provider {
         }
         const index = Platform.StringUtilities.hashCode(command.category) % MaterialPaletteColors.length;
         tagElement.style.backgroundColor = MaterialPaletteColors[index];
-        tagElement.style.color = 'var(--color-background)';
+        tagElement.style.color = '#fff';
         tagElement.textContent = command.category;
+    }
+    jslogContextAt(itemIndex) {
+        return this.commands[itemIndex].jslogContext;
     }
     selectItem(itemIndex, _promptValue) {
         if (itemIndex === null) {
@@ -295,15 +305,17 @@ export class Command {
     title;
     key;
     shortcut;
+    jslogContext;
     deprecationWarning;
     isPanelOrDrawer;
     #executeHandler;
     #availableHandler;
-    constructor(category, title, key, shortcut, executeHandler, availableHandler, deprecationWarning, isPanelOrDrawer) {
+    constructor(category, title, key, shortcut, jslogContext, executeHandler, availableHandler, deprecationWarning, isPanelOrDrawer) {
         this.category = category;
         this.title = title;
         this.key = category + '\0' + title + '\0' + key;
         this.shortcut = shortcut;
+        this.jslogContext = jslogContext;
         this.#executeHandler = executeHandler;
         this.#availableHandler = availableHandler;
         this.deprecationWarning = deprecationWarning;
@@ -316,15 +328,7 @@ export class Command {
         return this.#executeHandler(); // Tests might want to await the action in case it's async.
     }
 }
-let showActionDelegateInstance;
 export class ShowActionDelegate {
-    static instance(opts = { forceNew: null }) {
-        const { forceNew } = opts;
-        if (!showActionDelegateInstance || forceNew) {
-            showActionDelegateInstance = new ShowActionDelegate();
-        }
-        return showActionDelegateInstance;
-    }
     handleAction(_context, _actionId) {
         Host.InspectorFrontendHost.InspectorFrontendHostInstance.bringToFront();
         QuickOpenImpl.show('>');
@@ -339,4 +343,4 @@ registerProvider({
     titlePrefix: () => i18nString(UIStrings.run),
     titleSuggestion: () => i18nString(UIStrings.command),
 });
-//# map=CommandMenu.js.map
+//# sourceMappingURL=CommandMenu.js.map

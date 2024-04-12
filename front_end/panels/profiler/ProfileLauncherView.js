@@ -80,7 +80,7 @@ export class ProfileLauncherView extends Common.ObjectWrapper.eventMixin(UI.Widg
         this.contentElementInternal =
             this.element.createChild('div', 'profile-launcher-view-content vbox');
         const profileTypeSelectorElement = this.contentElementInternal.createChild('div', 'vbox');
-        this.selectedProfileTypeSetting = Common.Settings.Settings.instance().createSetting('selectedProfileType', 'CPU');
+        this.selectedProfileTypeSetting = Common.Settings.Settings.instance().createSetting('selected-profile-type', 'CPU');
         this.profileTypeHeaderElement = profileTypeSelectorElement.createChild('h1');
         this.profileTypeSelectorForm = profileTypeSelectorElement.createChild('form');
         UI.ARIAUtils.markAsRadioGroup(this.profileTypeSelectorForm);
@@ -92,15 +92,21 @@ export class ProfileLauncherView extends Common.ObjectWrapper.eventMixin(UI.Widg
         isolateSelector.show(isolateSelectorElementChild);
         isolateSelectorElement.appendChild(isolateSelector.totalMemoryElement());
         const buttonsDiv = this.contentElementInternal.createChild('div', 'hbox profile-launcher-buttons');
-        this.controlButton = UI.UIUtils.createTextButton('', this.controlButtonClicked.bind(this), '', /* primary */ true);
-        this.loadButton = UI.UIUtils.createTextButton(i18nString(UIStrings.load), this.loadButtonClicked.bind(this), '');
+        this.controlButton = UI.UIUtils.createTextButton('', this.controlButtonClicked.bind(this), {
+            jslogContext: 'profiler.heap-toggle-recording',
+            primary: true,
+        });
+        this.loadButton = UI.UIUtils.createTextButton(i18nString(UIStrings.load), this.loadButtonClicked.bind(this), {
+            jslogContext: 'profiler.load-from-file',
+        });
         buttonsDiv.appendChild(this.controlButton);
         buttonsDiv.appendChild(this.loadButton);
         this.recordButtonEnabled = true;
         this.typeIdToOptionElementAndProfileType = new Map();
     }
     loadButtonClicked() {
-        this.panel.showLoadFromFileDialog();
+        const loadFromFileAction = UI.ActionRegistry.ActionRegistry.instance().getAction('profiler.load-from-file');
+        void loadFromFileAction.execute();
     }
     updateControls() {
         if (this.isEnabled && this.recordButtonEnabled) {
@@ -144,7 +150,7 @@ export class ProfileLauncherView extends Common.ObjectWrapper.eventMixin(UI.Widg
         this.updateControls();
     }
     addProfileType(profileType) {
-        const labelElement = UI.UIUtils.createRadioLabel('profile-type', profileType.name);
+        const labelElement = UI.UIUtils.createRadioLabel('profile-type', profileType.name, undefined, 'profiler.profile-type');
         this.profileTypeSelectorForm.appendChild(labelElement);
         const optionElement = labelElement.radioElement;
         this.typeIdToOptionElementAndProfileType.set(profileType.id, { optionElement, profileType });
@@ -177,7 +183,7 @@ export class ProfileLauncherView extends Common.ObjectWrapper.eventMixin(UI.Widg
             const enabled = (id === typeId);
             profileType.setCustomContentEnabled(enabled);
         }
-        this.dispatchEventToListeners(Events.ProfileTypeSelected, type);
+        this.dispatchEventToListeners("ProfileTypeSelected" /* Events.ProfileTypeSelected */, type);
     }
     controlButtonClicked() {
         this.panel.toggleRecord();
@@ -187,7 +193,7 @@ export class ProfileLauncherView extends Common.ObjectWrapper.eventMixin(UI.Widg
         const type = this.typeIdToOptionElementAndProfileType.get(typeId).profileType;
         type.setCustomContentEnabled(false);
         profileType.setCustomContentEnabled(true);
-        this.dispatchEventToListeners(Events.ProfileTypeSelected, profileType);
+        this.dispatchEventToListeners("ProfileTypeSelected" /* Events.ProfileTypeSelected */, profileType);
         this.isInstantProfile = profileType.isInstantProfile();
         this.isEnabled = profileType.isEnabled();
         this.updateControls();
@@ -198,10 +204,4 @@ export class ProfileLauncherView extends Common.ObjectWrapper.eventMixin(UI.Widg
         this.registerCSSFiles([profileLauncherViewStyles]);
     }
 }
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
-export var Events;
-(function (Events) {
-    Events["ProfileTypeSelected"] = "ProfileTypeSelected";
-})(Events || (Events = {}));
-//# map=ProfileLauncherView.js.map
+//# sourceMappingURL=ProfileLauncherView.js.map

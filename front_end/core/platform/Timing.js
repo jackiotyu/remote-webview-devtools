@@ -10,4 +10,4 @@ export function milliSecondsToSeconds(x) {
 export function microSecondsToMilliSeconds(x) {
     return (x / 1000);
 }
-//# map=Timing.js.map
+//# sourceMappingURL=Timing.js.map

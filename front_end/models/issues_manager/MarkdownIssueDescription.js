@@ -73,8 +73,8 @@ export function substitutePlaceholders(markdown, substitutions) {
     validatePlaceholders(unusedPlaceholders);
     const result = markdown.replace(validPlaceholderMatchPattern, (_, placeholder) => {
         const replacement = substitutions ? substitutions.get(placeholder) : undefined;
-        if (!replacement) {
-            throw new Error(`No replacment provided for placeholder '${placeholder}'.`);
+        if (replacement === undefined) {
+            throw new Error(`No replacement provided for placeholder '${placeholder}'.`);
         }
         unusedPlaceholders.delete(placeholder);
         return replacement;
@@ -102,4 +102,4 @@ export async function getIssueTitleFromMarkdownDescription(description) {
     const markdownAst = Marked.Marked.lexer(rawMarkdown);
     return findTitleFromMarkdownAst(markdownAst);
 }
-//# map=MarkdownIssueDescription.js.map
+//# sourceMappingURL=MarkdownIssueDescription.js.map

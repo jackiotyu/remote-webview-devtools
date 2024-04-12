@@ -25,7 +25,7 @@ let snippetsQuickOpenInstance;
 export class SnippetsQuickOpen extends QuickOpen.FilteredListWidget.Provider {
     snippets;
     constructor() {
-        super();
+        super('snippet');
         this.snippets = [];
     }
     static instance(opts = { forceNew: null }) {
@@ -74,4 +74,4 @@ QuickOpen.FilteredListWidget.registerProvider({
     titlePrefix: i18nLazyString(UIStrings.run),
     titleSuggestion: i18nLazyString(UIStrings.snippet),
 });
-//# map=SnippetsQuickOpen.js.map
+//# sourceMappingURL=SnippetsQuickOpen.js.map

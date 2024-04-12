@@ -50,9 +50,9 @@ export class PreviewFactory {
         }
         if (resourceType.isTextType()) {
             const highlighterType = mimeType.replace(/;.*/, '') /* remove charset */ || provider.contentType().canonicalMimeType();
-            return ResourceSourceFrame.createSearchableView(provider, highlighterType, true /* autoPrettyPrint */);
+            return ResourceSourceFrame.createSearchableView(provider, highlighterType);
         }
         return null;
     }
 }
-//# map=PreviewFactory.js.map
+//# sourceMappingURL=PreviewFactory.js.map

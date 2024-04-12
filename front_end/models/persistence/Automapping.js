@@ -154,7 +154,7 @@ export class Automapping {
         if (this.interceptors.some(interceptor => interceptor(networkSourceCode))) {
             return Promise.resolve();
         }
-        if (networkSourceCode.url().startsWith('wasm://')) {
+        if (Common.ParsedURL.schemeIs(networkSourceCode.url(), 'wasm:')) {
             return Promise.resolve();
         }
         const createBindingPromise = this.createBinding(networkSourceCode).then(validateStatus.bind(this)).then(onStatus.bind(this));
@@ -273,7 +273,7 @@ export class Automapping {
     }
     async createBinding(networkSourceCode) {
         const url = networkSourceCode.url();
-        if (url.startsWith('file://') || url.startsWith('snippet://')) {
+        if (Common.ParsedURL.schemeIs(url, 'file:') || Common.ParsedURL.schemeIs(url, 'snippet:')) {
             const fileSourceCode = this.fileSystemUISourceCodes.get(url);
             const status = fileSourceCode ? new AutomappingStatus(networkSourceCode, fileSourceCode, false) : null;
             return status;
@@ -414,4 +414,4 @@ export class AutomappingStatus {
         this.exactMatch = exactMatch;
     }
 }
-//# map=Automapping.js.map
+//# sourceMappingURL=Automapping.js.map

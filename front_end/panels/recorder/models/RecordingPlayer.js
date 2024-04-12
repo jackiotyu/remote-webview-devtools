@@ -1,8 +1,8 @@
 // Copyright 2023 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import * as SDK from '../../../core/sdk/sdk.js';
 import * as Common from '../../../core/common/common.js';
+import * as SDK from '../../../core/sdk/sdk.js';
 import * as PuppeteerService from '../../../services/puppeteer/puppeteer.js';
 import * as PuppeteerReplay from '../../../third_party/puppeteer-replay/puppeteer-replay.js';
 const speedDelayMap = {
@@ -14,8 +14,8 @@ const speedDelayMap = {
 export const defaultTimeout = 5000; // ms
 function isPageTarget(target) {
     // Treat DevTools targets as page targets too.
-    return (target.url.startsWith('devtools://') || target.type === 'page' || target.type === 'background_page' ||
-        target.type === 'webview');
+    return (Common.ParsedURL.schemeIs(target.url, 'devtools:') || target.type === 'page' ||
+        target.type === 'background_page' || target.type === 'webview');
 }
 export class RecordingPlayer extends Common.ObjectWrapper.ObjectWrapper {
     #stopPromise;
@@ -99,7 +99,7 @@ export class RecordingPlayer extends Common.ObjectWrapper.ObjectWrapper {
             if (targetInfo.openerId !== mainTargetId) {
                 return;
             }
-            void puppeteerConnection._createSession(targetInfo,
+            void puppeteerConnection._createSession(targetInfo, 
             /* emulateAutoAttach= */ true);
         });
         return { page, browser };
@@ -117,7 +117,7 @@ export class RecordingPlayer extends Common.ObjectWrapper.ObjectWrapper {
                 await client.send('Emulation.clearDeviceMetricsOverride');
                 await client.send('Emulation.setAutomationOverride', { enabled: false });
                 for (const frame of page.frames()) {
-                    const client = frame._client();
+                    const client = frame.client;
                     await client.send('Network.disable');
                     await client.send('Page.disable');
                     await client.send('Log.disable');
@@ -126,7 +126,7 @@ export class RecordingPlayer extends Common.ObjectWrapper.ObjectWrapper {
                     await client.send('Emulation.setAutomationOverride', { enabled: false });
                 }
             }
-            browser.disconnect();
+            await browser.disconnect();
         }
         catch (err) {
             console.error('Error disconnecting Puppeteer', err.message);
@@ -193,7 +193,8 @@ export class RecordingPlayer extends Common.ObjectWrapper.ObjectWrapper {
             async runStep(step, flow) {
                 // When replaying on a DevTools target we skip setViewport and navigate steps
                 // because navigation and viewport changes are not supported there.
-                if (page?.url().startsWith('devtools://') && (step.type === 'setViewport' || step.type === 'navigate')) {
+                if (Common.ParsedURL.schemeIs(page?.url(), 'devtools:') &&
+                    (step.type === 'setViewport' || step.type === 'navigate')) {
                     return;
                 }
                 // Focus the target in case it's not focused.
@@ -228,4 +229,4 @@ export class RecordingPlayer extends Common.ObjectWrapper.ObjectWrapper {
         }
     }
 }
-//# map=RecordingPlayer.js.map
+//# sourceMappingURL=RecordingPlayer.js.map

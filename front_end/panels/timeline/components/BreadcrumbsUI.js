@@ -20,12 +20,7 @@ export class BreadcrumbsUI extends HTMLElement {
     static litTagName = LitHtml.literal `devtools-breadcrumbs-ui`;
     #shadow = this.attachShadow({ mode: 'open' });
     #boundRender = this.#render.bind(this);
-    #traceWindow = {
-        min: TraceEngine.Types.Timing.MicroSeconds(0),
-        max: TraceEngine.Types.Timing.MicroSeconds(0),
-        range: TraceEngine.Types.Timing.MicroSeconds(0),
-    };
-    #breadcrumb = { window: this.#traceWindow, child: null };
+    #breadcrumb = null;
     connectedCallback() {
         this.#shadow.adoptedStyleSheets = [breadcrumbsUIStyles];
     }
@@ -36,30 +31,66 @@ export class BreadcrumbsUI extends HTMLElement {
     #removeBreadcrumb(breadcrumb) {
         this.dispatchEvent(new BreadcrumbRemovedEvent(breadcrumb));
     }
-    #renderElement(breadcrumb) {
+    #showBreadcrumbsAndScrollLastCrumbIntoView() {
+        const container = this.#shadow.querySelector('.breadcrumbs');
+        if (!container) {
+            return;
+        }
+        // Display Breadcrumbs after at least one was created
+        container.style.display = 'flex';
+        requestAnimationFrame(() => {
+            // If the width of all the elements is greater than the width of the
+            // container, we need to scroll the last element into view.
+            if (container.scrollWidth - container.clientWidth > 0) {
+                requestAnimationFrame(() => {
+                    // For some unknown reason, if we scroll after one rAF, the values
+                    // are slightly off by a few pixels which means that the element does
+                    // not get properly scrolled fully into view. Therefore we wait for a
+                    // second rAF, at which point the values are correct and this will
+                    // scroll the container fully to ensure the last breadcrumb is fully
+                    // visible.
+                    container.scrollLeft = container.scrollWidth - container.clientWidth;
+                });
+            }
+        });
+    }
+    #renderElement(breadcrumb, index) {
+        const breadcrumbRange = TraceEngine.Helpers.Timing.microSecondsToMilliseconds(breadcrumb.window.range);
         // clang-format off
         return html `
           <div class="breadcrumb" @click=${() => this.#removeBreadcrumb(breadcrumb)}>
-              <span class="range">${(breadcrumb.window.range).toFixed(2)} ms</span>
-              ${breadcrumb.child !== null ?
+           <span class="${(index !== 0 && breadcrumb.child === null) ? 'last-breadcrumb' : ''} range">
+            ${(index === 0) ?
+            `Full range (${breadcrumbRange.toFixed(2)}ms)` :
+            `${breadcrumbRange.toFixed(2)}ms`}
+            </span>
+          </div>
+          ${breadcrumb.child !== null ?
             html `
-                <${IconButton.Icon.Icon.litTagName} .data=${{
+            <${IconButton.Icon.Icon.litTagName} .data=${{
                 iconName: 'chevron-right',
                 color: 'var(--icon-default)',
-                width: '20px',
-                height: '20px',
+                width: '16px',
+                height: '16px',
             }}>`
             : ''}
-          </div>
       `;
+        // clang-format on
     }
     #render() {
+        // clang-format off
         const output = html `
-      <div class="breadcrumbs">
-        ${flattenBreadcrumbs(this.#breadcrumb).map(breadcrumb => this.#renderElement(breadcrumb))}
-      </div>`;
+      ${this.#breadcrumb === null ? html `` : html `<div class="breadcrumbs">
+        ${flattenBreadcrumbs(this.#breadcrumb).map((breadcrumb, index) => this.#renderElement(breadcrumb, index))}
+      </div>`}
+    `;
+        // clang-format on
         render(output, this.#shadow, { host: this });
+        if (this.#breadcrumb?.child) {
+            // If we have >1 crumbs show breadcrumbs and ensure the last one is visible by scrolling the container.
+            this.#showBreadcrumbsAndScrollLastCrumbIntoView();
+        }
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-breadcrumbs-ui', BreadcrumbsUI);
-//# map=BreadcrumbsUI.js.map
+customElements.define('devtools-breadcrumbs-ui', BreadcrumbsUI);
+//# sourceMappingURL=BreadcrumbsUI.js.map

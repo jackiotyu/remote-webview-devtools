@@ -217,4 +217,4 @@ export async function getUnitConversionMultiplier(prevUnit, newUnit, isFontSize)
     }
     return prevUnitMultiplier / newUnitMultiplier;
 }
-//# map=FontEditorUnitConverter.js.map
+//# sourceMappingURL=FontEditorUnitConverter.js.map

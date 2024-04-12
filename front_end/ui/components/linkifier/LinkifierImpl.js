@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 import * as Platform from '../../../core/platform/platform.js';
 import * as LitHtml from '../../lit-html/lit-html.js';
-import * as ComponentHelpers from '../helpers/helpers.js';
 import * as Coordinator from '../render_coordinator/render_coordinator.js';
 import linkifierImplStyles from './linkifierImpl.css.js';
 import * as LinkifierUtils from './LinkifierUtils.js';
@@ -26,10 +25,12 @@ export class Linkifier extends HTMLElement {
     #url = Platform.DevToolsPath.EmptyUrlString;
     #lineNumber;
     #columnNumber;
+    #linkText;
     set data(data) {
         this.#url = data.url;
         this.#lineNumber = data.lineNumber;
         this.#columnNumber = data.columnNumber;
+        this.#linkText = data.linkText;
         if (!this.#url) {
             throw new Error('Cannot construct a Linkifier without providing a valid string URL.');
         }
@@ -48,14 +49,15 @@ export class Linkifier extends HTMLElement {
         this.dispatchEvent(linkifierClickEvent);
     }
     async #render() {
+        const linkText = this.#linkText ?? LinkifierUtils.linkText(this.#url, this.#lineNumber);
         // Disabled until https://crbug.com/1079231 is fixed.
         await coordinator.write(() => {
             // clang-format off
             // eslint-disable-next-line rulesdir/ban_a_tags_in_lit_html
-            LitHtml.render(LitHtml.html `<a class="link" href=${this.#url} @click=${this.#onLinkActivation}><slot>${LinkifierUtils.linkText(this.#url, this.#lineNumber)}</slot></a>`, this.#shadow, { host: this });
+            LitHtml.render(LitHtml.html `<a class="link" href=${this.#url} @click=${this.#onLinkActivation}><slot>${linkText}</slot></a>`, this.#shadow, { host: this });
             // clang-format on
         });
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-linkifier', Linkifier);
-//# map=LinkifierImpl.js.map
+customElements.define('devtools-linkifier', Linkifier);
+//# sourceMappingURL=LinkifierImpl.js.map

@@ -28,12 +28,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 import * as Common from '../../core/common/common.js';
+import * as Host from '../../core/host/host.js';
 import * as i18n from '../../core/i18n/i18n.js';
 import * as Platform from '../../core/platform/platform.js';
-import layers3DViewStyles from './layers3DView.css.js';
 import * as UI from '../../ui/legacy/legacy.js';
-import { LayerSelection, Selection, SnapshotSelection, ScrollRectSelection, } from './LayerViewHost.js';
-import { Events as TransformControllerEvents, TransformController } from './TransformController.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
+import layers3DViewStyles from './layers3DView.css.js';
+import { LayerSelection, ScrollRectSelection, Selection, SnapshotSelection, } from './LayerViewHost.js';
+import { TransformController } from './TransformController.js';
 const UIStrings = {
     /**
      *@description Text of a DOM element in DView of the Layers panel
@@ -74,6 +76,14 @@ const UIStrings = {
      *@description A context menu item in the DView of the Layers panel
      */
     showPaintProfiler: 'Show Paint Profiler',
+    /**
+     *@description Text for a button in the DView of the Layers panel
+     */
+    sendFeedback: 'Send feedback',
+    /**
+     *@description Text for a warning message in the DView of the Layers panel
+     */
+    deprecationWarning: 'Layers panel might be deprecated soon. Share your thoughts and concerns before we decide.',
 };
 const str_ = i18n.i18n.registerUIStrings('panels/layer_viewer/Layers3DView.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
@@ -85,6 +95,7 @@ const uniformSamplerLocations = new Map();
 const imageForTexture = new Map();
 export class Layers3DView extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox) {
     failBanner;
+    deprecationBanner;
     layerViewHost;
     transformController;
     canvasElement;
@@ -114,6 +125,7 @@ export class Layers3DView extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox
     mouseDownY;
     constructor(layerViewHost) {
         super(true);
+        this.element.setAttribute('jslog', `${VisualLogging.pane('layers-3d-view')}`);
         this.contentElement.classList.add('layers-3d-view');
         this.failBanner = new UI.Widget.VBox();
         this.failBanner.element.classList.add('full-widget-dimmed-banner');
@@ -121,7 +133,10 @@ export class Layers3DView extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox
         this.layerViewHost = layerViewHost;
         this.layerViewHost.registerView(this);
         this.transformController = new TransformController(this.contentElement);
-        this.transformController.addEventListener(TransformControllerEvents.TransformChanged, this.update, this);
+        this.transformController.addEventListener("TransformChanged" /* TransformControllerEvents.TransformChanged */, this.update, this);
+        this.deprecationBanner = this.#createDeprecationBanner();
+        this.deprecationBanner.setParentView(this);
+        this.contentElement.appendChild(this.deprecationBanner.element);
         this.initToolbar();
         this.canvasElement = this.contentElement.createChild('canvas');
         this.canvasElement.tabIndex = 0;
@@ -131,6 +146,7 @@ export class Layers3DView extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox
         this.canvasElement.addEventListener('mouseleave', this.onMouseMove.bind(this), false);
         this.canvasElement.addEventListener('mousemove', this.onMouseMove.bind(this), false);
         this.canvasElement.addEventListener('contextmenu', this.onContextMenu.bind(this), false);
+        this.canvasElement.setAttribute('jslog', `${VisualLogging.canvas('layers').track({ click: true, drag: true })}`);
         UI.ARIAUtils.setLabel(this.canvasElement, i18nString(UIStrings.dLayersView));
         this.lastSelection = {};
         this.layerTree = null;
@@ -141,6 +157,22 @@ export class Layers3DView extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox
         this.snapshotLayers = new Map();
         this.layerViewHost.setLayerSnapshotMap(this.snapshotLayers);
         this.layerViewHost.showInternalLayersSetting().addChangeListener(this.update, this);
+    }
+    #createDeprecationBanner() {
+        function openLink() {
+            Host.InspectorFrontendHost.InspectorFrontendHostInstance.openInNewTab('https://crbug.com/328948996');
+        }
+        return new UI.Infobar.Infobar("warning" /* UI.Infobar.Type.Warning */, i18nString(UIStrings.deprecationWarning), [
+            {
+                text: i18nString(UIStrings.sendFeedback),
+                highlight: false,
+                delegate: openLink,
+                dismiss: false,
+                jslogContext: 'Send feedback',
+            },
+        ], 
+        /* disableSetting? */ undefined, 
+        /* isCloseable */ true, 'panel-deprecated');
     }
     setLayerTree(layerTree) {
         this.layerTree = layerTree;
@@ -282,7 +314,7 @@ export class Layers3DView extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox
         if (textureScale !== this.oldTextureScale) {
             this.oldTextureScale = textureScale;
             this.textureManager.setScale(textureScale);
-            this.dispatchEventToListeners(Events.ScaleChanged, textureScale);
+            this.dispatchEventToListeners("ScaleChanged" /* Events.ScaleChanged */, textureScale);
         }
         const scaleAndRotationMatrix = new WebKitCSSMatrix()
             .scale(scale, scale, scale)
@@ -569,7 +601,7 @@ export class Layers3DView extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox
         if (!viewport) {
             return;
         }
-        const drawChrome = !Common.Settings.Settings.instance().moduleSetting('frameViewerHideChromeWindow').get() &&
+        const drawChrome = !Common.Settings.Settings.instance().moduleSetting('frame-viewer-hide-chrome-window').get() &&
             this.chromeTextures.length >= 3 && this.chromeTextures.indexOf(undefined) < 0;
         const z = (this.maxDepth + 1) * LayerSpacing;
         const borderWidth = Math.ceil(ViewportBorderWidth * this.scale);
@@ -674,7 +706,7 @@ export class Layers3DView extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox
         const fragment = this.contentElement.ownerDocument.createDocumentFragment();
         fragment.createChild('div').textContent = i18nString(UIStrings.cantDisplayLayers);
         fragment.createChild('div').textContent = i18nString(UIStrings.webglSupportIsDisabledInYour);
-        fragment.appendChild(i18n.i18n.getFormatLocalizedString(str_, UIStrings.checkSForPossibleReasons, { PH1: UI.XLink.XLink.create('about:gpu') }));
+        fragment.appendChild(i18n.i18n.getFormatLocalizedString(str_, UIStrings.checkSForPossibleReasons, { PH1: UI.XLink.XLink.create('about:gpu', undefined, undefined, undefined, 'about-gpu') }));
         return fragment;
     }
     selectionFromEventPoint(event) {
@@ -710,20 +742,23 @@ export class Layers3DView extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox
     initToolbar() {
         this.panelToolbar = this.transformController.toolbar();
         this.contentElement.appendChild(this.panelToolbar.element);
-        this.showPaintsSetting =
-            this.createVisibilitySetting(i18nString(UIStrings.paints), 'frameViewerShowPaints', false, this.panelToolbar);
-        this.showSlowScrollRectsSetting = this.createVisibilitySetting(i18nString(UIStrings.slowScrollRects), 'frameViewerShowSlowScrollRects', true, this.panelToolbar);
+        this.showPaintsSetting = this.createVisibilitySetting(i18nString(UIStrings.paints), 'frame-viewer-show-paints', false, this.panelToolbar);
+        this.showSlowScrollRectsSetting = this.createVisibilitySetting(i18nString(UIStrings.slowScrollRects), 'frame-viewer-show-slow-scroll-rects', true, this.panelToolbar);
         this.showPaintsSetting.addChangeListener(this.updatePaints, this);
         Common.Settings.Settings.instance()
-            .moduleSetting('frameViewerHideChromeWindow')
+            .moduleSetting('frame-viewer-hide-chrome-window')
             .addChangeListener(this.update, this);
     }
     onContextMenu(event) {
         const contextMenu = new UI.ContextMenu.ContextMenu(event);
-        contextMenu.defaultSection().appendItem(i18nString(UIStrings.resetView), () => this.transformController.resetAndNotify(), false);
+        contextMenu.defaultSection().appendItem(i18nString(UIStrings.resetView), () => this.transformController.resetAndNotify(), {
+            jslogContext: 'layers.3d-center',
+        });
         const selection = this.selectionFromEventPoint(event);
         if (selection && selection.type() === "Snapshot" /* Type.Snapshot */) {
-            contextMenu.defaultSection().appendItem(i18nString(UIStrings.showPaintProfiler), () => this.dispatchEventToListeners(Events.PaintProfilerRequested, selection), false);
+            contextMenu.defaultSection().appendItem(i18nString(UIStrings.showPaintProfiler), () => this.dispatchEventToListeners("PaintProfilerRequested" /* Events.PaintProfilerRequested */, selection), {
+                jslogContext: 'layers.paint-profiler',
+            });
         }
         this.layerViewHost.showContextMenu(contextMenu, selection);
     }
@@ -753,7 +788,7 @@ export class Layers3DView extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox
     onDoubleClick(event) {
         const selection = this.selectionFromEventPoint(event);
         if (selection && (selection.type() === "Snapshot" /* Type.Snapshot */ || selection.layer())) {
-            this.dispatchEventToListeners(Events.PaintProfilerRequested, selection);
+            this.dispatchEventToListeners("PaintProfilerRequested" /* Events.PaintProfilerRequested */, selection);
         }
         event.stopPropagation();
     }
@@ -771,20 +806,11 @@ export class Layers3DView extends Common.ObjectWrapper.eventMixin(UI.Widget.VBox
         return this.showPaintsSetting ? this.showPaintsSetting.get() : false;
     }
 }
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
 export var OutlineType;
 (function (OutlineType) {
     OutlineType["Hovered"] = "hovered";
     OutlineType["Selected"] = "selected";
 })(OutlineType || (OutlineType = {}));
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
-export var Events;
-(function (Events) {
-    Events["PaintProfilerRequested"] = "PaintProfilerRequested";
-    Events["ScaleChanged"] = "ScaleChanged";
-})(Events || (Events = {}));
 export const FragmentShader = '' +
     'precision mediump float;\n' +
     'varying vec4 vColor;\n' +
@@ -1100,4 +1126,4 @@ export class Tile {
         this.texture = image ? LayerTextureManager.createTextureForImage(glContext, image) : null;
     }
 }
-//# map=Layers3DView.js.map
+//# sourceMappingURL=Layers3DView.js.map

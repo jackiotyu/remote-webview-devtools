@@ -136,4 +136,4 @@ export class DefaultScriptMapping {
 // TODO(bmeurer): Remove the static methods from DefaultScriptMapping
 // and get rid of this global table.
 const defaultScriptMappings = new Set();
-//# map=DefaultScriptMapping.js.map
+//# sourceMappingURL=DefaultScriptMapping.js.map

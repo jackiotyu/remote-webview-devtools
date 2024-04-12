@@ -74,7 +74,7 @@ export class BinaryResourceView extends UI.Widget.VBox {
             new BinaryViewObject('hex', i18nString(UIStrings.hexViewer), i18nString(UIStrings.copiedAsHex), this.binaryResourceViewFactory.createHexView.bind(this.binaryResourceViewFactory), this.binaryResourceViewFactory.hex.bind(this.binaryResourceViewFactory)),
             new BinaryViewObject('utf8', i18n.i18n.lockedString('UTF-8'), i18nString(UIStrings.copiedAsUtf), this.binaryResourceViewFactory.createUtf8View.bind(this.binaryResourceViewFactory), this.binaryResourceViewFactory.utf8.bind(this.binaryResourceViewFactory)),
         ];
-        this.binaryViewTypeSetting = Common.Settings.Settings.instance().createSetting('binaryViewType', 'hex');
+        this.binaryViewTypeSetting = Common.Settings.Settings.instance().createSetting('binary-view-type', 'hex');
         this.binaryViewTypeCombobox =
             new UI.Toolbar.ToolbarComboBox(this.binaryViewTypeChanged.bind(this), i18nString(UIStrings.binaryViewType));
         for (const viewObject of this.binaryViewObjects) {
@@ -82,7 +82,7 @@ export class BinaryResourceView extends UI.Widget.VBox {
         }
         this.toolbar.appendToolbarItem(this.binaryViewTypeCombobox);
         const copyButton = new UI.Toolbar.ToolbarButton(i18nString(UIStrings.copyToClipboard), 'copy');
-        copyButton.addEventListener(UI.Toolbar.ToolbarButton.Events.Click, _event => {
+        copyButton.addEventListener("Click" /* UI.Toolbar.ToolbarButton.Events.Click */, _event => {
             void this.copySelectedViewToClipboard();
         }, this);
         this.toolbar.appendToolbarItem(copyButton);
@@ -96,7 +96,7 @@ export class BinaryResourceView extends UI.Widget.VBox {
     getCurrentViewObject() {
         const filter = (obj) => obj.type === this.binaryViewTypeSetting.get();
         const binaryViewObject = this.binaryViewObjects.find(filter);
-        console.assert(Boolean(binaryViewObject), `No binary view found for binary view type found in setting 'binaryViewType': ${this.binaryViewTypeSetting.get()}`);
+        console.assert(Boolean(binaryViewObject), `No binary view found for binary view type found in setting 'binary-view-type': ${this.binaryViewTypeSetting.get()}`);
         return binaryViewObject || null;
     }
     async copySelectedViewToClipboard() {
@@ -149,20 +149,20 @@ export class BinaryResourceView extends UI.Widget.VBox {
         this.updateView();
     }
     addCopyToContextMenu(contextMenu, submenuItemText) {
-        const copyMenu = contextMenu.clipboardSection().appendSubMenuItem(submenuItemText);
+        const copyMenu = contextMenu.clipboardSection().appendSubMenuItem(submenuItemText, false, 'copy');
         const footerSection = copyMenu.footerSection();
         footerSection.appendItem(i18nString(UIStrings.copyAsBase), async () => {
             const content = await this.binaryResourceViewFactory.base64();
             Host.InspectorFrontendHost.InspectorFrontendHostInstance.copyText(content.content);
-        });
+        }, { jslogContext: 'copy-as-base' });
         footerSection.appendItem(i18nString(UIStrings.copyAsHex), async () => {
             const content = await this.binaryResourceViewFactory.hex();
             Host.InspectorFrontendHost.InspectorFrontendHostInstance.copyText(content.content);
-        });
+        }, { jslogContext: 'copy-as-hex' });
         footerSection.appendItem(i18nString(UIStrings.copyAsUtf), async () => {
             const content = await this.binaryResourceViewFactory.utf8();
             Host.InspectorFrontendHost.InspectorFrontendHostInstance.copyText(content.content);
-        });
+        }, { jslogContext: 'copy-as-utf' });
     }
 }
 export class BinaryViewObject {
@@ -187,4 +187,4 @@ export class BinaryViewObject {
         return this.view;
     }
 }
-//# map=BinaryResourceView.js.map
+//# sourceMappingURL=BinaryResourceView.js.map

@@ -1,8 +1,9 @@
 // Copyright 2021 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import * as ComponentHelpers from '../../components/helpers/helpers.js';
 import * as LitHtml from '../../lit-html/lit-html.js';
+import * as VisualLogging from '../../visual_logging/visual_logging.js';
+import * as IconButton from '../icon_button/icon_button.js';
 import * as Input from '../input/input.js';
 import settingCheckboxStyles from './settingCheckbox.css.js';
 import { SettingDeprecationWarning } from './SettingDeprecationWarning.js';
@@ -13,7 +14,6 @@ export class SettingCheckbox extends HTMLElement {
     static litTagName = LitHtml.literal `setting-checkbox`;
     #shadow = this.attachShadow({ mode: 'open' });
     #setting;
-    #disabled = false;
     #changeListenerDescriptor;
     connectedCallback() {
         this.#shadow.adoptedStyleSheets = [Input.checkboxStyles, settingCheckboxStyles];
@@ -23,7 +23,6 @@ export class SettingCheckbox extends HTMLElement {
             this.#setting.removeChangeListener(this.#changeListenerDescriptor.listener);
         }
         this.#setting = data.setting;
-        this.#disabled = Boolean(data.disabled);
         this.#changeListenerDescriptor = this.#setting.addChangeListener(() => {
             this.#render();
         });
@@ -40,16 +39,33 @@ export class SettingCheckbox extends HTMLElement {
             throw new Error('No "Setting" object provided for rendering');
         }
         const icon = this.#deprecationIcon();
+        const reason = this.#setting.disabledReason() ?
+            LitHtml.html `
+      <${IconButton.Icon.Icon.litTagName} class="disabled-reason" name="info" title=${this.#setting.disabledReason()} @click=${onclick}></${IconButton.Icon.Icon.litTagName}>
+    ` :
+            LitHtml.nothing;
         LitHtml.render(LitHtml.html `
       <p>
         <label>
-          <input type="checkbox" .checked=${this.#setting.get()} ?disabled=${this.#disabled || this.#setting.disabled()} @change=${this.#checkboxChanged} aria-label=${this.#setting.title()} /> ${this.#setting.title()}${icon}
+          <input
+            type="checkbox"
+            .checked=${this.#setting.disabledReason() ? false : this.#setting.get()}
+            ?disabled=${this.#setting.disabled()}
+            @change=${this.#checkboxChanged}
+            jslog=${VisualLogging.toggle().track({ click: true }).context(this.#setting.name)}
+            aria-label=${this.#setting.title()}
+          />
+          ${this.#setting.title()}${reason}${icon}
         </label>
       </p>`, this.#shadow, { host: this });
     }
     #checkboxChanged(e) {
         this.#setting?.set(e.target.checked);
+        this.dispatchEvent(new CustomEvent('change', {
+            bubbles: true,
+            composed: false,
+        }));
     }
 }
-ComponentHelpers.CustomElements.defineComponent('setting-checkbox', SettingCheckbox);
-//# map=SettingCheckbox.js.map
+customElements.define('setting-checkbox', SettingCheckbox);
+//# sourceMappingURL=SettingCheckbox.js.map

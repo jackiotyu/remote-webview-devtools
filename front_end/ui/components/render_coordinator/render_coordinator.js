@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as RenderCoordinator from './RenderCoordinator.js';
 export { RenderCoordinator };
-//# map=render_coordinator.js.map
+//# sourceMappingURL=render_coordinator.js.map

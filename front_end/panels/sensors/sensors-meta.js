@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as Common from '../../core/common/common.js';
-import * as UI from '../../ui/legacy/legacy.js';
 import * as i18n from '../../core/i18n/i18n.js';
+import * as UI from '../../ui/legacy/legacy.js';
 const UIStrings = {
     /**
      * @description Title of the Sensors tool. The sensors tool contains GPS, orientation sensors, touch
@@ -108,7 +108,7 @@ UI.ViewManager.registerViewExtension({
     order: 100,
     async loadView() {
         const Sensors = await loadEmulationModule();
-        return Sensors.SensorsView.SensorsView.instance();
+        return new Sensors.SensorsView.SensorsView();
     },
     tags: [
         i18nLazyString(UIStrings.geolocation),
@@ -127,16 +127,16 @@ UI.ViewManager.registerViewExtension({
     order: 40,
     async loadView() {
         const Sensors = await loadEmulationModule();
-        return Sensors.LocationsSettingsTab.LocationsSettingsTab.instance();
+        return new Sensors.LocationsSettingsTab.LocationsSettingsTab();
     },
     settings: [
         'emulation.locations',
     ],
 });
 Common.Settings.registerSettingExtension({
-    storageType: Common.Settings.SettingStorageType.Synced,
+    storageType: "Synced" /* Common.Settings.SettingStorageType.Synced */,
     settingName: 'emulation.locations',
-    settingType: Common.Settings.SettingType.ARRAY,
+    settingType: "array" /* Common.Settings.SettingType.ARRAY */,
     // TODO(crbug.com/1136655): http://crrev.com/c/2666426 regressed localization of city titles.
     // These titles should be localized since they are displayed to users.
     defaultValue: [
@@ -209,7 +209,7 @@ Common.Settings.registerSettingExtension({
     title: i18nLazyString(UIStrings.touch),
     reloadRequired: true,
     settingName: 'emulation.touch',
-    settingType: Common.Settings.SettingType.ENUM,
+    settingType: "enum" /* Common.Settings.SettingType.ENUM */,
     defaultValue: 'none',
     options: [
         {
@@ -226,8 +226,8 @@ Common.Settings.registerSettingExtension({
 });
 Common.Settings.registerSettingExtension({
     title: i18nLazyString(UIStrings.emulateIdleDetectorState),
-    settingName: 'emulation.idleDetection',
-    settingType: Common.Settings.SettingType.ENUM,
+    settingName: 'emulation.idle-detection',
+    settingType: "enum" /* Common.Settings.SettingType.ENUM */,
     defaultValue: 'none',
     options: [
         {
@@ -257,4 +257,4 @@ Common.Settings.registerSettingExtension({
         },
     ],
 });
-//# map=sensors-meta.js.map
+//# sourceMappingURL=sensors-meta.js.map

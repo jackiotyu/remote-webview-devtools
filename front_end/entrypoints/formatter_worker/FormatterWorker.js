@@ -119,8 +119,7 @@ export function format(mimeType, text, indentString) {
                 formatter.format(text, lineEndings);
                 break;
             }
-            case "text/css" /* FormattableMediaTypes.TEXT_CSS */:
-            case "text/x-scss" /* FormattableMediaTypes.TEXT_X_SCSS */: {
+            case "text/css" /* FormattableMediaTypes.TEXT_CSS */: {
                 const formatter = new CSSFormatter(builder);
                 formatter.format(text, lineEndings, 0, text.length);
                 break;
@@ -162,4 +161,4 @@ export function format(mimeType, text, indentString) {
     }
 })();
 export { substituteExpression };
-//# map=FormatterWorker.js.map
+//# sourceMappingURL=FormatterWorker.js.map

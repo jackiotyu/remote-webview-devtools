@@ -4,4 +4,4 @@
 import * as Style from './codeHighlighter.css.js';
 import * as CodeHighlighter from './CodeHighlighter.js';
 export { CodeHighlighter, Style, };
-//# map=code_highlighter.js.map
+//# sourceMappingURL=code_highlighter.js.map

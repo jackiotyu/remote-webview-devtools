@@ -8,7 +8,7 @@ import * as SDK from '../../core/sdk/sdk.js';
 import * as IconButton from '../../ui/components/icon_button/icon_button.js';
 import * as PerfUI from '../../ui/legacy/components/perf_ui/perf_ui.js';
 import * as UI from '../../ui/legacy/legacy.js';
-import { DatabaseModel } from './DatabaseModel.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import { DOMStorageModel } from './DOMStorageModel.js';
 import { IndexedDBModel } from './IndexedDBModel.js';
 import storageViewStyles from './storageView.css.js';
@@ -163,13 +163,14 @@ export class StorageView extends UI.ThrottledWidget.ThrottledWidget {
     constructor() {
         super(true, 1000);
         this.contentElement.classList.add('clear-storage-container');
+        this.contentElement.setAttribute('jslog', `${VisualLogging.pane('clear-storage')}`);
         this.pieColors = new Map([
-            ["appcache" /* Protocol.Storage.StorageType.Appcache */, 'rgb(110, 161, 226)'],
-            ["cache_storage" /* Protocol.Storage.StorageType.Cache_storage */, 'rgb(229, 113, 113)'],
-            ["cookies" /* Protocol.Storage.StorageType.Cookies */, 'rgb(239, 196, 87)'],
-            ["indexeddb" /* Protocol.Storage.StorageType.Indexeddb */, 'rgb(155, 127, 230)'],
-            ["local_storage" /* Protocol.Storage.StorageType.Local_storage */, 'rgb(116, 178, 102)'],
-            ["service_workers" /* Protocol.Storage.StorageType.Service_workers */, 'rgb(255, 167, 36)'],
+            ["appcache" /* Protocol.Storage.StorageType.Appcache */, 'rgb(110, 161, 226)'], // blue
+            ["cache_storage" /* Protocol.Storage.StorageType.Cache_storage */, 'rgb(229, 113, 113)'], // red
+            ["cookies" /* Protocol.Storage.StorageType.Cookies */, 'rgb(239, 196, 87)'], // yellow
+            ["indexeddb" /* Protocol.Storage.StorageType.Indexeddb */, 'rgb(155, 127, 230)'], // purple
+            ["local_storage" /* Protocol.Storage.StorageType.Local_storage */, 'rgb(116, 178, 102)'], // green
+            ["service_workers" /* Protocol.Storage.StorageType.Service_workers */, 'rgb(255, 167, 36)'], // orange
             ["websql" /* Protocol.Storage.StorageType.Websql */, 'rgb(203, 220, 56)'], // lime
         ]);
         // TODO(crbug.com/1156978): Replace UI.ReportView.ReportView with ReportView.ts web component.
@@ -181,15 +182,16 @@ export class StorageView extends UI.ThrottledWidget.ThrottledWidget {
         this.storageKey = null;
         this.settings = new Map();
         for (const type of AllStorageTypes) {
-            this.settings.set(type, Common.Settings.Settings.instance().createSetting('clear-storage-' + type, true));
+            this.settings.set(type, Common.Settings.Settings.instance().createSetting('clear-storage-' + Platform.StringUtilities.toKebabCase(type), true));
         }
         this.includeThirdPartyCookiesSetting =
             Common.Settings.Settings.instance().createSetting('clear-storage-include-third-party-cookies', false);
         const quota = this.reportView.appendSection(i18nString(UIStrings.usage));
+        quota.element.setAttribute('jslog', `${VisualLogging.section('usage')}`);
         this.quotaRow = quota.appendSelectableRow();
         this.quotaRow.classList.add('quota-usage-row');
         const learnMoreRow = quota.appendRow();
-        const learnMore = UI.XLink.XLink.create('https://developer.chrome.com/docs/devtools/progressive-web-apps#opaque-responses', i18nString(UIStrings.learnMore));
+        const learnMore = UI.XLink.XLink.create('https://developer.chrome.com/docs/devtools/progressive-web-apps#opaque-responses', i18nString(UIStrings.learnMore), undefined, undefined, 'learn-more');
         learnMoreRow.appendChild(learnMore);
         this.quotaUsage = null;
         this.pieChart = new PerfUI.PieChart.PieChart();
@@ -202,11 +204,13 @@ export class StorageView extends UI.ThrottledWidget.ThrottledWidget {
         quotaOverrideCheckboxRow.classList.add('quota-override-row');
         this.quotaOverrideCheckbox =
             UI.UIUtils.CheckboxLabel.create(i18nString(UIStrings.simulateCustomStorage), false, '');
+        this.quotaOverrideCheckbox.setAttribute('jslog', `${VisualLogging.toggle('simulate-custom-quota').track({ change: true })}`);
         quotaOverrideCheckboxRow.appendChild(this.quotaOverrideCheckbox);
         this.quotaOverrideCheckbox.checkboxElement.addEventListener('click', this.onClickCheckbox.bind(this), false);
         this.quotaOverrideControlRow = quota.appendRow();
         this.quotaOverrideEditor =
             this.quotaOverrideControlRow.createChild('input', 'quota-override-notification-editor');
+        this.quotaOverrideEditor.setAttribute('jslog', `${VisualLogging.textField('quota-override').track({ keydown: true })}`);
         this.quotaOverrideControlRow.appendChild(UI.UIUtils.createLabel(i18nString(UIStrings.mb)));
         this.quotaOverrideControlRow.classList.add('hidden');
         this.quotaOverrideEditor.addEventListener('keyup', event => {
@@ -222,16 +226,18 @@ export class StorageView extends UI.ThrottledWidget.ThrottledWidget {
         const errorMessageRow = quota.appendRow();
         this.quotaOverrideErrorMessage = errorMessageRow.createChild('div', 'quota-override-error');
         const clearButtonSection = this.reportView.appendSection('', 'clear-storage-button').appendRow();
-        this.clearButton = UI.UIUtils.createTextButton(i18nString(UIStrings.clearSiteData), this.clear.bind(this));
+        this.clearButton = UI.UIUtils.createTextButton(i18nString(UIStrings.clearSiteData), this.clear.bind(this), { jslogContext: 'storage.clear-site-data' });
         this.clearButton.id = 'storage-view-clear-button';
         clearButtonSection.appendChild(this.clearButton);
         const includeThirdPartyCookiesCheckbox = UI.SettingsUI.createSettingCheckbox(i18nString(UIStrings.includingThirdPartyCookies), this.includeThirdPartyCookiesSetting, true);
         includeThirdPartyCookiesCheckbox.classList.add('include-third-party-cookies');
         clearButtonSection.appendChild(includeThirdPartyCookiesCheckbox);
         const application = this.reportView.appendSection(i18nString(UIStrings.application));
+        application.element.setAttribute('jslog', `${VisualLogging.section('application')}`);
         this.appendItem(application, i18nString(UIStrings.unregisterServiceWorker), "service_workers" /* Protocol.Storage.StorageType.Service_workers */);
         application.markFieldListAsGroup();
         const storage = this.reportView.appendSection(i18nString(UIStrings.storageTitle));
+        storage.element.setAttribute('jslog', `${VisualLogging.section('storage')}`);
         this.appendItem(storage, i18nString(UIStrings.localAndSessionStorage), "local_storage" /* Protocol.Storage.StorageType.Local_storage */);
         this.appendItem(storage, i18nString(UIStrings.indexDB), "indexeddb" /* Protocol.Storage.StorageType.Indexeddb */);
         this.appendItem(storage, i18nString(UIStrings.webSql), "websql" /* Protocol.Storage.StorageType.Websql */);
@@ -257,7 +263,7 @@ export class StorageView extends UI.ThrottledWidget.ThrottledWidget {
         securityOriginManager.addEventListener(SDK.SecurityOriginManager.Events.MainSecurityOriginChanged, this.originChanged, this);
         const storageKeyManager = target.model(SDK.StorageKeyManager.StorageKeyManager);
         this.updateStorageKey(storageKeyManager.mainStorageKey());
-        storageKeyManager.addEventListener(SDK.StorageKeyManager.Events.MainStorageKeyChanged, this.storageKeyChanged, this);
+        storageKeyManager.addEventListener("MainStorageKeyChanged" /* SDK.StorageKeyManager.Events.MainStorageKeyChanged */, this.storageKeyChanged, this);
     }
     targetRemoved(target) {
         if (this.target !== target) {
@@ -266,7 +272,7 @@ export class StorageView extends UI.ThrottledWidget.ThrottledWidget {
         const securityOriginManager = target.model(SDK.SecurityOriginManager.SecurityOriginManager);
         securityOriginManager.removeEventListener(SDK.SecurityOriginManager.Events.MainSecurityOriginChanged, this.originChanged, this);
         const storageKeyManager = target.model(SDK.StorageKeyManager.StorageKeyManager);
-        storageKeyManager.removeEventListener(SDK.StorageKeyManager.Events.MainStorageKeyChanged, this.storageKeyChanged, this);
+        storageKeyManager.removeEventListener("MainStorageKeyChanged" /* SDK.StorageKeyManager.Events.MainStorageKeyChanged */, this.storageKeyChanged, this);
     }
     originChanged(event) {
         const { mainSecurityOrigin, unreachableMainSecurityOrigin } = event.data;
@@ -409,13 +415,6 @@ export class StorageView extends UI.ThrottledWidget.ThrottledWidget {
                 void cookieModel.clear(undefined, includeThirdPartyCookies ? undefined : originForCookies);
             }
         }
-        if (set.has("websql" /* Protocol.Storage.StorageType.Websql */) || hasAll) {
-            const databaseModel = target.model(DatabaseModel);
-            if (databaseModel) {
-                databaseModel.disable();
-                databaseModel.enable();
-            }
-        }
         if (set.has("cache_storage" /* Protocol.Storage.StorageType.Cache_storage */) || hasAll) {
             const target = SDK.TargetManager.TargetManager.instance().primaryPageTarget();
             const model = target && target.model(SDK.ServiceWorkerCacheModel.ServiceWorkerCacheModel);
@@ -510,16 +509,8 @@ export const AllStorageTypes = [
     "service_workers" /* Protocol.Storage.StorageType.Service_workers */,
     "websql" /* Protocol.Storage.StorageType.Websql */,
 ];
-let actionDelegateInstance;
 export class ActionDelegate {
-    static instance(opts = { forceNew: null }) {
-        const { forceNew } = opts;
-        if (!actionDelegateInstance || forceNew) {
-            actionDelegateInstance = new ActionDelegate();
-        }
-        return actionDelegateInstance;
-    }
-    handleAction(context, actionId) {
+    handleAction(_context, actionId) {
         switch (actionId) {
             case 'resources.clear':
                 return this.handleClear(false);
@@ -544,4 +535,4 @@ export class ActionDelegate {
         return true;
     }
 }
-//# map=StorageView.js.map
+//# sourceMappingURL=StorageView.js.map

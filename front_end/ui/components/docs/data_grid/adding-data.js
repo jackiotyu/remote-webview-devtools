@@ -47,4 +47,4 @@ document.querySelector('#add')?.addEventListener('click', (event) => {
     event.preventDefault();
     addNewRow();
 });
-//# map=adding-data.js.map
+//# sourceMappingURL=adding-data.js.map

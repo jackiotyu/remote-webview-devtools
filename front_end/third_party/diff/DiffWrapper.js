@@ -75,8 +75,6 @@ export const DiffWrapper = {
         return score;
     },
 };
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
 export var Operation;
 (function (Operation) {
     Operation[Operation["Equal"] = 0] = "Equal";
@@ -84,4 +82,4 @@ export var Operation;
     Operation[Operation["Delete"] = -1] = "Delete";
     Operation[Operation["Edit"] = 2] = "Edit";
 })(Operation || (Operation = {}));
-//# map=DiffWrapper.js.map
+//# sourceMappingURL=DiffWrapper.js.map

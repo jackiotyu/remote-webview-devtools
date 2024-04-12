@@ -1,8 +1,8 @@
 // Copyright 2020 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
+import * as VisualElements from '../../visual_logging/visual_logging.js';
 import adornerStyles from './adorner.css.js';
 const { render, html } = LitHtml;
 export class Adorner extends HTMLElement {
@@ -13,8 +13,10 @@ export class Adorner extends HTMLElement {
     #ariaLabelDefault;
     #ariaLabelActive;
     #content;
+    #jslogContext;
     set data(data) {
         this.name = data.name;
+        this.#jslogContext = data.jslogContext;
         data.content.slot = 'content';
         this.#content?.remove();
         this.append(data.content);
@@ -24,6 +26,9 @@ export class Adorner extends HTMLElement {
     connectedCallback() {
         if (!this.getAttribute('aria-label')) {
             this.setAttribute('aria-label', this.name);
+        }
+        if (this.#jslogContext && !this.getAttribute('jslog')) {
+            this.setAttribute('jslog', `${VisualElements.adorner(this.#jslogContext)}`);
         }
         this.#shadow.adoptedStyleSheets = [adornerStyles];
     }
@@ -58,6 +63,9 @@ export class Adorner extends HTMLElement {
         this.#ariaLabelDefault = ariaLabelDefault;
         this.#ariaLabelActive = ariaLabelActive;
         this.setAttribute('aria-label', ariaLabelDefault);
+        if (this.#jslogContext) {
+            this.setAttribute('jslog', `${VisualElements.adorner(this.#jslogContext).track({ click: true })}`);
+        }
         if (isToggle) {
             this.addEventListener('click', () => {
                 this.toggle();
@@ -88,5 +96,5 @@ export class Adorner extends HTMLElement {
         });
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-adorner', Adorner);
-//# map=Adorner.js.map
+customElements.define('devtools-adorner', Adorner);
+//# sourceMappingURL=Adorner.js.map

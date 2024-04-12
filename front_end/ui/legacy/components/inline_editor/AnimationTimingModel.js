@@ -19,4 +19,4 @@ export class AnimationTimingModel {
     }
 }
 export const LINEAR_BEZIER = UI.Geometry.LINEAR_BEZIER;
-//# map=AnimationTimingModel.js.map
+//# sourceMappingURL=AnimationTimingModel.js.map

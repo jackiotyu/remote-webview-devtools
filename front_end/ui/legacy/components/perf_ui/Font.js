@@ -30,4 +30,4 @@ export function getFontFamilyForCanvas() {
     return fontFamily;
 }
 export const DEFAULT_FONT_SIZE = '11px';
-//# map=Font.js.map
+//# sourceMappingURL=Font.js.map

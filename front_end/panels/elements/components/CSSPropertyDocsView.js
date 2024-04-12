@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 import * as Common from '../../../core/common/common.js';
 import * as i18n from '../../../core/i18n/i18n.js';
-import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
 import * as Input from '../../../ui/components/input/input.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
 import CSSPropertyDocsViewStyles from './cssPropertyDocsView.css.js';
@@ -32,7 +31,9 @@ export class CSSPropertyDocsView extends HTMLElement {
     }
     #dontShowChanged(e) {
         const showDocumentation = !e.target.checked;
-        Common.Settings.Settings.instance().moduleSetting('showCSSPropertyDocumentationOnHover').set(showDocumentation);
+        Common.Settings.Settings.instance()
+            .moduleSetting('show-css-property-documentation-on-hover')
+            .set(showDocumentation);
     }
     #render() {
         const description = this.#cssProperty.description;
@@ -68,5 +69,5 @@ export class CSSPropertyDocsView extends HTMLElement {
         // clang-format on
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-css-property-docs-view', CSSPropertyDocsView);
-//# map=CSSPropertyDocsView.js.map
+customElements.define('devtools-css-property-docs-view', CSSPropertyDocsView);
+//# sourceMappingURL=CSSPropertyDocsView.js.map

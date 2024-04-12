@@ -2,12 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as i18n from '../../core/i18n/i18n.js';
-import * as LegacyWrapper from '../../ui/components/legacy_wrapper/legacy_wrapper.js';
 import * as SDK from '../../core/sdk/sdk.js';
+import * as IconButton from '../../ui/components/icon_button/icon_button.js';
+import * as LegacyWrapper from '../../ui/components/legacy_wrapper/legacy_wrapper.js';
 import * as UI from '../../ui/legacy/legacy.js';
+import { IndexedDBTreeElement } from './ApplicationPanelSidebar.js';
 import { ExpandableApplicationPanelTreeElement } from './ApplicationPanelTreeElement.js';
 import { StorageMetadataView } from './components/components.js';
-import { IndexedDBTreeElement } from './ApplicationPanelSidebar.js';
 import { ServiceWorkerCacheTreeElement } from './ServiceWorkerCacheTreeElement.js';
 const UIStrings = {
     /**
@@ -22,8 +23,8 @@ export const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 export class StorageBucketsTreeParentElement extends ExpandableApplicationPanelTreeElement {
     bucketTreeElements = new Set();
     constructor(storagePanel) {
-        super(storagePanel, i18nString(UIStrings.storageBuckets), 'StorageBuckets');
-        const icon = UI.Icon.Icon.create('database', 'resource-tree-item');
+        super(storagePanel, i18nString(UIStrings.storageBuckets), 'storage-buckets');
+        const icon = IconButton.Icon.create('database');
         this.setLeadingIcons([icon]);
         this.setLink('https://github.com/WICG/storage-buckets/blob/gh-pages/explainer.md');
     }
@@ -96,10 +97,10 @@ export class StorageBucketsTreeElement extends ExpandableApplicationPanelTreeEle
     constructor(resourcesPanel, model, bucketInfo) {
         const { bucket } = bucketInfo;
         const { origin } = SDK.StorageKeyManager.parseStorageKey(bucketInfo.bucket.storageKey);
-        super(resourcesPanel, `${bucket.name} - ${origin}`, `StorageBucket_${bucket.name}_${bucket.storageKey}`);
+        super(resourcesPanel, `${bucket.name} - ${origin}`, 'storage-bucket');
         this.bucketModel = model;
         this.storageBucketInfo = bucketInfo;
-        const icon = UI.Icon.Icon.create('database', 'resource-tree-item');
+        const icon = IconButton.Icon.create('database');
         this.setLeadingIcons([icon]);
     }
     initialize() {
@@ -138,4 +139,4 @@ export class StorageBucketsTreeElement extends ExpandableApplicationPanelTreeEle
         return false;
     }
 }
-//# map=StorageBucketsTreeElement.js.map
+//# sourceMappingURL=StorageBucketsTreeElement.js.map

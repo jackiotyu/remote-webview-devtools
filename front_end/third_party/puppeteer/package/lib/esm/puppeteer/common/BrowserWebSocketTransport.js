@@ -36,4 +36,4 @@ export class BrowserWebSocketTransport {
         this.#ws.close();
     }
 }
-//# map=BrowserWebSocketTransport.js.map
+//# sourceMappingURL=BrowserWebSocketTransport.js.map

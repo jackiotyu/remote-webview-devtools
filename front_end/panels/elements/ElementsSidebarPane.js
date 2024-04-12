@@ -47,4 +47,4 @@ export class ElementsSidebarPane extends UI.Widget.VBox {
     onCSSModelChanged(_event) {
     }
 }
-//# map=ElementsSidebarPane.js.map
+//# sourceMappingURL=ElementsSidebarPane.js.map

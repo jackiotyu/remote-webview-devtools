@@ -180,7 +180,7 @@ export class Entry {
             httpVersion: this.request.requestHttpVersion(),
             headers: this.request.requestHeaders(),
             queryString: this.buildParameters(this.request.queryParameters || []),
-            cookies: this.buildCookies(this.request.includedRequestCookies()),
+            cookies: this.buildCookies(this.request.includedRequestCookies().map(includedRequestCookie => includedRequestCookie.cookie)),
             headersSize: headersText ? headersText.length : -1,
             bodySize: await this.requestBodySize(),
             postData: undefined,
@@ -330,12 +330,19 @@ export class Entry {
             httpOnly: cookie.httpOnly(),
             secure: cookie.secure(),
             sameSite: undefined,
+            partitionKey: undefined,
         };
         if (cookie.sameSite()) {
             c.sameSite = cookie.sameSite();
         }
         else {
             delete c.sameSite;
+        }
+        if (cookie.partitionKey()) {
+            c.partitionKey = cookie.partitionKey();
+        }
+        else {
+            delete c.partitionKey;
         }
         return c;
     }
@@ -369,4 +376,4 @@ export class Entry {
         return this.request.resourceSize - this.responseBodySize;
     }
 }
-//# map=Log.js.map
+//# sourceMappingURL=Log.js.map

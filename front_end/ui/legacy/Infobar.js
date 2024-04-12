@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as i18n from '../../core/i18n/i18n.js';
-import * as Utils from './utils/utils.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import * as ARIAUtils from './ARIAUtils.js';
-import { Keys } from './KeyboardShortcut.js';
-import { createTextButton } from './UIUtils.js';
 import infobarStyles from './infobar.css.legacy.js';
+import { Keys } from './KeyboardShortcut.js';
+import { createShadowRootWithCoreStyles, createTextButton } from './UIUtils.js';
 const UIStrings = {
     /**
      *@description Text on a button to close the infobar and never show the infobar in the future
@@ -44,13 +44,17 @@ export class Infobar {
     closeCallback;
     #firstFocusableElement = null;
     parentView;
+    constructor(
     // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    constructor(type, text, actions, disableSetting) {
+    type, text, actions, disableSetting, 
+    /* TODO(crbug.com/1354548) Remove with JS Profiler deprecation */ isCloseable = true, jslogContext) {
         this.element = document.createElement('div');
+        if (jslogContext) {
+            this.element.setAttribute('jslog', `${VisualLogging.dialog(jslogContext).track({ resize: true, keydown: 'Enter|Escape' })}`);
+        }
         this.element.classList.add('flex-none');
-        this.shadowRoot =
-            Utils.createShadowRootWithCoreStyles(this.element, { cssFile: infobarStyles, delegatesFocus: undefined });
+        this.shadowRoot = createShadowRootWithCoreStyles(this.element, { cssFile: infobarStyles, delegatesFocus: undefined });
         this.contentElement = this.shadowRoot.createChild('div', 'infobar infobar-' + type);
         this.mainRow = this.contentElement.createChild('div', 'infobar-main-row');
         this.detailsRows = this.contentElement.createChild('div', 'infobar-details-rows hidden');
@@ -72,7 +76,10 @@ export class Infobar {
                 if (action.highlight) {
                     buttonClass += ' primary-button';
                 }
-                const button = createTextButton(action.text, actionCallback, buttonClass);
+                const button = createTextButton(action.text, actionCallback, {
+                    className: buttonClass,
+                    jslogContext: action.jslogContext,
+                });
                 if (action.highlight && !this.#firstFocusableElement) {
                     this.#firstFocusableElement = button;
                 }
@@ -81,20 +88,21 @@ export class Infobar {
         }
         this.disableSetting = disableSetting || null;
         if (disableSetting) {
-            const disableButton = createTextButton(i18nString(UIStrings.dontShowAgain), this.onDisable.bind(this), 'infobar-button');
+            const disableButton = createTextButton(i18nString(UIStrings.dontShowAgain), this.onDisable.bind(this), { className: 'infobar-button' });
             this.actionContainer.appendChild(disableButton);
         }
         this.closeContainer = this.mainRow.createChild('div', 'infobar-close-container');
-        this.toggleElement = createTextButton(i18nString(UIStrings.showMore), this.onToggleDetails.bind(this), 'link-style devtools-link hidden');
+        this.toggleElement = createTextButton(i18nString(UIStrings.showMore), this.onToggleDetails.bind(this), { className: 'link-style devtools-link hidden', jslogContext: 'show-more' });
         this.toggleElement.setAttribute('role', 'link');
         this.closeContainer.appendChild(this.toggleElement);
         this.closeButton = this.closeContainer.createChild('div', 'close-button', 'dt-close-button');
+        this.closeButton.hidden = !isCloseable;
         // @ts-ignore This is a custom element defined in UIUitls.js that has a `setTabbable` that TS doesn't
         //            know about.
         this.closeButton.setTabbable(true);
         ARIAUtils.setDescription(this.closeButton, i18nString(UIStrings.close));
         self.onInvokeElement(this.closeButton, this.dispose.bind(this));
-        if (type !== Type.Issue) {
+        if (type !== "issue" /* Type.Issue */) {
             this.contentElement.tabIndex = 0;
         }
         ARIAUtils.setLabel(this.contentElement, text);
@@ -115,13 +123,14 @@ export class Infobar {
         });
         this.closeCallback = null;
     }
+    static create(
     // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    static create(type, text, actions, disableSetting) {
+    type, text, actions, disableSetting, jslogContext) {
         if (disableSetting && disableSetting.get()) {
             return null;
         }
-        return new Infobar(type, text, actions, disableSetting);
+        return new Infobar(type, text, actions, disableSetting, undefined, jslogContext);
     }
     dispose() {
         this.element.remove();
@@ -192,13 +201,4 @@ export class Infobar {
         return detailsRowMessage;
     }
 }
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
-export var Type;
-(function (Type) {
-    Type["Warning"] = "warning";
-    Type["Info"] = "info";
-    Type["Issue"] = "issue";
-    Type["Error"] = "error";
-})(Type || (Type = {}));
-//# map=Infobar.js.map
+//# sourceMappingURL=Infobar.js.map

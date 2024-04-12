@@ -38,4 +38,4 @@ export function init() {
     // clang-format on
     document.body.appendChild(container);
 }
-//# map=create_breadcrumbs.js.map
+//# sourceMappingURL=create_breadcrumbs.js.map

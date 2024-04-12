@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as Button from './Button.js';
 export { Button, };
-//# map=buttons.js.map
+//# sourceMappingURL=buttons.js.map

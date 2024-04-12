@@ -179,7 +179,15 @@ function scriptTagIsJSON(element) {
     if (isWrappedInQuotes) {
         type = isWrappedInQuotes[2];
     }
-    return ['importmap', 'speculationrules'].includes(type.trim());
+    const isSubtype = /^application\/\w+\+json$/.exec(type.trim());
+    if (isSubtype) {
+        type = 'application/json';
+    }
+    return [
+        'application/json',
+        'importmap',
+        'speculationrules',
+    ].includes(type.trim());
 }
 function hasTokenInSet(tokenTypes, type) {
     // We prefix the CodeMirror HTML tokenizer with the xml- prefix
@@ -217,7 +225,6 @@ export class HTMLModel {
     #build(text) {
         const tokenizer = createTokenizer('text/html');
         let baseOffset = 0, lastOffset = 0;
-        const lowerCaseText = text.toLowerCase();
         let pendingToken = null;
         const pushToken = (token) => {
             this.#tokens.push(token);
@@ -287,9 +294,16 @@ export class HTMLModel {
             if (!element) {
                 break;
             }
-            lastOffset = lowerCaseText.indexOf('</' + element.name, lastOffset);
-            if (lastOffset === -1) {
-                lastOffset = text.length;
+            while (true) {
+                lastOffset = text.indexOf('</', lastOffset);
+                if (lastOffset === -1) {
+                    lastOffset = text.length;
+                    break;
+                }
+                if (text.substring(lastOffset + 2).toLowerCase().startsWith(element.name)) {
+                    break;
+                }
+                lastOffset += 2;
             }
             if (!element.openTag) {
                 break;
@@ -505,4 +519,4 @@ class FormatterElement {
         this.name = name;
     }
 }
-//# map=HTMLFormatter.js.map
+//# sourceMappingURL=HTMLFormatter.js.map

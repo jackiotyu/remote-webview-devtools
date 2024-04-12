@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as WasmParserWorker from './WasmParserWorker.js';
 export { WasmParserWorker, };
-//# map=wasmparser_worker.js.map
+//# sourceMappingURL=wasmparser_worker.js.map

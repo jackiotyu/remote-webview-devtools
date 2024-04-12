@@ -15,4 +15,4 @@ export class Tooltip {
         element.title = description;
     }
 }
-//# map=Tooltip.js.map
+//# sourceMappingURL=Tooltip.js.map

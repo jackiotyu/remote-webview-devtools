@@ -27,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-import * as Platform from '../../core/platform/platform.js';
 self.injectedExtensionAPI = function (extensionInfo, inspectedTabId, themeName, keysToForward, testHook, injectedScriptId, targetWindowForTest) {
     const keysToForwardSet = new Set(keysToForward);
     const chrome = window.chrome || {};
@@ -92,9 +91,9 @@ self.injectedExtensionAPI = function (extensionInfo, inspectedTabId, themeName, 
         this.inspectedWindow = new (Constructor(InspectedWindow))();
         this.panels = new (Constructor(Panels))();
         this.network = new (Constructor(Network))();
-        this.timeline = new (Constructor(Timeline))();
         this.languageServices = new (Constructor(LanguageServicesAPI))();
         this.recorder = new (Constructor(RecorderServicesAPI))();
+        this.performance = new (Constructor(Performance))();
         defineDeprecatedProperty(this, 'webInspector', 'resources', 'network');
     }
     function Network() {
@@ -141,6 +140,7 @@ self.injectedExtensionAPI = function (extensionInfo, inspectedTabId, themeName, 
         const panels = {
             elements: new ElementsPanel(),
             sources: new SourcesPanel(),
+            network: new (Constructor(NetworkPanel))(),
         };
         function panelGetter(name) {
             return panels[name];
@@ -423,7 +423,34 @@ self.injectedExtensionAPI = function (extensionInfo, inspectedTabId, themeName, 
         getWasmOp: async function (op, stopId) {
             return new Promise(resolve => extensionServer.sendRequest({ command: "getWasmOp" /* PrivateAPI.Commands.GetWasmOp */, op, stopId }, resolve));
         },
+        reportResourceLoad: function (resourceUrl, status) {
+            return new Promise(resolve => extensionServer.sendRequest({
+                command: "reportResourceLoad" /* PrivateAPI.Commands.ReportResourceLoad */,
+                extensionId: window.location.origin,
+                resourceUrl,
+                status,
+            }, resolve));
+        },
     };
+    function NetworkPanelImpl() {
+    }
+    NetworkPanelImpl.prototype = {
+        show: function (options) {
+            return new Promise(resolve => extensionServer.sendRequest({ command: "showNetworkPanel" /* PrivateAPI.Commands.ShowNetworkPanel */, filter: options?.filter }, () => resolve()));
+        },
+    };
+    function PerformanceImpl() {
+        function dispatchProfilingStartedEvent() {
+            this._fire();
+        }
+        function dispatchProfilingStoppedEvent() {
+            this._fire();
+        }
+        this.onProfilingStarted =
+            new (Constructor(EventSink))("profiling-started-" /* PrivateAPI.Events.ProfilingStarted */, dispatchProfilingStartedEvent);
+        this.onProfilingStopped =
+            new (Constructor(EventSink))("profiling-stopped-" /* PrivateAPI.Events.ProfilingStopped */, dispatchProfilingStoppedEvent);
+    }
     function declareInterfaceClass(implConstructor) {
         return function (...args) {
             const impl = { __proto__: implConstructor.prototype };
@@ -449,6 +476,7 @@ self.injectedExtensionAPI = function (extensionInfo, inspectedTabId, themeName, 
     }
     const LanguageServicesAPI = declareInterfaceClass(LanguageServicesAPIImpl);
     const RecorderServicesAPI = declareInterfaceClass(RecorderServicesAPIImpl);
+    const Performance = declareInterfaceClass(PerformanceImpl);
     const Button = declareInterfaceClass(ButtonImpl);
     const EventSink = declareInterfaceClass(EventSinkImpl);
     const ExtensionPanel = declareInterfaceClass(ExtensionPanelImpl);
@@ -457,7 +485,7 @@ self.injectedExtensionAPI = function (extensionInfo, inspectedTabId, themeName, 
     const PanelWithSidebarClass = declareInterfaceClass(PanelWithSidebarImpl);
     const Request = declareInterfaceClass(RequestImpl);
     const Resource = declareInterfaceClass(ResourceImpl);
-    const TraceSession = declareInterfaceClass(TraceSessionImpl);
+    const NetworkPanel = declareInterfaceClass(NetworkPanelImpl);
     class ElementsPanel extends (Constructor(PanelWithSidebarClass)) {
         constructor() {
             super('elements');
@@ -550,42 +578,6 @@ self.injectedExtensionAPI = function (extensionInfo, inspectedTabId, themeName, 
             });
         },
     };
-    function Timeline() {
-    }
-    Timeline.prototype = {
-        addTraceProvider: function (categoryName, categoryTooltip) {
-            const id = 'extension-trace-provider-' + extensionServer.nextObjectId();
-            extensionServer.sendRequest({
-                command: "addTraceProvider" /* PrivateAPI.Commands.AddTraceProvider */,
-                id: id,
-                categoryName: categoryName,
-                categoryTooltip: categoryTooltip,
-            });
-            return new (Constructor(TraceProvider))(id);
-        },
-    };
-    function TraceSessionImpl(id) {
-        this._id = id;
-    }
-    TraceSessionImpl.prototype = {
-        complete: function (url, timeOffset) {
-            extensionServer.sendRequest({
-                command: "completeTra.eSession" /* PrivateAPI.Commands.CompleteTraceSession */,
-                id: this._id,
-                url: url || Platform.DevToolsPath.EmptyUrlString,
-                timeOffset: timeOffset || 0,
-            });
-        },
-    };
-    function TraceProvider(id) {
-        function dispatchRecordingStarted(message) {
-            const sessionId = message.arguments[0];
-            this._fire(new (Constructor(TraceSession))(sessionId));
-        }
-        this.onRecordingStarted =
-            new (Constructor(EventSink))("trace-recording-started-" /* PrivateAPI.Events.RecordingStarted */ + id, dispatchRecordingStarted);
-        this.onRecordingStopped = new (Constructor(EventSink))("trace-recording-stopped-" /* PrivateAPI.Events.RecordingStopped */ + id);
-    }
     function canAccessResource(resource) {
         try {
             return extensionInfo.allowFileAccess || (new URL(resource.url)).protocol !== 'file:';
@@ -829,6 +821,7 @@ self.injectedExtensionAPI = function (extensionInfo, inspectedTabId, themeName, 
     chrome.devtools.panels.themeName = themeName;
     chrome.devtools.languageServices = coreAPI.languageServices;
     chrome.devtools.recorder = coreAPI.recorder;
+    chrome.devtools.performance = coreAPI.performance;
     // default to expose experimental APIs for now.
     if (extensionInfo.exposeExperimentalAPIs !== false) {
         chrome.experimental = chrome.experimental || {};
@@ -856,4 +849,5 @@ self.buildExtensionAPIInjectedScript = function (extensionInfo, inspectedTabId, 
         '(' + self.injectedExtensionAPI.toString() + ')(' + argumentsJSON + ',' + testHook + ', injectedScriptId);' +
         '})';
 };
-//# map=ExtensionAPI.js.map
+export {};
+//# sourceMappingURL=ExtensionAPI.js.map

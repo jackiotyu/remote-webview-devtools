@@ -29,13 +29,14 @@
  */
 import * as i18n from '../../core/i18n/i18n.js';
 import * as TextUtils from '../../models/text_utils/text_utils.js';
+import * as LegacyWrapper from '../../ui/components/legacy_wrapper/legacy_wrapper.js';
 import * as SourceFrame from '../../ui/legacy/components/source_frame/source_frame.js';
 import * as UI from '../../ui/legacy/legacy.js';
-import * as LegacyWrapper from '../../ui/components/legacy_wrapper/legacy_wrapper.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
+import * as NetworkComponents from './components/components.js';
 import { RequestHTMLView } from './RequestHTMLView.js';
 import { RequestResponseView } from './RequestResponseView.js';
 import { SignedExchangeInfoView } from './SignedExchangeInfoView.js';
-import { WebBundleInfoView } from './components/WebBundleInfoView.js';
 const UIStrings = {
     /**
      *@description Text in Request Preview View of the Network panel
@@ -51,6 +52,7 @@ const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 export class RequestPreviewView extends RequestResponseView {
     constructor(request) {
         super(request);
+        this.element.setAttribute('jslog', `${VisualLogging.pane('preview').track({ resize: true })}`);
     }
     async showPreview() {
         const view = await super.showPreview();
@@ -65,28 +67,26 @@ export class RequestPreviewView extends RequestResponseView {
     }
     async htmlPreview() {
         const contentData = await this.request.contentData();
-        if (contentData.error) {
+        if (TextUtils.ContentData.ContentData.isError(contentData)) {
             return new UI.EmptyWidget.EmptyWidget(i18nString(UIStrings.failedToLoadResponseData) + ': ' + contentData.error);
         }
         const allowlist = new Set(['text/html', 'text/plain', 'application/xhtml+xml']);
         if (!allowlist.has(this.request.mimeType)) {
             return null;
         }
-        const content = contentData.encoded ? window.atob(contentData.content) : contentData.content;
         // http://crbug.com/767393 - DevTools should recognize JSON regardless of the content type
-        const jsonView = await SourceFrame.JSONView.JSONView.createView(content);
+        const jsonView = await SourceFrame.JSONView.JSONView.createView(contentData.text);
         if (jsonView) {
             return jsonView;
         }
-        const dataURL = TextUtils.ContentProvider.contentAsDataURL(contentData.content, this.request.mimeType, contentData.encoded, this.request.charset());
-        return dataURL ? new RequestHTMLView(dataURL) : null;
+        return RequestHTMLView.create(contentData);
     }
     async createPreview() {
         if (this.request.signedExchangeInfo()) {
             return new SignedExchangeInfoView(this.request);
         }
         if (this.request.webBundleInfo()) {
-            return LegacyWrapper.LegacyWrapper.legacyWrapper(UI.Widget.VBox, new WebBundleInfoView(this.request));
+            return LegacyWrapper.LegacyWrapper.legacyWrapper(UI.Widget.VBox, new NetworkComponents.WebBundleInfoView.WebBundleInfoView(this.request));
         }
         const htmlErrorPreview = await this.htmlPreview();
         if (htmlErrorPreview) {
@@ -99,4 +99,4 @@ export class RequestPreviewView extends RequestResponseView {
         return new UI.EmptyWidget.EmptyWidget(i18nString(UIStrings.previewNotAvailable));
     }
 }
-//# map=RequestPreviewView.js.map
+//# sourceMappingURL=RequestPreviewView.js.map

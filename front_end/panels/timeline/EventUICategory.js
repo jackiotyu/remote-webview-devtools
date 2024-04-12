@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 import * as i18n from '../../core/i18n/i18n.js';
 import * as TraceEngine from '../../models/trace/trace.js';
+import * as ThemeSupport from '../../ui/legacy/theme_support/theme_support.js';
 const UIStrings = {
     /**
      *@description Category in the Summary view of the Performance panel to indicate time spent to load resources
@@ -64,6 +65,18 @@ const UIStrings = {
      *@description Text in Timeline UIUtils of the Performance panel
      */
     frameStart: 'Frame Start',
+    /**
+     *@description Text in Timeline UIUtils of the Performance panel
+     */
+    onMessage: 'On Message',
+    /**
+     *@description Text in Timeline UIUtils of the Performance panel
+     */
+    schedulePostMessage: 'Schedule postMessage',
+    /**
+     *@description Text in Timeline UIUtils of the Performance panel
+     */
+    messaging: 'Messaging',
     /**
      *@description Text in Timeline UIUtils of the Performance panel
      */
@@ -404,6 +417,10 @@ const UIStrings = {
      */
     domGc: 'DOM GC',
     /**
+     *@description Event category in the Performance panel for time spent to perform Garbage Collection for C++: https://chromium.googlesource.com/v8/v8/+/main/include/cppgc/README.md
+     */
+    cppGc: 'CPP GC',
+    /**
      *@description Event category in the Performance panel for time spent to perform encryption
      */
     encrypt: 'Encrypt',
@@ -462,44 +479,80 @@ const UIStrings = {
      *@description Event category in the Performance panel for JavaScript nodes in CPUProfile
      */
     jsFrame: 'JS Frame',
+    /**
+     *@description Text in UIDevtools Utils of the Performance panel
+     */
+    rasterizing: 'Rasterizing',
+    /**
+     *@description Text in UIDevtools Utils of the Performance panel
+     */
+    drawing: 'Drawing',
 };
-export const EventCategories = ['Loading', 'Experience', 'Scripting', 'Rendering', 'Painting', 'GPU', 'Async', 'Other', 'Idle'];
+export var EventCategory;
+(function (EventCategory) {
+    EventCategory["DRAWING"] = "drawing";
+    EventCategory["RASTERIZING"] = "rasterizing";
+    EventCategory["LAYOUT"] = "layout";
+    EventCategory["LOADING"] = "loading";
+    EventCategory["EXPERIENCE"] = "experience";
+    EventCategory["SCRIPTING"] = "scripting";
+    EventCategory["MESSAGING"] = "messaging";
+    EventCategory["RENDERING"] = "rendering";
+    EventCategory["PAINTING"] = "painting";
+    EventCategory["GPU"] = "gpu";
+    EventCategory["ASYNC"] = "async";
+    EventCategory["OTHER"] = "other";
+    EventCategory["IDLE"] = "idle";
+})(EventCategory || (EventCategory = {}));
+let mainEventCategories;
 const str_ = i18n.i18n.registerUIStrings('panels/timeline/EventUICategory.ts', UIStrings);
-const i18nLazyString = i18n.i18n.getLazilyComputedLocalizedString.bind(undefined, str_);
-export class EventCategoryStyle {
+const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
+export class TimelineRecordStyle {
+    title;
+    category;
+    hidden;
+    constructor(title, category, hidden = false) {
+        this.title = title;
+        this.category = category;
+        this.hidden = hidden;
+    }
+}
+export class TimelineCategory {
+    name;
+    title;
     visible;
     childColor;
-    color;
-    titleCallback;
+    colorInternal;
     hiddenInternal;
-    constructor(titleCallback, visible, childColor, color) {
-        this.titleCallback = titleCallback;
+    constructor(name, title, visible, childColor, color) {
+        this.name = name;
+        this.title = title;
         this.visible = visible;
         this.childColor = childColor;
-        this.color = color;
+        this.colorInternal = color;
         this.hidden = false;
-    }
-    get title() {
-        return this.titleCallback();
     }
     get hidden() {
         return Boolean(this.hiddenInternal);
+    }
+    get color() {
+        return this.getComputedColorValue();
+    }
+    getCSSValue() {
+        return `var(${this.colorInternal})`;
+    }
+    getComputedColorValue() {
+        return ThemeSupport.ThemeSupport.instance().getComputedValue(this.colorInternal);
     }
     set hidden(hidden) {
         this.hiddenInternal = hidden;
     }
 }
-export const DEFAULT_CATEGORY_STYLES_PALETTE = {
-    Loading: new EventCategoryStyle(i18nLazyString(UIStrings.loading), true, 'hsl(214, 67%, 74%)', 'hsl(214, 67%, 66%)'),
-    Experience: new EventCategoryStyle(i18nLazyString(UIStrings.experience), false, 'hsl(5, 80%, 74%)', 'hsl(5, 80%, 66%)'),
-    Scripting: new EventCategoryStyle(i18nLazyString(UIStrings.scripting), true, 'hsl(43, 83%, 72%)', 'hsl(43, 83%, 64%) '),
-    Rendering: new EventCategoryStyle(i18nLazyString(UIStrings.rendering), true, 'hsl(256, 67%, 76%)', 'hsl(256, 67%, 70%)'),
-    Painting: new EventCategoryStyle(i18nLazyString(UIStrings.painting), true, 'hsl(109, 33%, 64%)', 'hsl(109, 33%, 55%)'),
-    GPU: new EventCategoryStyle(i18nLazyString(UIStrings.gpu), false, 'hsl(109, 33%, 64%)', 'hsl(109, 33%, 55%)'),
-    Async: new EventCategoryStyle(i18nLazyString(UIStrings.async), false, 'hsl(0, 100%, 50%)', 'hsl(0, 100%, 40%)'),
-    Other: new EventCategoryStyle(i18nLazyString(UIStrings.system), false, 'hsl(0, 0%, 87%)', 'hsl(0, 0%, 79%)'),
-    Idle: new EventCategoryStyle(i18nLazyString(UIStrings.idle), false, 'hsl(0, 0%, 98%)', 'hsl(0, 0%, 98%)'),
-};
+/**
+ * This object defines the styles for the categories used in the
+ * timeline (loading, rendering, scripting, etc.).
+ */
+let categoryStyles;
 /**
  * This map defines the styles for events shown in the panel. This
  * includes its color (which on the event's category, the label it's
@@ -512,494 +565,179 @@ export const DEFAULT_CATEGORY_STYLES_PALETTE = {
  *
  * The map is also used in other places, like the event's details view.
  */
-export const EventStyles = new Map([
-    [
-        "RunTask" /* TraceEngine.Types.TraceEvents.KnownEventName.RunTask */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Other, label: i18nLazyString(UIStrings.task) },
-    ],
-    [
-        "ProfileCall" /* TraceEngine.Types.TraceEvents.KnownEventName.ProfileCall */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.jsFrame) },
-    ],
-    [
-        "Program" /* TraceEngine.Types.TraceEvents.KnownEventName.Program */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Other, label: i18nLazyString(UIStrings.other) },
-    ],
-    [
-        "CpuProfiler::StartProfiling" /* TraceEngine.Types.TraceEvents.KnownEventName.StartProfiling */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Other, label: i18nLazyString(UIStrings.profilingOverhead) },
-    ],
-    [
-        "Animation" /* TraceEngine.Types.TraceEvents.KnownEventName.Animation */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Rendering, label: i18nLazyString(UIStrings.animation) },
-    ],
-    [
-        "EventDispatch" /* TraceEngine.Types.TraceEvents.KnownEventName.EventDispatch */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.event) },
-    ],
-    [
-        "RequestMainThreadFrame" /* TraceEngine.Types.TraceEvents.KnownEventName.RequestMainThreadFrame */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Rendering,
-            label: i18nLazyString(UIStrings.requestMainThreadFrame),
-            hidden: true,
-        },
-    ],
-    [
-        "BeginFrame" /* TraceEngine.Types.TraceEvents.KnownEventName.BeginFrame */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Rendering,
-            label: i18nLazyString(UIStrings.frameStart),
-            hidden: true,
-        },
-    ],
-    [
-        "BeginMainThreadFrame" /* TraceEngine.Types.TraceEvents.KnownEventName.BeginMainThreadFrame */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Rendering,
-            label: i18nLazyString(UIStrings.frameStartMainThread),
-            hidden: true,
-        },
-    ],
-    [
-        "DrawFrame" /* TraceEngine.Types.TraceEvents.KnownEventName.DrawFrame */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Rendering,
-            label: i18nLazyString(UIStrings.drawFrame),
-            hidden: true,
-        },
-    ],
-    [
-        "HitTest" /* TraceEngine.Types.TraceEvents.KnownEventName.HitTest */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Rendering, label: i18nLazyString(UIStrings.hitTest) },
-    ],
-    [
-        "ScheduleStyleRecalculation" /* TraceEngine.Types.TraceEvents.KnownEventName.ScheduleStyleRecalculation */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Rendering,
-            label: i18nLazyString(UIStrings.scheduleStyleRecalculation),
-        },
-    ],
-    [
-        "RecalculateStyles" /* TraceEngine.Types.TraceEvents.KnownEventName.RecalculateStyles */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Rendering, label: i18nLazyString(UIStrings.recalculateStyle) },
-    ],
-    [
-        "UpdateLayoutTree" /* TraceEngine.Types.TraceEvents.KnownEventName.UpdateLayoutTree */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Rendering, label: i18nLazyString(UIStrings.recalculateStyle) },
-    ],
-    [
-        "InvalidateLayout" /* TraceEngine.Types.TraceEvents.KnownEventName.InvalidateLayout */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Rendering,
-            label: i18nLazyString(UIStrings.invalidateLayout),
-            hidden: true,
-        },
-    ],
-    [
-        "Layerize" /* TraceEngine.Types.TraceEvents.KnownEventName.Layerize */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Rendering, label: i18nLazyString(UIStrings.layerize) },
-    ],
-    [
-        "Layout" /* TraceEngine.Types.TraceEvents.KnownEventName.Layout */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Rendering, label: i18nLazyString(UIStrings.layout) },
-    ],
-    [
-        "PaintSetup" /* TraceEngine.Types.TraceEvents.KnownEventName.PaintSetup */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Painting, label: i18nLazyString(UIStrings.paintSetup) },
-    ],
-    [
-        "PaintImage" /* TraceEngine.Types.TraceEvents.KnownEventName.PaintImage */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Painting,
-            label: i18nLazyString(UIStrings.paintImage),
-            hidden: true,
-        },
-    ],
-    [
-        "UpdateLayer" /* TraceEngine.Types.TraceEvents.KnownEventName.UpdateLayer */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Painting,
-            label: i18nLazyString(UIStrings.updateLayer),
-            hidden: true,
-        },
-    ],
-    [
-        "UpdateLayerTree" /* TraceEngine.Types.TraceEvents.KnownEventName.UpdateLayerTree */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Rendering, label: i18nLazyString(UIStrings.updateLayerTree) },
-    ],
-    [
-        "Paint" /* TraceEngine.Types.TraceEvents.KnownEventName.Paint */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Painting, label: i18nLazyString(UIStrings.paint) },
-    ],
-    [
-        "PrePaint" /* TraceEngine.Types.TraceEvents.KnownEventName.PrePaint */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Rendering, label: i18nLazyString(UIStrings.prePaint) },
-    ],
-    [
-        "RasterTask" /* TraceEngine.Types.TraceEvents.KnownEventName.RasterTask */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Painting, label: i18nLazyString(UIStrings.rasterizePaint) },
-    ],
-    [
-        "ScrollLayer" /* TraceEngine.Types.TraceEvents.KnownEventName.ScrollLayer */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Rendering, label: i18nLazyString(UIStrings.scroll) },
-    ],
-    [
-        "Commit" /* TraceEngine.Types.TraceEvents.KnownEventName.Commit */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Painting, label: i18nLazyString(UIStrings.commit) },
-    ],
-    [
-        "CompositeLayers" /* TraceEngine.Types.TraceEvents.KnownEventName.CompositeLayers */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Painting, label: i18nLazyString(UIStrings.compositeLayers) },
-    ],
-    [
-        "ComputeIntersections" /* TraceEngine.Types.TraceEvents.KnownEventName.ComputeIntersections */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Rendering,
-            label: i18nLazyString(UIStrings.computeIntersections),
-        },
-    ],
-    [
-        "ParseHTML" /* TraceEngine.Types.TraceEvents.KnownEventName.ParseHTML */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Loading, label: i18nLazyString(UIStrings.parseHtml) },
-    ],
-    [
-        "ParseAuthorStyleSheet" /* TraceEngine.Types.TraceEvents.KnownEventName.ParseAuthorStyleSheet */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Loading, label: i18nLazyString(UIStrings.parseStylesheet) },
-    ],
-    [
-        "TimerInstall" /* TraceEngine.Types.TraceEvents.KnownEventName.TimerInstall */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.installTimer) },
-    ],
-    [
-        "TimerRemove" /* TraceEngine.Types.TraceEvents.KnownEventName.TimerRemove */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.removeTimer) },
-    ],
-    [
-        "TimerFire" /* TraceEngine.Types.TraceEvents.KnownEventName.TimerFire */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.timerFired) },
-    ],
-    [
-        "XHRReadyStateChange" /* TraceEngine.Types.TraceEvents.KnownEventName.XHRReadyStateChange */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting,
-            label: i18nLazyString(UIStrings.xhrReadyStateChange),
-        },
-    ],
-    [
-        "XHRLoad" /* TraceEngine.Types.TraceEvents.KnownEventName.XHRLoad */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.xhrLoad) },
-    ],
-    [
-        "V8.CompileScript" /* TraceEngine.Types.TraceEvents.KnownEventName.CompileScript */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.compileScript) },
-    ],
-    [
-        "v8.produceCache" /* TraceEngine.Types.TraceEvents.KnownEventName.CacheScript */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.cacheScript) },
-    ],
-    [
-        "V8.CompileCode" /* TraceEngine.Types.TraceEvents.KnownEventName.CompileCode */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.compileCode) },
-    ],
-    [
-        "V8.OptimizeCode" /* TraceEngine.Types.TraceEvents.KnownEventName.OptimizeCode */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.optimizeCode) },
-    ],
-    [
-        "EvaluateScript" /* TraceEngine.Types.TraceEvents.KnownEventName.EvaluateScript */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.evaluateScript) },
-    ],
-    [
-        "V8.CompileModule" /* TraceEngine.Types.TraceEvents.KnownEventName.CompileModule */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.compileModule) },
-    ],
-    [
-        "v8.produceModuleCache" /* TraceEngine.Types.TraceEvents.KnownEventName.CacheModule */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.cacheModule) },
-    ],
-    [
-        "v8.evaluateModule" /* TraceEngine.Types.TraceEvents.KnownEventName.EvaluateModule */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.evaluateModule) },
-    ],
-    [
-        "v8.parseOnBackground" /* TraceEngine.Types.TraceEvents.KnownEventName.StreamingCompileScript */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Other, label: i18nLazyString(UIStrings.streamingCompileTask) },
-    ],
-    [
-        "v8.parseOnBackgroundWaiting" /* TraceEngine.Types.TraceEvents.KnownEventName.StreamingCompileScriptWaiting */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Idle, label: i18nLazyString(UIStrings.waitingForNetwork) },
-    ],
-    [
-        "v8.parseOnBackgroundParsing" /* TraceEngine.Types.TraceEvents.KnownEventName.StreamingCompileScriptParsing */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.parseAndCompile) },
-    ],
-    [
-        "v8.deserializeOnBackground" /* TraceEngine.Types.TraceEvents.KnownEventName.BackgroundDeserialize */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting,
-            label: i18nLazyString(UIStrings.deserializeCodeCache),
-        },
-    ],
-    [
-        "V8.FinalizeDeserialization" /* TraceEngine.Types.TraceEvents.KnownEventName.FinalizeDeserialization */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Other, label: i18nLazyString(UIStrings.profilingOverhead) },
-    ],
-    [
-        "v8.wasm.streamFromResponseCallback" /* TraceEngine.Types.TraceEvents.KnownEventName.WasmStreamFromResponseCallback */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting,
-            label: i18nLazyString(UIStrings.streamingWasmResponse),
-        },
-    ],
-    [
-        "v8.wasm.compiledModule" /* TraceEngine.Types.TraceEvents.KnownEventName.WasmCompiledModule */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.compiledWasmModule) },
-    ],
-    [
-        "v8.wasm.cachedModule" /* TraceEngine.Types.TraceEvents.KnownEventName.WasmCachedModule */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.cachedWasmModule) },
-    ],
-    [
-        "v8.wasm.moduleCacheHit" /* TraceEngine.Types.TraceEvents.KnownEventName.WasmModuleCacheHit */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.wasmModuleCacheHit) },
-    ],
-    [
-        "v8.wasm.moduleCacheInvalid" /* TraceEngine.Types.TraceEvents.KnownEventName.WasmModuleCacheInvalid */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting,
-            label: i18nLazyString(UIStrings.wasmModuleCacheInvalid),
-        },
-    ],
-    [
-        "FrameStartedLoading" /* TraceEngine.Types.TraceEvents.KnownEventName.FrameStartedLoading */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Loading,
-            label: i18nLazyString(UIStrings.frameStartedLoading),
-            hidden: true,
-        },
-    ],
-    [
-        "MarkLoad" /* TraceEngine.Types.TraceEvents.KnownEventName.MarkLoad */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting,
-            label: i18nLazyString(UIStrings.onloadEvent),
-            hidden: true,
-        },
-    ],
-    [
-        "MarkDOMContent" /* TraceEngine.Types.TraceEvents.KnownEventName.MarkDOMContent */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting,
-            label: i18nLazyString(UIStrings.domcontentloadedEvent),
-            hidden: true,
-        },
-    ],
-    [
-        "firstPaint" /* TraceEngine.Types.TraceEvents.KnownEventName.MarkFirstPaint */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Painting,
-            label: i18nLazyString(UIStrings.firstPaint),
-            hidden: true,
-        },
-    ],
-    [
-        "firstContentfulPaint" /* TraceEngine.Types.TraceEvents.KnownEventName.MarkFCP */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Rendering,
-            label: i18nLazyString(UIStrings.firstContentfulPaint),
-            hidden: true,
-        },
-    ],
-    [
-        "largestContentfulPaint::Candidate" /* TraceEngine.Types.TraceEvents.KnownEventName.MarkLCPCandidate */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Rendering,
-            label: i18nLazyString(UIStrings.largestContentfulPaint),
-            hidden: true,
-        },
-    ],
-    [
-        "TimeStamp" /* TraceEngine.Types.TraceEvents.KnownEventName.TimeStamp */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.timestamp) },
-    ],
-    [
-        "ConsoleTime" /* TraceEngine.Types.TraceEvents.KnownEventName.ConsoleTime */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.consoleTime) },
-    ],
-    [
-        "UserTiming" /* TraceEngine.Types.TraceEvents.KnownEventName.UserTiming */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.userTiming) },
-    ],
-    [
-        "ResourceWillSendRequest" /* TraceEngine.Types.TraceEvents.KnownEventName.ResourceWillSendRequest */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Loading, label: i18nLazyString(UIStrings.willSendRequest) },
-    ],
-    [
-        "ResourceSendRequest" /* TraceEngine.Types.TraceEvents.KnownEventName.ResourceSendRequest */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Loading, label: i18nLazyString(UIStrings.sendRequest) },
-    ],
-    [
-        "ResourceReceiveResponse" /* TraceEngine.Types.TraceEvents.KnownEventName.ResourceReceiveResponse */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Loading, label: i18nLazyString(UIStrings.receiveResponse) },
-    ],
-    [
-        "ResourceFinish" /* TraceEngine.Types.TraceEvents.KnownEventName.ResourceFinish */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Loading, label: i18nLazyString(UIStrings.finishLoading) },
-    ],
-    [
-        "ResourceReceivedData" /* TraceEngine.Types.TraceEvents.KnownEventName.ResourceReceivedData */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Loading, label: i18nLazyString(UIStrings.receiveData) },
-    ],
-    [
-        "RunMicrotasks" /* TraceEngine.Types.TraceEvents.KnownEventName.RunMicrotasks */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.runMicrotasks) },
-    ],
-    [
-        "FunctionCall" /* TraceEngine.Types.TraceEvents.KnownEventName.FunctionCall */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.functionCall) },
-    ],
-    [
-        "GCEvent" /* TraceEngine.Types.TraceEvents.KnownEventName.GC */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.gcEvent) },
-    ],
-    [
-        "MajorGC" /* TraceEngine.Types.TraceEvents.KnownEventName.MajorGC */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.majorGc) },
-    ],
-    [
-        "MinorGC" /* TraceEngine.Types.TraceEvents.KnownEventName.MinorGC */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.minorGc) },
-    ],
-    [
-        "RequestAnimationFrame" /* TraceEngine.Types.TraceEvents.KnownEventName.RequestAnimationFrame */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting,
-            label: i18nLazyString(UIStrings.requestAnimationFrame),
-        },
-    ],
-    [
-        "CancelAnimationFrame" /* TraceEngine.Types.TraceEvents.KnownEventName.CancelAnimationFrame */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting,
-            label: i18nLazyString(UIStrings.cancelAnimationFrame),
-        },
-    ],
-    [
-        "FireAnimationFrame" /* TraceEngine.Types.TraceEvents.KnownEventName.FireAnimationFrame */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting,
-            label: i18nLazyString(UIStrings.animationFrameFired),
-        },
-    ],
-    [
-        "RequestIdleCallback" /* TraceEngine.Types.TraceEvents.KnownEventName.RequestIdleCallback */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting,
-            label: i18nLazyString(UIStrings.requestIdleCallback),
-        },
-    ],
-    [
-        "CancelIdleCallback" /* TraceEngine.Types.TraceEvents.KnownEventName.CancelIdleCallback */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.cancelIdleCallback) },
-    ],
-    [
-        "FireIdleCallback" /* TraceEngine.Types.TraceEvents.KnownEventName.FireIdleCallback */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.fireIdleCallback) },
-    ],
-    [
-        "WebSocketCreate" /* TraceEngine.Types.TraceEvents.KnownEventName.WebSocketCreate */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.createWebsocket) },
-    ],
-    [
-        "WebSocketSendHandshakeRequest" /* TraceEngine.Types.TraceEvents.KnownEventName.WebSocketSendHandshakeRequest */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting,
-            label: i18nLazyString(UIStrings.sendWebsocketHandshake),
-        },
-    ],
-    [
-        "WebSocketReceiveHandshakeResponse" /* TraceEngine.Types.TraceEvents.KnownEventName.WebSocketReceiveHandshakeResponse */,
-        {
-            categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting,
-            label: i18nLazyString(UIStrings.receiveWebsocketHandshake),
-        },
-    ],
-    [
-        "WebSocketDestroy" /* TraceEngine.Types.TraceEvents.KnownEventName.WebSocketDestroy */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.destroyWebsocket) },
-    ],
-    [
-        "EmbedderCallback" /* TraceEngine.Types.TraceEvents.KnownEventName.EmbedderCallback */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.embedderCallback) },
-    ],
-    [
-        "Decode Image" /* TraceEngine.Types.TraceEvents.KnownEventName.DecodeImage */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Painting, label: i18nLazyString(UIStrings.imageDecode) },
-    ],
-    [
-        "Resize Image" /* TraceEngine.Types.TraceEvents.KnownEventName.ResizeImage */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Painting, label: i18nLazyString(UIStrings.imageResize) },
-    ],
-    [
-        "GPUTask" /* TraceEngine.Types.TraceEvents.KnownEventName.GPUTask */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.GPU, label: i18nLazyString(UIStrings.gpu) },
-    ],
-    [
-        "BlinkGC.AtomicPhase" /* TraceEngine.Types.TraceEvents.KnownEventName.GCCollectGarbage */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.domGc) },
-    ],
-    [
-        "DoEncrypt" /* TraceEngine.Types.TraceEvents.KnownEventName.CryptoDoEncrypt */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.encrypt) },
-    ],
-    [
-        "DoEncryptReply" /* TraceEngine.Types.TraceEvents.KnownEventName.CryptoDoEncryptReply */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.encryptReply) },
-    ],
-    [
-        "DoDecrypt" /* TraceEngine.Types.TraceEvents.KnownEventName.CryptoDoDecrypt */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.decrypt) },
-    ],
-    [
-        "DoDecryptReply" /* TraceEngine.Types.TraceEvents.KnownEventName.CryptoDoDecryptReply */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.decryptReply) },
-    ],
-    [
-        "DoDigest" /* TraceEngine.Types.TraceEvents.KnownEventName.CryptoDoDigest */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.digest) },
-    ],
-    [
-        "DoDigestReply" /* TraceEngine.Types.TraceEvents.KnownEventName.CryptoDoDigestReply */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.digestReply) },
-    ],
-    [
-        "DoSign" /* TraceEngine.Types.TraceEvents.KnownEventName.CryptoDoSign */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.sign) },
-    ],
-    [
-        "DoSignReply" /* TraceEngine.Types.TraceEvents.KnownEventName.CryptoDoSignReply */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.signReply) },
-    ],
-    [
-        "DoVerify" /* TraceEngine.Types.TraceEvents.KnownEventName.CryptoDoVerify */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.verify) },
-    ],
-    [
-        "DoVerifyReply" /* TraceEngine.Types.TraceEvents.KnownEventName.CryptoDoVerifyReply */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Scripting, label: i18nLazyString(UIStrings.verifyReply) },
-    ],
-    [
-        "AsyncTask" /* TraceEngine.Types.TraceEvents.KnownEventName.AsyncTask */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Async, label: i18nLazyString(UIStrings.asyncTask) },
-    ],
-    [
-        "LayoutShift" /* TraceEngine.Types.TraceEvents.KnownEventName.LayoutShift */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Experience, label: i18nLazyString(UIStrings.layoutShift) },
-    ],
-    [
-        "EventTiming" /* TraceEngine.Types.TraceEvents.KnownEventName.EventTiming */,
-        { categoryStyle: DEFAULT_CATEGORY_STYLES_PALETTE.Experience, label: i18nLazyString(UIStrings.eventTiming) },
-    ],
-]);
-//# map=EventUICategory.js.map
+let eventStylesMap;
+export function getEventStyle(eventName) {
+    return maybeInitSylesMap()[eventName];
+}
+export function stringIsEventCategory(it) {
+    return Object.values(EventCategory).includes(it);
+}
+export function getCategoryStyles() {
+    if (categoryStyles) {
+        return categoryStyles;
+    }
+    categoryStyles = {
+        loading: new TimelineCategory(EventCategory.LOADING, i18nString(UIStrings.loading), true, '--app-color-loading-children', '--app-color-loading'),
+        experience: new TimelineCategory(EventCategory.EXPERIENCE, i18nString(UIStrings.experience), false, '--app-color-rendering-children', '--app-color-rendering'),
+        messaging: new TimelineCategory(EventCategory.MESSAGING, i18nString(UIStrings.messaging), true, '--app-color-messaging-children', '--app-color-messaging'),
+        scripting: new TimelineCategory(EventCategory.SCRIPTING, i18nString(UIStrings.scripting), true, '--app-color-scripting-children', '--app-color-scripting'),
+        rendering: new TimelineCategory(EventCategory.RENDERING, i18nString(UIStrings.rendering), true, '--app-color-rendering-children', '--app-color-rendering'),
+        painting: new TimelineCategory(EventCategory.PAINTING, i18nString(UIStrings.painting), true, '--app-color-painting-children', '--app-color-painting'),
+        gpu: new TimelineCategory(EventCategory.GPU, i18nString(UIStrings.gpu), false, '--app-color-painting-children', '--app-color-painting'),
+        async: new TimelineCategory(EventCategory.ASYNC, i18nString(UIStrings.async), false, '--app-color-async-children', '--app-color-async'),
+        other: new TimelineCategory(EventCategory.OTHER, i18nString(UIStrings.system), false, '--app-color-system-children', '--app-color-system'),
+        idle: new TimelineCategory(EventCategory.IDLE, i18nString(UIStrings.idle), false, '--app-color-idle-children', '--app-color-idle'),
+        layout: new TimelineCategory(EventCategory.LAYOUT, i18nString(UIStrings.layout), false, '--app-color-loading-children', '--app-color-loading'),
+        rasterizing: new TimelineCategory(EventCategory.RASTERIZING, i18nString(UIStrings.rasterizing), false, '--app-color-children', '--app-color-scripting'),
+        drawing: new TimelineCategory(EventCategory.DRAWING, i18nString(UIStrings.drawing), false, '--app-color-rendering-children', '--app-color-rendering'),
+    };
+    return categoryStyles;
+}
+export function maybeInitSylesMap() {
+    if (eventStylesMap) {
+        return eventStylesMap;
+    }
+    const defaultCategoryStyles = getCategoryStyles();
+    eventStylesMap = {
+        ["RunTask" /* TraceEngine.Types.TraceEvents.KnownEventName.RunTask */]: new TimelineRecordStyle(i18nString(UIStrings.task), defaultCategoryStyles.other),
+        ["ProfileCall" /* TraceEngine.Types.TraceEvents.KnownEventName.ProfileCall */]: new TimelineRecordStyle(i18nString(UIStrings.jsFrame), defaultCategoryStyles.scripting),
+        ["Program" /* TraceEngine.Types.TraceEvents.KnownEventName.Program */]: new TimelineRecordStyle(i18nString(UIStrings.other), defaultCategoryStyles.other),
+        ["CpuProfiler::StartProfiling" /* TraceEngine.Types.TraceEvents.KnownEventName.StartProfiling */]: new TimelineRecordStyle(i18nString(UIStrings.profilingOverhead), defaultCategoryStyles.other),
+        ["Animation" /* TraceEngine.Types.TraceEvents.KnownEventName.Animation */]: new TimelineRecordStyle(i18nString(UIStrings.animation), defaultCategoryStyles.rendering),
+        ["EventDispatch" /* TraceEngine.Types.TraceEvents.KnownEventName.EventDispatch */]: new TimelineRecordStyle(i18nString(UIStrings.event), defaultCategoryStyles.scripting),
+        ["RequestMainThreadFrame" /* TraceEngine.Types.TraceEvents.KnownEventName.RequestMainThreadFrame */]: new TimelineRecordStyle(i18nString(UIStrings.requestMainThreadFrame), defaultCategoryStyles.rendering, true),
+        ["BeginFrame" /* TraceEngine.Types.TraceEvents.KnownEventName.BeginFrame */]: new TimelineRecordStyle(i18nString(UIStrings.frameStart), defaultCategoryStyles.rendering, true),
+        ["BeginMainThreadFrame" /* TraceEngine.Types.TraceEvents.KnownEventName.BeginMainThreadFrame */]: new TimelineRecordStyle(i18nString(UIStrings.frameStartMainThread), defaultCategoryStyles.rendering, true),
+        ["DrawFrame" /* TraceEngine.Types.TraceEvents.KnownEventName.DrawFrame */]: new TimelineRecordStyle(i18nString(UIStrings.drawFrame), defaultCategoryStyles.rendering, true),
+        ["HitTest" /* TraceEngine.Types.TraceEvents.KnownEventName.HitTest */]: new TimelineRecordStyle(i18nString(UIStrings.hitTest), defaultCategoryStyles.rendering),
+        ["ScheduleStyleRecalculation" /* TraceEngine.Types.TraceEvents.KnownEventName.ScheduleStyleRecalculation */]: new TimelineRecordStyle(i18nString(UIStrings.scheduleStyleRecalculation), defaultCategoryStyles.rendering),
+        ["RecalculateStyles" /* TraceEngine.Types.TraceEvents.KnownEventName.RecalculateStyles */]: new TimelineRecordStyle(i18nString(UIStrings.recalculateStyle), defaultCategoryStyles.rendering),
+        ["UpdateLayoutTree" /* TraceEngine.Types.TraceEvents.KnownEventName.UpdateLayoutTree */]: new TimelineRecordStyle(i18nString(UIStrings.recalculateStyle), defaultCategoryStyles.rendering),
+        ["InvalidateLayout" /* TraceEngine.Types.TraceEvents.KnownEventName.InvalidateLayout */]: new TimelineRecordStyle(i18nString(UIStrings.invalidateLayout), defaultCategoryStyles.rendering, true),
+        ["Layerize" /* TraceEngine.Types.TraceEvents.KnownEventName.Layerize */]: new TimelineRecordStyle(i18nString(UIStrings.layerize), defaultCategoryStyles.rendering),
+        ["Layout" /* TraceEngine.Types.TraceEvents.KnownEventName.Layout */]: new TimelineRecordStyle(i18nString(UIStrings.layout), defaultCategoryStyles.rendering),
+        ["PaintSetup" /* TraceEngine.Types.TraceEvents.KnownEventName.PaintSetup */]: new TimelineRecordStyle(i18nString(UIStrings.paintSetup), defaultCategoryStyles.painting),
+        ["PaintImage" /* TraceEngine.Types.TraceEvents.KnownEventName.PaintImage */]: new TimelineRecordStyle(i18nString(UIStrings.paintImage), defaultCategoryStyles.painting, true),
+        ["UpdateLayer" /* TraceEngine.Types.TraceEvents.KnownEventName.UpdateLayer */]: new TimelineRecordStyle(i18nString(UIStrings.updateLayer), defaultCategoryStyles.painting, true),
+        ["UpdateLayerTree" /* TraceEngine.Types.TraceEvents.KnownEventName.UpdateLayerTree */]: new TimelineRecordStyle(i18nString(UIStrings.updateLayerTree), defaultCategoryStyles.rendering),
+        ["Paint" /* TraceEngine.Types.TraceEvents.KnownEventName.Paint */]: new TimelineRecordStyle(i18nString(UIStrings.paint), defaultCategoryStyles.painting),
+        ["PrePaint" /* TraceEngine.Types.TraceEvents.KnownEventName.PrePaint */]: new TimelineRecordStyle(i18nString(UIStrings.prePaint), defaultCategoryStyles.rendering),
+        ["RasterTask" /* TraceEngine.Types.TraceEvents.KnownEventName.RasterTask */]: new TimelineRecordStyle(i18nString(UIStrings.rasterizePaint), defaultCategoryStyles.painting),
+        ["ScrollLayer" /* TraceEngine.Types.TraceEvents.KnownEventName.ScrollLayer */]: new TimelineRecordStyle(i18nString(UIStrings.scroll), defaultCategoryStyles.rendering),
+        ["Commit" /* TraceEngine.Types.TraceEvents.KnownEventName.Commit */]: new TimelineRecordStyle(i18nString(UIStrings.commit), defaultCategoryStyles.painting),
+        ["CompositeLayers" /* TraceEngine.Types.TraceEvents.KnownEventName.CompositeLayers */]: new TimelineRecordStyle(i18nString(UIStrings.compositeLayers), defaultCategoryStyles.painting),
+        ["ComputeIntersections" /* TraceEngine.Types.TraceEvents.KnownEventName.ComputeIntersections */]: new TimelineRecordStyle(i18nString(UIStrings.computeIntersections), defaultCategoryStyles.rendering),
+        ["ParseHTML" /* TraceEngine.Types.TraceEvents.KnownEventName.ParseHTML */]: new TimelineRecordStyle(i18nString(UIStrings.parseHtml), defaultCategoryStyles.loading),
+        ["ParseAuthorStyleSheet" /* TraceEngine.Types.TraceEvents.KnownEventName.ParseAuthorStyleSheet */]: new TimelineRecordStyle(i18nString(UIStrings.parseStylesheet), defaultCategoryStyles.loading),
+        ["TimerInstall" /* TraceEngine.Types.TraceEvents.KnownEventName.TimerInstall */]: new TimelineRecordStyle(i18nString(UIStrings.installTimer), defaultCategoryStyles.scripting),
+        ["TimerRemove" /* TraceEngine.Types.TraceEvents.KnownEventName.TimerRemove */]: new TimelineRecordStyle(i18nString(UIStrings.removeTimer), defaultCategoryStyles.scripting),
+        ["TimerFire" /* TraceEngine.Types.TraceEvents.KnownEventName.TimerFire */]: new TimelineRecordStyle(i18nString(UIStrings.timerFired), defaultCategoryStyles.scripting),
+        ["XHRReadyStateChange" /* TraceEngine.Types.TraceEvents.KnownEventName.XHRReadyStateChange */]: new TimelineRecordStyle(i18nString(UIStrings.xhrReadyStateChange), defaultCategoryStyles.scripting),
+        ["XHRLoad" /* TraceEngine.Types.TraceEvents.KnownEventName.XHRLoad */]: new TimelineRecordStyle(i18nString(UIStrings.xhrLoad), defaultCategoryStyles.scripting),
+        ["v8.compile" /* TraceEngine.Types.TraceEvents.KnownEventName.Compile */]: new TimelineRecordStyle(i18nString(UIStrings.compileScript), defaultCategoryStyles.scripting),
+        ["v8.produceCache" /* TraceEngine.Types.TraceEvents.KnownEventName.CacheScript */]: new TimelineRecordStyle(i18nString(UIStrings.cacheScript), defaultCategoryStyles.scripting),
+        ["V8.CompileCode" /* TraceEngine.Types.TraceEvents.KnownEventName.CompileCode */]: new TimelineRecordStyle(i18nString(UIStrings.compileCode), defaultCategoryStyles.scripting),
+        ["V8.OptimizeCode" /* TraceEngine.Types.TraceEvents.KnownEventName.OptimizeCode */]: new TimelineRecordStyle(i18nString(UIStrings.optimizeCode), defaultCategoryStyles.scripting),
+        ["EvaluateScript" /* TraceEngine.Types.TraceEvents.KnownEventName.EvaluateScript */]: new TimelineRecordStyle(i18nString(UIStrings.evaluateScript), defaultCategoryStyles.scripting),
+        ["V8.CompileModule" /* TraceEngine.Types.TraceEvents.KnownEventName.CompileModule */]: new TimelineRecordStyle(i18nString(UIStrings.compileModule), defaultCategoryStyles.scripting),
+        ["v8.produceModuleCache" /* TraceEngine.Types.TraceEvents.KnownEventName.CacheModule */]: new TimelineRecordStyle(i18nString(UIStrings.cacheModule), defaultCategoryStyles.scripting),
+        ["v8.evaluateModule" /* TraceEngine.Types.TraceEvents.KnownEventName.EvaluateModule */]: new TimelineRecordStyle(i18nString(UIStrings.evaluateModule), defaultCategoryStyles.scripting),
+        ["v8.parseOnBackground" /* TraceEngine.Types.TraceEvents.KnownEventName.StreamingCompileScript */]: new TimelineRecordStyle(i18nString(UIStrings.streamingCompileTask), defaultCategoryStyles.other),
+        ["v8.parseOnBackgroundWaiting" /* TraceEngine.Types.TraceEvents.KnownEventName.StreamingCompileScriptWaiting */]: new TimelineRecordStyle(i18nString(UIStrings.waitingForNetwork), defaultCategoryStyles.idle),
+        ["v8.parseOnBackgroundParsing" /* TraceEngine.Types.TraceEvents.KnownEventName.StreamingCompileScriptParsing */]: new TimelineRecordStyle(i18nString(UIStrings.parseAndCompile), defaultCategoryStyles.scripting),
+        ["v8.deserializeOnBackground" /* TraceEngine.Types.TraceEvents.KnownEventName.BackgroundDeserialize */]: new TimelineRecordStyle(i18nString(UIStrings.deserializeCodeCache), defaultCategoryStyles.scripting),
+        ["V8.FinalizeDeserialization" /* TraceEngine.Types.TraceEvents.KnownEventName.FinalizeDeserialization */]: new TimelineRecordStyle(i18nString(UIStrings.profilingOverhead), defaultCategoryStyles.other),
+        ["v8.wasm.streamFromResponseCallback" /* TraceEngine.Types.TraceEvents.KnownEventName.WasmStreamFromResponseCallback */]: new TimelineRecordStyle(i18nString(UIStrings.streamingWasmResponse), defaultCategoryStyles.scripting),
+        ["v8.wasm.compiledModule" /* TraceEngine.Types.TraceEvents.KnownEventName.WasmCompiledModule */]: new TimelineRecordStyle(i18nString(UIStrings.compiledWasmModule), defaultCategoryStyles.scripting),
+        ["v8.wasm.cachedModule" /* TraceEngine.Types.TraceEvents.KnownEventName.WasmCachedModule */]: new TimelineRecordStyle(i18nString(UIStrings.cachedWasmModule), defaultCategoryStyles.scripting),
+        ["v8.wasm.moduleCacheHit" /* TraceEngine.Types.TraceEvents.KnownEventName.WasmModuleCacheHit */]: new TimelineRecordStyle(i18nString(UIStrings.wasmModuleCacheHit), defaultCategoryStyles.scripting),
+        ["v8.wasm.moduleCacheInvalid" /* TraceEngine.Types.TraceEvents.KnownEventName.WasmModuleCacheInvalid */]: new TimelineRecordStyle(i18nString(UIStrings.wasmModuleCacheInvalid), defaultCategoryStyles.scripting),
+        ["FrameStartedLoading" /* TraceEngine.Types.TraceEvents.KnownEventName.FrameStartedLoading */]: new TimelineRecordStyle(i18nString(UIStrings.frameStartedLoading), defaultCategoryStyles.loading, true),
+        ["MarkLoad" /* TraceEngine.Types.TraceEvents.KnownEventName.MarkLoad */]: new TimelineRecordStyle(i18nString(UIStrings.onloadEvent), defaultCategoryStyles.scripting, true),
+        ["MarkDOMContent" /* TraceEngine.Types.TraceEvents.KnownEventName.MarkDOMContent */]: new TimelineRecordStyle(i18nString(UIStrings.domcontentloadedEvent), defaultCategoryStyles.scripting, true),
+        ["firstPaint" /* TraceEngine.Types.TraceEvents.KnownEventName.MarkFirstPaint */]: new TimelineRecordStyle(i18nString(UIStrings.firstPaint), defaultCategoryStyles.painting, true),
+        ["firstContentfulPaint" /* TraceEngine.Types.TraceEvents.KnownEventName.MarkFCP */]: new TimelineRecordStyle(i18nString(UIStrings.firstContentfulPaint), defaultCategoryStyles.rendering, true),
+        ["largestContentfulPaint::Candidate" /* TraceEngine.Types.TraceEvents.KnownEventName.MarkLCPCandidate */]: new TimelineRecordStyle(i18nString(UIStrings.largestContentfulPaint), defaultCategoryStyles.rendering, true),
+        ["TimeStamp" /* TraceEngine.Types.TraceEvents.KnownEventName.TimeStamp */]: new TimelineRecordStyle(i18nString(UIStrings.timestamp), defaultCategoryStyles.scripting),
+        ["ConsoleTime" /* TraceEngine.Types.TraceEvents.KnownEventName.ConsoleTime */]: new TimelineRecordStyle(i18nString(UIStrings.consoleTime), defaultCategoryStyles.scripting),
+        ["UserTiming" /* TraceEngine.Types.TraceEvents.KnownEventName.UserTiming */]: new TimelineRecordStyle(i18nString(UIStrings.userTiming), defaultCategoryStyles.scripting),
+        ["ResourceWillSendRequest" /* TraceEngine.Types.TraceEvents.KnownEventName.ResourceWillSendRequest */]: new TimelineRecordStyle(i18nString(UIStrings.willSendRequest), defaultCategoryStyles.loading),
+        ["ResourceSendRequest" /* TraceEngine.Types.TraceEvents.KnownEventName.ResourceSendRequest */]: new TimelineRecordStyle(i18nString(UIStrings.sendRequest), defaultCategoryStyles.loading),
+        ["ResourceReceiveResponse" /* TraceEngine.Types.TraceEvents.KnownEventName.ResourceReceiveResponse */]: new TimelineRecordStyle(i18nString(UIStrings.receiveResponse), defaultCategoryStyles.loading),
+        ["ResourceFinish" /* TraceEngine.Types.TraceEvents.KnownEventName.ResourceFinish */]: new TimelineRecordStyle(i18nString(UIStrings.finishLoading), defaultCategoryStyles.loading),
+        ["ResourceReceivedData" /* TraceEngine.Types.TraceEvents.KnownEventName.ResourceReceivedData */]: new TimelineRecordStyle(i18nString(UIStrings.receiveData), defaultCategoryStyles.loading),
+        ["RunMicrotasks" /* TraceEngine.Types.TraceEvents.KnownEventName.RunMicrotasks */]: new TimelineRecordStyle(i18nString(UIStrings.runMicrotasks), defaultCategoryStyles.scripting),
+        ["FunctionCall" /* TraceEngine.Types.TraceEvents.KnownEventName.FunctionCall */]: new TimelineRecordStyle(i18nString(UIStrings.functionCall), defaultCategoryStyles.scripting),
+        ["GCEvent" /* TraceEngine.Types.TraceEvents.KnownEventName.GC */]: new TimelineRecordStyle(i18nString(UIStrings.gcEvent), defaultCategoryStyles.scripting),
+        ["MajorGC" /* TraceEngine.Types.TraceEvents.KnownEventName.MajorGC */]: new TimelineRecordStyle(i18nString(UIStrings.majorGc), defaultCategoryStyles.scripting),
+        ["MinorGC" /* TraceEngine.Types.TraceEvents.KnownEventName.MinorGC */]: new TimelineRecordStyle(i18nString(UIStrings.minorGc), defaultCategoryStyles.scripting),
+        ["CppGC.IncrementalSweep" /* TraceEngine.Types.TraceEvents.KnownEventName.CPPGCSweep */]: new TimelineRecordStyle(i18nString(UIStrings.cppGc), defaultCategoryStyles.scripting),
+        ["RequestAnimationFrame" /* TraceEngine.Types.TraceEvents.KnownEventName.RequestAnimationFrame */]: new TimelineRecordStyle(i18nString(UIStrings.requestAnimationFrame), defaultCategoryStyles.scripting),
+        ["CancelAnimationFrame" /* TraceEngine.Types.TraceEvents.KnownEventName.CancelAnimationFrame */]: new TimelineRecordStyle(i18nString(UIStrings.cancelAnimationFrame), defaultCategoryStyles.scripting),
+        ["FireAnimationFrame" /* TraceEngine.Types.TraceEvents.KnownEventName.FireAnimationFrame */]: new TimelineRecordStyle(i18nString(UIStrings.animationFrameFired), defaultCategoryStyles.scripting),
+        ["RequestIdleCallback" /* TraceEngine.Types.TraceEvents.KnownEventName.RequestIdleCallback */]: new TimelineRecordStyle(i18nString(UIStrings.requestIdleCallback), defaultCategoryStyles.scripting),
+        ["CancelIdleCallback" /* TraceEngine.Types.TraceEvents.KnownEventName.CancelIdleCallback */]: new TimelineRecordStyle(i18nString(UIStrings.cancelIdleCallback), defaultCategoryStyles.scripting),
+        ["FireIdleCallback" /* TraceEngine.Types.TraceEvents.KnownEventName.FireIdleCallback */]: new TimelineRecordStyle(i18nString(UIStrings.fireIdleCallback), defaultCategoryStyles.scripting),
+        ["WebSocketCreate" /* TraceEngine.Types.TraceEvents.KnownEventName.WebSocketCreate */]: new TimelineRecordStyle(i18nString(UIStrings.createWebsocket), defaultCategoryStyles.scripting),
+        ["WebSocketSendHandshakeRequest" /* TraceEngine.Types.TraceEvents.KnownEventName.WebSocketSendHandshakeRequest */]: new TimelineRecordStyle(i18nString(UIStrings.sendWebsocketHandshake), defaultCategoryStyles.scripting),
+        ["WebSocketReceiveHandshakeResponse" /* TraceEngine.Types.TraceEvents.KnownEventName.WebSocketReceiveHandshakeResponse */]: new TimelineRecordStyle(i18nString(UIStrings.receiveWebsocketHandshake), defaultCategoryStyles.scripting),
+        ["WebSocketDestroy" /* TraceEngine.Types.TraceEvents.KnownEventName.WebSocketDestroy */]: new TimelineRecordStyle(i18nString(UIStrings.destroyWebsocket), defaultCategoryStyles.scripting),
+        ["EmbedderCallback" /* TraceEngine.Types.TraceEvents.KnownEventName.EmbedderCallback */]: new TimelineRecordStyle(i18nString(UIStrings.embedderCallback), defaultCategoryStyles.scripting),
+        ["Decode Image" /* TraceEngine.Types.TraceEvents.KnownEventName.DecodeImage */]: new TimelineRecordStyle(i18nString(UIStrings.imageDecode), defaultCategoryStyles.painting),
+        ["Resize Image" /* TraceEngine.Types.TraceEvents.KnownEventName.ResizeImage */]: new TimelineRecordStyle(i18nString(UIStrings.imageResize), defaultCategoryStyles.painting),
+        ["GPUTask" /* TraceEngine.Types.TraceEvents.KnownEventName.GPUTask */]: new TimelineRecordStyle(i18nString(UIStrings.gpu), defaultCategoryStyles.gpu),
+        ["BlinkGC.AtomicPhase" /* TraceEngine.Types.TraceEvents.KnownEventName.GCCollectGarbage */]: new TimelineRecordStyle(i18nString(UIStrings.domGc), defaultCategoryStyles.scripting),
+        ["DoEncrypt" /* TraceEngine.Types.TraceEvents.KnownEventName.CryptoDoEncrypt */]: new TimelineRecordStyle(i18nString(UIStrings.encrypt), defaultCategoryStyles.scripting),
+        ["DoEncryptReply" /* TraceEngine.Types.TraceEvents.KnownEventName.CryptoDoEncryptReply */]: new TimelineRecordStyle(i18nString(UIStrings.encryptReply), defaultCategoryStyles.scripting),
+        ["DoDecrypt" /* TraceEngine.Types.TraceEvents.KnownEventName.CryptoDoDecrypt */]: new TimelineRecordStyle(i18nString(UIStrings.decrypt), defaultCategoryStyles.scripting),
+        ["DoDecryptReply" /* TraceEngine.Types.TraceEvents.KnownEventName.CryptoDoDecryptReply */]: new TimelineRecordStyle(i18nString(UIStrings.decryptReply), defaultCategoryStyles.scripting),
+        ["DoDigest" /* TraceEngine.Types.TraceEvents.KnownEventName.CryptoDoDigest */]: new TimelineRecordStyle(i18nString(UIStrings.digest), defaultCategoryStyles.scripting),
+        ["DoDigestReply" /* TraceEngine.Types.TraceEvents.KnownEventName.CryptoDoDigestReply */]: new TimelineRecordStyle(i18nString(UIStrings.digestReply), defaultCategoryStyles.scripting),
+        ["DoSign" /* TraceEngine.Types.TraceEvents.KnownEventName.CryptoDoSign */]: new TimelineRecordStyle(i18nString(UIStrings.sign), defaultCategoryStyles.scripting),
+        ["DoSignReply" /* TraceEngine.Types.TraceEvents.KnownEventName.CryptoDoSignReply */]: new TimelineRecordStyle(i18nString(UIStrings.signReply), defaultCategoryStyles.scripting),
+        ["DoVerify" /* TraceEngine.Types.TraceEvents.KnownEventName.CryptoDoVerify */]: new TimelineRecordStyle(i18nString(UIStrings.verify), defaultCategoryStyles.scripting),
+        ["DoVerifyReply" /* TraceEngine.Types.TraceEvents.KnownEventName.CryptoDoVerifyReply */]: new TimelineRecordStyle(i18nString(UIStrings.verifyReply), defaultCategoryStyles.scripting),
+        ["AsyncTask" /* TraceEngine.Types.TraceEvents.KnownEventName.AsyncTask */]: new TimelineRecordStyle(i18nString(UIStrings.asyncTask), defaultCategoryStyles.async),
+        ["LayoutShift" /* TraceEngine.Types.TraceEvents.KnownEventName.LayoutShift */]: new TimelineRecordStyle(i18nString(UIStrings.layoutShift), defaultCategoryStyles.experience),
+        ["EventTiming" /* TraceEngine.Types.TraceEvents.KnownEventName.EventTiming */]: new TimelineRecordStyle(i18nString(UIStrings.eventTiming), defaultCategoryStyles.experience),
+        ["HandlePostMessage" /* TraceEngine.Types.TraceEvents.KnownEventName.HandlePostMessage */]: new TimelineRecordStyle(i18nString(UIStrings.onMessage), defaultCategoryStyles.messaging),
+        ["SchedulePostMessage" /* TraceEngine.Types.TraceEvents.KnownEventName.SchedulePostMessage */]: new TimelineRecordStyle(i18nString(UIStrings.schedulePostMessage), defaultCategoryStyles.messaging),
+    };
+    return eventStylesMap;
+}
+export function setEventStylesMap(eventStyles) {
+    eventStylesMap = eventStyles;
+}
+export function setCategories(cats) {
+    categoryStyles = cats;
+}
+export function visibleTypes() {
+    const eventStyles = maybeInitSylesMap();
+    const result = [];
+    for (const name in eventStyles) {
+        // Typescript cannot infer that `name` is a key of eventStyles
+        const nameAsKey = name;
+        if (!eventStyles[nameAsKey]?.hidden) {
+            result.push(name);
+        }
+    }
+    return result;
+}
+export function getTimelineMainEventCategories() {
+    if (mainEventCategories) {
+        return mainEventCategories;
+    }
+    mainEventCategories = [
+        EventCategory.IDLE,
+        EventCategory.LOADING,
+        EventCategory.PAINTING,
+        EventCategory.RENDERING,
+        EventCategory.SCRIPTING,
+        EventCategory.OTHER,
+    ];
+    return mainEventCategories;
+}
+export function setTimelineMainEventCategories(categories) {
+    mainEventCategories = categories;
+}
+//# sourceMappingURL=EventUICategory.js.map

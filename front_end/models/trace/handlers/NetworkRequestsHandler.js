@@ -295,6 +295,7 @@ export async function finalize() {
                     encodedDataLength,
                     frame,
                     fromServiceWorker: request.receiveResponse.args.data.fromServiceWorker,
+                    isLinkPreload: request.receiveResponse.args.data.isLinkPreload || false,
                     host,
                     mimeType: request.receiveResponse.args.data.mimeType,
                     pathname,
@@ -307,8 +308,12 @@ export async function finalize() {
                     requestId,
                     requestingFrameUrl,
                     requestMethod: finalSendRequest.args.data.requestMethod,
+                    resourceType: finalSendRequest.args.data.resourceType,
                     search,
                     statusCode: request.receiveResponse.args.data.statusCode,
+                    responseHeaders: request.receiveResponse.args.data.headers || [],
+                    fetchPriorityHint: finalSendRequest.args.data.fetchPriorityHint,
+                    initiator: finalSendRequest.args.data.initiator,
                     stackTrace: finalSendRequest.args.data.stackTrace,
                     timing,
                     url,
@@ -351,11 +356,11 @@ export function data() {
         throw new Error('Network Request handler is not finalized');
     }
     return {
-        byOrigin: new Map(requestsByOrigin),
-        byTime: [...requestsByTime],
+        byOrigin: requestsByOrigin,
+        byTime: requestsByTime,
     };
 }
 export function deps() {
     return ['Meta'];
 }
-//# map=NetworkRequestsHandler.js.map
+//# sourceMappingURL=NetworkRequestsHandler.js.map

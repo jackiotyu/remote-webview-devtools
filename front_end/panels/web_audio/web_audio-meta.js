@@ -35,8 +35,8 @@ UI.ViewManager.registerViewExtension({
     order: 100,
     async loadView() {
         const WebAudio = await loadWebAudioModule();
-        return WebAudio.WebAudioView.WebAudioView.instance();
+        return new WebAudio.WebAudioView.WebAudioView();
     },
     tags: [i18nLazyString(UIStrings.audio)],
 });
-//# map=web_audio-meta.js.map
+//# sourceMappingURL=web_audio-meta.js.map

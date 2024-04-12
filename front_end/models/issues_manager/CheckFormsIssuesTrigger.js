@@ -29,4 +29,4 @@ export class CheckFormsIssuesTrigger {
         this.#checkFormsIssues(resourceTreeModel);
     }
 }
-//# map=CheckFormsIssuesTrigger.js.map
+//# sourceMappingURL=CheckFormsIssuesTrigger.js.map

@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as TwoStatesCounter from './TwoStatesCounter.js';
 export { TwoStatesCounter, };
-//# map=two_states_counter.js.map
+//# sourceMappingURL=two_states_counter.js.map

@@ -45,4 +45,4 @@ export function* traceJsonGenerator(traceEvents, metadata) {
 export function cpuprofileJsonGenerator(cpuprofile) {
     return JSON.stringify(cpuprofile);
 }
-//# map=SaveFileFormatter.js.map
+//# sourceMappingURL=SaveFileFormatter.js.map

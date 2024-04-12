@@ -6,12 +6,13 @@ import * as i18n from '../../core/i18n/i18n.js';
 import * as IssuesManager from '../../models/issues_manager/issues_manager.js';
 import * as IssueCounter from '../../ui/components/issue_counter/issue_counter.js';
 import * as UI from '../../ui/legacy/legacy.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import { HiddenIssuesRow } from './HiddenIssuesRow.js';
+import { IssueAggregator, } from './IssueAggregator.js';
+import { getGroupIssuesByKindSetting, IssueKindView, issueKindViewSortPriority } from './IssueKindView.js';
 import issuesPaneStyles from './issuesPane.css.js';
 import issuesTreeStyles from './issuesTree.css.js';
-import { IssueAggregator, } from './IssueAggregator.js';
 import { IssueView } from './IssueView.js';
-import { IssueKindView, getGroupIssuesByKindSetting, issueKindViewSortPriority } from './IssueKindView.js';
 const UIStrings = {
     /**
      * @description Category title for a group of cross origin embedder policy (COEP) issues
@@ -109,27 +110,27 @@ class IssueCategoryView extends UI.TreeOutline.TreeElement {
     }
     getCategoryName() {
         switch (this.#category) {
-            case IssuesManager.Issue.IssueCategory.CrossOriginEmbedderPolicy:
+            case "CrossOriginEmbedderPolicy" /* IssuesManager.Issue.IssueCategory.CrossOriginEmbedderPolicy */:
                 return i18nString(UIStrings.crossOriginEmbedderPolicy);
-            case IssuesManager.Issue.IssueCategory.MixedContent:
+            case "MixedContent" /* IssuesManager.Issue.IssueCategory.MixedContent */:
                 return i18nString(UIStrings.mixedContent);
-            case IssuesManager.Issue.IssueCategory.Cookie:
+            case "Cookie" /* IssuesManager.Issue.IssueCategory.Cookie */:
                 return i18nString(UIStrings.samesiteCookie);
-            case IssuesManager.Issue.IssueCategory.HeavyAd:
+            case "HeavyAd" /* IssuesManager.Issue.IssueCategory.HeavyAd */:
                 return i18nString(UIStrings.heavyAds);
-            case IssuesManager.Issue.IssueCategory.ContentSecurityPolicy:
+            case "ContentSecurityPolicy" /* IssuesManager.Issue.IssueCategory.ContentSecurityPolicy */:
                 return i18nString(UIStrings.contentSecurityPolicy);
-            case IssuesManager.Issue.IssueCategory.LowTextContrast:
+            case "LowTextContrast" /* IssuesManager.Issue.IssueCategory.LowTextContrast */:
                 return i18nString(UIStrings.lowTextContrast);
-            case IssuesManager.Issue.IssueCategory.Cors:
+            case "Cors" /* IssuesManager.Issue.IssueCategory.Cors */:
                 return i18nString(UIStrings.cors);
-            case IssuesManager.Issue.IssueCategory.AttributionReporting:
+            case "AttributionReporting" /* IssuesManager.Issue.IssueCategory.AttributionReporting */:
                 return i18nString(UIStrings.attributionReporting);
-            case IssuesManager.Issue.IssueCategory.QuirksMode:
+            case "QuirksMode" /* IssuesManager.Issue.IssueCategory.QuirksMode */:
                 return i18nString(UIStrings.quirksMode);
-            case IssuesManager.Issue.IssueCategory.Generic:
+            case "Generic" /* IssuesManager.Issue.IssueCategory.Generic */:
                 return i18nString(UIStrings.generic);
-            case IssuesManager.Issue.IssueCategory.Other:
+            case "Other" /* IssuesManager.Issue.IssueCategory.Other */:
                 return i18nString(UIStrings.other);
         }
     }
@@ -147,9 +148,8 @@ class IssueCategoryView extends UI.TreeOutline.TreeElement {
     }
 }
 export function getGroupIssuesByCategorySetting() {
-    return Common.Settings.Settings.instance().createSetting('groupIssuesByCategory', false);
+    return Common.Settings.Settings.instance().createSetting('group-issues-by-category', false);
 }
-let issuesPaneInstance;
 export class IssuesPane extends UI.Widget.VBox {
     #categoryViews;
     #issueViews;
@@ -163,6 +163,7 @@ export class IssuesPane extends UI.Widget.VBox {
     #issueViewUpdatePromise = Promise.resolve();
     constructor() {
         super(true);
+        this.element.setAttribute('jslog', `${VisualLogging.panel('issues')}`);
         this.contentElement.classList.add('issues-pane');
         this.#categoryViews = new Map();
         this.#kindViews = new Map();
@@ -186,18 +187,12 @@ export class IssuesPane extends UI.Widget.VBox {
         this.#onFullUpdate();
         this.#issuesManager.addEventListener("IssuesCountUpdated" /* IssuesManager.IssuesManager.Events.IssuesCountUpdated */, this.#updateCounts, this);
     }
-    static instance(opts = { forceNew: null }) {
-        const { forceNew } = opts;
-        if (!issuesPaneInstance || forceNew) {
-            issuesPaneInstance = new IssuesPane();
-        }
-        return issuesPaneInstance;
-    }
     elementsToRestoreScrollPositionsFor() {
         return [this.#issuesTree.element];
     }
     #createToolbars() {
         const toolbarContainer = this.contentElement.createChild('div', 'issues-toolbar-container');
+        toolbarContainer.setAttribute('jslog', `${VisualLogging.toolbar()}`);
         new UI.Toolbar.Toolbar('issues-toolbar-left', toolbarContainer);
         const rightToolbar = new UI.Toolbar.Toolbar('issues-toolbar-right', toolbarContainer);
         const groupByCategorySetting = getGroupIssuesByCategorySetting();
@@ -230,6 +225,7 @@ export class IssuesPane extends UI.Widget.VBox {
             issuesManager: IssuesManager.IssuesManager.IssuesManager.instance(),
         };
         issueCounter.id = 'console-issues-counter';
+        issueCounter.setAttribute('jslog', `${VisualLogging.counter('issues')}`);
         const issuesToolbarItem = new UI.Toolbar.ToolbarItem(issueCounter);
         rightToolbar.appendToolbarItem(issuesToolbarItem);
         return { toolbarContainer };
@@ -420,4 +416,4 @@ export class IssuesPane extends UI.Widget.VBox {
         this.registerCSSFiles([issuesPaneStyles]);
     }
 }
-//# map=IssuesPane.js.map
+//# sourceMappingURL=IssuesPane.js.map

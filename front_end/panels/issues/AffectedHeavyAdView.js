@@ -105,4 +105,4 @@ export class AffectedHeavyAdView extends AffectedResourcesView {
         this.#appendAffectedHeavyAds(this.issue.getHeavyAdIssues());
     }
 }
-//# map=AffectedHeavyAdView.js.map
+//# sourceMappingURL=AffectedHeavyAdView.js.map

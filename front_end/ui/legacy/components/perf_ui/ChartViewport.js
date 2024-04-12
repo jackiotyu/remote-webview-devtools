@@ -34,7 +34,6 @@ export class ChartViewport extends UI.Widget.VBox {
     targetLeftTime;
     targetRightTime;
     selectionOffsetShiftX;
-    selectionOffsetShiftY;
     selectionStartX;
     lastMouseOffsetX;
     minimumBoundary;
@@ -155,7 +154,7 @@ export class ChartViewport extends UI.Widget.VBox {
     onMouseWheel(e) {
         const wheelEvent = e;
         const doZoomInstead = wheelEvent.shiftKey !==
-            (Common.Settings.Settings.instance().moduleSetting('flamechartMouseWheelAction').get() === 'zoom');
+            (Common.Settings.Settings.instance().moduleSetting('flamechart-mouse-wheel-action').get() === 'zoom');
         const panVertically = !doZoomInstead && (wheelEvent.deltaY || Math.abs(wheelEvent.deltaX) === 53);
         const panHorizontally = doZoomInstead && Math.abs(wheelEvent.deltaX) > Math.abs(wheelEvent.deltaY);
         if (panVertically) {
@@ -198,7 +197,6 @@ export class ChartViewport extends UI.Widget.VBox {
         }
         this.isDraggingInternal = true;
         this.selectionOffsetShiftX = event.offsetX - event.pageX;
-        this.selectionOffsetShiftY = event.offsetY - event.pageY;
         this.selectionStartX = event.offsetX;
         const style = this.selectionOverlay.style;
         style.left = this.selectionStartX + 'px';
@@ -262,9 +260,12 @@ export class ChartViewport extends UI.Widget.VBox {
     }
     updateCursorPosition(e) {
         const mouseEvent = e;
-        this.showCursor(mouseEvent.shiftKey);
-        this.cursorElement.style.left = mouseEvent.offsetX + 'px';
         this.lastMouseOffsetX = mouseEvent.offsetX;
+        const shouldShowCursor = mouseEvent.shiftKey && !mouseEvent.metaKey;
+        this.showCursor(shouldShowCursor);
+        if (shouldShowCursor) {
+            this.cursorElement.style.left = mouseEvent.offsetX + 'px';
+        }
     }
     pixelToTime(x) {
         return this.pixelToTimeOffset(x) + this.visibleLeftTime;
@@ -317,7 +318,10 @@ export class ChartViewport extends UI.Widget.VBox {
     }
     handleZoomGesture(zoom) {
         const bounds = { left: this.targetLeftTime, right: this.targetRightTime };
-        const cursorTime = this.pixelToTime(this.lastMouseOffsetX);
+        // If the user has not moved their mouse over the panel (unlikely but
+        // possible!), the offsetX will be undefined. In that case, let's just use
+        // the minimum time / pixel 0 as their mouse point.
+        const cursorTime = this.pixelToTime(this.lastMouseOffsetX || 0);
         bounds.left += (bounds.left - cursorTime) * zoom;
         bounds.right += (bounds.right - cursorTime) * zoom;
         this.requestWindowTimes(bounds, /* animate */ true);
@@ -395,4 +399,4 @@ export class ChartViewport extends UI.Widget.VBox {
         return this.visibleRightTime;
     }
 }
-//# map=ChartViewport.js.map
+//# sourceMappingURL=ChartViewport.js.map

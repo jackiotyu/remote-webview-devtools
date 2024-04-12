@@ -37,4 +37,4 @@ component.data = {
     activeSort: null,
 };
 document.getElementById('container')?.appendChild(component);
-//# map=three_columns.js.map
+//# sourceMappingURL=three_columns.js.map

@@ -52,6 +52,9 @@ const str_ = i18n.i18n.registerUIStrings('panels/sources/GoToLineQuickOpen.ts', 
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 export class GoToLineQuickOpen extends QuickOpen.FilteredListWidget.Provider {
     #goToLineStrings = [];
+    constructor() {
+        super('source-line');
+    }
     selectItem(_itemIndex, promptValue) {
         const sourceFrame = this.currentSourceFrame();
         if (!sourceFrame) {
@@ -149,4 +152,4 @@ export class GoToLineQuickOpen extends QuickOpen.FilteredListWidget.Provider {
         return sourcesView.currentSourceFrame();
     }
 }
-//# map=GoToLineQuickOpen.js.map
+//# sourceMappingURL=GoToLineQuickOpen.js.map

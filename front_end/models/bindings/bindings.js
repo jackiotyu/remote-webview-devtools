@@ -19,4 +19,4 @@ import * as SASSSourceMapping from './SASSSourceMapping.js';
 import * as StylesSourceMapping from './StylesSourceMapping.js';
 import * as TempFile from './TempFile.js';
 export { CompilerScriptMapping, ContentProviderBasedProject, CSSWorkspaceBinding, DebuggerLanguagePlugins, DebuggerWorkspaceBinding, DefaultScriptMapping, FileUtils, IgnoreListManager, LiveLocation, NetworkProject, PresentationConsoleMessageHelper, ResourceMapping, ResourceScriptMapping, ResourceUtils, SASSSourceMapping, StylesSourceMapping, TempFile, };
-//# map=bindings.js.map
+//# sourceMappingURL=bindings.js.map

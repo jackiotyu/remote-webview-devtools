@@ -34,4 +34,4 @@ export class AffectedElementsView extends AffectedResourcesView {
         void this.#appendAffectedElements(this.issue.elements());
     }
 }
-//# map=AffectedElementsView.js.map
+//# sourceMappingURL=AffectedElementsView.js.map

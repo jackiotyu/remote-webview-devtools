@@ -29,8 +29,7 @@
  */
 import * as Common from '../../core/common/common.js';
 import { UISourceCode } from './UISourceCode.js';
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum, @typescript-eslint/naming-convention
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export var projectTypes;
 (function (projectTypes) {
     projectTypes["Debugger"] = "debugger";
@@ -169,7 +168,9 @@ export class WorkspaceImpl extends Common.ObjectWrapper.ObjectWrapper {
         const result = [];
         for (const project of this.projectsInternal.values()) {
             if (project.type() === type) {
-                result.push(...project.uiSourceCodes());
+                for (const uiSourceCode of project.uiSourceCodes()) {
+                    result.push(uiSourceCode);
+                }
             }
         }
         return result;
@@ -198,7 +199,9 @@ export class WorkspaceImpl extends Common.ObjectWrapper.ObjectWrapper {
     uiSourceCodes() {
         const result = [];
         for (const project of this.projectsInternal.values()) {
-            result.push(...project.uiSourceCodes());
+            for (const uiSourceCode of project.uiSourceCodes()) {
+                result.push(uiSourceCode);
+            }
         }
         return result;
     }
@@ -209,8 +212,6 @@ export class WorkspaceImpl extends Common.ObjectWrapper.ObjectWrapper {
         return this.hasResourceContentTrackingExtensionsInternal;
     }
 }
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
 export var Events;
 (function (Events) {
     Events["UISourceCodeAdded"] = "UISourceCodeAdded";
@@ -222,4 +223,4 @@ export var Events;
     Events["ProjectAdded"] = "ProjectAdded";
     Events["ProjectRemoved"] = "ProjectRemoved";
 })(Events || (Events = {}));
-//# map=WorkspaceImpl.js.map
+//# sourceMappingURL=WorkspaceImpl.js.map

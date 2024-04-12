@@ -108,5 +108,5 @@ class TracingDispatcher {
         this.#tracingManager.tracingComplete();
     }
 }
-SDK.SDKModel.SDKModel.register(TracingManager, { capabilities: SDK.Target.Capability.Tracing, autostart: false });
-//# map=TracingManager.js.map
+SDK.SDKModel.SDKModel.register(TracingManager, { capabilities: 128 /* SDK.Target.Capability.Tracing */, autostart: false });
+//# sourceMappingURL=TracingManager.js.map

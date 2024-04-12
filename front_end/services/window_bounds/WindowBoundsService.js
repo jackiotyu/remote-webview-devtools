@@ -15,4 +15,4 @@ export class WindowBoundsServiceImpl {
         return Legacy.InspectorView.InspectorView.maybeGetInspectorViewInstance()?.element || document.body;
     }
 }
-//# map=WindowBoundsService.js.map
+//# sourceMappingURL=WindowBoundsService.js.map

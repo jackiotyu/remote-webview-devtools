@@ -79,4 +79,4 @@ export class TempFile {
         this.#lastBlob = null;
     }
 }
-//# map=TempFile.js.map
+//# sourceMappingURL=TempFile.js.map

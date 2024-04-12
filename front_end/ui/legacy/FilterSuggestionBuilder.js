@@ -59,4 +59,4 @@ export class FilterSuggestionBuilder {
         this.valuesMap.clear();
     }
 }
-//# map=FilterSuggestionBuilder.js.map
+//# sourceMappingURL=FilterSuggestionBuilder.js.map

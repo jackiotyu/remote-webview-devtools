@@ -7,4 +7,4 @@ import * as InspectorMain from './InspectorMain.js';
 import * as OutermostTargetSelector from './OutermostTargetSelector.js';
 import * as RenderingOptions from './RenderingOptions.js';
 export { InspectorMain, OutermostTargetSelector, RenderingOptions, };
-//# map=inspector_main.js.map
+//# sourceMappingURL=inspector_main.js.map

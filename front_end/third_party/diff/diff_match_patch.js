@@ -534,4 +534,4 @@
     window.DIFF_INSERT = 1;
     window.DIFF_EQUAL = 0;
 })();
-//# map=diff_match_patch.js.map
+//# sourceMappingURL=diff_match_patch.js.map

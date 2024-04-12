@@ -105,4 +105,4 @@ export const getNewAngleFromEvent = (angle, event) => {
     const radian = getRadiansFromAngle(angle);
     return getAngleFromRadians(radian + diff, angle.unit);
 };
-//# map=CSSAngleUtils.js.map
+//# sourceMappingURL=CSSAngleUtils.js.map

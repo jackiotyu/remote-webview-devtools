@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as WorkspaceDiff from './WorkspaceDiff.js';
 export { WorkspaceDiff, };
-//# map=workspace_diff.js.map
+//# sourceMappingURL=workspace_diff.js.map

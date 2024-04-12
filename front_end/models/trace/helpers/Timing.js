@@ -107,7 +107,7 @@ export function eventTimingsMicroSeconds(event) {
         duration: Types.Timing.MicroSeconds(event.dur || 0),
         // TODO(crbug.com/1434599): Implement selfTime calculation for events
         // from the new engine.
-        selfTime: Types.TraceEvents.isRendererEvent(event) ? Types.Timing.MicroSeconds(event.selfTime || 0) :
+        selfTime: Types.TraceEvents.isSyntheticTraceEntry(event) ? Types.Timing.MicroSeconds(event.selfTime || 0) :
             Types.Timing.MicroSeconds(event.dur || 0),
     };
 }
@@ -129,11 +129,34 @@ export function eventTimingsSeconds(event) {
         selfTime: microSecondsToSeconds(microTimes.selfTime),
     };
 }
-export function traceBoundsMilliseconds(bounds) {
+export function traceWindowMilliSeconds(bounds) {
     return {
         min: microSecondsToMilliseconds(bounds.min),
         max: microSecondsToMilliseconds(bounds.max),
         range: microSecondsToMilliseconds(bounds.range),
     };
 }
-//# map=Timing.js.map
+export function traceWindowMillisecondsToMicroSeconds(bounds) {
+    return {
+        min: millisecondsToMicroseconds(bounds.min),
+        max: millisecondsToMicroseconds(bounds.max),
+        range: millisecondsToMicroseconds(bounds.range),
+    };
+}
+export function traceWindowFromMilliSeconds(min, max) {
+    const traceWindow = {
+        min: millisecondsToMicroseconds(min),
+        max: millisecondsToMicroseconds(max),
+        range: Types.Timing.MicroSeconds(millisecondsToMicroseconds(max) - millisecondsToMicroseconds(min)),
+    };
+    return traceWindow;
+}
+export function traceWindowFromMicroSeconds(min, max) {
+    const traceWindow = {
+        min,
+        max,
+        range: Types.Timing.MicroSeconds(max - min),
+    };
+    return traceWindow;
+}
+//# sourceMappingURL=Timing.js.map

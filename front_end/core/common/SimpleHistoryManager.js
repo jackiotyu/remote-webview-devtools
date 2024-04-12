@@ -138,4 +138,4 @@ export class SimpleHistoryManager {
         return true;
     }
 }
-//# map=SimpleHistoryManager.js.map
+//# sourceMappingURL=SimpleHistoryManager.js.map

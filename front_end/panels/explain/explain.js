@@ -1,6 +1,7 @@
 // Copyright 2023 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-export * from './ExplainPopover.js';
+export * from './components/ConsoleInsight.js';
 export * from './ActionDelegate.js';
-//# map=explain.js.map
+export * from './PromptBuilder.js';
+//# sourceMappingURL=explain.js.map

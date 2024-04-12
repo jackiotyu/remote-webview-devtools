@@ -1,7 +1,7 @@
 // Copyright 2020 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import * as EnvironmentHelpers from '../../../../../test/unittests/front_end/helpers/EnvironmentHelpers.js';
+import * as EnvironmentHelpers from '../../../../testing/EnvironmentHelpers.js';
 import * as DataGrid from '../../data_grid/data_grid.js';
 import * as ComponentHelpers from '../../helpers/helpers.js';
 await EnvironmentHelpers.initializeGlobalVars();
@@ -19,7 +19,7 @@ component.data = {
         { cells: [{ columnId: 'key', value: 'Charlie', title: 'Charlie' }, { columnId: 'value', value: 'Letter C' }] },
     ],
     contextMenus: {
-        bodyRow: (menu) => {
+        bodyRow: menu => {
             menu.defaultSection().appendItem('Hello World', () => {
                 alert('You clicked!');
             });
@@ -27,4 +27,4 @@ component.data = {
     },
 };
 document.getElementById('container')?.appendChild(component);
-//# map=custom-context-menu-items.js.map
+//# sourceMappingURL=custom-context-menu-items.js.map

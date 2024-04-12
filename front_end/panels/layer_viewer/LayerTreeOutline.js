@@ -202,7 +202,7 @@ export class LayerTreeOutline extends Common.ObjectWrapper.eventMixin(UI.TreeOut
         if (layer) {
             this.layerSnapshotMap = this.layerViewHost.getLayerSnapshotMap();
             if (this.layerSnapshotMap.has(layer)) {
-                contextMenu.defaultSection().appendItem(i18nString(UIStrings.showPaintProfiler), () => this.dispatchEventToListeners("PaintProfilerRequested" /* Events.PaintProfilerRequested */, selection), false);
+                contextMenu.defaultSection().appendItem(i18nString(UIStrings.showPaintProfiler), () => this.dispatchEventToListeners("PaintProfilerRequested" /* Events.PaintProfilerRequested */, selection), { jslogContext: 'layers.paint-profiler' });
             }
         }
         this.layerViewHost.showContextMenu(contextMenu, selection);
@@ -241,4 +241,4 @@ export class LayerTreeElement extends UI.TreeOutline.TreeElement {
     }
 }
 export const layerToTreeElement = new WeakMap();
-//# map=LayerTreeOutline.js.map
+//# sourceMappingURL=LayerTreeOutline.js.map

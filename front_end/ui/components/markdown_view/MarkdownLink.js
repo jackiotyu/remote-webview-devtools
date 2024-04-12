@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import '../../legacy/legacy.js'; // Required for <x-link>.
-import * as ComponentHelpers from '../../components/helpers/helpers.js';
 import * as LitHtml from '../../lit-html/lit-html.js';
+import * as VisualLogging from '../../visual_logging/visual_logging.js';
 import markdownLinkStyles from './markdownLink.css.js';
 import { getMarkdownLink } from './MarkdownLinksMap.js';
 /**
@@ -29,11 +29,11 @@ export class MarkdownLink extends HTMLElement {
     #render() {
         // clang-format off
         const output = LitHtml.html `
-      <x-link class="devtools-link" href=${this.#linkUrl}>${this.#linkText}</x-link>
+      <x-link class="devtools-link" href=${this.#linkUrl} jslog=${VisualLogging.link().track({ click: true })}>${this.#linkText}</x-link>
     `;
         LitHtml.render(output, this.#shadow, { host: this });
         // clang-format on
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-markdown-link', MarkdownLink);
-//# map=MarkdownLink.js.map
+customElements.define('devtools-markdown-link', MarkdownLink);
+//# sourceMappingURL=MarkdownLink.js.map

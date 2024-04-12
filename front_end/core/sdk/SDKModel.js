@@ -43,4 +43,4 @@ export class SDKModel extends Common.ObjectWrapper.ObjectWrapper {
         return registeredModels;
     }
 }
-//# map=SDKModel.js.map
+//# sourceMappingURL=SDKModel.js.map

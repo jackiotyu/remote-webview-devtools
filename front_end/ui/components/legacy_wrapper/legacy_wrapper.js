@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as LegacyWrapper from './LegacyWrapper.js';
 export { LegacyWrapper, };
-//# map=legacy_wrapper.js.map
+//# sourceMappingURL=legacy_wrapper.js.map

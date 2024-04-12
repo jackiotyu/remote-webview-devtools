@@ -20,4 +20,4 @@ import * as LayoutPaneUtils from './LayoutPaneUtils.js';
 import * as QueryContainer from './QueryContainer.js';
 import * as StylePropertyEditor from './StylePropertyEditor.js';
 export { AccessibilityTreeNode, AdornerManager, AdornerSettingsPane, ComputedStyleProperty, ComputedStyleTrace, CSSHintDetailsView, CSSPropertyDocsView, CSSPropertyIconResolver, CSSQuery, CSSVariableValueView, ElementsBreadcrumbs, ElementsBreadcrumbsUtils, ElementsTreeExpandButton, Helper, LayoutPane, LayoutPaneUtils, QueryContainer, StylePropertyEditor, };
-//# map=components.js.map
+//# sourceMappingURL=components.js.map

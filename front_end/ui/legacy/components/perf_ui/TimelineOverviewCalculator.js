@@ -55,4 +55,4 @@ export class TimelineOverviewCalculator {
         return TraceEngine.Types.Timing.MilliSeconds(this.#maximumBoundary - this.#minimumBoundary);
     }
 }
-//# map=TimelineOverviewCalculator.js.map
+//# sourceMappingURL=TimelineOverviewCalculator.js.map

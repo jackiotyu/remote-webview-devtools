@@ -2,9 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as Common from '../../../core/common/common.js';
-import * as LitHtml from '../../lit-html/lit-html.js';
 import * as i18n from '../../../core/i18n/i18n.js';
-import * as ComponentHelpers from '../../components/helpers/helpers.js';
+import * as LitHtml from '../../lit-html/lit-html.js';
 import * as IconButton from '../icon_button/icon_button.js';
 import surveyLinkStyles from './surveyLink.css.js';
 const UIStrings = {
@@ -95,7 +94,7 @@ export class SurveyLink extends HTMLElement {
         // eslint-disable-next-line rulesdir/ban_style_tags_in_lit_html
         const output = LitHtml.html `
       <button class="link ${linkState}" tabindex=${ariaDisabled ? '-1' : '0'} .disabled=${ariaDisabled} aria-disabled=${ariaDisabled} @click=${this.#sendSurvey}>
-        <${IconButton.Icon.Icon.litTagName} class="link-icon" .data=${{ iconName: 'review', color: 'var(--color-link)', width: 'var(--issue-link-icon-size, 16px)', height: 'var(--issue-link-icon-size, 16px)' }}></${IconButton.Icon.Icon.litTagName}><!--
+        <${IconButton.Icon.Icon.litTagName} class="link-icon" .data=${{ iconName: 'review', color: 'var(--sys-color-primary)', width: 'var(--issue-link-icon-size, 16px)', height: 'var(--issue-link-icon-size, 16px)' }}></${IconButton.Icon.Icon.litTagName}><!--
       -->${linkText}
       </button>
     `;
@@ -103,5 +102,5 @@ export class SurveyLink extends HTMLElement {
         LitHtml.render(output, this.#shadow, { host: this });
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-survey-link', SurveyLink);
-//# map=SurveyLink.js.map
+customElements.define('devtools-survey-link', SurveyLink);
+//# sourceMappingURL=SurveyLink.js.map

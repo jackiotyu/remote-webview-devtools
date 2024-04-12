@@ -37,7 +37,7 @@ import { DOMModel } from './DOMModel.js';
 import { Events as NetworkManagerEvents, NetworkManager } from './NetworkManager.js';
 import { Resource } from './Resource.js';
 import { ExecutionContext, RuntimeModel } from './RuntimeModel.js';
-import { Capability, Type } from './Target.js';
+import { Type } from './Target.js';
 import { SDKModel } from './SDKModel.js';
 import { TargetManager } from './TargetManager.js';
 import { SecurityOriginManager } from './SecurityOriginManager.js';
@@ -201,6 +201,9 @@ export class ResourceTreeModel extends SDKModel {
         if (type) {
             frame.backForwardCacheDetails.restoredFromCache = type === "BackForwardCacheRestore" /* Protocol.Page.NavigationType.BackForwardCacheRestore */;
         }
+        if (frame.isMainFrame()) {
+            this.target().setInspectedURL(frame.url);
+        }
         this.dispatchEventToListeners(Events.FrameNavigated, frame);
         if (frame.isPrimaryFrame()) {
             this.primaryPageChanged(frame, "Navigation" /* PrimaryPageChangeType.Navigation */);
@@ -209,9 +212,6 @@ export class ResourceTreeModel extends SDKModel {
         const resources = frame.resources();
         for (let i = 0; i < resources.length; ++i) {
             this.dispatchEventToListeners(Events.ResourceAdded, resources[i]);
-        }
-        if (frame.isMainFrame()) {
-            this.target().setInspectedURL(frame.url);
         }
         this.updateSecurityOrigins();
         void this.updateStorageKeys();
@@ -361,8 +361,6 @@ export class ResourceTreeModel extends SDKModel {
         this.dispatchEventToListeners(Events.WillReloadPage);
         void this.agent.invoke_reload({ ignoreCache, scriptToEvaluateOnLoad });
     }
-    // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     navigate(url) {
         return this.agent.invoke_navigate({ url });
     }
@@ -508,8 +506,6 @@ export class ResourceTreeModel extends SDKModel {
         // No need to dispatch events here as this method call is followed by a `PrimaryPageChanged` event.
     }
 }
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
 export var Events;
 (function (Events) {
     Events["FrameAdded"] = "FrameAdded";
@@ -517,8 +513,6 @@ export var Events;
     Events["FrameDetached"] = "FrameDetached";
     Events["FrameResized"] = "FrameResized";
     Events["FrameWillNavigate"] = "FrameWillNavigate";
-    // Primary page changes can be either main frame navigations or activations of a background frame.
-    // TODO(crbug.com/1393057): Let frame activations trigger this event.
     Events["PrimaryPageChanged"] = "PrimaryPageChanged";
     Events["ResourceAdded"] = "ResourceAdded";
     Events["WillLoadCachedResources"] = "WillLoadCachedResources";
@@ -563,7 +557,7 @@ export class ResourceTreeFrame {
         this.#sameTargetParentFrameInternal = parentFrame;
         this.#idInternal = frameId;
         this.crossTargetParentFrameId = null;
-        this.#loaderIdInternal = (payload && payload.loaderId) || '';
+        this.#loaderIdInternal = payload?.loaderId || '';
         this.#nameInternal = payload && payload.name;
         this.#urlInternal =
             payload && payload.url || Platform.DevToolsPath.EmptyUrlString;
@@ -726,7 +720,7 @@ export class ResourceTreeFrame {
             !this.crossTargetParentFrameId;
     }
     /**
-     * Returns true is this is the primary frame of the browser tab. There can only be one primary frame for each
+     * Returns true if this is the primary frame of the browser tab. There can only be one primary frame for each
      * browser tab. It is the outermost frame being actively displayed in the browser tab.
      * https://chromium.googlesource.com/chromium/src/+/HEAD/docs/frame_trees.md
      */
@@ -954,5 +948,5 @@ export class PageDispatcher {
     downloadProgress() {
     }
 }
-SDKModel.register(ResourceTreeModel, { capabilities: Capability.DOM, autostart: true, early: true });
-//# map=ResourceTreeModel.js.map
+SDKModel.register(ResourceTreeModel, { capabilities: 2 /* Capability.DOM */, autostart: true, early: true });
+//# sourceMappingURL=ResourceTreeModel.js.map

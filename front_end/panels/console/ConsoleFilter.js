@@ -123,12 +123,10 @@ export class ConsoleFilter {
         }
     }
 }
-// TODO(crbug.com/1167717): Make this a const enum again
-// eslint-disable-next-line rulesdir/const_enum
 export var FilterType;
 (function (FilterType) {
     FilterType["Context"] = "context";
     FilterType["Source"] = "source";
     FilterType["Url"] = "url";
 })(FilterType || (FilterType = {}));
-//# map=ConsoleFilter.js.map
+//# sourceMappingURL=ConsoleFilter.js.map

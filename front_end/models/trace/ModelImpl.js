@@ -26,11 +26,8 @@ export class Model extends EventTarget {
     #lastRecordingIndex = 0;
     #processor;
     #config = Types.Configuration.DEFAULT;
-    static createWithAllHandlers() {
-        return new Model(Handlers.ModelHandlers);
-    }
-    static createWithRequiredHandlersForMigration(config) {
-        return new Model(Handlers.Migration.ENABLED_TRACE_HANDLERS, config);
+    static createWithAllHandlers(config) {
+        return new Model(Handlers.ModelHandlers, config);
     }
     constructor(handlers, config) {
         super();
@@ -90,12 +87,13 @@ export class Model extends EventTarget {
             traceEvents,
             metadata,
             traceParsedData: null,
+            traceInsights: null,
         };
         try {
             // Wait for all outstanding promises before finishing the async execution,
             // but perform all tasks in parallel.
             await this.#processor.parse(traceEvents, isFreshRecording);
-            this.#storeParsedFileData(file, this.#processor.data);
+            this.#storeParsedFileData(file, this.#processor.traceParsedData, this.#processor.insights);
             // We only push the file onto this.#traces here once we know it's valid
             // and there's been no errors in the parsing.
             this.#traces.push(file);
@@ -110,8 +108,9 @@ export class Model extends EventTarget {
             this.dispatchEvent(new ModelUpdateEvent({ type: "COMPLETE" /* ModelUpdateType.COMPLETE */, data: 'done' }));
         }
     }
-    #storeParsedFileData(file, data) {
+    #storeParsedFileData(file, data, insights) {
         file.traceParsedData = data;
+        file.traceInsights = insights;
         this.#lastRecordingIndex++;
         let recordingName = `Trace ${this.#lastRecordingIndex}`;
         let origin = null;
@@ -134,6 +133,12 @@ export class Model extends EventTarget {
             return null;
         }
         return this.#traces[index].traceParsedData;
+    }
+    traceInsights(index = this.#traces.length - 1) {
+        if (!this.#traces[index]) {
+            return null;
+        }
+        return this.#traces[index].traceInsights;
     }
     metadata(index) {
         if (!this.#traces[index]) {
@@ -175,4 +180,4 @@ export function isModelUpdateDataComplete(eventData) {
 export function isModelUpdateDataProgress(eventData) {
     return eventData.type === "PROGRESS_UPDATE" /* ModelUpdateType.PROGRESS_UPDATE */;
 }
-//# map=ModelImpl.js.map
+//# sourceMappingURL=ModelImpl.js.map

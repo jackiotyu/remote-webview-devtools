@@ -281,7 +281,7 @@ class ModelInfo {
         }
         if ((resourceType === Common.ResourceType.resourceTypes.Image ||
             resourceType === Common.ResourceType.resourceTypes.Font) &&
-            resource.contentURL().startsWith('data:')) {
+            Common.ParsedURL.schemeIs(resource.contentURL(), 'data:')) {
             return false;
         }
         return true;
@@ -470,8 +470,11 @@ class Binding {
     requestContent() {
         return this.firstResource().requestContent();
     }
+    requestContentData() {
+        return this.firstResource().requestContentData();
+    }
     searchInContent(query, caseSensitive, isRegex) {
         return this.firstResource().searchInContent(query, caseSensitive, isRegex);
     }
 }
-//# map=ResourceMapping.js.map
+//# sourceMappingURL=ResourceMapping.js.map

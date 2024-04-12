@@ -111,4 +111,4 @@ export class SearchConfig {
 }
 // After file: prefix: any symbol except space and backslash or any symbol escaped with a backslash.
 const FilePatternRegex = /(-)?f(ile)?:((?:[^\\ ]|\\.)+)/;
-//# map=SearchConfig.js.map
+//# sourceMappingURL=SearchConfig.js.map

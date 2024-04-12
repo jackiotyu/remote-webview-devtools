@@ -27,22 +27,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 import * as Common from '../../../../core/common/common.js';
-import * as Root from '../../../../core/root/root.js';
 import * as Host from '../../../../core/host/host.js';
 import * as i18n from '../../../../core/i18n/i18n.js';
-import * as LinearMemoryInspector from '../../../components/linear_memory_inspector/linear_memory_inspector.js';
 import * as Platform from '../../../../core/platform/platform.js';
+import * as Root from '../../../../core/root/root.js';
 import * as SDK from '../../../../core/sdk/sdk.js';
-import * as TextUtils from '../../../../models/text_utils/text_utils.js';
 import * as JavaScriptMetaData from '../../../../models/javascript_metadata/javascript_metadata.js';
+import * as TextUtils from '../../../../models/text_utils/text_utils.js';
 import * as IconButton from '../../../components/icon_button/icon_button.js';
 import * as TextEditor from '../../../components/text_editor/text_editor.js';
+import * as VisualLogging from '../../../visual_logging/visual_logging.js';
 import * as UI from '../../legacy.js';
 import { CustomPreviewComponent } from './CustomPreviewComponent.js';
 import { JavaScriptREPL } from './JavaScriptREPL.js';
-import { createSpansForNodeTitle, RemoteObjectPreviewFormatter } from './RemoteObjectPreviewFormatter.js';
-import objectValueStyles from './objectValue.css.js';
 import objectPropertiesSectionStyles from './objectPropertiesSection.css.js';
+import objectValueStyles from './objectValue.css.js';
+import { createSpansForNodeTitle, RemoteObjectPreviewFormatter } from './RemoteObjectPreviewFormatter.js';
 const UIStrings = {
     /**
      *@description Text in Object Properties Section
@@ -122,9 +122,9 @@ const UIStrings = {
     /**
      * @description A tooltip text that shows when hovering over a button next to value objects,
      * which are based on bytes and can be shown in a hexadecimal viewer.
-     * Clicking on the button will display that object in the memory inspector panel.
+     * Clicking on the button will display that object in the Memory inspector panel.
      */
-    revealInMemoryInpector: 'Reveal in Memory Inspector panel',
+    revealInMemoryInpector: 'Reveal in Memory inspector panel',
 };
 const str_ = i18n.i18n.registerUIStrings('ui/legacy/components/object_ui/ObjectPropertiesSection.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
@@ -178,7 +178,7 @@ export class ObjectPropertiesSection extends UI.TreeOutline.TreeOutlineInShadow 
     static defaultObjectPropertiesSection(object, linkifier, skipProto, readOnly) {
         const titleElement = document.createElement('span');
         titleElement.classList.add('source-code');
-        const shadowRoot = UI.Utils.createShadowRootWithCoreStyles(titleElement, {
+        const shadowRoot = UI.UIUtils.createShadowRootWithCoreStyles(titleElement, {
             cssFile: [objectValueStyles],
             delegatesFocus: undefined,
         });
@@ -213,6 +213,28 @@ export class ObjectPropertiesSection extends UI.TreeOutline.TreeOutlineInShadow 
             const webIdlProperty = webIdlProps[property.name];
             if (webIdlProperty) {
                 property.webIdl = { info: webIdlProperty };
+            }
+        }
+        const names = ObjectPropertiesSection.getPropertyValuesByNames(properties);
+        const parentRules = value.webIdl.info.rules;
+        if (parentRules) {
+            for (const { when: name, is: expected } of parentRules) {
+                if (names.get(name)?.value === expected) {
+                    value.webIdl.state.set(name, expected);
+                }
+            }
+        }
+        for (const property of properties) {
+            if (property.webIdl) {
+                const parentState = value.webIdl.state;
+                const propertyRules = property.webIdl.info.rules;
+                if (!parentRules && !propertyRules) {
+                    property.webIdl.applicable = true;
+                }
+                else {
+                    property.webIdl.applicable =
+                        !propertyRules || propertyRules?.some(rule => parentState.get(rule.when) === rule.is);
+                }
             }
         }
     }
@@ -369,10 +391,8 @@ export class ObjectPropertiesSection extends UI.TreeOutline.TreeOutlineInShadow 
         }
         return ObjectPropertiesSection.createPropertyValue(value, wasThrown, showPreview, parentElement, linkifier, isSyntheticProperty, variableName);
     }
-    static appendMemoryIcon(element, obj, expression) {
-        const isOfMemoryType = (obj.type === 'object' && obj.subtype &&
-            LinearMemoryInspector.LinearMemoryInspectorController.ACCEPTED_MEMORY_TYPES.includes(obj.subtype));
-        if (!isOfMemoryType && !LinearMemoryInspector.LinearMemoryInspectorController.isDWARFMemoryObject(obj)) {
+    static appendMemoryIcon(element, object, expression) {
+        if (!object.isLinearMemoryInspectable()) {
             return;
         }
         const memoryIcon = new IconButton.Icon.Icon();
@@ -382,12 +402,10 @@ export class ObjectPropertiesSection extends UI.TreeOutline.TreeOutlineInShadow 
             width: '16px',
             height: '13px',
         };
-        memoryIcon.onclick = async (event) => {
-            event.stopPropagation();
-            const controller = LinearMemoryInspector.LinearMemoryInspectorController.LinearMemoryInspectorController.instance();
-            Host.userMetrics.linearMemoryInspectorRevealedFrom(Host.UserMetrics.LinearMemoryInspectorRevealedFrom.MemoryIcon);
-            void controller.openInspectorView(obj, /* address */ undefined, expression);
-        };
+        memoryIcon.addEventListener('click', event => {
+            event.consume();
+            void Common.Revealer.reveal(new SDK.RemoteObject.LinearMemoryInspectable(object, expression));
+        });
         const revealText = i18nString(UIStrings.revealInMemoryInpector);
         UI.Tooltip.Tooltip.install(memoryIcon, revealText);
         UI.ARIAUtils.setLabel(memoryIcon, revealText);
@@ -549,8 +567,8 @@ export class ObjectPropertiesSection extends UI.TreeOutline.TreeOutlineInShadow 
         const contextMenu = new UI.ContextMenu.ContextMenu(event);
         contextMenu.appendApplicableItems(this.object);
         if (this.object instanceof SDK.RemoteObject.LocalJSONObject) {
-            contextMenu.viewSection().appendItem(i18nString(UIStrings.expandRecursively), this.objectTreeElementInternal.expandRecursively.bind(this.objectTreeElementInternal, EXPANDABLE_MAX_DEPTH));
-            contextMenu.viewSection().appendItem(i18nString(UIStrings.collapseChildren), this.objectTreeElementInternal.collapseChildren.bind(this.objectTreeElementInternal));
+            contextMenu.viewSection().appendItem(i18nString(UIStrings.expandRecursively), this.objectTreeElementInternal.expandRecursively.bind(this.objectTreeElementInternal, EXPANDABLE_MAX_DEPTH), { jslogContext: 'expand-recursively' });
+            contextMenu.viewSection().appendItem(i18nString(UIStrings.collapseChildren), this.objectTreeElementInternal.collapseChildren.bind(this.objectTreeElementInternal), { jslogContext: 'collapse-children' });
         }
         void contextMenu.show();
     }
@@ -577,7 +595,6 @@ export class ObjectPropertiesSectionsTreeOutline extends UI.TreeOutline.TreeOutl
         this.editable = !(options && options.readOnly);
         this.contentElement.classList.add('source-code');
         this.contentElement.classList.add('object-properties-section');
-        this.hideOverflow();
     }
 }
 export class RootElement extends UI.TreeOutline.TreeElement {
@@ -626,10 +643,10 @@ export class RootElement extends UI.TreeOutline.TreeElement {
                 Host.userMetrics.actionTaken(Host.UserMetrics.Action.NetworkPanelCopyValue);
                 Host.InspectorFrontendHost.InspectorFrontendHostInstance.copyText(propertyValue);
             };
-            contextMenu.clipboardSection().appendItem(i18nString(UIStrings.copyValue), copyValueHandler);
+            contextMenu.clipboardSection().appendItem(i18nString(UIStrings.copyValue), copyValueHandler, { jslogContext: 'copy-value' });
         }
-        contextMenu.viewSection().appendItem(i18nString(UIStrings.expandRecursively), this.expandRecursively.bind(this, EXPANDABLE_MAX_DEPTH));
-        contextMenu.viewSection().appendItem(i18nString(UIStrings.collapseChildren), this.collapseChildren.bind(this));
+        contextMenu.viewSection().appendItem(i18nString(UIStrings.expandRecursively), this.expandRecursively.bind(this, EXPANDABLE_MAX_DEPTH), { jslogContext: 'expand-recursively' });
+        contextMenu.viewSection().appendItem(i18nString(UIStrings.collapseChildren), this.collapseChildren.bind(this), { jslogContext: 'collapse-children' });
         void contextMenu.show();
     }
     async onpopulate() {
@@ -694,30 +711,6 @@ export class ObjectPropertyTreeElement extends UI.TreeOutline.TreeElement {
     }
     static populateWithProperties(treeNode, properties, internalProperties, skipProto, skipGettersAndSetters, value, linkifier, emptyPlaceholder) {
         ObjectPropertiesSection.assignWebIDLMetadata(value, properties);
-        const names = ObjectPropertiesSection.getPropertyValuesByNames(properties);
-        if (value?.webIdl) {
-            const parentRules = value.webIdl.info.rules;
-            if (parentRules) {
-                for (const { when: name, is: expected } of parentRules) {
-                    if (names.get(name)?.value === expected) {
-                        value.webIdl.state.set(name, expected);
-                    }
-                }
-            }
-            for (const property of properties) {
-                if (property.webIdl) {
-                    const parentState = value.webIdl.state;
-                    const propertyRules = property.webIdl.info.rules;
-                    if (!parentRules && !propertyRules) {
-                        property.webIdl.applicable = true;
-                    }
-                    else {
-                        property.webIdl.applicable =
-                            !propertyRules || propertyRules?.some(rule => parentState.get(rule.when) === rule.is);
-                    }
-                }
-            }
-        }
         properties.sort(ObjectPropertiesSection.compareProperties);
         internalProperties = internalProperties || [];
         const entriesProperty = internalProperties.find(property => property.name === '[[Entries]]');
@@ -995,7 +988,7 @@ export class ObjectPropertyTreeElement extends UI.TreeOutline.TreeElement {
         if (this.property.value && valueText && !this.property.wasThrown) {
             this.expandedValueElement = this.createExpandedValueElement(this.property.value, this.property.synthetic);
         }
-        const experiment = Root.Runtime.experiments.isEnabled(Root.Runtime.ExperimentName.IMPORTANT_DOM_PROPERTIES);
+        const experiment = Root.Runtime.experiments.isEnabled("important-dom-properties" /* Root.Runtime.ExperimentName.IMPORTANT_DOM_PROPERTIES */);
         let adorner = '';
         let container;
         if (this.property.webIdl?.applicable && experiment) {
@@ -1068,16 +1061,16 @@ export class ObjectPropertyTreeElement extends UI.TreeOutline.TreeElement {
                     Host.userMetrics.actionTaken(Host.UserMetrics.Action.NetworkPanelCopyValue);
                     Host.InspectorFrontendHost.InspectorFrontendHostInstance.copyText(propertyValue);
                 };
-                contextMenu.clipboardSection().appendItem(i18nString(UIStrings.copyValue), copyValueHandler);
+                contextMenu.clipboardSection().appendItem(i18nString(UIStrings.copyValue), copyValueHandler, { jslogContext: 'copy-value' });
             }
         }
         if (!this.property.synthetic && this.nameElement && this.nameElement.title) {
             const copyPathHandler = Host.InspectorFrontendHost.InspectorFrontendHostInstance.copyText.bind(Host.InspectorFrontendHost.InspectorFrontendHostInstance, this.nameElement.title);
-            contextMenu.clipboardSection().appendItem(i18nString(UIStrings.copyPropertyPath), copyPathHandler);
+            contextMenu.clipboardSection().appendItem(i18nString(UIStrings.copyPropertyPath), copyPathHandler, { jslogContext: 'copy-property-path' });
         }
         if (parentMap.get(this.property) instanceof SDK.RemoteObject.LocalJSONObject) {
-            contextMenu.viewSection().appendItem(i18nString(UIStrings.expandRecursively), this.expandRecursively.bind(this, EXPANDABLE_MAX_DEPTH));
-            contextMenu.viewSection().appendItem(i18nString(UIStrings.collapseChildren), this.collapseChildren.bind(this));
+            contextMenu.viewSection().appendItem(i18nString(UIStrings.expandRecursively), this.expandRecursively.bind(this, EXPANDABLE_MAX_DEPTH), { jslogContext: 'expand-recursively' });
+            contextMenu.viewSection().appendItem(i18nString(UIStrings.collapseChildren), this.collapseChildren.bind(this), { jslogContext: 'collapse-children' });
         }
         if (this.propertyValue) {
             this.propertyValue.appendApplicableItems(event, contextMenu, {});
@@ -1553,44 +1546,32 @@ export class ExpandableTextPropertyValue extends ObjectPropertyValue {
         this.maxLength = maxLength;
         container.textContent = text.slice(0, maxLength);
         UI.Tooltip.Tooltip.install(container, `${text.slice(0, maxLength)}…`);
-        this.expandElement = container.createChild('span');
+        this.expandElement = container.createChild('button');
         this.maxDisplayableTextLength = 10000000;
         const byteCount = Platform.StringUtilities.countWtf8Bytes(text);
         const totalBytesText = Platform.NumberUtilities.bytesToString(byteCount);
         if (this.text.length < this.maxDisplayableTextLength) {
             this.expandElementText = i18nString(UIStrings.showMoreS, { PH1: totalBytesText });
             this.expandElement.setAttribute('data-text', this.expandElementText);
+            this.expandElement.setAttribute('jslog', `${VisualLogging.action('expand').track({ click: true })}`);
             this.expandElement.classList.add('expandable-inline-button');
             this.expandElement.addEventListener('click', this.expandText.bind(this));
-            this.expandElement.addEventListener('keydown', (event) => {
-                const keyboardEvent = event;
-                if (keyboardEvent.key === 'Enter' || keyboardEvent.key === ' ') {
-                    this.expandText();
-                }
-            });
-            UI.ARIAUtils.markAsButton(this.expandElement);
         }
         else {
             this.expandElement.setAttribute('data-text', i18nString(UIStrings.longTextWasTruncatedS, { PH1: totalBytesText }));
             this.expandElement.classList.add('undisplayable-text');
         }
         this.copyButtonText = i18nString(UIStrings.copy);
-        const copyButton = container.createChild('span', 'expandable-inline-button');
+        const copyButton = container.createChild('button', 'expandable-inline-button');
         copyButton.setAttribute('data-text', this.copyButtonText);
+        copyButton.setAttribute('jslog', `${VisualLogging.action('copy').track({ click: true })}`);
         copyButton.addEventListener('click', this.copyText.bind(this));
-        copyButton.addEventListener('keydown', (event) => {
-            const keyboardEvent = event;
-            if (keyboardEvent.key === 'Enter' || keyboardEvent.key === ' ') {
-                this.copyText();
-            }
-        });
-        UI.ARIAUtils.markAsButton(copyButton);
     }
     appendApplicableItems(_event, contextMenu, _object) {
         if (this.text.length < this.maxDisplayableTextLength && this.expandElement) {
-            contextMenu.clipboardSection().appendItem(this.expandElementText || '', this.expandText.bind(this));
+            contextMenu.clipboardSection().appendItem(this.expandElementText || '', this.expandText.bind(this), { jslogContext: 'show-more' });
         }
-        contextMenu.clipboardSection().appendItem(this.copyButtonText, this.copyText.bind(this));
+        contextMenu.clipboardSection().appendItem(this.copyButtonText, this.copyText.bind(this), { jslogContext: 'copy' });
     }
     expandText() {
         if (!this.expandElement) {
@@ -1606,4 +1587,4 @@ export class ExpandableTextPropertyValue extends ObjectPropertyValue {
         Host.InspectorFrontendHost.InspectorFrontendHostInstance.copyText(this.text);
     }
 }
-//# map=ObjectPropertiesSection.js.map
+//# sourceMappingURL=ObjectPropertiesSection.js.map

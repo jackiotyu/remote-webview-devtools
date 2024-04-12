@@ -14,4 +14,4 @@ component.data = {
     activeSort: null,
 };
 document.getElementById('container')?.appendChild(component);
-//# map=empty.js.map
+//# sourceMappingURL=empty.js.map

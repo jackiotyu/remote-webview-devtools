@@ -10,4 +10,4 @@ export function reload() {
     }
     Host.InspectorFrontendHost.InspectorFrontendHostInstance.reattach(() => window.location.reload());
 }
-//# map=Reload.js.map
+//# sourceMappingURL=Reload.js.map

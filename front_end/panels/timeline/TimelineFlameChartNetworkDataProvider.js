@@ -96,7 +96,7 @@ export class TimelineFlameChartNetworkDataProvider {
         if (!this.#networkTrackAppender) {
             throw new Error('networkTrackAppender should not be empty');
         }
-        return ThemeSupport.ThemeSupport.instance().getComputedValue(this.#networkTrackAppender.colorForEvent(this.#events[index]));
+        return this.#networkTrackAppender.colorForEvent(this.#events[index]);
     }
     textColor(_index) {
         return FlameChartStyle.textColor;
@@ -218,7 +218,7 @@ export class TimelineFlameChartNetworkDataProvider {
         const /** @const */ maxURLChars = 80;
         const event = this.#events[index];
         const element = document.createElement('div');
-        const root = UI.Utils.createShadowRootWithCoreStyles(element, {
+        const root = UI.UIUtils.createShadowRootWithCoreStyles(element, {
             cssFile: [timelineFlamechartPopoverStyles],
             delegatesFocus: undefined,
         });
@@ -312,4 +312,4 @@ export class TimelineFlameChartNetworkDataProvider {
         return this.#traceEngineData.Meta.mainFrameNavigations;
     }
 }
-//# map=TimelineFlameChartNetworkDataProvider.js.map
+//# sourceMappingURL=TimelineFlameChartNetworkDataProvider.js.map

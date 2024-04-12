@@ -87,4 +87,4 @@ export function i18nTemplate(registeredStrings, stringId, placeholders) {
     }
     return result;
 }
-//# map=static.js.map
+//# sourceMappingURL=static.js.map

@@ -5,6 +5,7 @@ import * as i18n from '../../core/i18n/i18n.js';
 import * as DataGrid from '../../ui/legacy/components/data_grid/data_grid.js';
 import * as SourceFrame from '../../ui/legacy/components/source_frame/source_frame.js';
 import * as UI from '../../ui/legacy/legacy.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import eventDisplayTableStyles from './eventDisplayTable.css.js';
 const UIStrings = {
     /**
@@ -55,11 +56,12 @@ export class PlayerEventsView extends UI.Widget.VBox {
     firstEventTime;
     constructor() {
         super();
+        this.element.setAttribute('jslog', `${VisualLogging.pane('events')}`);
         // Set up element styles.
         this.contentElement.classList.add('event-display-table-contents-table-container');
         this.dataGrid = this.createDataGrid([
             {
-                id: "displayTimestamp" /* MediaEventColumnKeys.Timestamp */,
+                id: "display-timestamp" /* MediaEventColumnKeys.Timestamp */,
                 title: i18nString(UIStrings.timestamp),
                 weight: 1,
                 sortable: false,
@@ -138,4 +140,4 @@ export class PlayerEventsView extends UI.Widget.VBox {
         this.registerCSSFiles([eventDisplayTableStyles]);
     }
 }
-//# map=EventDisplayTable.js.map
+//# sourceMappingURL=EventDisplayTable.js.map

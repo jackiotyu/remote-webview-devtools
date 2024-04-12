@@ -65,7 +65,7 @@ UI.ViewManager.registerViewExtension({
     order: 0,
     async loadView() {
         const Settings = await loadSettingsModule();
-        return Settings.SettingsScreen.GenericSettingsTab.instance();
+        return new Settings.SettingsScreen.GenericSettingsTab();
     },
 });
 UI.ViewManager.registerViewExtension({
@@ -74,10 +74,10 @@ UI.ViewManager.registerViewExtension({
     title: i18nLazyString(UIStrings.experiments),
     commandPrompt: i18nLazyString(UIStrings.showExperiments),
     order: 3,
-    experiment: Root.Runtime.ExperimentName.ALL,
+    experiment: "*" /* Root.Runtime.ExperimentName.ALL */,
     async loadView() {
         const Settings = await loadSettingsModule();
-        return Settings.SettingsScreen.ExperimentsSettingsTab.instance();
+        return new Settings.SettingsScreen.ExperimentsSettingsTab();
     },
 });
 UI.ViewManager.registerViewExtension({
@@ -88,7 +88,7 @@ UI.ViewManager.registerViewExtension({
     order: 4,
     async loadView() {
         const Settings = await loadSettingsModule();
-        return Settings.FrameworkIgnoreListSettingsTab.FrameworkIgnoreListSettingsTab.instance();
+        return new Settings.FrameworkIgnoreListSettingsTab.FrameworkIgnoreListSettingsTab();
     },
 });
 UI.ViewManager.registerViewExtension({
@@ -99,16 +99,16 @@ UI.ViewManager.registerViewExtension({
     order: 100,
     async loadView() {
         const Settings = await loadSettingsModule();
-        return Settings.KeybindsSettingsTab.KeybindsSettingsTab.instance();
+        return new Settings.KeybindsSettingsTab.KeybindsSettingsTab();
     },
 });
 UI.ActionRegistration.registerActionExtension({
-    category: UI.ActionRegistration.ActionCategory.SETTINGS,
+    category: "SETTINGS" /* UI.ActionRegistration.ActionCategory.SETTINGS */,
     actionId: 'settings.show',
     title: i18nLazyString(UIStrings.settings),
     async loadActionDelegate() {
         const Settings = await loadSettingsModule();
-        return Settings.SettingsScreen.ActionDelegate.instance();
+        return new Settings.SettingsScreen.ActionDelegate();
     },
     iconClass: "gear" /* UI.ActionRegistration.IconClass.LARGEICON_SETTINGS_GEAR */,
     bindings: [
@@ -138,21 +138,21 @@ UI.ActionRegistration.registerActionExtension({
     ],
 });
 UI.ActionRegistration.registerActionExtension({
-    category: UI.ActionRegistration.ActionCategory.SETTINGS,
+    category: "SETTINGS" /* UI.ActionRegistration.ActionCategory.SETTINGS */,
     actionId: 'settings.documentation',
     title: i18nLazyString(UIStrings.documentation),
     async loadActionDelegate() {
         const Settings = await loadSettingsModule();
-        return Settings.SettingsScreen.ActionDelegate.instance();
+        return new Settings.SettingsScreen.ActionDelegate();
     },
 });
 UI.ActionRegistration.registerActionExtension({
-    category: UI.ActionRegistration.ActionCategory.SETTINGS,
+    category: "SETTINGS" /* UI.ActionRegistration.ActionCategory.SETTINGS */,
     actionId: 'settings.shortcuts',
-    title: i18nLazyString(UIStrings.shortcuts),
+    title: i18nLazyString(UIStrings.showShortcuts),
     async loadActionDelegate() {
         const Settings = await loadSettingsModule();
-        return Settings.SettingsScreen.ActionDelegate.instance();
+        return new Settings.SettingsScreen.ActionDelegate();
     },
     bindings: [
         {
@@ -173,7 +173,7 @@ UI.ActionRegistration.registerActionExtension({
 });
 UI.ViewManager.registerLocationResolver({
     name: "settings-view" /* UI.ViewManager.ViewLocationValues.SETTINGS_VIEW */,
-    category: UI.ViewManager.ViewLocationCategory.SETTINGS,
+    category: "SETTINGS" /* UI.ViewManager.ViewLocationCategory.SETTINGS */,
     async loadResolver() {
         const Settings = await loadSettingsModule();
         return Settings.SettingsScreen.SettingsScreen.instance();
@@ -186,20 +186,20 @@ Common.Revealer.registerRevealer({
             Root.Runtime.Experiment,
         ];
     },
+    destination: undefined,
     async loadRevealer() {
         const Settings = await loadSettingsModule();
-        return Settings.SettingsScreen.Revealer.instance();
+        return new Settings.SettingsScreen.Revealer();
     },
-    destination: undefined,
 });
 UI.ContextMenu.registerItem({
-    location: UI.ContextMenu.ItemLocation.MAIN_MENU_FOOTER,
+    location: "mainMenu/footer" /* UI.ContextMenu.ItemLocation.MAIN_MENU_FOOTER */,
     actionId: 'settings.shortcuts',
     order: undefined,
 });
 UI.ContextMenu.registerItem({
-    location: UI.ContextMenu.ItemLocation.MAIN_MENU_HELP_DEFAULT,
+    location: "mainMenuHelp/default" /* UI.ContextMenu.ItemLocation.MAIN_MENU_HELP_DEFAULT */,
     actionId: 'settings.documentation',
     order: undefined,
 });
-//# map=settings-meta.js.map
+//# sourceMappingURL=settings-meta.js.map

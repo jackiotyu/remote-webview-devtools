@@ -18,4 +18,4 @@ export class RecordingStateChangedEvent extends Event {
         this.recording = recording;
     }
 }
-//# map=RecorderEvents.js.map
+//# sourceMappingURL=RecorderEvents.js.map

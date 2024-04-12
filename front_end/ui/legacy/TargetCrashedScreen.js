@@ -31,4 +31,4 @@ export class TargetCrashedScreen extends VBox {
         this.hideCallback.call(null);
     }
 }
-//# map=TargetCrashedScreen.js.map
+//# sourceMappingURL=TargetCrashedScreen.js.map

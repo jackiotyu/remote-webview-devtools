@@ -1,8 +1,9 @@
 // Copyright 2023 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import * as TraceEngine from '../../models/trace/trace.js';
 import * as i18n from '../../core/i18n/i18n.js';
+import * as TraceEngine from '../../models/trace/trace.js';
+import * as ThemeSupport from '../../ui/legacy/theme_support/theme_support.js';
 import { buildGroupStyle, buildTrackHeader, getFormattedTime } from './AppenderUtils.js';
 const UIStrings = {
     /**
@@ -15,11 +16,9 @@ const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 export class LayoutShiftsTrackAppender {
     appenderName = 'LayoutShifts';
     #compatibilityBuilder;
-    #flameChartData;
     #traceParsedData;
-    constructor(compatibilityBuilder, flameChartData, traceParsedData) {
+    constructor(compatibilityBuilder, traceParsedData) {
         this.#compatibilityBuilder = compatibilityBuilder;
-        this.#flameChartData = flameChartData;
         this.#traceParsedData = traceParsedData;
     }
     /**
@@ -49,7 +48,7 @@ export class LayoutShiftsTrackAppender {
      */
     #appendTrackHeaderAtLevel(currentLevel, expanded) {
         const style = buildGroupStyle({ collapsible: false });
-        const group = buildTrackHeader(currentLevel, i18nString(UIStrings.layoutShifts), style,
+        const group = buildTrackHeader(currentLevel, i18nString(UIStrings.layoutShifts), style, 
         /* selectable= */ true, expanded);
         this.#compatibilityBuilder.registerTrackForGroup(group, this);
     }
@@ -63,21 +62,17 @@ export class LayoutShiftsTrackAppender {
      */
     #appendLayoutShiftsAtLevel(currentLevel) {
         const allLayoutShifts = this.#traceParsedData.LayoutShifts.clusters.flatMap(cluster => cluster.events);
-        const newLevel = this.#compatibilityBuilder.appendEventsAtLevel(allLayoutShifts, currentLevel, this);
-        // Bit of a hack: LayoutShifts are instant events, so have no duration. But
-        // OPP doesn't do well at making tiny events easy to spot and click. So we
-        // set it to a small duration so that the user is able to see and click
-        // them more easily. Long term we will explore a better UI solution to
-        // allow us to do this properly and not hack around it.
         const msDuration = TraceEngine.Types.Timing.MicroSeconds(5_000);
-        for (let i = 0; i < allLayoutShifts.length; ++i) {
-            const index = this.#compatibilityBuilder.indexForEvent(allLayoutShifts[i]);
-            if (index === undefined) {
-                continue;
-            }
-            this.#flameChartData.entryTotalTimes[index] = TraceEngine.Helpers.Timing.microSecondsToMilliseconds(msDuration);
-        }
-        return newLevel;
+        const setFlameChartEntryTotalTime = (_event, index) => {
+            // Bit of a hack: LayoutShifts are instant events, so have no duration. But
+            // OPP doesn't do well at making tiny events easy to spot and click. So we
+            // set it to a small duration so that the user is able to see and click
+            // them more easily. Long term we will explore a better UI solution to
+            // allow us to do this properly and not hack around it.
+            this.#compatibilityBuilder.getFlameChartTimelineData().entryTotalTimes[index] =
+                TraceEngine.Helpers.Timing.microSecondsToMilliseconds(msDuration);
+        };
+        return this.#compatibilityBuilder.appendEventsAtLevel(allLayoutShifts, currentLevel, this, setFlameChartEntryTotalTime);
     }
     /*
       ------------------------------------------------------------------------------------
@@ -89,7 +84,7 @@ export class LayoutShiftsTrackAppender {
      * Gets the color an event added by this appender should be rendered with.
      */
     colorForEvent(_event) {
-        return 'rgb(155 127 230)';
+        return ThemeSupport.ThemeSupport.instance().getComputedValue('--app-color-rendering');
     }
     /**
      * Gets the title an event added by this appender should be rendered with.
@@ -109,4 +104,4 @@ export class LayoutShiftsTrackAppender {
         return { title, formattedTime: getFormattedTime(event.dur) };
     }
 }
-//# map=LayoutShiftsTrackAppender.js.map
+//# sourceMappingURL=LayoutShiftsTrackAppender.js.map

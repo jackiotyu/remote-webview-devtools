@@ -8,4 +8,4 @@ import * as ContrastOverlay from './ContrastOverlay.js';
 import * as FormatPickerContextMenu from './FormatPickerContextMenu.js';
 import * as Spectrum from './Spectrum.js';
 export { ColorFormatSpec, ContrastDetails, ContrastInfo, ContrastOverlay, FormatPickerContextMenu, Spectrum, };
-//# map=color_picker.js.map
+//# sourceMappingURL=color_picker.js.map

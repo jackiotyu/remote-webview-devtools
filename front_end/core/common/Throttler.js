@@ -83,4 +83,4 @@ export class Throttler {
         return window.performance.now();
     }
 }
-//# map=Throttler.js.map
+//# sourceMappingURL=Throttler.js.map

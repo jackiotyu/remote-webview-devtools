@@ -97,7 +97,7 @@ export class PanelUtils {
         return changes;
     }
     static highlightElement(element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });;
+        element.scrollIntoViewIfNeeded();
         element.animate([
             { offset: 0, backgroundColor: 'rgba(255, 255, 0, 0.2)' },
             { offset: 0.1, backgroundColor: 'rgba(255, 255, 0, 0.7)' },
@@ -133,4 +133,4 @@ async function buildStyleRuleMaps(content) {
     }
     return { declarationIDToStyleRule, styleRuleIDToStyleRule };
 }
-//# map=utils.js.map
+//# sourceMappingURL=utils.js.map

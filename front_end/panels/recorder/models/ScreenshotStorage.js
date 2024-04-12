@@ -16,7 +16,7 @@ export class ScreenshotStorage {
     #screenshots;
     #maxStorageSize;
     constructor(maxStorageSize = DEFAULT_MAX_STORAGE_SIZE) {
-        this.#screenshotSettings = Common.Settings.Settings.instance().createSetting('recorder_screenshots', []);
+        this.#screenshotSettings = Common.Settings.Settings.instance().createSetting('recorder-screenshots', []);
         this.#screenshots = this.#loadFromSettings();
         this.#maxStorageSize = maxStorageSize;
     }
@@ -89,4 +89,4 @@ export class ScreenshotStorage {
         return instance;
     }
 }
-//# map=ScreenshotStorage.js.map
+//# sourceMappingURL=ScreenshotStorage.js.map

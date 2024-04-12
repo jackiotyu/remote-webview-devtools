@@ -11,6 +11,7 @@ import * as CodeHighlighter from '../../../ui/components/code_highlighter/code_h
 // eslint-disable-next-line rulesdir/es_modules_import
 import codeHighlighterStyles from '../../../ui/components/code_highlighter/codeHighlighter.css.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
+import * as VisualLogging from '../../../ui/visual_logging/visual_logging.js';
 import contentEditableStyles from './suggestionInput.css.js';
 const mod = (a, n) => {
     return ((a % n) + n) % n;
@@ -169,6 +170,9 @@ let SuggestionBox = class SuggestionBox extends LitElement {
                 selected: index === this.cursor,
             })}
           @mousedown=${this.#dispatchSuggestEvent.bind(this, suggestion)}
+          jslog=${VisualLogging.item('suggestion').track({
+                click: true,
+            })}
         >
           ${suggestion}
         </li>`;
@@ -191,7 +195,7 @@ __decorate([
 SuggestionBox = __decorate([
     customElement('devtools-suggestion-box')
 ], SuggestionBox);
-export let SuggestionInput = class SuggestionInput extends LitElement {
+let SuggestionInput = class SuggestionInput extends LitElement {
     static shadowRootOptions = {
         ...LitElement.shadowRootOptions,
         delegatesFocus: true,
@@ -208,6 +212,11 @@ export let SuggestionInput = class SuggestionInput extends LitElement {
         this.mimeType = '';
         this.autocomplete = true;
         this.addEventListener('blur', this.#handleBlurEvent);
+        let jslog = VisualLogging.value().track({ keydown: 'ArrowUp|ArrowDown|Enter', change: true, click: true });
+        if (this.jslogContext) {
+            jslog = jslog.context(this.jslogContext);
+        }
+        this.setAttribute('jslog', jslog.toString());
     }
     #cachedEditableContent;
     get #editableContent() {
@@ -223,8 +232,12 @@ export let SuggestionInput = class SuggestionInput extends LitElement {
     }
     #handleBlurEvent = () => {
         window.getSelection()?.removeAllRanges();
+        const changed = this.value !== this.#editableContent.value;
         this.value = this.#editableContent.value;
         this.expression = this.#editableContent.value;
+        if (changed) {
+            this.dispatchEvent(new Event('change'));
+        }
     };
     #handleFocusEvent = (event) => {
         assert(event.target instanceof Node);
@@ -313,7 +326,11 @@ __decorate([
 __decorate([
     property()
 ], SuggestionInput.prototype, "mimeType", void 0);
+__decorate([
+    property()
+], SuggestionInput.prototype, "jslogContext", void 0);
 SuggestionInput = __decorate([
     customElement('devtools-suggestion-input')
 ], SuggestionInput);
-//# map=SuggestionInput.js.map
+export { SuggestionInput };
+//# sourceMappingURL=SuggestionInput.js.map

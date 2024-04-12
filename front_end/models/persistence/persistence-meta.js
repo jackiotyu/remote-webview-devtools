@@ -4,8 +4,8 @@
 import * as Common from '../../core/common/common.js';
 import * as i18n from '../../core/i18n/i18n.js';
 import * as SDK from '../../core/sdk/sdk.js';
+import * as Workspace from '../../models/workspace/workspace.js';
 import * as UI from '../../ui/legacy/legacy.js';
-import * as Workspace from '../workspace/workspace.js';
 const UIStrings = {
     /**
      *@description Text of a DOM element in Workspace Settings Tab of the Workspace settings in Settings
@@ -66,14 +66,14 @@ UI.ViewManager.registerViewExtension({
     order: 1,
     async loadView() {
         const Persistence = await loadPersistenceModule();
-        return Persistence.WorkspaceSettingsTab.WorkspaceSettingsTab.instance();
+        return new Persistence.WorkspaceSettingsTab.WorkspaceSettingsTab();
     },
 });
 Common.Settings.registerSettingExtension({
-    category: Common.Settings.SettingCategory.PERSISTENCE,
+    category: "PERSISTENCE" /* Common.Settings.SettingCategory.PERSISTENCE */,
     title: i18nLazyString(UIStrings.enableLocalOverrides),
-    settingName: 'persistenceNetworkOverridesEnabled',
-    settingType: Common.Settings.SettingType.BOOLEAN,
+    settingName: 'persistence-network-overrides-enabled',
+    settingType: "boolean" /* Common.Settings.SettingType.BOOLEAN */,
     defaultValue: false,
     tags: [
         i18nLazyString(UIStrings.interception),
@@ -103,8 +103,8 @@ UI.ContextMenu.registerProvider({
     },
     async loadProvider() {
         const Persistence = await loadPersistenceModule();
-        return Persistence.PersistenceActions.ContextMenuProvider.instance();
+        return new Persistence.PersistenceActions.ContextMenuProvider();
     },
     experiment: undefined,
 });
-//# map=persistence-meta.js.map
+//# sourceMappingURL=persistence-meta.js.map

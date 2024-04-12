@@ -83,4 +83,4 @@ export class ExtensionNotifierView extends UI.Widget.VBox {
         this.server.notifyViewHidden(this.id);
     }
 }
-//# map=ExtensionView.js.map
+//# sourceMappingURL=ExtensionView.js.map

@@ -35,11 +35,11 @@ UI.ViewManager.registerViewExtension({
     order: 100,
     async loadView() {
         const Media = await loadMediaModule();
-        return Media.MainView.MainView.instance();
+        return new Media.MainView.MainView();
     },
     tags: [
         i18nLazyString(UIStrings.media),
         i18nLazyString(UIStrings.video),
     ],
 });
-//# map=media-meta.js.map
+//# sourceMappingURL=media-meta.js.map

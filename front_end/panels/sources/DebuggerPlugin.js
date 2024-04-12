@@ -43,9 +43,10 @@ import * as CodeMirror from '../../third_party/codemirror.next/codemirror.next.j
 import * as ObjectUI from '../../ui/legacy/components/object_ui/object_ui.js';
 import * as SourceFrame from '../../ui/legacy/components/source_frame/source_frame.js';
 import * as UI from '../../ui/legacy/legacy.js';
-import * as SourceComponents from './components/components.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import { AddDebugInfoURLDialog } from './AddSourceMapURLDialog.js';
 import { BreakpointEditDialog } from './BreakpointEditDialog.js';
+import * as SourceComponents from './components/components.js';
 import { Plugin } from './Plugin.js';
 import { SourcesPanel } from './SourcesPanel.js';
 const { EMPTY_BREAKPOINT_CONDITION, NEVER_PAUSE_HERE_CONDITION } = Breakpoints.BreakpointManager;
@@ -163,6 +164,14 @@ const UIStrings = {
      *@example {app.wasm} PH1
      */
     debugInfoNotFound: 'Failed to load any debug info for {PH1}.',
+    /**
+     *@description Text of a button to open up details on a request when no debug info could be loaded
+     */
+    showRequest: 'Show request',
+    /**
+     *@description Tooltip text that shows on hovering over a button to see more details on a request
+     */
+    openDeveloperResources: 'Opens the request in the Developer resource panel',
 };
 const str_ = i18n.i18n.registerUIStrings('panels/sources/DebuggerPlugin.ts', UIStrings);
 const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
@@ -195,8 +204,6 @@ export class DebuggerPlugin extends Plugin {
     // content is edited and later saved, these are used as a source of
     // truth for re-creating the breakpoints.
     breakpoints = [];
-    // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     continueToLocations = null;
     liveLocationPool;
     // When the editor content is changed by the user, this becomes
@@ -229,7 +236,7 @@ export class DebuggerPlugin extends Plugin {
         this.uiSourceCode.addEventListener(Workspace.UISourceCode.Events.WorkingCopyCommitted, this.workingCopyCommitted, this);
         this.scriptFileForDebuggerModel = new Map();
         this.loader = SDK.PageResourceLoader.PageResourceLoader.instance();
-        this.loader.addEventListener(SDK.PageResourceLoader.Events.Update, this.showSourceMapInfobarIfNeeded.bind(this), this);
+        this.loader.addEventListener("Update" /* SDK.PageResourceLoader.Events.Update */, this.showSourceMapInfobarIfNeeded.bind(this), this);
         this.ignoreListCallback = this.showIgnoreListInfobarIfNeeded.bind(this);
         Bindings.IgnoreListManager.IgnoreListManager.instance().addChangeListener(this.ignoreListCallback);
         UI.Context.Context.instance().addFlavorChangeListener(SDK.DebuggerModel.CallFrame, this.callFrameChanged, this);
@@ -250,7 +257,7 @@ export class DebuggerPlugin extends Plugin {
         return [
             CodeMirror.EditorView.updateListener.of(update => this.onEditorUpdate(update)),
             CodeMirror.EditorView.domEventHandlers({
-                keydown: (event) => {
+                keydown: event => {
                     if (this.onKeyDown(event)) {
                         return true;
                     }
@@ -311,7 +318,7 @@ export class DebuggerPlugin extends Plugin {
             },
         });
     }
-    #openEditDialogForLine(line) {
+    #openEditDialogForLine(line, isLogpoint) {
         if (this.muted) {
             return;
         }
@@ -319,7 +326,10 @@ export class DebuggerPlugin extends Plugin {
             this.activeBreakpointDialog.finishEditing(false, '');
         }
         const breakpoint = this.breakpoints.find(b => b.position >= line.from && b.position <= line.to)?.breakpoint || null;
-        this.editBreakpointCondition({ line, breakpoint, location: null, isLogpoint: breakpoint?.isLogpoint() });
+        if (isLogpoint === undefined && breakpoint !== null) {
+            isLogpoint = breakpoint.isLogpoint();
+        }
+        this.editBreakpointCondition({ line, breakpoint, location: null, isLogpoint });
     }
     editorInitialized(editor) {
         // Start asynchronous actions that require access to the editor
@@ -344,7 +354,8 @@ export class DebuggerPlugin extends Plugin {
         }
         void this.callFrameChanged();
         this.popoverHelper?.dispose();
-        this.popoverHelper = new UI.PopoverHelper.PopoverHelper(editor, this.getPopoverRequest.bind(this));
+        this.popoverHelper =
+            new UI.PopoverHelper.PopoverHelper(editor, this.getPopoverRequest.bind(this), 'sources.object-properties');
         this.popoverHelper.setDisableOnClick(true);
         this.popoverHelper.setTimeout(250, 250);
         this.popoverHelper.setHasPadding(true);
@@ -367,15 +378,22 @@ export class DebuggerPlugin extends Plugin {
         function unIgnoreList() {
             Bindings.IgnoreListManager.IgnoreListManager.instance().unIgnoreListUISourceCode(uiSourceCode);
         }
-        const infobar = new UI.Infobar.Infobar(UI.Infobar.Type.Warning, i18nString(UIStrings.thisScriptIsOnTheDebuggersIgnore), [
-            { text: i18nString(UIStrings.removeFromIgnoreList), highlight: false, delegate: unIgnoreList, dismiss: true },
+        const infobar = new UI.Infobar.Infobar("warning" /* UI.Infobar.Type.Warning */, i18nString(UIStrings.thisScriptIsOnTheDebuggersIgnore), [
+            {
+                text: i18nString(UIStrings.removeFromIgnoreList),
+                highlight: false,
+                delegate: unIgnoreList,
+                dismiss: true,
+                jslogContext: 'remove-from-ignore-list',
+            },
             {
                 text: i18nString(UIStrings.configure),
                 highlight: false,
                 delegate: UI.ViewManager.ViewManager.instance().showView.bind(UI.ViewManager.ViewManager.instance(), 'blackbox'),
                 dismiss: false,
+                jslogContext: 'configure',
             },
-        ]);
+        ], undefined, undefined, 'script-on-ignore-list');
         this.ignoreListInfobar = infobar;
         infobar.setCloseCallback(() => this.removeInfobar(this.ignoreListInfobar));
         infobar.createDetailsRowMessage(i18nString(UIStrings.theDebuggerWillSkipStepping));
@@ -420,17 +438,17 @@ export class DebuggerPlugin extends Plugin {
         const supportsConditionalBreakpoints = Bindings.DebuggerWorkspaceBinding.DebuggerWorkspaceBinding.instance().supportsConditionalBreakpoints(this.uiSourceCode);
         if (!breakpoints.length) {
             if (this.editor && SourceFrame.SourceFrame.isBreakableLine(this.editor.state, line)) {
-                contextMenu.debugSection().appendItem(i18nString(UIStrings.addBreakpoint), this.createNewBreakpoint.bind(this, line, EMPTY_BREAKPOINT_CONDITION, /* enabled */ true, /* isLogpoint */ false));
+                contextMenu.debugSection().appendItem(i18nString(UIStrings.addBreakpoint), this.createNewBreakpoint.bind(this, line, EMPTY_BREAKPOINT_CONDITION, /* enabled */ true, /* isLogpoint */ false), { jslogContext: 'add-breakpoint' });
                 if (supportsConditionalBreakpoints) {
                     contextMenu.debugSection().appendItem(i18nString(UIStrings.addConditionalBreakpoint), () => {
                         Host.userMetrics.breakpointEditDialogRevealedFrom(3 /* Host.UserMetrics.BreakpointEditDialogRevealedFrom.LineGutterContextMenu */);
                         this.editBreakpointCondition({ line, breakpoint: null, location: null, isLogpoint: false });
-                    });
+                    }, { jslogContext: 'add-cnd-breakpoint' });
                     contextMenu.debugSection().appendItem(i18nString(UIStrings.addLogpoint), () => {
                         Host.userMetrics.breakpointEditDialogRevealedFrom(3 /* Host.UserMetrics.BreakpointEditDialogRevealedFrom.LineGutterContextMenu */);
                         this.editBreakpointCondition({ line, breakpoint: null, location: null, isLogpoint: true });
-                    });
-                    contextMenu.debugSection().appendItem(i18nString(UIStrings.neverPauseHere), this.createNewBreakpoint.bind(this, line, NEVER_PAUSE_HERE_CONDITION, /* enabled */ true, /* isLogpoint */ false));
+                    }, { jslogContext: 'add-logpoint' });
+                    contextMenu.debugSection().appendItem(i18nString(UIStrings.neverPauseHere), this.createNewBreakpoint.bind(this, line, NEVER_PAUSE_HERE_CONDITION, /* enabled */ true, /* isLogpoint */ false), { jslogContext: 'never-pause-here' });
                 }
             }
         }
@@ -439,7 +457,7 @@ export class DebuggerPlugin extends Plugin {
             contextMenu.debugSection().appendItem(removeTitle, () => breakpoints.forEach(breakpoint => {
                 Host.userMetrics.actionTaken(Host.UserMetrics.Action.BreakpointRemovedFromGutterContextMenu);
                 void breakpoint.remove(false);
-            }));
+            }), { jslogContext: 'remove-breakpoint' });
             if (breakpoints.length === 1 && supportsConditionalBreakpoints) {
                 // Editing breakpoints only make sense for conditional breakpoints
                 // and logpoints and both are currently only available for JavaScript
@@ -447,17 +465,17 @@ export class DebuggerPlugin extends Plugin {
                 contextMenu.debugSection().appendItem(i18nString(UIStrings.editBreakpoint), () => {
                     Host.userMetrics.breakpointEditDialogRevealedFrom(2 /* Host.UserMetrics.BreakpointEditDialogRevealedFrom.BreakpointMarkerContextMenu */);
                     this.editBreakpointCondition({ line, breakpoint: breakpoints[0], location: null });
-                });
+                }, { jslogContext: 'edit-breakpoint' });
             }
             const hasEnabled = breakpoints.some(breakpoint => breakpoint.enabled());
             if (hasEnabled) {
                 const title = i18nString(UIStrings.disableBreakpoint, { n: breakpoints.length });
-                contextMenu.debugSection().appendItem(title, () => breakpoints.forEach(breakpoint => breakpoint.setEnabled(false)));
+                contextMenu.debugSection().appendItem(title, () => breakpoints.forEach(breakpoint => breakpoint.setEnabled(false)), { jslogContext: 'enable-breakpoint' });
             }
             const hasDisabled = breakpoints.some(breakpoint => !breakpoint.enabled());
             if (hasDisabled) {
                 const title = i18nString(UIStrings.enableBreakpoint, { n: breakpoints.length });
-                contextMenu.debugSection().appendItem(title, () => breakpoints.forEach(breakpoint => breakpoint.setEnabled(true)));
+                contextMenu.debugSection().appendItem(title, () => breakpoints.forEach(breakpoint => breakpoint.setEnabled(true)), { jslogContext: 'disable-breakpoint' });
             }
         }
     }
@@ -483,15 +501,15 @@ export class DebuggerPlugin extends Plugin {
             scriptFile.addDebugInfoURL(url);
         }
         if (this.uiSourceCode.project().type() === Workspace.Workspace.projectTypes.Network &&
-            Common.Settings.Settings.instance().moduleSetting('jsSourceMapsEnabled').get() &&
+            Common.Settings.Settings.instance().moduleSetting('js-source-maps-enabled').get() &&
             !Bindings.IgnoreListManager.IgnoreListManager.instance().isUserIgnoreListedURL(this.uiSourceCode.url())) {
             if (this.scriptFileForDebuggerModel.size) {
                 const scriptFile = this.scriptFileForDebuggerModel.values().next().value;
                 const addSourceMapURLLabel = i18nString(UIStrings.addSourceMap);
-                contextMenu.debugSection().appendItem(addSourceMapURLLabel, addSourceMapURL.bind(null, scriptFile));
+                contextMenu.debugSection().appendItem(addSourceMapURLLabel, addSourceMapURL.bind(null, scriptFile), { jslogContext: 'add-source-map' });
                 if (scriptFile.script?.isWasm() &&
-                    !Bindings.DebuggerWorkspaceBinding.DebuggerWorkspaceBinding.instance().pluginManager?.hasPluginForScript(scriptFile.script)) {
-                    contextMenu.debugSection().appendItem(i18nString(UIStrings.addWasmDebugInfo), addDebugInfoURL.bind(null, scriptFile));
+                    !Bindings.DebuggerWorkspaceBinding.DebuggerWorkspaceBinding.instance().pluginManager.hasPluginForScript(scriptFile.script)) {
+                    contextMenu.debugSection().appendItem(i18nString(UIStrings.addWasmDebugInfo), addDebugInfoURL.bind(null, scriptFile), { jslogContext: 'add-wasm-debug-info' });
                 }
             }
         }
@@ -590,7 +608,7 @@ export class DebuggerPlugin extends Plugin {
             box,
             show: async (popover) => {
                 let resolvedText = '';
-                if (Root.Runtime.experiments.isEnabled('evaluateExpressionsWithSourceMaps')) {
+                if (Root.Runtime.experiments.isEnabled('evaluate-expressions-with-source-maps')) {
                     const nameMap = await SourceMapScopes.NamesResolver.allVariablesInCallFrame(selectedCallFrame);
                     try {
                         resolvedText =
@@ -611,8 +629,8 @@ export class DebuggerPlugin extends Plugin {
                 //   * Explicit function calls on the other hand must be side-effect free. The canonical
                 //     example is hovering over {Math.random()} which would result in a different value
                 //     each time the user hovers over it.
-                const throwOnSideEffect = Root.Runtime.experiments.isEnabled('evaluateExpressionsWithSourceMaps') &&
-                    highlightRange.containsCallExpression;
+                const throwOnSideEffect = Root.Runtime.experiments.isEnabled('evaluate-expressions-with-source-maps') &&
+                    highlightRange.containsSideEffects;
                 const result = await selectedCallFrame.evaluate({
                     expression: resolvedText || evaluationText,
                     objectGroup: 'popover',
@@ -769,7 +787,6 @@ export class DebuggerPlugin extends Plugin {
                 return;
             }
             SourceComponents.BreakpointsView.BreakpointsSidebarController.instance().breakpointEditFinished(breakpoint, oldCondition !== result.condition);
-            recordBreakpointWithConditionAdded(result);
             if (breakpoint) {
                 breakpoint.setCondition(result.condition, result.isLogpoint);
             }
@@ -816,19 +833,6 @@ export class DebuggerPlugin extends Plugin {
         dialog.focusEditor();
         this.activeBreakpointDialog = dialog;
         this.#activeBreakpointEditRequest = breakpointEditRequest;
-        // This counts new conditional breakpoints or logpoints that are added.
-        function recordBreakpointWithConditionAdded(result) {
-            const { condition: newCondition, isLogpoint } = result;
-            const isConditionalBreakpoint = newCondition.length !== 0 && !isLogpoint;
-            const wasLogpoint = breakpoint?.isLogpoint();
-            const wasConditionalBreakpoint = oldCondition && oldCondition.length !== 0 && !wasLogpoint;
-            if (isLogpoint && !wasLogpoint) {
-                Host.userMetrics.breakpointWithConditionAdded(0 /* Host.UserMetrics.BreakpointWithConditionAdded.Logpoint */);
-            }
-            else if (isConditionalBreakpoint && !wasConditionalBreakpoint) {
-                Host.userMetrics.breakpointWithConditionAdded(1 /* Host.UserMetrics.BreakpointWithConditionAdded.ConditionalBreakpoint */);
-            }
-        }
         function isSameEditRequest(editA, editB) {
             if (editA.line.number !== editB.line.number) {
                 return false;
@@ -847,25 +851,6 @@ export class DebuggerPlugin extends Plugin {
             }
             return editA.isLogpoint === editB.isLogpoint;
         }
-    }
-    // Create decorations to indicate the current debugging position
-    computeExecutionDecorations(editorState, lineNumber, columnNumber) {
-        const { doc } = editorState;
-        if (lineNumber >= doc.lines) {
-            return CodeMirror.Decoration.none;
-        }
-        const line = doc.line(lineNumber + 1);
-        const decorations = [executionLineDeco.range(line.from)];
-        const position = Math.min(line.to, line.from + columnNumber);
-        let syntaxNode = CodeMirror.syntaxTree(editorState).resolveInner(position, 1);
-        if (syntaxNode.to === syntaxNode.from - 1 && /[(.]/.test(doc.sliceString(syntaxNode.from, syntaxNode.to))) {
-            syntaxNode = syntaxNode.resolve(syntaxNode.to, 1);
-        }
-        const tokenEnd = Math.min(line.to, syntaxNode.to);
-        if (tokenEnd > position) {
-            decorations.push(executionTokenDeco.range(position, tokenEnd));
-        }
-        return CodeMirror.Decoration.set(decorations);
     }
     // Show widgets with variable's values after lines that mention the
     // variables, if the debugger is paused in this file.
@@ -895,7 +880,7 @@ export class DebuggerPlugin extends Plugin {
         if (!this.editor) {
             return null;
         }
-        if (!Common.Settings.Settings.instance().moduleSetting('inlineVariableValues').get()) {
+        if (!Common.Settings.Settings.instance().moduleSetting('inline-variable-values').get()) {
             return null;
         }
         const executionContext = UI.Context.Context.instance().flavor(SDK.RuntimeModel.ExecutionContext);
@@ -1124,7 +1109,7 @@ export class DebuggerPlugin extends Plugin {
             else if (main.condition()) {
                 gutterClass += ' cm-breakpoint-conditional';
             }
-            gutterMarkers.push((new BreakpointGutterMarker(gutterClass)).range(lineStart));
+            gutterMarkers.push((new BreakpointGutterMarker(gutterClass, lineStart)).range(lineStart));
         }
         const addPossibleBreakpoints = (line, locations) => {
             for (const location of locations) {
@@ -1207,7 +1192,7 @@ export class DebuggerPlugin extends Plugin {
             const editorLocation = this.editor.editor.posAtDOM(event.target);
             const line = this.editor.state.doc.lineAt(editorLocation);
             const uiLocation = this.transformer.editorLocationToUILocation(line.number - 1, editorLocation - line.from);
-            void this.setBreakpoint(uiLocation.lineNumber, uiLocation.columnNumber, EMPTY_BREAKPOINT_CONDITION, /* enabled */ true,
+            void this.setBreakpoint(uiLocation.lineNumber, uiLocation.columnNumber, EMPTY_BREAKPOINT_CONDITION, /* enabled */ true, 
             /* isLogpoint */ false);
         }
     }
@@ -1228,20 +1213,20 @@ export class DebuggerPlugin extends Plugin {
             contextMenu.debugSection().appendItem(i18nString(UIStrings.editBreakpoint), () => {
                 Host.userMetrics.breakpointEditDialogRevealedFrom(2 /* Host.UserMetrics.BreakpointEditDialogRevealedFrom.BreakpointMarkerContextMenu */);
                 this.editBreakpointCondition({ line, breakpoint, location: null });
-            });
+            }, { jslogContext: 'edit-breakpoint' });
         }
         else {
             const uiLocation = this.transformer.editorLocationToUILocation(line.number - 1, position - line.from);
             contextMenu.debugSection().appendItem(i18nString(UIStrings.addConditionalBreakpoint), () => {
                 Host.userMetrics.breakpointEditDialogRevealedFrom(2 /* Host.UserMetrics.BreakpointEditDialogRevealedFrom.BreakpointMarkerContextMenu */);
                 this.editBreakpointCondition({ line, breakpoint: null, location: uiLocation, isLogpoint: false });
-            });
+            }, { jslogContext: 'add-cnd-breakpoint' });
             contextMenu.debugSection().appendItem(i18nString(UIStrings.addLogpoint), () => {
                 Host.userMetrics.breakpointEditDialogRevealedFrom(2 /* Host.UserMetrics.BreakpointEditDialogRevealedFrom.BreakpointMarkerContextMenu */);
                 this.editBreakpointCondition({ line, breakpoint: null, location: uiLocation, isLogpoint: true });
-            });
-            contextMenu.debugSection().appendItem(i18nString(UIStrings.neverPauseHere), () => this.setBreakpoint(uiLocation.lineNumber, uiLocation.columnNumber, NEVER_PAUSE_HERE_CONDITION, /* enabled */ true,
-            /* isLogpoint */ false));
+            }, { jslogContext: 'add-logpoint' });
+            contextMenu.debugSection().appendItem(i18nString(UIStrings.neverPauseHere), () => this.setBreakpoint(uiLocation.lineNumber, uiLocation.columnNumber, NEVER_PAUSE_HERE_CONDITION, /* enabled */ true, 
+            /* isLogpoint */ false), { jslogContext: 'never-pause-here' });
         }
         void contextMenu.show();
     }
@@ -1291,13 +1276,23 @@ export class DebuggerPlugin extends Plugin {
             this.missingDebugInfoBar = null;
             return;
         }
-        this.missingDebugInfoBar = UI.Infobar.Infobar.create(UI.Infobar.Type.Error, warning.details, []);
+        this.missingDebugInfoBar =
+            UI.Infobar.Infobar.create("error" /* UI.Infobar.Type.Error */, warning.details, [], undefined, 'missing-debug-info');
         if (!this.missingDebugInfoBar) {
             return;
         }
         for (const resource of warning.resources) {
-            const detailsRow = this.missingDebugInfoBar?.createDetailsRowMessage(i18nString(UIStrings.debugFileNotFound, { PH1: resource }));
+            const detailsRow = this.missingDebugInfoBar?.createDetailsRowMessage(i18nString(UIStrings.debugFileNotFound, { PH1: Common.ParsedURL.ParsedURL.extractName(resource.resourceUrl) }));
             if (detailsRow) {
+                const pageResourceKey = SDK.PageResourceLoader.PageResourceLoader.makeExtensionKey(resource.resourceUrl, resource.initiator);
+                if (SDK.PageResourceLoader.PageResourceLoader.instance().getResourcesLoaded().get(pageResourceKey)) {
+                    const showRequest = UI.UIUtils.createTextButton(i18nString(UIStrings.showRequest), () => {
+                        void Common.Revealer.reveal(new SDK.PageResourceLoader.ResourceKey(pageResourceKey));
+                    }, { className: 'link-style devtools-link', jslogContext: 'show-request' });
+                    showRequest.style.setProperty('margin-left', '10px');
+                    showRequest.title = i18nString(UIStrings.openDeveloperResources);
+                    detailsRow.appendChild(showRequest);
+                }
                 detailsRow.classList.add('infobar-selectable');
             }
         }
@@ -1337,7 +1332,7 @@ export class DebuggerPlugin extends Plugin {
         if (this.sourceMapInfobar) {
             return;
         }
-        if (!Common.Settings.Settings.instance().moduleSetting('jsSourceMapsEnabled').get()) {
+        if (!Common.Settings.Settings.instance().moduleSetting('js-source-maps-enabled').get()) {
             return;
         }
         if (!this.scriptHasSourceMap()) {
@@ -1349,7 +1344,7 @@ export class DebuggerPlugin extends Plugin {
             return;
         }
         if (!resource) {
-            this.sourceMapInfobar = UI.Infobar.Infobar.create(UI.Infobar.Type.Info, i18nString(UIStrings.sourceMapSkipped), [], Common.Settings.Settings.instance().createSetting('sourceMapSkippedInfobarDisabled', false));
+            this.sourceMapInfobar = UI.Infobar.Infobar.create("info" /* UI.Infobar.Type.Info */, i18nString(UIStrings.sourceMapSkipped), [], Common.Settings.Settings.instance().createSetting('source-map-skipped-infobar-disabled', false), 'source-map-skipped');
             if (!this.sourceMapInfobar) {
                 return;
             }
@@ -1357,13 +1352,13 @@ export class DebuggerPlugin extends Plugin {
             this.sourceMapInfobar.createDetailsRowMessage(i18nString(UIStrings.reloadForSourceMap));
         }
         else if (resource.success) {
-            this.sourceMapInfobar = UI.Infobar.Infobar.create(UI.Infobar.Type.Info, i18nString(UIStrings.sourceMapLoaded), [], Common.Settings.Settings.instance().createSetting('sourceMapInfobarDisabled', false));
+            this.sourceMapInfobar = UI.Infobar.Infobar.create("info" /* UI.Infobar.Type.Info */, i18nString(UIStrings.sourceMapLoaded), [], Common.Settings.Settings.instance().createSetting('source-map-infobar-disabled', false), 'source-map-loaded');
             if (!this.sourceMapInfobar) {
                 return;
             }
             this.sourceMapInfobar.createDetailsRowMessage(i18nString(UIStrings.associatedFilesShouldBeAdded));
             this.sourceMapInfobar.createDetailsRowMessage(i18nString(UIStrings.associatedFilesAreAvailable, {
-                PH1: String(UI.ShortcutRegistry.ShortcutRegistry.instance().shortcutTitleForAction('quickOpen.show')),
+                PH1: String(UI.ShortcutRegistry.ShortcutRegistry.instance().shortcutTitleForAction('quick-open.show')),
             }));
         }
         else {
@@ -1378,10 +1373,9 @@ export class DebuggerPlugin extends Plugin {
                 text = i18nString(UIStrings.ignoreScript);
                 delegate = ignoreListManager.ignoreListUISourceCode.bind(ignoreListManager, this.uiSourceCode);
             }
-            this.sourceMapInfobar =
-                UI.Infobar.Infobar.create(UI.Infobar.Type.Warning, i18nString(UIStrings.sourceMapFailed), [
-                    { text, highlight: false, delegate, dismiss: true },
-                ]);
+            this.sourceMapInfobar = UI.Infobar.Infobar.create("warning" /* UI.Infobar.Type.Warning */, i18nString(UIStrings.sourceMapFailed), [
+                { text, highlight: false, delegate, dismiss: true },
+            ], undefined, 'source-map-failed');
             if (!this.sourceMapInfobar) {
                 return;
             }
@@ -1404,11 +1398,8 @@ export class DebuggerPlugin extends Plugin {
             return false;
         }
         if (event.metaKey || event.ctrlKey) {
-            if (event.shiftKey) {
-                return false;
-            }
             Host.userMetrics.breakpointEditDialogRevealedFrom(6 /* Host.UserMetrics.BreakpointEditDialogRevealedFrom.MouseClick */);
-            this.#openEditDialogForLine(line);
+            this.#openEditDialogForLine(line, event.shiftKey);
             return true;
         }
         void this.toggleBreakpoint(line, event.shiftKey);
@@ -1447,7 +1438,7 @@ export class DebuggerPlugin extends Plugin {
         await this.setBreakpoint(origin.lineNumber, origin.columnNumber, condition, enabled, isLogpoint);
     }
     async setBreakpoint(lineNumber, columnNumber, condition, enabled, isLogpoint) {
-        Common.Settings.Settings.instance().moduleSetting('breakpointsActive').set(true);
+        Common.Settings.Settings.instance().moduleSetting('breakpoints-active').set(true);
         const bp = await this.breakpointManager.setBreakpoint(this.uiSourceCode, lineNumber, columnNumber, condition, enabled, isLogpoint, "USER_ACTION" /* Breakpoints.BreakpointManager.BreakpointOrigin.USER_ACTION */);
         this.breakpointWasSetForTest(lineNumber, columnNumber, condition, enabled);
         return bp;
@@ -1483,7 +1474,7 @@ export class DebuggerPlugin extends Plugin {
         this.executionLocation = executionLocation;
         if (executionLocation) {
             const editorLocation = this.transformer.uiLocationToEditorLocation(executionLocation.lineNumber, executionLocation.columnNumber);
-            const decorations = this.computeExecutionDecorations(this.editor.state, editorLocation.lineNumber, editorLocation.columnNumber);
+            const decorations = computeExecutionDecorations(this.editor.state, editorLocation.lineNumber, editorLocation.columnNumber);
             this.editor.dispatch({ effects: executionLine.update.of(decorations) });
             void this.updateValueDecorations();
             if (this.controlDown) {
@@ -1541,18 +1532,8 @@ export class DebuggerPlugin extends Plugin {
         Host.userMetrics.sourcesPanelFileDebugged(mediaType);
     }
 }
-let breakpointLocationRevealerInstance;
 export class BreakpointLocationRevealer {
-    static instance({ forceNew } = { forceNew: false }) {
-        if (!breakpointLocationRevealerInstance || forceNew) {
-            breakpointLocationRevealerInstance = new BreakpointLocationRevealer();
-        }
-        return breakpointLocationRevealerInstance;
-    }
     async reveal(breakpointLocation, omitFocus) {
-        if (!(breakpointLocation instanceof Breakpoints.BreakpointManager.BreakpointLocation)) {
-            throw new Error('Internal error: not a breakpoint location');
-        }
         const { uiLocation } = breakpointLocation;
         SourcesPanel.instance().showUILocation(uiLocation, omitFocus);
         const debuggerPlugin = debuggerPluginForUISourceCode.get(uiLocation.uiSourceCode);
@@ -1610,7 +1591,7 @@ function muteGutterMarkers(markers, doc) {
         if (!/cm-breakpoint-disabled/.test(className)) {
             className += ' cm-breakpoint-disabled';
         }
-        newMarkers.push(new BreakpointGutterMarker(className).range(from));
+        newMarkers.push(new BreakpointGutterMarker(className, from).range(from));
     });
     return CodeMirror.RangeSet.of(newMarkers, false);
 }
@@ -1668,6 +1649,7 @@ class BreakpointInlineMarker extends CodeMirror.WidgetType {
     toDOM() {
         const span = document.createElement('span');
         span.className = this.class;
+        span.setAttribute('jslog', `${VisualLogging.breakpointMarker().track({ click: true })}`);
         span.addEventListener('click', (event) => {
             this.parent.onInlineBreakpointMarkerClick(event, this.breakpoint);
             event.consume();
@@ -1684,12 +1666,22 @@ class BreakpointInlineMarker extends CodeMirror.WidgetType {
 }
 class BreakpointGutterMarker extends CodeMirror.GutterMarker {
     elementClass;
-    constructor(elementClass) {
+    #position;
+    constructor(elementClass, position) {
         super();
         this.elementClass = elementClass;
+        this.#position = position;
     }
     eq(other) {
         return other.elementClass === this.elementClass;
+    }
+    toDOM(view) {
+        const div = document.createElement('div'); // We want {display: block} so it uses all of the space.
+        div.setAttribute('jslog', `${VisualLogging.breakpointMarker().track({ click: true })}`);
+        const line = view.state.doc.lineAt(this.#position).number;
+        const formatNumber = view.state.facet(SourceFrame.SourceFrame.LINE_NUMBER_FORMATTER);
+        div.textContent = formatNumber(line, view.state);
+        return div;
     }
 }
 function mostSpecificBreakpoint(a, b) {
@@ -1723,6 +1715,28 @@ function defineStatefulDecoration() {
 const executionLineDeco = CodeMirror.Decoration.line({ attributes: { class: 'cm-executionLine' } });
 const executionTokenDeco = CodeMirror.Decoration.mark({ attributes: { class: 'cm-executionToken' } });
 const executionLine = defineStatefulDecoration();
+// Create decorations to indicate the current debugging position
+export function computeExecutionDecorations(state, lineNumber, columnNumber) {
+    const { doc } = state;
+    if (lineNumber >= doc.lines) {
+        return CodeMirror.Decoration.none;
+    }
+    const line = doc.line(lineNumber + 1);
+    const decorations = [executionLineDeco.range(line.from)];
+    const position = Math.min(line.to, line.from + columnNumber);
+    const syntaxTree = CodeMirror.ensureSyntaxTree(state, line.to, /* timeout= */ 500);
+    if (syntaxTree !== null) {
+        let syntaxNode = syntaxTree.resolveInner(position, 1);
+        if (syntaxNode.to === syntaxNode.from - 1 && /[(.]/.test(doc.sliceString(syntaxNode.from, syntaxNode.to))) {
+            syntaxNode = syntaxNode.resolve(syntaxNode.to, 1);
+        }
+        const tokenEnd = Math.min(line.to, syntaxNode.to);
+        if (tokenEnd > position) {
+            decorations.push(executionTokenDeco.range(position, tokenEnd));
+        }
+    }
+    return CodeMirror.Decoration.set(decorations);
+}
 // Continue-to markers
 const continueToMark = CodeMirror.Decoration.mark({ class: 'cm-continueToLocation' });
 const asyncContinueToMark = CodeMirror.Decoration.mark({ class: 'cm-continueToLocation cm-continueToLocation-async' });
@@ -1733,7 +1747,7 @@ const noMarkers = {}, hasContinueMarkers = {
 // Add a class to the content element when there are active
 // continue-to markers. This hides the background on the current
 // execution line.
-const markIfContinueTo = CodeMirror.EditorView.contentAttributes.compute([continueToMarkers.field], (state) => {
+const markIfContinueTo = CodeMirror.EditorView.contentAttributes.compute([continueToMarkers.field], state => {
     return state.field(continueToMarkers.field).size ? hasContinueMarkers : noMarkers;
 });
 // Variable value decorations
@@ -1916,7 +1930,7 @@ export function computePopoverHighlightRange(state, mimeType, cursorPos) {
             return null;
         }
         // If the user goes through the trouble of manually selecting an expression, we'll allow side-effects.
-        return { from: main.from, to: main.to, containsCallExpression: false };
+        return { from: main.from, to: main.to, containsSideEffects: false };
     }
     const tree = CodeMirror.ensureSyntaxTree(state, cursorPos, 5 * 1000);
     if (!tree) {
@@ -1947,7 +1961,7 @@ export function computePopoverHighlightRange(state, mimeType, cursorPos) {
                     }
                 }
             }
-            return { from: node.from, to: node.to, containsCallExpression: false };
+            return { from: node.from, to: node.to, containsSideEffects: false };
         }
         case 'text/html':
         case 'text/javascript':
@@ -1966,7 +1980,7 @@ export function computePopoverHighlightRange(state, mimeType, cursorPos) {
             if (!current) {
                 return null;
             }
-            return { from: current.from, to: current.to, containsCallExpression: nodeContainsCallExpression(current) };
+            return { from: current.from, to: current.to, containsSideEffects: containsSideEffects(state.doc, current) };
         }
         default: {
             // In other languages, just assume a token consisting entirely
@@ -1974,17 +1988,33 @@ export function computePopoverHighlightRange(state, mimeType, cursorPos) {
             if (node.to - node.from > 50 || /[^\w_\-$]/.test(state.sliceDoc(node.from, node.to))) {
                 return null;
             }
-            return { from: node.from, to: node.to, containsCallExpression: false };
+            return { from: node.from, to: node.to, containsSideEffects: false };
         }
     }
 }
-function nodeContainsCallExpression(node) {
-    let containsCallExpression = false;
-    node.cursor().iterate(node => {
-        containsCallExpression ||= node.name === 'CallExpression';
-        return !containsCallExpression; // No need to recurse into children if we are alraedy done.
+function containsSideEffects(doc, root) {
+    let containsSideEffects = false;
+    root.toTree().iterate({
+        enter(node) {
+            switch (node.name) {
+                case 'AssignmentExpression':
+                case 'CallExpression': {
+                    containsSideEffects = true;
+                    return false;
+                }
+                case 'ArithOp': {
+                    const op = doc.sliceString(root.from + node.from, root.from + node.to);
+                    if (op === '++' || op === '--') {
+                        containsSideEffects = true;
+                        return false;
+                    }
+                    break;
+                }
+            }
+            return true;
+        },
     });
-    return containsCallExpression;
+    return containsSideEffects;
 }
 // Evaluated expression mark for pop-over
 const evalExpressionMark = CodeMirror.Decoration.mark({ class: 'cm-evaluatedExpression' });
@@ -2094,24 +2124,27 @@ const theme = CodeMirror.EditorView.baseTheme({
         },
     },
     '.cm-executionLine': {
-        backgroundColor: 'var(--color-execution-line-background)',
-        outline: '1px solid var(--color-execution-line-outline)',
+        backgroundColor: 'var(--sys-color-yellow-container)',
+        outline: '1px solid var(--sys-color-yellow-outline)',
         '.cm-hasContinueMarkers &': {
             backgroundColor: 'transparent',
         },
         '&.cm-highlightedLine': {
             animation: 'cm-fading-highlight-execution 2s 0s',
         },
+        '&.cm-line::selection, &.cm-line ::selection': {
+            backgroundColor: 'var(--sys-color-tonal-container) !important',
+        },
     },
     '.cm-executionToken': {
-        backgroundColor: 'var(--color-execution-token-background)',
+        backgroundColor: 'var(--sys-color-state-focus-select)',
     },
     '@keyframes cm-fading-highlight-execution': {
         from: {
-            backgroundColor: 'var(--color-highlighted-line)',
+            backgroundColor: 'var(--sys-color-tonal-container)',
         },
         to: {
-            backgroundColor: 'var(--color-execution-line-background)',
+            backgroundColor: 'var(--sys-color-yellow-container)',
         },
     },
     '.cm-continueToLocation': {
@@ -2165,4 +2198,4 @@ function inlineConditionalBreakpointArrow(color, outline, opacity = '1') {
 function inlineLogpointArrow(color, outline, opacity = '1') {
     return `url('data:image/svg+xml,<svg width="11" height="12" viewBox="0 0 11 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.5 0.5H5.80139C6.29382 0.5 6.7549 0.741701 7.03503 1.14669L10.392 6L7.03503 10.8533C6.7549 11.2583 6.29382 11.5 5.80139 11.5H0.5V0.5Z" fill="${encodeURIComponent(color)}" stroke="${encodeURIComponent(outline)}" fill-opacity="${encodeURIComponent(opacity)}"/><circle cx="3" cy="6" r="1" fill="white"/><circle cx="7" cy="6" r="1" fill="white"/></svg>')`;
 }
-//# map=DebuggerPlugin.js.map
+//# sourceMappingURL=DebuggerPlugin.js.map

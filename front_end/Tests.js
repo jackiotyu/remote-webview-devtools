@@ -55,7 +55,6 @@
   let UI;
   /** @type {import('./models/workspace/workspace.js')} */
   let Workspace;
-
   const TestSuite = class {
     /**
      * Test suite for interactive UI tests.
@@ -317,7 +316,7 @@
    * Tests that Recorder tab can be open.
    */
   TestSuite.prototype.testShowRecorderTab = function() {
-    this.showPanel('chrome_recorder')
+    this.showPanel('chrome-recorder')
         .then(() => {
           this.releaseControl();
         })
@@ -803,7 +802,7 @@
       this.releaseControl();
     });
 
-    Common.Settings.moduleSetting('activeKeybindSet').set('vsCode');
+    Common.Settings.moduleSetting('active-keybind-set').set('vsCode');
   };
 
   TestSuite.prototype.testDispatchKeyEventDoesNotCrash = function() {
@@ -990,7 +989,7 @@
     }
 
     const captureFilmStripSetting =
-        Common.Settings.Settings.instance().createSetting('timelineCaptureFilmStrip', false);
+        Common.Settings.Settings.instance().createSetting('timeline-capture-film-strip', false);
     captureFilmStripSetting.set(true);
     test.evaluateInConsole_(performActionsInPage.toString(), function() {});
     test.invokeAsyncWithTimeline_('performActionsInPage', onTimelineDone);
@@ -1009,11 +1008,11 @@
         frame.imageDataPromise().then(onGotImageData);
       }
 
-      function onGotImageData(data) {
+      function onGotImageData(dataUri) {
         const image = new Image();
-        test.assertTrue(Boolean(data), 'No image data for frame');
+        test.assertTrue(Boolean(dataUri), 'No image data for frame');
         image.addEventListener('load', onLoad);
-        image.src = 'data:image/jpg;base64,' + data;
+        image.src = dataUri;
       }
 
       function onLoad(event) {
@@ -1295,30 +1294,6 @@
     Root.Runtime.experiments.enableForTest(name);
   };
 
-  TestSuite.prototype.checkInputEventsPresent = function() {
-    const expectedEvents = new Set(arguments);
-    const model = Timeline.TimelinePanel.TimelinePanel.instance().performanceModel?.timelineModel();
-    const asyncEvents = model.virtualThreads().find(thread => thread.isMainFrame).asyncEventsByGroup;
-    const input = asyncEvents.get(TimelineModel.TimelineModel.AsyncEventGroup.input) || [];
-    const prefix = 'InputLatency::';
-    for (const e of input) {
-      if (!e.name.startsWith(prefix)) {
-        continue;
-      }
-      if (e.steps.length < 2) {
-        continue;
-      }
-      if (e.name.startsWith(prefix + 'Mouse') &&
-          typeof TimelineModel.TimelineData.forEvent(e.steps[0]).timeWaitingForMainThread !== 'number') {
-        throw `Missing timeWaitingForMainThread on ${e.name}`;
-      }
-      expectedEvents.delete(e.name.substr(prefix.length));
-    }
-    if (expectedEvents.size) {
-      throw 'Some expected events are not found: ' + Array.from(expectedEvents.keys()).join(',');
-    }
-  };
-
   TestSuite.prototype.testInspectedElementIs = async function(nodeName) {
     this.takeControl();
     /** @type {import('./panels/elements/elements.js')} */
@@ -1588,7 +1563,7 @@
         SDK.SourceMapManager.Events.SourceMapAttached, this.releaseControl.bind(this));
 
     this.evaluateInConsole_(
-        `console.log(1) //# map=chrome-extension://${extensionId}/source.map`, () => {});
+        `console.log(1) //# sourceMappingURL=chrome-extension://${extensionId}/source.map`, () => {});
   };
 
   TestSuite.prototype.testSourceMapsFromDevtools = function() {
@@ -1599,11 +1574,11 @@
         SDK.SourceMapManager.Events.SourceMapWillAttach, this.releaseControl.bind(this));
 
     this.evaluateInConsole_(
-        'console.log(1) //# map=devtools://devtools/bundled/devtools_compatibility.js', () => {});
+        'console.log(1) //# sourceMappingURL=devtools://devtools/bundled/devtools_compatibility.js', () => {});
   };
 
   TestSuite.prototype.testDoesNotCrashOnSourceMapsFromUnknownScheme = function() {
-    this.evaluateInConsole_('console.log(1) //# map=invalid-scheme://source.map', () => {});
+    this.evaluateInConsole_('console.log(1) //# sourceMappingURL=invalid-scheme://source.map', () => {});
   };
 
   /**

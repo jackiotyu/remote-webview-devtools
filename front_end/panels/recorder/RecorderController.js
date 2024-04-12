@@ -15,14 +15,14 @@ import * as Bindings from '../../models/bindings/bindings.js';
 import * as PublicExtensions from '../../models/extensions/extensions.js';
 import * as Emulation from '../../panels/emulation/emulation.js';
 import * as Timeline from '../../panels/timeline/timeline.js';
+import * as Tracing from '../../services/tracing/tracing.js';
 import * as Buttons from '../../ui/components/buttons/buttons.js';
+import * as Dialogs from '../../ui/components/dialogs/dialogs.js';
 import * as ComponentHelpers from '../../ui/components/helpers/helpers.js';
-import * as IconButton from '../../ui/components/icon_button/icon_button.js';
+import * as Menus from '../../ui/components/menus/menus.js';
 import * as UI from '../../ui/legacy/legacy.js';
 import * as LitHtml from '../../ui/lit-html/lit-html.js';
-import * as Tracing from '../../services/tracing/tracing.js';
-import * as Menus from '../../ui/components/menus/menus.js';
-import * as Dialogs from '../../ui/components/dialogs/dialogs.js';
+import * as VisualLogging from '../../ui/visual_logging/visual_logging.js';
 import * as Components from './components/components.js';
 import * as Converters from './converters/converters.js';
 import * as Extensions from './extensions/extensions.js';
@@ -44,6 +44,15 @@ const UIStrings = {
      * @description The title of the button that deletes the recording
      */
     deleteRecording: 'Delete recording',
+    /**
+     * @description The title of the select if user has no saved recordings
+     */
+    noRecordings: 'No recordings',
+    /**
+     * @description The title of the select option for one or more recording
+     * number followed by this text - `1 recording(s)` or `4 recording(s)`
+     */
+    numberOfRecordings: 'recording(s)',
     /**
      * @description The title of the button that continues the replay
      */
@@ -98,12 +107,12 @@ const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
 const GET_EXTENSIONS_MENU_ITEM = 'get-extensions-link';
 const GET_EXTENSIONS_URL = 'https://goo.gle/recorder-extension-list';
 const CONVERTER_ID_TO_METRIC = {
-    ["json" /* Models.ConverterIds.ConverterIds.JSON */]: Host.UserMetrics.RecordingExported.ToJSON,
-    ["@puppeteer/replay" /* Models.ConverterIds.ConverterIds.Replay */]: Host.UserMetrics.RecordingExported.ToPuppeteerReplay,
-    ["puppeteer" /* Models.ConverterIds.ConverterIds.Puppeteer */]: Host.UserMetrics.RecordingExported.ToPuppeteer,
-    ["lighthouse" /* Models.ConverterIds.ConverterIds.Lighthouse */]: Host.UserMetrics.RecordingExported.ToLighthouse,
+    ["json" /* Models.ConverterIds.ConverterIds.JSON */]: 2 /* Host.UserMetrics.RecordingExported.ToJSON */,
+    ["@puppeteer/replay" /* Models.ConverterIds.ConverterIds.Replay */]: 3 /* Host.UserMetrics.RecordingExported.ToPuppeteerReplay */,
+    ["puppeteer" /* Models.ConverterIds.ConverterIds.Puppeteer */]: 1 /* Host.UserMetrics.RecordingExported.ToPuppeteer */,
+    ["lighthouse" /* Models.ConverterIds.ConverterIds.Lighthouse */]: 5 /* Host.UserMetrics.RecordingExported.ToLighthouse */,
 };
-export let RecorderController = class RecorderController extends LitElement {
+let RecorderController = class RecorderController extends LitElement {
     static styles = [recorderControllerStyles];
     #storage = Models.RecordingStorage.RecordingStorage.instance();
     #screenshotStorage = Models.ScreenshotStorage.ScreenshotStorage.instance();
@@ -126,7 +135,7 @@ export let RecorderController = class RecorderController extends LitElement {
         if (this.#storage.getRecordings().length) {
             this.#setCurrentPage("AllRecordingsPage" /* Pages.AllRecordingsPage */);
         }
-        const textEditorIndent = Common.Settings.Settings.instance().moduleSetting('textEditorIndent').get();
+        const textEditorIndent = Common.Settings.Settings.instance().moduleSetting('text-editor-indent').get();
         this.#builtInConverters = Object.freeze([
             new Converters.JSONConverter.JSONConverter(textEditorIndent),
             new Converters.PuppeteerReplayConverter.PuppeteerReplayConverter(textEditorIndent),
@@ -135,7 +144,7 @@ export let RecorderController = class RecorderController extends LitElement {
         ]);
         const extensionManager = Extensions.ExtensionManager.ExtensionManager.instance();
         this.#updateExtensions(extensionManager.extensions());
-        extensionManager.addEventListener(Extensions.ExtensionManager.Events.ExtensionsUpdated, event => {
+        extensionManager.addEventListener("extensionsUpdated" /* Extensions.ExtensionManager.Events.ExtensionsUpdated */, event => {
             this.#updateExtensions(event.data);
         });
         // used in e2e tests only.
@@ -183,7 +192,7 @@ export let RecorderController = class RecorderController extends LitElement {
     }
     async #importFile(file) {
         const outputStream = new Common.StringOutputStream.StringOutputStream();
-        const reader = new Bindings.FileUtils.ChunkedFileReader(file,
+        const reader = new Bindings.FileUtils.ChunkedFileReader(file, 
         /* chunkSize */ 10000000);
         const success = await reader.read(outputStream);
         if (!success) {
@@ -299,11 +308,11 @@ export let RecorderController = class RecorderController extends LitElement {
             return;
         }
         const pluginManager = PublicExtensions.RecorderPluginManager.RecorderPluginManager.instance();
-        const promise = pluginManager.once(PublicExtensions.RecorderPluginManager.Events.ShowViewRequested);
+        const promise = pluginManager.once("showViewRequested" /* PublicExtensions.RecorderPluginManager.Events.ShowViewRequested */);
         extension.replay(this.currentRecording.flow);
         const descriptor = await promise;
         this.viewDescriptor = descriptor;
-        Host.userMetrics.recordingReplayStarted(Host.UserMetrics.RecordingReplayStarted.ReplayViaExtension);
+        Host.userMetrics.recordingReplayStarted(3 /* Host.UserMetrics.RecordingReplayStarted.ReplayViaExtension */);
     }
     async #onPlayRecording(event) {
         if (!this.currentRecording || !this.#replayAllowed) {
@@ -315,9 +324,9 @@ export let RecorderController = class RecorderController extends LitElement {
         if (event.data.extension) {
             return this.#onPlayViaExtension(event.data.extension);
         }
-        Host.userMetrics.recordingReplayStarted(event.data.targetPanel !== "chrome_recorder" /* Components.RecordingView.TargetPanel.Default */ ?
-            Host.UserMetrics.RecordingReplayStarted.ReplayWithPerformanceTracing :
-            Host.UserMetrics.RecordingReplayStarted.ReplayOnly);
+        Host.userMetrics.recordingReplayStarted(event.data.targetPanel !== "chrome-recorder" /* Components.RecordingView.TargetPanel.Default */ ?
+            2 /* Host.UserMetrics.RecordingReplayStarted.ReplayWithPerformanceTracing */ :
+            1 /* Host.UserMetrics.RecordingReplayStarted.ReplayOnly */);
         this.#replayState.isPlaying = true;
         this.currentStep = undefined;
         this.recordingError = undefined;
@@ -357,13 +366,13 @@ export let RecorderController = class RecorderController extends LitElement {
             this.lastReplayResult = "Failure" /* Models.RecordingPlayer.ReplayResult.Failure */;
             const errorMessage = error.message.toLowerCase();
             if (errorMessage.startsWith('could not find element')) {
-                Host.userMetrics.recordingReplayFinished(Host.UserMetrics.RecordingReplayFinished.TimeoutErrorSelectors);
+                Host.userMetrics.recordingReplayFinished(2 /* Host.UserMetrics.RecordingReplayFinished.TimeoutErrorSelectors */);
             }
             else if (errorMessage.startsWith('waiting for target failed')) {
-                Host.userMetrics.recordingReplayFinished(Host.UserMetrics.RecordingReplayFinished.TimeoutErrorTarget);
+                Host.userMetrics.recordingReplayFinished(3 /* Host.UserMetrics.RecordingReplayFinished.TimeoutErrorTarget */);
             }
             else {
-                Host.userMetrics.recordingReplayFinished(Host.UserMetrics.RecordingReplayFinished.OtherError);
+                Host.userMetrics.recordingReplayFinished(4 /* Host.UserMetrics.RecordingReplayFinished.OtherError */);
             }
         });
         this.recordingPlayer.addEventListener("Done" /* Models.RecordingPlayer.Events.Done */, () => {
@@ -374,7 +383,7 @@ export let RecorderController = class RecorderController extends LitElement {
             this.lastReplayResult = "Success" /* Models.RecordingPlayer.ReplayResult.Success */;
             // Dispatch an event for e2e testing.
             this.dispatchEvent(new Events.ReplayFinishedEvent());
-            Host.userMetrics.recordingReplayFinished(Host.UserMetrics.RecordingReplayFinished.Success);
+            Host.userMetrics.recordingReplayFinished(1 /* Host.UserMetrics.RecordingReplayFinished.Success */);
         });
         this.recordingPlayer.addEventListener("Abort" /* Models.RecordingPlayer.Events.Abort */, () => {
             this.currentStep = undefined;
@@ -502,7 +511,7 @@ export let RecorderController = class RecorderController extends LitElement {
         const indexToInsertAt = currentIndex + (position === "before" /* Components.StepView.AddStepPosition.BEFORE */ ? 0 : 1);
         steps.splice(indexToInsertAt, 0, { type: Models.Schema.StepType.WaitForElement, selectors: ['body'] });
         const recording = { ...this.currentRecording, flow: { ...this.currentRecording.flow, steps } };
-        Host.userMetrics.recordingEdited(Host.UserMetrics.RecordingEdited.StepAdded);
+        Host.userMetrics.recordingEdited(2 /* Host.UserMetrics.RecordingEdited.StepAdded */);
         this.#stepBreakpointIndexes = new Set([...this.#stepBreakpointIndexes.values()].map(breakpointIndex => {
             if (indexToInsertAt > breakpointIndex) {
                 return breakpointIndex;
@@ -526,7 +535,7 @@ export let RecorderController = class RecorderController extends LitElement {
         const currentIndex = steps.indexOf(event.step);
         steps.splice(currentIndex, 1);
         const flow = { ...this.currentRecording.flow, steps };
-        Host.userMetrics.recordingEdited(Host.UserMetrics.RecordingEdited.StepRemoved);
+        Host.userMetrics.recordingEdited(3 /* Host.UserMetrics.RecordingEdited.StepRemoved */);
         this.#stepBreakpointIndexes = new Set([...this.#stepBreakpointIndexes.values()]
             .map(breakpointIndex => {
             if (currentIndex > breakpointIndex) {
@@ -615,7 +624,7 @@ export let RecorderController = class RecorderController extends LitElement {
         this.isToggling = true;
         this.#clearError();
         // -- Recording logic starts here --
-        Host.userMetrics.recordingToggled(Host.UserMetrics.RecordingToggled.RecordingStarted);
+        Host.userMetrics.recordingToggled(1 /* Host.UserMetrics.RecordingToggled.RecordingStarted */);
         this.currentRecordingSession = new Models.RecordingSession.RecordingSession(this.#getMainTarget(), {
             title: event.name,
             selectorAttribute: event.selectorAttribute,
@@ -655,7 +664,7 @@ export let RecorderController = class RecorderController extends LitElement {
             if (!this.currentRecording) {
                 throw new Error('No current recording found');
             }
-            Host.userMetrics.keyboardShortcutFired("chrome_recorder.start-recording" /* Actions.RecorderActions.StartRecording */);
+            Host.userMetrics.keyboardShortcutFired("chrome-recorder.start-recording" /* Actions.RecorderActions.StartRecording */);
             this.#setCurrentRecording(await this.#storage.updateRecording(this.currentRecording.storageName, data));
             await this.#onRecordingFinished();
         });
@@ -676,7 +685,7 @@ export let RecorderController = class RecorderController extends LitElement {
         this.isToggling = true;
         this.#clearError();
         // -- Recording logic starts here --
-        Host.userMetrics.recordingToggled(Host.UserMetrics.RecordingToggled.RecordingFinished);
+        Host.userMetrics.recordingToggled(2 /* Host.UserMetrics.RecordingToggled.RecordingFinished */);
         await this.currentRecordingSession.stop();
         this.currentRecordingSession = undefined;
         // -- Recording logic ends here --
@@ -731,7 +740,7 @@ export let RecorderController = class RecorderController extends LitElement {
             Host.userMetrics.recordingExported(builtInMetric);
         }
         else if (converter.getId().startsWith(Converters.ExtensionConverter.EXTENSION_PREFIX)) {
-            Host.userMetrics.recordingExported(Host.UserMetrics.RecordingExported.ToExtension);
+            Host.userMetrics.recordingExported(4 /* Host.UserMetrics.RecordingExported.ToExtension */);
         }
         else {
             throw new Error('Could not find a metric for the export option with id = ' + id);
@@ -759,7 +768,7 @@ export let RecorderController = class RecorderController extends LitElement {
         const flow = this.currentRecordingSession.cloneUserFlow();
         flow.steps.push({ type: 'waitForElement', selectors: [['.cls']] });
         this.#setCurrentRecording(await this.#storage.updateRecording(this.currentRecording.storageName, flow), { keepBreakpoints: true, updateSession: true });
-        Host.userMetrics.recordingAssertion(Host.UserMetrics.RecordingAssertion.AssertionAdded);
+        Host.userMetrics.recordingAssertion(1 /* Host.UserMetrics.RecordingAssertion.AssertionAdded */);
         await this.updateComplete;
         this.renderRoot.querySelector('devtools-recording-view')
             ?.shadowRoot?.querySelector('.section:last-child devtools-step-view:last-of-type')
@@ -774,7 +783,7 @@ export let RecorderController = class RecorderController extends LitElement {
     }
     async #onPlayRecordingByName(event) {
         await this.#onRecordingSelected(event);
-        await this.#onPlayRecording(new Components.RecordingView.PlayRecordingEvent({ targetPanel: "chrome_recorder" /* Components.RecordingView.TargetPanel.Default */, speed: this.#recorderSettings.speed }));
+        await this.#onPlayRecording(new Components.RecordingView.PlayRecordingEvent({ targetPanel: "chrome-recorder" /* Components.RecordingView.TargetPanel.Default */, speed: this.#recorderSettings.speed }));
     }
     #onAddBreakpoint = (event) => {
         this.#stepBreakpointIndexes.add(event.index);
@@ -794,10 +803,10 @@ export let RecorderController = class RecorderController extends LitElement {
             return;
         }
         switch (actionId) {
-            case "chrome_recorder.create-recording" /* Actions.RecorderActions.CreateRecording */:
+            case "chrome-recorder.create-recording" /* Actions.RecorderActions.CreateRecording */:
                 this.#onCreateNewRecording();
                 return;
-            case "chrome_recorder.start-recording" /* Actions.RecorderActions.StartRecording */:
+            case "chrome-recorder.start-recording" /* Actions.RecorderActions.StartRecording */:
                 if (this.currentPage !== "CreateRecordingPage" /* Pages.CreateRecordingPage */ && !this.isRecording) {
                     this.#shortcutHelper.handleShortcut(this.#onRecordingStarted.bind(this, new Components.CreateRecordingView.RecordingStartedEvent(this.#recorderSettings.defaultTitle, this.#recorderSettings.defaultSelectors, this.#recorderSettings.selectorAttribute)));
                 }
@@ -811,10 +820,10 @@ export let RecorderController = class RecorderController extends LitElement {
                     void this.#onRecordingFinished();
                 }
                 return;
-            case "chrome_recorder.replay-recording" /* Actions.RecorderActions.ReplayRecording */:
-                void this.#onPlayRecording(new Components.RecordingView.PlayRecordingEvent({ targetPanel: "chrome_recorder" /* Components.RecordingView.TargetPanel.Default */, speed: this.#recorderSettings.speed }));
+            case "chrome-recorder.replay-recording" /* Actions.RecorderActions.ReplayRecording */:
+                void this.#onPlayRecording(new Components.RecordingView.PlayRecordingEvent({ targetPanel: "chrome-recorder" /* Components.RecordingView.TargetPanel.Default */, speed: this.#recorderSettings.speed }));
                 return;
-            case "chrome_recorder.toggle-code-view" /* Actions.RecorderActions.ToggleCodeView */: {
+            case "chrome-recorder.toggle-code-view" /* Actions.RecorderActions.ToggleCodeView */: {
                 const view = this.renderRoot.querySelector('devtools-recording-view');
                 if (view) {
                     view.showCodeToggle();
@@ -825,14 +834,18 @@ export let RecorderController = class RecorderController extends LitElement {
     }
     isActionPossible(actionId) {
         switch (actionId) {
-            case "chrome_recorder.create-recording" /* Actions.RecorderActions.CreateRecording */:
+            case "chrome-recorder.create-recording" /* Actions.RecorderActions.CreateRecording */:
                 return !this.isRecording && !this.#replayState.isPlaying;
-            case "chrome_recorder.start-recording" /* Actions.RecorderActions.StartRecording */:
+            case "chrome-recorder.start-recording" /* Actions.RecorderActions.StartRecording */:
                 return !this.#replayState.isPlaying;
-            case "chrome_recorder.replay-recording" /* Actions.RecorderActions.ReplayRecording */:
+            case "chrome-recorder.replay-recording" /* Actions.RecorderActions.ReplayRecording */:
                 return (this.currentPage === "RecordingPage" /* Pages.RecordingPage */ && !this.#replayState.isPlaying);
-            case "chrome_recorder.toggle-code-view" /* Actions.RecorderActions.ToggleCodeView */:
+            case "chrome-recorder.toggle-code-view" /* Actions.RecorderActions.ToggleCodeView */:
                 return this.currentPage === "RecordingPage" /* Pages.RecordingPage */;
+            case "chrome-recorder.copy-recording-or-step" /* Actions.RecorderActions.CopyRecordingOrStep */:
+                // This action is handled in the RecordingView
+                // It relies on browser `copy` event.
+                return false;
         }
     }
     #getShortcutsInfo() {
@@ -843,14 +856,14 @@ export let RecorderController = class RecorderController extends LitElement {
         return [
             {
                 title: i18nString(UIStrings.startStopRecording),
-                bindings: getBindingForAction("chrome_recorder.start-recording" /* Actions.RecorderActions.StartRecording */),
+                bindings: getBindingForAction("chrome-recorder.start-recording" /* Actions.RecorderActions.StartRecording */),
             },
             {
                 title: i18nString(UIStrings.replayRecording),
-                bindings: getBindingForAction("chrome_recorder.replay-recording" /* Actions.RecorderActions.ReplayRecording */),
+                bindings: getBindingForAction("chrome-recorder.replay-recording" /* Actions.RecorderActions.ReplayRecording */),
             },
             { title: i18nString(UIStrings.copyShortcut), bindings: [`${Host.Platform.isMac() ? '⌘ C' : 'Ctrl+C'}`] },
-            { title: i18nString(UIStrings.toggleCode), bindings: getBindingForAction("chrome_recorder.toggle-code-view" /* Actions.RecorderActions.ToggleCodeView */) },
+            { title: i18nString(UIStrings.toggleCode), bindings: getBindingForAction("chrome-recorder.toggle-code-view" /* Actions.RecorderActions.ToggleCodeView */) },
         ];
     }
     #renderCurrentPage() {
@@ -970,12 +983,12 @@ export let RecorderController = class RecorderController extends LitElement {
             recordings.length === 0
                 ? {
                     value: "StartPage" /* Pages.StartPage */,
-                    name: 'No recordings',
+                    name: i18nString(UIStrings.noRecordings),
                     selected: selectValue === "StartPage" /* Pages.StartPage */,
                 }
                 : {
                     value: "AllRecordingsPage" /* Pages.AllRecordingsPage */,
-                    name: `${recordings.length} recording(s)`,
+                    name: `${recordings.length} ${i18nString(UIStrings.numberOfRecordings)}`,
                     selected: selectValue === "AllRecordingsPage" /* Pages.AllRecordingsPage */,
                 },
             ...recordings.map(recording => ({
@@ -986,7 +999,7 @@ export let RecorderController = class RecorderController extends LitElement {
         ];
         return html `
         <div class="wrapper">
-          <div class="header">
+          <div class="header" jslog=${VisualLogging.toolbar()}>
             <${Buttons.Button.Button.litTagName}
               @click=${this.#onCreateNewRecording}
               .data=${{
@@ -995,7 +1008,8 @@ export let RecorderController = class RecorderController extends LitElement {
             disabled: this.#replayState.isPlaying ||
                 this.isRecording ||
                 this.isToggling,
-            title: Models.Tooltip.getTooltipForActions(i18nString(UIStrings.createRecording), "chrome_recorder.create-recording" /* Actions.RecorderActions.CreateRecording */),
+            title: Models.Tooltip.getTooltipForActions(i18nString(UIStrings.createRecording), "chrome-recorder.create-recording" /* Actions.RecorderActions.CreateRecording */),
+            jslogContext: "chrome-recorder.create-recording" /* Actions.RecorderActions.CreateRecording */,
         }}
             ></${Buttons.Button.Button.litTagName}>
             <div class="separator"></div>
@@ -1006,6 +1020,7 @@ export let RecorderController = class RecorderController extends LitElement {
             this.isToggling}
               @click=${(e) => e.stopPropagation()}
               @change=${this.#onRecordingSelected}
+              jslog=${VisualLogging.dropDown('recordings').track({ change: true })}
             >
               ${LitHtml.Directives.repeat(values, item => item.value, item => {
             return html `<option .selected=${item.selected} value=${item.value}>${item.name}</option>`;
@@ -1018,6 +1033,7 @@ export let RecorderController = class RecorderController extends LitElement {
             variant: "toolbar" /* Buttons.Button.Variant.TOOLBAR */,
             iconName: 'import',
             title: i18nString(UIStrings.importRecording),
+            jslogContext: 'import-recording',
         }}
             ></${Buttons.Button.Button.litTagName}>
             <${Buttons.Button.Button.litTagName}
@@ -1032,6 +1048,7 @@ export let RecorderController = class RecorderController extends LitElement {
             title: i18nString(UIStrings.exportRecording),
             disabled: !this.currentRecording,
         }}
+              jslog=${VisualLogging.dropDown('export-recording').track({ click: true })}
             ></${Buttons.Button.Button.litTagName}>
             <${Menus.Menu.Menu.litTagName}
               @menucloserequest=${this.#onExportMenuClosed}
@@ -1045,7 +1062,8 @@ export let RecorderController = class RecorderController extends LitElement {
               <${Menus.Menu.MenuGroup.litTagName} .name=${i18nString(UIStrings.export)}>
                 ${LitHtml.Directives.repeat(this.#builtInConverters, converter => {
             return html `
-                    <${Menus.Menu.MenuItem.litTagName} .value=${converter.getId()}>
+                    <${Menus.Menu.MenuItem.litTagName} .value=${converter.getId()}
+                      jslog=${VisualLogging.item(`converter-${converter.getFormatName()}`).track({ click: true })}>
                       ${converter.getFormatName()}
                     </${Menus.Menu.MenuItem.litTagName}>
                   `;
@@ -1054,7 +1072,8 @@ export let RecorderController = class RecorderController extends LitElement {
               <${Menus.Menu.MenuGroup.litTagName} .name=${i18nString(UIStrings.exportViaExtensions)}>
                 ${LitHtml.Directives.repeat(this.extensionConverters, converter => {
             return html `
-                    <${Menus.Menu.MenuItem.litTagName} .value=${converter.getId()}>
+                    <${Menus.Menu.MenuItem.litTagName} .value=${converter.getId()}
+                      jslog=${VisualLogging.item(`converter-${converter.getFormatName()}`).track({ click: true })}>
                     ${converter.getFormatName()}
                     </${Menus.Menu.MenuItem.litTagName}>
                   `;
@@ -1074,21 +1093,21 @@ export let RecorderController = class RecorderController extends LitElement {
                 this.isRecording ||
                 this.isToggling,
             title: i18nString(UIStrings.deleteRecording),
+            jslogContext: 'delete-recording',
         }}
             ></${Buttons.Button.Button.litTagName}>
             <div class="separator"></div>
-            <button class="continue-button"
-              .disabled=${!this.recordingPlayer ||
-            !this.#replayState.isPausedOnBreakpoint}
-              title=${i18nString(UIStrings.continueReplay)}
-              @click=${() => this.recordingPlayer?.continue()}>
-                <${IconButton.Icon.Icon.litTagName}
-                  .data=${{
+            <${Buttons.Button.Button.litTagName}
+              @click=${() => this.recordingPlayer?.continue()}
+              .data=${{
+            variant: "primary_toolbar" /* Buttons.Button.Variant.PRIMARY_TOOLBAR */,
             iconName: 'resume',
-            color: 'var(--icon-color)',
+            disabled: !this.recordingPlayer ||
+                !this.#replayState.isPausedOnBreakpoint,
+            title: i18nString(UIStrings.continueReplay),
+            jslogContext: 'continue-replay',
         }}
-                ></${IconButton.Icon.Icon.litTagName}>
-            </button>
+            ></${Buttons.Button.Button.litTagName}>
             <${Buttons.Button.Button.litTagName}
               @click=${() => this.recordingPlayer?.stepOver()}
               .data=${{
@@ -1097,16 +1116,17 @@ export let RecorderController = class RecorderController extends LitElement {
             disabled: !this.recordingPlayer ||
                 !this.#replayState.isPausedOnBreakpoint,
             title: i18nString(UIStrings.stepOverReplay),
+            jslogContext: 'step-over',
         }}
             ></${Buttons.Button.Button.litTagName}>
             <div class="feedback">
-              <x-link class="x-link" href=${Components.StartView.FEEDBACK_URL}>${i18nString(UIStrings.sendFeedback)}</x-link>
+              <x-link class="x-link" href=${Components.StartView.FEEDBACK_URL} jslog=${VisualLogging.link('feedback').track({ click: true })}>${i18nString(UIStrings.sendFeedback)}</x-link>
             </div>
             <div class="separator"></div>
             <${Dialogs.ShortcutDialog.ShortcutDialog.litTagName}
               .data=${{
             shortcuts: this.#getShortcutsInfo(),
-        }}
+        }} jslog=${VisualLogging.action('show-shortcuts').track({ click: true })}
             ></${Dialogs.ShortcutDialog.ShortcutDialog.litTagName}>
           </div>
           ${this.importError
@@ -1172,4 +1192,5 @@ __decorate([
 RecorderController = __decorate([
     customElement('devtools-recorder-controller')
 ], RecorderController);
-//# map=RecorderController.js.map
+export { RecorderController };
+//# sourceMappingURL=RecorderController.js.map

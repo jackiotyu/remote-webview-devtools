@@ -98,7 +98,7 @@ export class RecordingSession extends Common.ObjectWrapper.ObjectWrapper {
             throw new Error('The session has started');
         }
         this.#started = true;
-        this.#networkManager.addEventListener(SDK.NetworkManager.MultitargetNetworkManager.Events.ConditionsChanged, this.#appendCurrentNetworkStep, this);
+        this.#networkManager.addEventListener("ConditionsChanged" /* SDK.NetworkManager.MultitargetNetworkManager.Events.ConditionsChanged */, this.#appendCurrentNetworkStep, this);
         await this.#appendInitialSteps();
         // Focus the target so that events can be captured without additional actions.
         await this.#pageAgent.invoke_bringToFront();
@@ -110,7 +110,7 @@ export class RecordingSession extends Common.ObjectWrapper.ObjectWrapper {
         // Create a deadlock for the remaining events.
         void this.#mutex.acquire();
         await Promise.all([...this.#targets.values()].map(this.#tearDownTarget));
-        this.#networkManager.removeEventListener(SDK.NetworkManager.MultitargetNetworkManager.Events.ConditionsChanged, this.#appendCurrentNetworkStep, this);
+        this.#networkManager.removeEventListener("ConditionsChanged" /* SDK.NetworkManager.MultitargetNetworkManager.Events.ConditionsChanged */, this.#appendCurrentNetworkStep, this);
     }
     async #appendInitialSteps() {
         // Quick validation before doing anything.
@@ -382,7 +382,7 @@ export class RecordingSession extends Common.ObjectWrapper.ObjectWrapper {
     }
     #getStopShortcuts() {
         const descriptors = UI.ShortcutRegistry.ShortcutRegistry.instance()
-            .shortcutsForAction('chrome_recorder.start-recording')
+            .shortcutsForAction('chrome-recorder.start-recording')
             .map(key => key.descriptors.map(press => press.key));
         return createShortcuts(descriptors);
     }
@@ -390,7 +390,7 @@ export class RecordingSession extends Common.ObjectWrapper.ObjectWrapper {
         try {
             // This setting is set during the test to work around the fact that Puppeteer cannot
             // send trusted change and input events.
-            Common.Settings.Settings.instance().settingForTest('untrustedRecorderEvents');
+            Common.Settings.Settings.instance().settingForTest('untrusted-recorder-events');
             return true;
         }
         catch {
@@ -410,9 +410,9 @@ export class RecordingSession extends Common.ObjectWrapper.ObjectWrapper {
         const childTargetManager = target.model(SDK.ChildTargetManager.ChildTargetManager);
         Platform.assertNotNullOrUndefined(childTargetManager);
         this.#childTargetEventDescriptors.set(target, [
-            childTargetManager.addEventListener(SDK.ChildTargetManager.Events.TargetCreated, this.#receiveTargetCreated.bind(this, target)),
-            childTargetManager.addEventListener(SDK.ChildTargetManager.Events.TargetDestroyed, this.#receiveTargetClosed.bind(this, target)),
-            childTargetManager.addEventListener(SDK.ChildTargetManager.Events.TargetInfoChanged, this.#receiveTargetInfoChanged.bind(this, target)),
+            childTargetManager.addEventListener("TargetCreated" /* SDK.ChildTargetManager.Events.TargetCreated */, this.#receiveTargetCreated.bind(this, target)),
+            childTargetManager.addEventListener("TargetDestroyed" /* SDK.ChildTargetManager.Events.TargetDestroyed */, this.#receiveTargetClosed.bind(this, target)),
+            childTargetManager.addEventListener("TargetInfoChanged" /* SDK.ChildTargetManager.Events.TargetInfoChanged */, this.#receiveTargetInfoChanged.bind(this, target)),
         ]);
         await Promise.all(childTargetManager.childTargets().map(this.#setUpTarget));
     };
@@ -602,4 +602,4 @@ export class RecordingSession extends Common.ObjectWrapper.ObjectWrapper {
         ]);
     }
 }
-//# map=RecordingSession.js.map
+//# sourceMappingURL=RecordingSession.js.map

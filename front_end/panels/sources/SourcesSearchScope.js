@@ -85,7 +85,7 @@ export class SourcesSearchScope {
         }
     }
     projects() {
-        const searchInAnonymousAndContentScripts = Common.Settings.Settings.instance().moduleSetting('searchInAnonymousAndContentScripts').get();
+        const searchInAnonymousAndContentScripts = Common.Settings.Settings.instance().moduleSetting('search-in-anonymous-and-content-scripts').get();
         return Workspace.Workspace.WorkspaceImpl.instance().projects().filter(project => {
             if (project.type() === Workspace.Workspace.projectTypes.Service) {
                 return false;
@@ -256,10 +256,8 @@ export class FileBasedSearchResult {
         const range = new TextUtils.TextRange.TextRange(lineNumber, columnNumber, lineNumber, columnNumber + matchLength);
         return new Workspace.UISourceCode.UILocationRange(this.uiSourceCode, range);
     }
-    // TODO(crbug.com/1172300) Ignored during the jsdoc to ts migration)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     matchLabel(index) {
-        return this.searchMatches[index].lineNumber + 1;
+        return String(this.searchMatches[index].lineNumber + 1);
     }
     matchColumn(index) {
         return this.searchMatches[index].columnNumber;
@@ -268,4 +266,4 @@ export class FileBasedSearchResult {
         return this.searchMatches[index].matchLength;
     }
 }
-//# map=SourcesSearchScope.js.map
+//# sourceMappingURL=SourcesSearchScope.js.map

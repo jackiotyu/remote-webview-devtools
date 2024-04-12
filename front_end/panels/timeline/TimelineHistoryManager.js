@@ -4,6 +4,7 @@
 import * as Common from '../../core/common/common.js';
 import * as i18n from '../../core/i18n/i18n.js';
 import * as Platform from '../../core/platform/platform.js';
+import * as TraceEngine from '../../models/trace/trace.js';
 import * as UI from '../../ui/legacy/legacy.js';
 import { TimelineEventOverviewCPUActivity, TimelineEventOverviewNetwork, TimelineEventOverviewResponsiveness, } from './TimelineEventOverview.js';
 import timelineHistoryManagerStyles from './timelineHistoryManager.css.js';
@@ -60,42 +61,56 @@ export class TimelineHistoryManager {
     allOverviews;
     totalHeight;
     enabled;
-    lastActiveModel;
-    constructor() {
+    lastActiveTraceIndex = null;
+    #minimapComponent;
+    constructor(minimapComponent) {
         this.recordings = [];
-        this.action =
-            UI.ActionRegistry.ActionRegistry.instance().action('timeline.show-history');
+        this.#minimapComponent = minimapComponent;
+        this.action = UI.ActionRegistry.ActionRegistry.instance().getAction('timeline.show-history');
         this.nextNumberByDomain = new Map();
         this.buttonInternal = new ToolbarButton(this.action);
         UI.ARIAUtils.markAsMenuButton(this.buttonInternal.element);
         this.clear();
+        // Attempt to reuse the overviews coming from the panel's minimap
+        // before creating new instances.
         this.allOverviews = [
             {
-                constructor: (traceParsedData) => {
-                    return new TimelineEventOverviewResponsiveness(traceParsedData);
+                constructor: traceParsedData => {
+                    const responsivenessOverviewFromMinimap = this.#minimapComponent?.getControls().find(control => control instanceof TimelineEventOverviewResponsiveness);
+                    return responsivenessOverviewFromMinimap || new TimelineEventOverviewResponsiveness(traceParsedData);
                 },
                 height: 3,
             },
             {
-                constructor: (_traceParsedData, performanceModel) => new TimelineEventOverviewCPUActivity(performanceModel),
+                constructor: traceParsedData => {
+                    const cpuOverviewFromMinimap = this.#minimapComponent?.getControls().find(control => control instanceof TimelineEventOverviewCPUActivity);
+                    if (cpuOverviewFromMinimap) {
+                        return cpuOverviewFromMinimap;
+                    }
+                    return new TimelineEventOverviewCPUActivity(traceParsedData);
+                },
                 height: 20,
             },
             {
-                constructor: (traceParsedData) => new TimelineEventOverviewNetwork(traceParsedData),
+                constructor: traceParsedData => {
+                    const networkOverviewFromMinimap = this.#minimapComponent?.getControls().find(control => control instanceof TimelineEventOverviewNetwork);
+                    return networkOverviewFromMinimap || new TimelineEventOverviewNetwork(traceParsedData);
+                },
                 height: 8,
             },
         ];
         this.totalHeight = this.allOverviews.reduce((acc, entry) => acc + entry.height, 0);
         this.enabled = true;
-        this.lastActiveModel = null;
     }
     addRecording(newInput) {
         const { legacyModel, traceParseDataIndex } = newInput.data;
         const filmStrip = newInput.filmStripForPreview;
-        this.lastActiveModel = legacyModel;
+        this.lastActiveTraceIndex = traceParseDataIndex;
         this.recordings.unshift({ legacyModel: legacyModel, traceParseDataIndex });
-        this.buildPreview(legacyModel, newInput.traceParsedData, filmStrip);
-        const modelTitle = this.title(legacyModel);
+        // Order is important: this needs to happen first because lots of the
+        // subsequent code depends on us storing the preview data into the map.
+        this.#buildAndStorePreviewData(traceParseDataIndex, newInput.traceParsedData, filmStrip, newInput.startTime);
+        const modelTitle = this.title(traceParseDataIndex);
         this.buttonInternal.setText(modelTitle);
         const buttonTitle = this.action.title();
         UI.ARIAUtils.setLabel(this.buttonInternal.element, i18nString(UIStrings.currentSessionSS, { PH1: modelTitle, PH2: buttonTitle }));
@@ -103,10 +118,10 @@ export class TimelineHistoryManager {
         if (this.recordings.length <= maxRecordings) {
             return;
         }
-        const modelUsedMoreTimeAgo = this.recordings.reduce((a, b) => lastUsedTime(a.legacyModel) < lastUsedTime(b.legacyModel) ? a : b);
+        const modelUsedMoreTimeAgo = this.recordings.reduce((a, b) => lastUsedTime(a.traceParseDataIndex) < lastUsedTime(b.traceParseDataIndex) ? a : b);
         this.recordings.splice(this.recordings.indexOf(modelUsedMoreTimeAgo), 1);
-        function lastUsedTime(model) {
-            const data = TimelineHistoryManager.dataForModel(model);
+        function lastUsedTime(index) {
+            const data = TimelineHistoryManager.dataForTraceIndex(index);
             if (!data) {
                 throw new Error('Unable to find data for model');
             }
@@ -122,7 +137,7 @@ export class TimelineHistoryManager {
     }
     clear() {
         this.recordings = [];
-        this.lastActiveModel = null;
+        this.lastActiveTraceIndex = null;
         this.updateState();
         this.buttonInternal.setText(i18nString(UIStrings.noRecordings));
         this.nextNumberByDomain.clear();
@@ -132,42 +147,42 @@ export class TimelineHistoryManager {
             return null;
         }
         // DropDown.show() function finishes when the dropdown menu is closed via selection or losing focus
-        const legacyModel = await DropDown.show(this.recordings.map(recording => recording.legacyModel), this.lastActiveModel, this.buttonInternal.element);
-        if (!legacyModel) {
+        const activeTraceIndex = await DropDown.show(this.recordings.map(recording => recording.traceParseDataIndex), this.lastActiveTraceIndex, this.buttonInternal.element);
+        if (activeTraceIndex === null) {
             return null;
         }
-        const index = this.recordings.findIndex(recording => recording.legacyModel === legacyModel);
+        const index = this.recordings.findIndex(recording => recording.traceParseDataIndex === activeTraceIndex);
         if (index < 0) {
             console.assert(false, 'selected recording not found');
             return null;
         }
-        this.setCurrentModel(legacyModel);
+        this.setCurrentModel(activeTraceIndex);
         return this.recordings[index];
     }
     cancelIfShowing() {
         DropDown.cancelIfShowing();
     }
     navigate(direction) {
-        if (!this.enabled || !this.lastActiveModel) {
+        if (!this.enabled || this.lastActiveTraceIndex === null) {
             return null;
         }
-        const index = this.recordings.findIndex(recording => recording.legacyModel === this.lastActiveModel);
+        const index = this.recordings.findIndex(recording => recording.traceParseDataIndex === this.lastActiveTraceIndex);
         if (index < 0) {
             return null;
         }
         const newIndex = Platform.NumberUtilities.clamp(index + direction, 0, this.recordings.length - 1);
-        const legacyModel = this.recordings[newIndex].legacyModel;
-        this.setCurrentModel(legacyModel);
+        const { traceParseDataIndex } = this.recordings[newIndex];
+        this.setCurrentModel(traceParseDataIndex);
         return this.recordings[newIndex];
     }
-    setCurrentModel(model) {
-        const data = TimelineHistoryManager.dataForModel(model);
+    setCurrentModel(index) {
+        const data = TimelineHistoryManager.dataForTraceIndex(index);
         if (!data) {
             throw new Error('Unable to find data for model');
         }
         data.lastUsed = Date.now();
-        this.lastActiveModel = model;
-        const modelTitle = this.title(model);
+        this.lastActiveTraceIndex = index;
+        const modelTitle = this.title(index);
         const buttonTitle = this.action.title();
         this.buttonInternal.setText(modelTitle);
         UI.ARIAUtils.setLabel(this.buttonInternal.element, i18nString(UIStrings.currentSessionSS, { PH1: modelTitle, PH2: buttonTitle }));
@@ -175,12 +190,12 @@ export class TimelineHistoryManager {
     updateState() {
         this.action.setEnabled(this.recordings.length > 1 && this.enabled);
     }
-    static previewElement(performanceModel) {
-        const data = TimelineHistoryManager.dataForModel(performanceModel);
+    static previewElement(traceDataIndex) {
+        const data = TimelineHistoryManager.dataForTraceIndex(traceDataIndex);
         if (!data) {
             throw new Error('Unable to find data for model');
         }
-        const startedAt = performanceModel.recordStartTime();
+        const startedAt = data.startTime;
         data.time.textContent =
             startedAt ? i18nString(UIStrings.sAgo, { PH1: TimelineHistoryManager.coarseAge(startedAt) }) : '';
         return data.preview;
@@ -197,47 +212,52 @@ export class TimelineHistoryManager {
         const hours = Math.round(minutes / 60);
         return i18nString(UIStrings.sH, { PH1: hours });
     }
-    title(performanceModel) {
-        const data = TimelineHistoryManager.dataForModel(performanceModel);
+    title(index) {
+        const data = TimelineHistoryManager.dataForTraceIndex(index);
         if (!data) {
             throw new Error('Unable to find data for model');
         }
         return data.title;
     }
-    buildPreview(performanceModel, traceParsedData, filmStrip) {
-        const parsedURL = Common.ParsedURL.ParsedURL.fromString(performanceModel.timelineModel().pageURL());
+    #buildAndStorePreviewData(traceParseDataIndex, traceParsedData, filmStrip, startTime) {
+        const parsedURL = Common.ParsedURL.ParsedURL.fromString(traceParsedData.Meta.mainFrameURL);
         const domain = parsedURL ? parsedURL.host : '';
-        const title = performanceModel.tracingModel().title() || domain;
-        const sequenceNumber = this.nextNumberByDomain.get(title) || 1;
-        const titleWithSequenceNumber = i18nString(UIStrings.sD, { PH1: title, PH2: sequenceNumber });
-        this.nextNumberByDomain.set(title, sequenceNumber + 1);
+        const sequenceNumber = this.nextNumberByDomain.get(domain) || 1;
+        const titleWithSequenceNumber = i18nString(UIStrings.sD, { PH1: domain, PH2: sequenceNumber });
+        this.nextNumberByDomain.set(domain, sequenceNumber + 1);
         const timeElement = document.createElement('span');
         const preview = document.createElement('div');
         preview.classList.add('preview-item');
         preview.classList.add('vbox');
-        const data = { preview, title: titleWithSequenceNumber, time: timeElement, lastUsed: Date.now() };
-        modelToPerformanceData.set(performanceModel, data);
-        preview.appendChild(this.buildTextDetails(performanceModel, title, timeElement));
+        const data = {
+            preview,
+            title: titleWithSequenceNumber,
+            time: timeElement,
+            lastUsed: Date.now(),
+            startTime,
+        };
+        traceDataIndexToPerformancePreviewData.set(traceParseDataIndex, data);
+        preview.appendChild(this.#buildTextDetails(traceParsedData, domain, timeElement));
         const screenshotAndOverview = preview.createChild('div', 'hbox');
-        screenshotAndOverview.appendChild(this.buildScreenshotThumbnail(filmStrip));
-        screenshotAndOverview.appendChild(this.buildOverview(performanceModel, traceParsedData));
+        screenshotAndOverview.appendChild(this.#buildScreenshotThumbnail(filmStrip));
+        screenshotAndOverview.appendChild(this.#buildOverview(traceParsedData));
         return data.preview;
     }
-    buildTextDetails(performanceModel, title, timeElement) {
+    #buildTextDetails(traceParsedData, title, timeElement) {
         const container = document.createElement('div');
         container.classList.add('text-details');
         container.classList.add('hbox');
         const nameSpan = container.createChild('span', 'name');
         nameSpan.textContent = title;
         UI.ARIAUtils.setLabel(nameSpan, title);
-        const tracingModel = performanceModel.tracingModel();
-        const duration = i18n.TimeUtilities.millisToString(tracingModel.maximumRecordTime() - tracingModel.minimumRecordTime(), false);
+        const bounds = TraceEngine.Helpers.Timing.traceWindowMilliSeconds(traceParsedData.Meta.traceBounds);
+        const duration = i18n.TimeUtilities.millisToString(bounds.range, false);
         const timeContainer = container.createChild('span', 'time');
         timeContainer.appendChild(document.createTextNode(duration));
         timeContainer.appendChild(timeElement);
         return container;
     }
-    buildScreenshotThumbnail(filmStrip) {
+    #buildScreenshotThumbnail(filmStrip) {
         const container = document.createElement('div');
         container.classList.add('screenshot-thumb');
         const thumbnailAspectRatio = 3 / 2;
@@ -250,64 +270,63 @@ export class TimelineHistoryManager {
         if (!lastFrame) {
             return container;
         }
-        void UI.UIUtils.loadImageFromData(lastFrame.screenshotAsString).then(img => {
+        void UI.UIUtils.loadImage(lastFrame.screenshotEvent.args.dataUri).then(img => {
             if (img) {
                 container.appendChild(img);
             }
         });
         return container;
     }
-    buildOverview(performanceModel, traceParsedData) {
+    #buildOverview(traceParsedData) {
         const container = document.createElement('div');
+        const dPR = window.devicePixelRatio;
         container.style.width = previewWidth + 'px';
         container.style.height = this.totalHeight + 'px';
         const canvas = container.createChild('canvas');
-        canvas.width = window.devicePixelRatio * previewWidth;
-        canvas.height = window.devicePixelRatio * this.totalHeight;
+        canvas.width = dPR * previewWidth;
+        canvas.height = dPR * this.totalHeight;
         const ctx = canvas.getContext('2d');
         let yOffset = 0;
         for (const overview of this.allOverviews) {
-            const timelineOverviewComponent = overview.constructor(traceParsedData, performanceModel);
-            timelineOverviewComponent.setCanvasSize(previewWidth, overview.height);
+            const timelineOverviewComponent = overview.constructor(traceParsedData);
             timelineOverviewComponent.update();
-            const sourceContext = timelineOverviewComponent.context();
-            const imageData = sourceContext.getImageData(0, 0, sourceContext.canvas.width, sourceContext.canvas.height);
             if (ctx) {
-                ctx.putImageData(imageData, 0, yOffset);
+                ctx.drawImage(timelineOverviewComponent.context().canvas, 0, yOffset, dPR * previewWidth, overview.height * dPR);
             }
-            yOffset += overview.height * window.devicePixelRatio;
+            yOffset += overview.height * dPR;
         }
         return container;
     }
-    static dataForModel(model) {
-        return modelToPerformanceData.get(model) || null;
+    static dataForTraceIndex(index) {
+        return traceDataIndexToPerformancePreviewData.get(index) || null;
     }
 }
 export const maxRecordings = 5;
 export const previewWidth = 450;
-const modelToPerformanceData = new WeakMap();
+// The reason we store a global map is because the Dropdown component needs to
+// be able to read the preview data in order to show a preview in the dropdown.
+const traceDataIndexToPerformancePreviewData = new Map();
 export class DropDown {
     glassPane;
     listControl;
     focusRestorer;
     selectionDone;
-    constructor(models) {
+    constructor(availableTraceDataIndexes) {
         this.glassPane = new UI.GlassPane.GlassPane();
         this.glassPane.setSizeBehavior("MeasureContent" /* UI.GlassPane.SizeBehavior.MeasureContent */);
         this.glassPane.setOutsideClickCallback(() => this.close(null));
         this.glassPane.setPointerEventsBehavior("BlockedByGlassPane" /* UI.GlassPane.PointerEventsBehavior.BlockedByGlassPane */);
         this.glassPane.setAnchorBehavior("PreferBottom" /* UI.GlassPane.AnchorBehavior.PreferBottom */);
         this.glassPane.element.addEventListener('blur', () => this.close(null));
-        const shadowRoot = UI.Utils.createShadowRootWithCoreStyles(this.glassPane.contentElement, {
+        const shadowRoot = UI.UIUtils.createShadowRootWithCoreStyles(this.glassPane.contentElement, {
             cssFile: [timelineHistoryManagerStyles],
             delegatesFocus: undefined,
         });
         const contentElement = shadowRoot.createChild('div', 'drop-down');
         const listModel = new UI.ListModel.ListModel();
-        this.listControl =
-            new UI.ListControl.ListControl(listModel, this, UI.ListControl.ListMode.NonViewport);
+        this.listControl = new UI.ListControl.ListControl(listModel, this, UI.ListControl.ListMode.NonViewport);
         this.listControl.element.addEventListener('mousemove', this.onMouseMove.bind(this), false);
-        listModel.replaceAll(models);
+        listModel.replaceAll(availableTraceDataIndexes);
         UI.ARIAUtils.markAsMenu(this.listControl.element);
         UI.ARIAUtils.setLabel(this.listControl.element, i18nString(UIStrings.selectTimelineSession));
         contentElement.appendChild(this.listControl.element);
@@ -316,12 +335,12 @@ export class DropDown {
         this.focusRestorer = new UI.UIUtils.ElementFocusRestorer(this.listControl.element);
         this.selectionDone = null;
     }
-    static show(models, currentModel, anchor) {
+    static show(availableTraceDataIndexes, activeTraceDataIndex, anchor) {
         if (DropDown.instance) {
             return Promise.resolve(null);
         }
-        const instance = new DropDown(models);
-        return instance.show(anchor, currentModel);
+        const instance = new DropDown(availableTraceDataIndexes);
+        return instance.show(anchor, activeTraceDataIndex);
     }
     static cancelIfShowing() {
         if (!DropDown.instance) {
@@ -329,12 +348,12 @@ export class DropDown {
         }
         DropDown.instance.close(null);
     }
-    show(anchor, currentModel) {
+    show(anchor, activeTraceDataIndex) {
         DropDown.instance = this;
         this.glassPane.setContentAnchorBox(anchor.boxInWindow());
         this.glassPane.show(this.glassPane.contentElement.ownerDocument);
         this.listControl.element.focus();
-        this.listControl.selectItem(currentModel);
+        this.listControl.selectItem(activeTraceDataIndex);
         return new Promise(fulfill => {
             this.selectionDone = fulfill;
         });
@@ -342,7 +361,7 @@ export class DropDown {
     onMouseMove(event) {
         const node = event.target.enclosingNodeOrSelfWithClass('preview-item');
         const listItem = node && this.listControl.itemForNode(node);
-        if (!listItem) {
+        if (listItem === null) {
             return;
         }
         this.listControl.selectItem(listItem);
@@ -369,25 +388,25 @@ export class DropDown {
         }
         event.consume(true);
     }
-    close(model) {
+    close(traceIndex) {
         if (this.selectionDone) {
-            this.selectionDone(model);
+            this.selectionDone(traceIndex);
         }
         this.focusRestorer.restore();
         this.glassPane.hide();
         DropDown.instance = null;
     }
-    createElementForItem(item) {
-        const element = TimelineHistoryManager.previewElement(item);
+    createElementForItem(traceDataIndex) {
+        const element = TimelineHistoryManager.previewElement(traceDataIndex);
         UI.ARIAUtils.markAsMenuItem(element);
         element.classList.remove('selected');
         return element;
     }
-    heightForItem(_item) {
+    heightForItem(_traceDataIndex) {
         console.assert(false, 'Should not be called');
         return 0;
     }
-    isItemSelectable(_item) {
+    isItemSelectable(_traceDataIndex) {
         return true;
     }
     selectedItemChanged(from, to, fromElement, toElement) {
@@ -410,8 +429,6 @@ export class ToolbarButton extends UI.Toolbar.ToolbarItem {
         element.classList.add('history-dropdown-button');
         super(element);
         this.contentElement = this.element.createChild('span', 'content');
-        const dropdownArrowIcon = UI.Icon.Icon.create('triangle-down');
-        this.element.appendChild(dropdownArrowIcon);
         this.element.addEventListener('click', () => void action.execute(), false);
         this.setEnabled(action.enabled());
         action.addEventListener("Enabled" /* UI.ActionRegistration.Events.Enabled */, event => this.setEnabled(event.data));
@@ -421,4 +438,4 @@ export class ToolbarButton extends UI.Toolbar.ToolbarItem {
         this.contentElement.textContent = text;
     }
 }
-//# map=TimelineHistoryManager.js.map
+//# sourceMappingURL=TimelineHistoryManager.js.map

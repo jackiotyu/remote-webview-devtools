@@ -14,4 +14,4 @@ import * as CPUProfile from '../../models/cpu_profile/cpu_profile.js';
 // and its tests are removed.
 export class ProfileTreeModel extends CPUProfile.ProfileTreeModel.ProfileTreeModel {
 }
-//# map=ProfileTreeModel.js.map
+//# sourceMappingURL=ProfileTreeModel.js.map

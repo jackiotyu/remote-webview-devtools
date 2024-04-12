@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as Common from '../../../core/common/common.js';
-import * as ComponentHelpers from '../../../ui/components/helpers/helpers.js';
 import * as Coordinator from '../../../ui/components/render_coordinator/render_coordinator.js';
 import * as LitHtml from '../../../ui/lit-html/lit-html.js';
 import srgbOverlayStyles from './srgbOverlay.css.js';
@@ -13,8 +12,7 @@ const SRGB_TEXT_UPPER_POINT_FROM_BOTTOM = SRGB_LABEL_HEIGHT + SRGB_LABEL_BOTTOM;
 const EPSILON = 0.001;
 // TODO(crbug.com/1409892): Use `Color` class here for a better code (and not duplicate isInGamut logic here)
 function isColorInSrgbGamut(hsv) {
-    const rgba = [0, 0, 0, 0];
-    Common.Color.hsva2rgba([...hsv, 1], rgba);
+    const rgba = Common.Color.hsva2rgba([...hsv, 1]);
     const xyzd50 = Common.ColorConverter.ColorConverter.displayP3ToXyzd50(rgba[0], rgba[1], rgba[2]);
     const srgb = Common.ColorConverter.ColorConverter.xyzd50ToSrgb(xyzd50[0], xyzd50[1], xyzd50[2]);
     return srgb.every(val => val + EPSILON >= 0 && val - EPSILON <= 1);
@@ -87,5 +85,5 @@ export class SrgbOverlay extends HTMLElement {
         });
     }
 }
-ComponentHelpers.CustomElements.defineComponent('devtools-spectrum-srgb-overlay', SrgbOverlay);
-//# map=SrgbOverlay.js.map
+customElements.define('devtools-spectrum-srgb-overlay', SrgbOverlay);
+//# sourceMappingURL=SrgbOverlay.js.map

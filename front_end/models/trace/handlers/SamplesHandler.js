@@ -7,6 +7,7 @@ import * as Helpers from '../helpers/helpers.js';
 import * as Types from '../types/types.js';
 const events = new Map();
 const profilesInProcess = new Map();
+const entryToNode = new Map();
 // The profile head, containing its metadata like its start
 // time, comes in a "Profile" event. The sample data comes in
 // "ProfileChunk" events. We match these ProfileChunks with their head
@@ -18,61 +19,62 @@ const profilesInProcess = new Map();
 // events matched by thread id.
 const preprocessedData = new Map();
 let handlerState = 1 /* HandlerState.UNINITIALIZED */;
-export function buildProfileCalls() {
+function buildProfileCalls() {
     for (const [processId, profiles] of preprocessedData) {
         for (const [profileId, preProcessedData] of profiles) {
             const threadId = preProcessedData.threadId;
-            if (!preProcessedData.rawProfile.nodes.length || !threadId) {
+            if (!preProcessedData.rawProfile.nodes.length || threadId === undefined) {
                 continue;
             }
-            const trackingStack = [];
+            const indexStack = [];
             const profileModel = new CPUProfile.CPUProfileDataModel.CPUProfileDataModel(preProcessedData.rawProfile);
-            const finalizedData = { rawProfile: preProcessedData.rawProfile, parsedProfile: profileModel, profileCalls: [] };
-            profileModel.forEachFrame(openFrameCallback, closeFrameCallback);
-            Helpers.Trace.sortTraceEventsInPlace(finalizedData.profileCalls);
+            const profileTree = Helpers.TreeHelpers.makeEmptyTraceEntryTree();
+            profileTree.maxDepth = profileModel.maxDepth;
+            const finalizedData = { rawProfile: preProcessedData.rawProfile, parsedProfile: profileModel, profileCalls: [], profileTree };
             const dataByThread = Platform.MapUtilities.getWithDefault(profilesInProcess, processId, () => new Map());
+            profileModel.forEachFrame(openFrameCallback, closeFrameCallback);
             dataByThread.set(threadId, finalizedData);
-            function openFrameCallback(_depth, node, timeStampMs) {
-                const ts = Helpers.Timing.millisecondsToMicroseconds(Types.Timing.MilliSeconds(timeStampMs));
-                trackingStack.push({ callFrame: node.callFrame, ts, pid: processId, children: [], tid: threadId });
-            }
-            function closeFrameCallback(depth, node, _timeStamp, durMs, selfTimeMs) {
-                const partialProfileCall = trackingStack.pop();
-                if (!partialProfileCall) {
+            function openFrameCallback(depth, node, timeStampMs) {
+                if (threadId === undefined) {
                     return;
                 }
-                const { callFrame, ts, pid, children, tid } = partialProfileCall;
+                const ts = Helpers.Timing.millisecondsToMicroseconds(Types.Timing.MilliSeconds(timeStampMs));
+                const nodeId = node.id;
+                const profileCall = Helpers.Trace.makeProfileCall(node, ts, processId, threadId);
+                finalizedData.profileCalls.push(profileCall);
+                indexStack.push(finalizedData.profileCalls.length - 1);
+                const traceEntryNode = Helpers.TreeHelpers.makeEmptyTraceEntryNode(profileCall, nodeId);
+                entryToNode.set(profileCall, traceEntryNode);
+                traceEntryNode.depth = depth;
+                if (indexStack.length === 1) {
+                    // First call in the stack is a root call.
+                    finalizedData.profileTree?.roots.add(traceEntryNode);
+                }
+            }
+            function closeFrameCallback(_depth, node, _timeStamp, durMs, selfTimeMs) {
+                const profileCallIndex = indexStack.pop();
+                const profileCall = profileCallIndex !== undefined && finalizedData.profileCalls[profileCallIndex];
+                if (!profileCall) {
+                    return;
+                }
+                const { callFrame, ts, pid, tid } = profileCall;
+                const traceEntryNode = entryToNode.get(profileCall);
                 if (callFrame === undefined || ts === undefined || pid === undefined || profileId === undefined ||
-                    children === undefined || tid === undefined) {
+                    tid === undefined || traceEntryNode === undefined) {
                     return;
                 }
                 const dur = Helpers.Timing.millisecondsToMicroseconds(Types.Timing.MilliSeconds(durMs));
                 const selfTime = Helpers.Timing.millisecondsToMicroseconds(Types.Timing.MilliSeconds(selfTimeMs));
-                const completeProfileCall = {
-                    callFrame,
-                    ts,
-                    pid,
-                    dur,
-                    selfTime,
-                    children,
-                    ph: "X" /* Types.TraceEvents.Phase.COMPLETE */,
-                    cat: '',
-                    args: {},
-                    name: 'ProfileCall',
-                    tid,
-                    nodeId: node.id,
-                };
-                const parent = trackingStack.at(-1);
-                const calls = finalizedData.profileCalls;
-                calls.push(completeProfileCall);
-                if (!parent) {
+                profileCall.dur = dur;
+                profileCall.selfTime = selfTime;
+                const parentIndex = indexStack.at(-1);
+                const parent = parentIndex !== undefined && finalizedData.profileCalls.at(parentIndex);
+                const parentNode = parent && entryToNode.get(parent);
+                if (!parentNode) {
                     return;
                 }
-                parent.children = parent.children || [];
-                parent.children.push(completeProfileCall);
-                if (parent.selfTime) {
-                    parent.selfTime = Types.Timing.MicroSeconds(parent.selfTime - dur);
-                }
+                traceEntryNode.parent = parentNode;
+                parentNode.children.push(traceEntryNode);
             }
         }
     }
@@ -81,6 +83,7 @@ export function reset() {
     events.clear();
     preprocessedData.clear();
     profilesInProcess.clear();
+    entryToNode.clear();
     handlerState = 1 /* HandlerState.UNINITIALIZED */;
 }
 export function initialize() {
@@ -92,6 +95,25 @@ export function initialize() {
 export function handleEvent(event) {
     if (handlerState !== 2 /* HandlerState.INITIALIZED */) {
         throw new Error('Samples Handler is not initialized');
+    }
+    /**
+     * A fake trace event created to support CDP.Profiler.Profiles in the
+     * trace engine.
+     */
+    if (Types.TraceEvents.isSyntheticCpuProfile(event)) {
+        // At the moment we are attaching to a single node target so we
+        // should only get a single CPU profile. The values of the process
+        // id and thread id are not really important, so we use the data
+        // in the fake event. Should multi-thread CPU profiling be supported
+        // we could use these fields in the event to pass thread info.
+        const pid = event.pid;
+        const tid = event.tid;
+        // Create an arbitrary profile id.
+        const profileId = '0x1';
+        const profileData = getOrCreatePreProcessedData(pid, profileId);
+        profileData.rawProfile = event.args.data.cpuProfile;
+        profileData.threadId = tid;
+        return;
     }
     if (Types.TraceEvents.isTraceEventProfile(event)) {
         // Do not use event.args.data.startTime as it is in CLOCK_MONOTONIC domain,
@@ -156,7 +178,8 @@ export function data() {
         throw new Error('Samples Handler is not finalized');
     }
     return {
-        profilesInProcess: new Map(profilesInProcess),
+        profilesInProcess,
+        entryToNode,
     };
 }
 function getOrCreatePreProcessedData(processId, profileId) {
@@ -173,4 +196,20 @@ function getOrCreatePreProcessedData(processId, profileId) {
         profileId,
     }));
 }
-//# map=SamplesHandler.js.map
+/**
+ * Returns the name of a function for a given synthetic profile call.
+ * We first look to find the ProfileNode representing this call, and use its
+ * function name. This is preferred (and should always exist) because if we
+ * resolve sourcemaps, we will update this name. If that name is not present,
+ * we fall back to the function name that was in the callframe that we got
+ * when parsing the profile's trace data.
+ */
+export function getProfileCallFunctionName(data, entry) {
+    const profile = data.profilesInProcess.get(entry.pid)?.get(entry.tid);
+    const node = profile?.parsedProfile.nodeById(entry.nodeId);
+    if (node?.functionName) {
+        return node.functionName;
+    }
+    return entry.callFrame.functionName;
+}
+//# sourceMappingURL=SamplesHandler.js.map

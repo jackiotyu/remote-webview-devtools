@@ -44,11 +44,11 @@ const UIStrings = {
 const str_ = i18n.i18n.registerUIStrings('ui/legacy/components/source_frame/source_frame-meta.ts', UIStrings);
 const i18nLazyString = i18n.i18n.getLazilyComputedLocalizedString.bind(undefined, str_);
 Common.Settings.registerSettingExtension({
-    category: Common.Settings.SettingCategory.SOURCES,
-    storageType: Common.Settings.SettingStorageType.Synced,
+    category: "SOURCES" /* Common.Settings.SettingCategory.SOURCES */,
+    storageType: "Synced" /* Common.Settings.SettingStorageType.Synced */,
     title: i18nLazyString(UIStrings.defaultIndentation),
-    settingName: 'textEditorIndent',
-    settingType: Common.Settings.SettingType.ENUM,
+    settingName: 'text-editor-indent',
+    settingType: "enum" /* Common.Settings.SettingType.ENUM */,
     defaultValue: '    ',
     options: [
         {
@@ -73,4 +73,4 @@ Common.Settings.registerSettingExtension({
         },
     ],
 });
-//# map=source_frame-meta.js.map
+//# sourceMappingURL=source_frame-meta.js.map

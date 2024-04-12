@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 import * as SplitView from './SplitView.js';
 export { SplitView, };
-//# map=split_view.js.map
+//# sourceMappingURL=split_view.js.map

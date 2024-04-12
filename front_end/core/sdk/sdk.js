@@ -9,6 +9,7 @@ import './NetworkRequest.js';
 import './NetworkManager.js';
 import './RuntimeModel.js';
 import * as AccessibilityModel from './AccessibilityModel.js';
+import * as AutofillModel from './AutofillModel.js';
 import * as CategorizedBreakpoint from './CategorizedBreakpoint.js';
 import * as ChildTargetManager from './ChildTargetManager.js';
 import * as CompilerSourceMappingContentProvider from './CompilerSourceMappingContentProvider.js';
@@ -67,15 +68,17 @@ import * as ScreenCaptureModel from './ScreenCaptureModel.js';
 import * as Script from './Script.js';
 import * as SDKModel from './SDKModel.js';
 import * as SecurityOriginManager from './SecurityOriginManager.js';
+import * as ServerSentEventProtocol from './ServerSentEventsProtocol.js';
 import * as ServerTiming from './ServerTiming.js';
 import * as ServiceWorkerCacheModel from './ServiceWorkerCacheModel.js';
 import * as ServiceWorkerManager from './ServiceWorkerManager.js';
 import * as SourceMap from './SourceMap.js';
 import * as SourceMapManager from './SourceMapManager.js';
+import * as SourceMapScopes from './SourceMapScopes.js';
 import * as StorageBucketsModel from './StorageBucketsModel.js';
 import * as StorageKeyManager from './StorageKeyManager.js';
 import * as Target from './Target.js';
 import * as TargetManager from './TargetManager.js';
 import * as WebAuthnModel from './WebAuthnModel.js';
-export { AccessibilityModel, CategorizedBreakpoint, ChildTargetManager, CompilerSourceMappingContentProvider, Connections, ConsoleModel, Cookie, CookieModel, CookieParser, CPUProfileDataModel, CPUProfilerModel, CPUThrottlingManager, CSSContainerQuery, CSSFontFace, CSSLayer, CSSMatchedStyles, CSSMedia, CSSMetadata, CSSModel, CSSProperty, CSSPropertyParser, CSSQuery, CSSRule, CSSScope, CSSStyleDeclaration, CSSStyleSheetHeader, CSSSupports, DebuggerModel, DOMDebuggerModel, DOMModel, EmulationModel, EventBreakpointsModel, FrameAssociated, FrameManager, HeapProfilerModel, IOModel, IsolateManager, IssuesModel, LayerTreeBase, LogModel, NetworkManager, NetworkRequest, OverlayColorGenerator, OverlayModel, OverlayPersistentHighlighter, PageLoad, PageResourceLoader, PaintProfiler, PerformanceMetricsModel, PreloadingModel, ProfileTreeModel, RemoteObject, Resource, ResourceTreeModel, RuntimeModel, ScreenCaptureModel, Script, SDKModel, SecurityOriginManager, ServerTiming, ServiceWorkerCacheModel, ServiceWorkerManager, SourceMap, SourceMapManager, StorageBucketsModel, StorageKeyManager, Target, TargetManager, WebAuthnModel, };
-//# map=sdk.js.map
+export { AccessibilityModel, AutofillModel, CategorizedBreakpoint, ChildTargetManager, CompilerSourceMappingContentProvider, Connections, ConsoleModel, Cookie, CookieModel, CookieParser, CPUProfileDataModel, CPUProfilerModel, CPUThrottlingManager, CSSContainerQuery, CSSFontFace, CSSLayer, CSSMatchedStyles, CSSMedia, CSSMetadata, CSSModel, CSSProperty, CSSPropertyParser, CSSQuery, CSSRule, CSSScope, CSSStyleDeclaration, CSSStyleSheetHeader, CSSSupports, DebuggerModel, DOMDebuggerModel, DOMModel, EmulationModel, EventBreakpointsModel, FrameAssociated, FrameManager, HeapProfilerModel, IOModel, IsolateManager, IssuesModel, LayerTreeBase, LogModel, NetworkManager, NetworkRequest, OverlayColorGenerator, OverlayModel, OverlayPersistentHighlighter, PageLoad, PageResourceLoader, PaintProfiler, PerformanceMetricsModel, PreloadingModel, ProfileTreeModel, RemoteObject, Resource, ResourceTreeModel, RuntimeModel, ScreenCaptureModel, Script, SDKModel, SecurityOriginManager, ServerSentEventProtocol, ServerTiming, ServiceWorkerCacheModel, ServiceWorkerManager, SourceMap, SourceMapManager, SourceMapScopes, StorageBucketsModel, StorageKeyManager, Target, TargetManager, WebAuthnModel, };
+//# sourceMappingURL=sdk.js.map
