@@ -324,7 +324,7 @@ li.selected:not(.always-parent) + ol.children {
 }
 
 li.hovered:not(.always-parent) + ol.children:not(.shadow-root) {
-  --override-indentation-level-border-color: color-mix(in sRGB, var(--ref-palette-neutral0) 10%, transparent);
+  --override-indentation-level-border-color: hsl(0deg 0% 0% / 10%);
 }
 
 .elements-tree-outline ol.shadow-root {
