@@ -4,6 +4,8 @@ All notable changes to the "RemoteWebviewDevtools" extension will be documented 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [Unreleased]
+## [0.2.17] - 2024-04-17
 
-- Initial release
+### Added
+
+- 支持移动/复制到"新窗口"中.
