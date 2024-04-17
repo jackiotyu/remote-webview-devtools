@@ -284,7 +284,7 @@
     "@types/glob": "^8.1.0",
     "@types/node": "16.x",
     "@types/serve-static": "^1.15.1",
-    "@types/vscode": "1.63",
+    "@types/vscode": "^1.63",
     "@types/ws": "^8.5.4",
     "@types/bluebird": "^3.5.38",
     "@types/multicast-dns": "^7.2.1",

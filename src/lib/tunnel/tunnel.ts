@@ -26,8 +26,8 @@ export class CDPTunnel {
 
     constructor(debuggerLink: string) {
         this._backend = new WebSocket(debuggerLink);
-        this._server.once('connection', this.onConnect);
-        this._server.once('close', this.onClose);
+        this._server.on('connection', this.onConnect);
+        this._server.on('close', this.onClose);
         this._ws = debuggerLink;
         this.registerTargetEvent();
     }
@@ -37,6 +37,7 @@ export class CDPTunnel {
         if (location.path !== this.path) {
             return;
         }
+        this._frontend?.terminate();
         frontend.on('error', (err) => {
             console.error(err);
             this._backend.close();

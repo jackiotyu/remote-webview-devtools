@@ -268,10 +268,10 @@
     "@types/mime" "*"
     "@types/node" "*"
 
-"@types/vscode@1.63":
-  version "1.63.2"
-  resolved "https://registry.npmmirror.com/@types/vscode/-/vscode-1.63.2.tgz#1ee18eb7b1c1075b28a08afeb0910db915271613"
-  integrity sha512-awvdx4vX7SkMKyvWIlRjycjb4blYRSQI3Bav0YMn+lJLGN6gJgb20urN/dQCv/2ejDu5S6ADEBt6O15DOpIAkg==
+"@types/vscode@^1.63":
+  version "1.88.0"
+  resolved "https://registry.npmmirror.com/@types/vscode/-/vscode-1.88.0.tgz#2dc690237f7ef049942508c8609b6b9f5216b4d3"
+  integrity sha512-rWY+Bs6j/f1lvr8jqZTyp5arRMfovdxolcqGi+//+cPDOh8SBvzXH90e7BiSXct5HJ9HGW6jATchbRTpTJpEkw==
 
 "@types/ws@^8.5.4":
   version "8.5.4"
