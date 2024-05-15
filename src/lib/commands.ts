@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as net from 'net';
 import { createTunnel, deleteTunnelByFlow, getTunnelByFlow, getTunnelByWs } from '../lib/event/tunnelEvent';
-import { FrontEndWebview } from './webview';
+import { FrontEndPanel } from './puppeteerPanel';
 import { CommandName, Config, FLOW_EDITOR } from '../constants';
 import { Execute } from './adb/execute';
 import { getWebViewPages, findDevices } from './adb/bridge';
@@ -11,7 +11,8 @@ import { flowEvent } from './event/flowEvent';
 import { PageDetailItem, PageItem } from './explorer/adbTreeItem';
 import { FlowItem, FlowConnectItem } from './explorer/flowTreeItem';
 import GlobalStorage from './adaptor/globalStorage';
-import { getDocFileName } from '../utils/index'
+import { getDocFileName } from '../utils/index';
+
 
 
 async function trackDevices(context: vscode.ExtensionContext) {
@@ -56,7 +57,7 @@ async function openWebview(context: vscode.ExtensionContext, wsLink?: string, ti
     if (!wsLink) {
         return;
     }
-    new FrontEndWebview(context, { title: title || 'debug webview', ws: wsLink });
+    new FrontEndPanel(context, { title: title || 'debug webview', ws: wsLink });
 }
 
 async function refreshAdbDevices() {

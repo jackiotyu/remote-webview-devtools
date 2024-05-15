@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { closeServer } from './lib/resourceServer';
+import { clearAllFrontEndPanel } from './lib/puppeteerPanel'
 import { CommandsManager } from './lib/commands';
 import { closeWsServer } from './lib/tunnel/tunnel';
 import { TreeDataManager } from './lib/explorer/index';
@@ -13,7 +13,7 @@ import QRCodeViewRegister from './lib/webviewQRCode';
 export function activate(context: vscode.ExtensionContext) {
     GlobalStorage.init(context);
     new CommandsManager(context);
-    context.subscriptions.push({ dispose: closeServer });
+    context.subscriptions.push({ dispose: clearAllFrontEndPanel });
     context.subscriptions.push({ dispose: closeWsServer });
     context.subscriptions.push({ dispose: OutputChannel.dispose });
     context.subscriptions.push({ dispose: () => ChannelMap.forEach(event => event.dispose()) });

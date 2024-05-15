@@ -23,7 +23,7 @@ const extensionConfig = {
   externals: {
     vscode: 'commonjs vscode',
     'utf-8-validate': 'commonjs utf-8-validate',
-    bufferutil: 'commonjs bufferutil',
+    // bufferutil: 'commonjs bufferutil',
   },
   // externals: {
   //   vscode: 'commonjs vscode' // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
