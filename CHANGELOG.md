@@ -4,8 +4,8 @@ All notable changes to the "RemoteWebviewDevtools" extension will be documented 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [0.2.17] - 2024-04-17
+## [1.0.0] - 2024-05-15
 
 ### Added
 
-- 支持移动/复制到"新窗口"中.
+- 使用puppeteer打开调试页面
