@@ -4,6 +4,7 @@ import { isUndefined } from '../utils/index';
 import { launch } from 'puppeteer-core';
 import type { Browser } from 'puppeteer-core';
 import { getPlatform } from 'chrome-launcher/dist/utils';
+import { ConfigAdaptor, Config } from './adaptor/configuration';
 import * as chromeFinder from 'chrome-launcher/dist/chrome-finder';
 import path from 'path';
 
@@ -87,6 +88,8 @@ export class ChromeDebugger {
         wsDebuggerUrl: string,
     ): Promise<{ browser: Browser; url: string } | undefined> {
         try {
+            const args = ConfigAdaptor.get(Config.puppeteerArgs, []);
+            const ignoreDefaultArgs = ConfigAdaptor.get(Config.puppeteerIgnoreDefaultArgs, []);
             const browser = await launch({
                 executablePath: this.getInstallation(),
                 headless: false,
@@ -97,10 +100,9 @@ export class ChromeDebugger {
                     '--disable-features=IsolateOrigins,site-per-process',
                     '--window-size=1000,800',
                     '--window-position=400,100',
-                    // '--disable-extensions-except=C:\\Users\\jack\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Extensions\\ceondjobkkcjpcmkcggnpoenhhimmkln\\1.1.0_0',
-                    // '--load-extension=C:\\Users\\jack\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Extensions\\ceondjobkkcjpcmkcggnpoenhhimmkln\\1.1.0_0',
+                    ...args,
                 ],
-                ignoreDefaultArgs: ['--enable-automation'],
+                ignoreDefaultArgs: ['--enable-automation','--disable-extensions', ...ignoreDefaultArgs],
                 defaultViewport: {
                     height: 0,
                     width: 0,

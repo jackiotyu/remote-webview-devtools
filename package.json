@@ -253,6 +253,24 @@
           "default": 9222,
           "scope": "machine",
           "description": "设置搜索debug页面连接的端口, 默认9222"
+        },
+        "RemoteWebviewDevtools.puppeteer.args": {
+          "type": "array",
+          "default": [],
+          "scope": "application",
+          "markdownDescription": "puppeteer启动参数[args](https://pptr.nodejs.cn/api/puppeteer.browserlaunchargumentoptions#args)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "RemoteWebviewDevtools.puppeteer.ignoreDefaultArgs": {
+          "type": "array",
+          "default": [],
+          "scope": "application",
+          "markdownDescription": "puppeteer启动时忽略参数[ignoreDefaultArgs](https://pptr.nodejs.cn/api/puppeteer.launchoptions#ignoredefaultargs)",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },

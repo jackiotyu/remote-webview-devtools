@@ -8,8 +8,10 @@ export class ConfigAdaptor {
     static get(key: Config.port): number;
     static get(key: Config.adbPath): string;
     static get(key: Config.adbArgs): string[];
-    static get(key: Config) {
-        const value = vscode.workspace.getConfiguration(EXTENSION_NAME).get(key);
+    static get(key: Config.puppeteerArgs, defaultValue: []): string[];
+    static get(key: Config.puppeteerIgnoreDefaultArgs, defaultValue: []): string[];
+    static get(key: Config, defaultValue?: any) {
+        const value = vscode.workspace.getConfiguration(EXTENSION_NAME).get(key, defaultValue);
         if (key === Config.refresh) {
             return Number(value) || 0;
         }

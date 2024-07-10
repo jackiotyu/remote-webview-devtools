@@ -43,6 +43,8 @@ export enum Config {
     adbPath = 'adbPath',
     adbArgs = 'adbArgs',
     port = 'port',
+    puppeteerArgs = 'puppeteer.args',
+    puppeteerIgnoreDefaultArgs = 'puppeteer.ignoreDefaultArgs',
 }
 
 export enum StaticNodeType {

@@ -33,6 +33,10 @@
     "RemoteWebviewDevtools.adbArgs": [],
     // 设置搜索debug页面连接的端口, 默认9222
     "RemoteWebviewDevtools.port": 9222,
+    // puppeteer启动时添加参数 args https://pptr.nodejs.cn/api/puppeteer.browserlaunchargumentoptions#args
+    "RemoteWebviewDevtools.puppeteer.args": [],
+    // puppeteer启动时忽略参数 ignoreDefaultArgs https://pptr.nodejs.cn/api/puppeteer.launchoptions#ignoredefaultargs
+    "RemoteWebviewDevtools.puppeteer.ignoreDefaultArgs": [],
 }
 ```
 
